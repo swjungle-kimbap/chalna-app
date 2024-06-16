@@ -6,6 +6,8 @@ buildscript {
         targetSdkVersion = 34
         ndkVersion = "26.1.10909125"
         kotlinVersion = "1.9.22"
+        // deviceID 오류 해결
+        firebaseIidVersion = "19.0.1" 
         // Geolocation 오류 해결
         playServicesLocationVersion = "21.0.1"
         googlePlayServicesVersion = "18.0.0"

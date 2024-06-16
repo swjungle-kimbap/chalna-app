@@ -1,131 +1,131 @@
 import React, { useEffect, useState } from "react"
 import Geolocation from "react-native-geolocation-service"
-import { View, Text, StyleSheet, PermissionsAndroid, Platform, ActivityIndicator } from "react-native"
-import { request, PERMISSIONS, requestLocationAccuracy, requestMultiple } from "react-native-permissions";
-import { NaverMapView, NaverMapMarkerOverlay } from "@mj-studio/react-native-naver-map";
-
-function MyMap(): React.JSX.Element {
-    return (
-    <NaverMapView style={{flex: 1}}/>
-  );
-}
+import { View, Text, StyleSheet, PermissionsAndroid, ActivityIndicator } from "react-native"
+import sendLocation from "./src/axios/sendLocation";
+import { requestLocationPermission } from "./src/utils/requestLocationPermission";
+import { Position } from './src/interfaces';
+import { NaverMap } from "./src/components/NaverMap";
+import DeviceInfo from 'react-native-device-info';
+import { TestResponse } from "./src/interfaces";
 
 function App(): React.JSX.Element {
-  const [currentLocation, setCurrentLocation] = useState(null);
-  const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
+  const [currentLocation, setCurrentLocation] = useState<Position | null >(null);
+  const [isLoading, setIsLoading] = useState<boolean | null>(true); // 로딩 상태 추가
+  const [fetchedData, setfetchedData] = useState<TestResponse>([]);
+  const [deviceID, setDeviceID] = useState<string>("");
 
-  useEffect(() => {
-    if (Platform.OS === 'ios') {
-      request(PERMISSIONS.IOS.LOCATION_ALWAYS).then((status) => {
-        console.log(`Location request status: ${status}`);
-        if (status === 'granted') {
-          requestLocationAccuracy({
-            purposeKey: 'common-purpose', // replace your purposeKey of Info.plist
-          })
-            .then((accuracy) => {
-              console.log(`Location accuracy is: ${accuracy}`);
-            })
-            .catch((e) => {
-              console.error(`Location accuracy request has been failed: ${e}`);
-            });
-        }
-      });
-    }
-    if (Platform.OS === 'android') {
-      requestMultiple([
-        PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-        PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION,
-      ])
-        .then((status) => {
-          console.log(`Location request status: ${status}`);
-        })
-        .catch((e) => {
-          console.error(`Location request has been failed: ${e}`);
-        });
-    }
-
-    const requestLocationPermission = async () => {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-        );
-
-        // 권한 요청 결과에 따라 상태 업데이트
-        setLocationPermissionGranted(granted === PermissionsAndroid.RESULTS.GRANTED);
-
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          // 권한 허용 시 위치 정보 가져오기
-          const watchId = Geolocation.watchPosition(
-            (position) => {
-              const { latitude, longitude } = position.coords;
-              setCurrentLocation({ latitude, longitude });
-              setIsLoading(false); // 위치 정보 가져온 후 로딩 상태 해제
-            },
-            (error) => {
-              console.log(error);
-              setIsLoading(false);
-            },
-            {
-              enableHighAccuracy: true,
-              timeout: 20000,
-              maximumAge: 0,
-              distanceFilter: 1,
-            }
-          );
-          return () => Geolocation.clearWatch(watchId);
-        } else {
-          console.log('Location permission denied');
-          setIsLoading(false);
-        }
-      } catch (err) {
-        console.warn(err);
-        setIsLoading(false);
+  const startWatchingPosition = () => {
+    const watchId = Geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setCurrentLocation({ latitude, longitude });
+      },
+      (error) => {
+        console.log(error);
+      },
+      { 
+        accuracy: {android : "high"},
+        interval: 1000,
+        distanceFilter: 1,
+        enableHighAccuracy: true,
+        showLocationDialog: true,
       }
-    };
-    requestLocationPermission();
+    );
+    return () => Geolocation.clearWatch(watchId);
+  }  
+
+  const requestLocation = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+      );
+
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        // 권한 허용 시 위치 정보 가져오기
+        startWatchingPosition();
+      } else {
+        console.log('Location permission denied');
+      }
+    } catch (err) {
+      console.warn(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {   
+    const permissionSettings = async () => {
+      try {
+        await requestLocationPermission();
+        await requestLocation();
+        const id = await DeviceInfo.getUniqueId();
+        if (id)
+          setDeviceID(id);
+      } catch (error: any) { // Use any type for the error object
+        console.error('Error fetching device ID:', error);
+        throw error;
+      }
+    }
+    permissionSettings();
   }, []); 
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (currentLocation) {
+          const data = await sendLocation(deviceID, currentLocation);
+          if (data) {
+            setfetchedData(data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();  
+  }, [currentLocation])
 
   return (
-    <View style={{flex: 1}}>
-      <Text style={styles.title}>Geolocation Test</Text>
-      {isLoading ? (<ActivityIndicator size="large" color="#0000ff" />) : 
-        currentLocation ? (
-        <>
-        <Text style={styles.title}>
-          {currentLocation.latitude} / {currentLocation.longitude}
-        </Text>
-        <NaverMapView 
-        style={{flex: 1}}
-        initialCamera={{
-          latitude : currentLocation.latitude,
-          longitude : currentLocation.longitude,
-          zoom:16}}>
-            <NaverMapMarkerOverlay
-              latitude={currentLocation.latitude}
-              longitude={currentLocation.longitude}
-              onTap={() => alert('안녕')}
-              anchor={{ x: 0.5, y: 1 }}
-              caption={{
-                key: '1',
-                text: '나',
-              }}
-              width={20}
-              height={30}
-            />
-          </NaverMapView>
-        </>
+  <View style={{ flex: 1 }}>
+    <Text style={styles.title}>Geolocation Test</Text>
+    {isLoading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
       ) : (
-        <Text style={styles.title}>location undefined</Text>
-      )}
-    </View>
+        <>
+          {currentLocation && fetchedData ? (
+            <>
+              <Text style={styles.title}>
+                {currentLocation.latitude} / {currentLocation.longitude}
+                {fetchedData.map((result) => `[userUUID : ${result.userUUID} / distance : ${result.distance}]`)}
+              </Text>
+              <NaverMap
+                latitude={currentLocation.latitude}
+                longitude={currentLocation.longitude}
+              />
+            </>
+          ) : currentLocation && !fetchedData ? (
+            <>
+              <Text style={styles.title}>
+                {currentLocation.latitude} / {currentLocation.longitude}
+              </Text>
+              <NaverMap
+                latitude={currentLocation.latitude}
+                longitude={currentLocation.longitude}
+              />
+            </>
+          ) : (
+            <Text style={styles.title}>Location undefined</Text>
+          )}
+        </>
+      )
+    }
+  </View>
   )
 }
 const styles = StyleSheet.create({
   title: {
     textAlign: "center",
-    fontSize: 25,
+    fontSize: 20,
     margin: 15,
     color: "white",
     fontWeight: "600",
