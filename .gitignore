@@ -372,4 +372,5 @@ yarn-error.log
 !.yarn/versions
 
 yarn.lock
+out.log
 # End of https://www.toptal.com/developers/gitignore/api/nextjs,java,reactnative,react
