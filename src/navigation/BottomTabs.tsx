@@ -1,14 +1,14 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Image, StyleSheet } from 'react-native';
-import MypageScreen from '../screens/MypageScreen';
-import MapScreen from '../screens/MapScreen';
-import FriendsScreen from "../screens/FriendsScreen";
-import MessageScreen from "../screens/MessageScreen";
+import MapScreen from '../screens/Map/MapScreen';
 import FriendIcon from "../assets/Icons/FriendIcon.png";
 import MapIcon from "../assets/Icons/MapIcon.png";
 import MessageIcon from "../assets/Icons/MessageIcon.png";
 import MypageIcon from "../assets/Icons/MypageIcon.png";
 import FontTheme from "../styles/FontTheme";
+import MypageStackScreen from "./MypageStack";
+import FriendsStackScreen from "./FriendsStack";
+import ChattingStackScreen from "./ChattingStack";
 
 const Tab = createBottomTabNavigator();
 
@@ -25,14 +25,15 @@ const BottomTabs = () => {
               case '지도':
                 iconSource = MapIcon;
                 break;
-              case '메세지':
+              case '채팅목록':
                 iconSource = MessageIcon;
                 break;
               case '마이페이지':
                 iconSource = MypageIcon;
                 break;
             }
-            return <Image source={iconSource} style={{ width: size, height: size, tintColor: color }} resizeMode="contain"/>;
+            return <Image source={iconSource} resizeMode="contain"
+                    style={{ width: size, height: size, tintColor: color }} />;
           },
           tabBarActiveTintColor: 'blue',
           tabBarInactiveTintColor: 'gray',
@@ -45,12 +46,13 @@ const BottomTabs = () => {
           headerTitleStyle: {
             fontFamily: FontTheme.fonts.title, 
             fontSize: 20,
-          }
+          },
+          headerShown: false
         })}>
-      <Tab.Screen name="친구목록" component={FriendsScreen} />
-      <Tab.Screen name="지도" component={MapScreen} options={{headerShown: false, }}/>
-      <Tab.Screen name="메세지" component={MessageScreen} />
-      <Tab.Screen name="마이페이지" component={MypageScreen} />
+      <Tab.Screen name="친구목록" component={FriendsStackScreen} />
+      <Tab.Screen name="지도" component={MapScreen}/>
+      <Tab.Screen name="채팅목록" component={ChattingStackScreen}/>
+      <Tab.Screen name="마이페이지" component={MypageStackScreen}/>
     </Tab.Navigator>
   )
 }
@@ -62,7 +64,7 @@ const styles = StyleSheet.create({
       bottom: 10,
       width: '95%',
       height: 50,
-      backgroundColor: '#F8F7FB',
+      backgroundColor: '#FFFFFF',
       borderRadius: 15,
       justifyContent: 'space-around',
       paddingHorizontal: 10,

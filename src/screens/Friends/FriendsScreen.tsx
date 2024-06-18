@@ -1,0 +1,21 @@
+import Text from "../../components/common/Text";
+import styled from "styled-components/native";
+import { Button } from "react-native";
+
+const FriendsScreen: React.FC = ({navigation}) => {
+  return (
+    <FriendsStyle> 
+      <Text>친구목록 페이지 입니다.</Text>
+      <Button title="차단친구 목록" onPress={()=>navigation.navigate('차단친구 목록')}/>
+    </FriendsStyle>
+  )
+}
+
+const FriendsStyle = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: #FFFFFF;
+`;
+
+export default FriendsScreen;

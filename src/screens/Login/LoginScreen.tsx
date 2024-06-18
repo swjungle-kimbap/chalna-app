@@ -1,5 +1,5 @@
-import { Button, Text } from "react-native";
 import styled from "styled-components/native";
+import Text from "../../components/common/Text";
 
 const LoginScreen: React.FC = ({}) => {
   return (
