@@ -8,36 +8,49 @@ import FriendIcon from "../assets/Icons/FriendIcon.png";
 import MapIcon from "../assets/Icons/MapIcon.png";
 import MessageIcon from "../assets/Icons/MessageIcon.png";
 import MypageIcon from "../assets/Icons/MypageIcon.png";
+import FontTheme from "../styles/FontTheme";
 
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
   return (
-      <Tab.Navigator initialRouteName="Map"
+      <Tab.Navigator initialRouteName="지도"
         screenOptions={({ route }) => ({
           tabBarIcon: ({ color, size }) => {
             let iconSource;
-
-            if (route.name === 'Friends') {
-              iconSource = FriendIcon;
-            } else if (route.name === 'Map') {
-              iconSource = MapIcon;
-            } else if (route.name === 'Message') {
-              iconSource = MessageIcon;
-            } else if (route.name === 'MyPage') {
-              iconSource = MypageIcon;
+            switch (route.name) {
+              case '친구목록' :
+                iconSource = FriendIcon;
+                break;
+              case '지도':
+                iconSource = MapIcon;
+                break;
+              case '메세지':
+                iconSource = MessageIcon;
+                break;
+              case '마이페이지':
+                iconSource = MypageIcon;
+                break;
             }
-
             return <Image source={iconSource} style={{ width: size, height: size, tintColor: color }} resizeMode="contain"/>;
           },
           tabBarActiveTintColor: 'blue',
           tabBarInactiveTintColor: 'gray',
           tabBarStyle: styles.tabContainer,
+          tabBarLabelStyle : {
+            fontFamily: FontTheme.fonts.main, 
+            fontSize: 10,
+          },
+          tabBarLabelShown: false,
+          headerTitleStyle: {
+            fontFamily: FontTheme.fonts.title, 
+            fontSize: 20,
+          }
         })}>
-      <Tab.Screen name="Friends" component={FriendsScreen} />
-      <Tab.Screen name="Map" component={MapScreen} options={{headerShown: false, }}/>
-      <Tab.Screen name="Message" component={MessageScreen} />
-      <Tab.Screen name="MyPage" component={MypageScreen} />
+      <Tab.Screen name="친구목록" component={FriendsScreen} />
+      <Tab.Screen name="지도" component={MapScreen} options={{headerShown: false, }}/>
+      <Tab.Screen name="메세지" component={MessageScreen} />
+      <Tab.Screen name="마이페이지" component={MypageScreen} />
     </Tab.Navigator>
   )
 }

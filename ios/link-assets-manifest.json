@@ -1,0 +1,29 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/LICENSE",
+      "sha1": "f9aca03801f77884fe3ad18aa0e6b98ef4507364"
+    },
+    {
+      "path": "src/assets/fonts/SpoqaHanSansNeo-Bold.otf",
+      "sha1": "db0b78289b39d9a737fa93a2347ca32f651a3139"
+    },
+    {
+      "path": "src/assets/fonts/SpoqaHanSansNeo-Light.otf",
+      "sha1": "cc7da00da7a5f96a2fe92981302ae2c59f6e4342"
+    },
+    {
+      "path": "src/assets/fonts/SpoqaHanSansNeo-Medium.otf",
+      "sha1": "05aeff1c993bc3164ae82e46f340959db10cde43"
+    },
+    {
+      "path": "src/assets/fonts/SpoqaHanSansNeo-Regular.otf",
+      "sha1": "28eb6f5e88a9c015ffd75c604b73da04170b6f40"
+    },
+    {
+      "path": "src/assets/fonts/SpoqaHanSansNeo-Thin.otf",
+      "sha1": "0465dfee7f5f9dd36c12167078c3e1b877a1e22c"
+    }
+  ]
+}

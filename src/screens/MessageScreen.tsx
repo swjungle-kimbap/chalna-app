@@ -1,11 +1,10 @@
-import { Button, Text } from "react-native";
+import Text from "../components/common/Text";
 import styled from "styled-components/native";
 
 const MessageScreen: React.FC = ({}) => {
   return (
     <MessageStyle> 
       <Text>Message page</Text>
-      <Button title="Go MyPage" onPress={()=>navigation.navigate('MyPage')}/>
     </MessageStyle>
   )
 }
