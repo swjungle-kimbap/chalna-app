@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react"
 import Geolocation from "react-native-geolocation-service"
 import { View, Text, StyleSheet, PermissionsAndroid, ActivityIndicator } from "react-native"
 import sendLocation from "./src/axios/sendLocation";
-import { requestLocationPermission } from "./src/utils/requestLocationPermission";
+import { requestLocationPermission } from "./src/Permissions/requestLocationPermission";
 import { Position } from './src/interfaces';
 import { NaverMap } from "./src/components/NaverMap";
-import DeviceInfo from 'react-native-device-info';
+import DeviceInfo from 'react-native-device';
 import { TestResponse } from "./src/interfaces";
 
 function App(): React.JSX.Element {
