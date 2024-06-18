@@ -1,43 +1,54 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Image, StyleSheet } from 'react-native';
-import MypageScreen from '../screens/MypageScreen';
-import MapScreen from '../screens/MapScreen';
-import FriendsScreen from "../screens/FriendsScreen";
-import MessageScreen from "../screens/MessageScreen";
-import FriendIcon from "../assets/Icons/FriendIcon.png";
-import MapIcon from "../assets/Icons/MapIcon.png";
-import MessageIcon from "../assets/Icons/MessageIcon.png";
-import MypageIcon from "../assets/Icons/MypageIcon.png";
+import MapScreen from '../screens/Map/MapScreen';
+import FontTheme from "../styles/FontTheme";
+import MypageStackScreen from "./MypageStack";
+import FriendsStackScreen from "./FriendsStack";
+import ChattingStackScreen from "./ChattingStack";
 
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
   return (
-      <Tab.Navigator initialRouteName="Map"
+      <Tab.Navigator initialRouteName="지도"
         screenOptions={({ route }) => ({
           tabBarIcon: ({ color, size }) => {
             let iconSource;
-
-            if (route.name === 'Friends') {
-              iconSource = FriendIcon;
-            } else if (route.name === 'Map') {
-              iconSource = MapIcon;
-            } else if (route.name === 'Message') {
-              iconSource = MessageIcon;
-            } else if (route.name === 'MyPage') {
-              iconSource = MypageIcon;
+            switch (route.name) {
+              case '친구목록' :
+                iconSource = require("../assets/Icons/FriendsIcon.png");;
+                break;
+              case '지도':
+                iconSource = require("../assets/Icons/MapIcon.png");
+                break;
+              case '채팅목록':
+                iconSource = require("../assets/Icons/MessageIcon.png");
+                break;
+              case '마이페이지':
+                iconSource = require("../assets/Icons/MypageIcon.png");
+                break;
             }
-
-            return <Image source={iconSource} style={{ width: size, height: size, tintColor: color }} resizeMode="contain"/>;
+            return <Image source={iconSource} resizeMode="contain"
+                    style={{ width: size, height: size, tintColor: color }} />;
           },
           tabBarActiveTintColor: 'blue',
           tabBarInactiveTintColor: 'gray',
           tabBarStyle: styles.tabContainer,
+          tabBarLabelStyle : {
+            fontFamily: FontTheme.fonts.main, 
+            fontSize: 10,
+          },
+          tabBarLabelShown: false,
+          headerTitleStyle: {
+            fontFamily: FontTheme.fonts.title, 
+            fontSize: 20,
+          },
+          headerShown: false
         })}>
-      <Tab.Screen name="Friends" component={FriendsScreen} />
-      <Tab.Screen name="Map" component={MapScreen} options={{headerShown: false, }}/>
-      <Tab.Screen name="Message" component={MessageScreen} />
-      <Tab.Screen name="MyPage" component={MypageScreen} />
+      <Tab.Screen name="친구목록" component={FriendsStackScreen} />
+      <Tab.Screen name="지도" component={MapScreen}/>
+      <Tab.Screen name="채팅목록" component={ChattingStackScreen}/>
+      <Tab.Screen name="마이페이지" component={MypageStackScreen}/>
     </Tab.Navigator>
   )
 }
@@ -49,7 +60,7 @@ const styles = StyleSheet.create({
       bottom: 10,
       width: '95%',
       height: 50,
-      backgroundColor: '#F8F7FB',
+      backgroundColor: '#FFFFFF',
       borderRadius: 15,
       justifyContent: 'space-around',
       paddingHorizontal: 10,
