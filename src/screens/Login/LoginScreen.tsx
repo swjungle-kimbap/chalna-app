@@ -4,13 +4,16 @@ import Text from "../../components/common/Text";
 import { Button } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../interfaces/Navigation";
-import { useState } from "react";
+import { useFCMToken, useFcmMessage } from "../../hooks/useFCMToken";
 
 type ChattingListScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, '로그인 성공'>
 };
 
 const LoginScreen: React.FC<ChattingListScreenProps> = ({navigation}) => {
+  const fcmToken = useFCMToken();
+  if (fcmToken)
+    useFcmMessage();
   return (
     <LoginStyle> 
       <Text>Login page</Text>

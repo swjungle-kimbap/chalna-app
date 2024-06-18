@@ -15,10 +15,10 @@ export async function storeToken(token:string) {
   }
 }
 
-export async function retrieveToken(): Promise<string | null> {
+export async function getToken(): Promise<string | null> {
   try {
     const credentials: KeychainCredentials | false 
-      = await Keychain.getGenericPassword({ service: 'fcmToken' });
+      = await Keychain.getGenericPassword();
     if (credentials) {
       return credentials.password;
     } else {
@@ -30,3 +30,11 @@ export async function retrieveToken(): Promise<string | null> {
   }
 }
 
+export async function deleteToken(): Promise<void> {
+  try {
+    await Keychain.resetGenericPassword();
+    console.log('Token deleted successfully');
+  } catch (error) {
+    console.error('Error deleting the token', error);
+  }
+};
