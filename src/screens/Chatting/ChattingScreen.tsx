@@ -1,12 +1,9 @@
 import Text from "../../components/common/Text";
 import styled from "styled-components/native";
 
-
-// chat id 받아야함
-
 const ChattingScreen: React.FC = ({}) => {
   return (
-    <ChattingStyle>
+    <ChattingStyle> 
       <Text>채팅 페이지입니다.</Text>
     </ChattingStyle>
   )

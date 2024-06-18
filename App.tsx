@@ -1,12 +1,14 @@
-import {NavigationContainer} from "@react-navigation/native";
-import Tabs from "./src/navigation/tab";
+import BottomTabs from './src/navigation/BottomTabs';
+import { NavigationContainer } from '@react-navigation/native';
+import { ThemeProvider } from 'styled-components/native';
+import FontTheme from './src/styles/FontTheme'
 
-const App = () => {
-  return(
+export default function App() {
+  return (
+    <ThemeProvider theme={FontTheme}>
       <NavigationContainer>
-        <Tabs />
+        <BottomTabs/>
       </NavigationContainer>
+    </ThemeProvider>
   );
 }
-
-export default App;

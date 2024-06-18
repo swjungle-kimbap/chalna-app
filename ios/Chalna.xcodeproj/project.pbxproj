@@ -12,19 +12,14 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-<<<<<<< Updated upstream
 		7699B88040F8A987B510C191 /* libPods-Chalna-ChalnaTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-Chalna-ChalnaTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-=======
 		2F06482232AB4C2C8928DA0C /* SpoqaHanSansNeo-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 10FAD0F56FAC48D98FE0E7D7 /* SpoqaHanSansNeo-Bold.otf */; };
-		4FE5DA98B30E4868AE7BBCF2 /* SpoqaHanSansNeo-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = 16BE4DB78FCD4ED992A75DBE /* SpoqaHanSansNeo-Thin.otf */; };
-		611ACC6DCA2B422581EFA44E /* SpoqaHanSansNeo-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = CFDFE63199634B17B1603FEB /* SpoqaHanSansNeo-Regular.otf */; };
-		7699B88040F8A987B510C191 /* libPods-Chalna-ChalnaTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-Chalna-ChalnaTests.a */; };
-		7C89C6EB0ABF436FB8B5EE68 /* SpoqaHanSansNeo-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 61976C0014D6412CBF29D7DB /* SpoqaHanSansNeo-Medium.otf */; };
-		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		B30217B3A9D34FE483BC913C /* SpoqaHanSansNeo-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = 30E98DD400D2462B8E546850 /* SpoqaHanSansNeo-Light.otf */; };
+		7C89C6EB0ABF436FB8B5EE68 /* SpoqaHanSansNeo-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 61976C0014D6412CBF29D7DB /* SpoqaHanSansNeo-Medium.otf */; };
+		611ACC6DCA2B422581EFA44E /* SpoqaHanSansNeo-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = CFDFE63199634B17B1603FEB /* SpoqaHanSansNeo-Regular.otf */; };
+		4FE5DA98B30E4868AE7BBCF2 /* SpoqaHanSansNeo-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = 16BE4DB78FCD4ED992A75DBE /* SpoqaHanSansNeo-Thin.otf */; };
 		E7A89F6A667F4089AD6E7598 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 2C8AB3A057B64A91AF7E4C7E /* LICENSE */; };
->>>>>>> Stashed changes
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -41,31 +36,27 @@
 		00E356EE1AD99517003FC87E /* ChalnaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChalnaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* ChalnaTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ChalnaTests.m; sourceTree = "<group>"; };
-		10FAD0F56FAC48D98FE0E7D7 /* SpoqaHanSansNeo-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "SpoqaHanSansNeo-Bold.otf"; path = "../src/assets/fonts/SpoqaHanSansNeo-Bold.otf"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Chalna.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Chalna.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Chalna/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = Chalna/AppDelegate.mm; sourceTree = "<group>"; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Chalna/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Chalna/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Chalna/main.m; sourceTree = "<group>"; };
-<<<<<<< Updated upstream
-	    13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = Chalna/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-=======
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = Chalna/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		16BE4DB78FCD4ED992A75DBE /* SpoqaHanSansNeo-Thin.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "SpoqaHanSansNeo-Thin.otf"; path = "../src/assets/fonts/SpoqaHanSansNeo-Thin.otf"; sourceTree = "<group>"; };
->>>>>>> Stashed changes
 		19F6CBCC0A4E27FBF8BF4A61 /* libPods-Chalna-ChalnaTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Chalna-ChalnaTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2C8AB3A057B64A91AF7E4C7E /* LICENSE */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = LICENSE; path = ../src/assets/fonts/LICENSE; sourceTree = "<group>"; };
-		30E98DD400D2462B8E546850 /* SpoqaHanSansNeo-Light.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "SpoqaHanSansNeo-Light.otf"; path = "../src/assets/fonts/SpoqaHanSansNeo-Light.otf"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-Chalna.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Chalna.debug.xcconfig"; path = "Target Support Files/Pods-Chalna/Pods-Chalna.debug.xcconfig"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-Chalna.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Chalna.release.xcconfig"; path = "Target Support Files/Pods-Chalna/Pods-Chalna.release.xcconfig"; sourceTree = "<group>"; };
 		5B7EB9410499542E8C5724F5 /* Pods-Chalna-ChalnaTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Chalna-ChalnaTests.debug.xcconfig"; path = "Target Support Files/Pods-Chalna-ChalnaTests/Pods-Chalna-ChalnaTests.debug.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-Chalna.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Chalna.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		61976C0014D6412CBF29D7DB /* SpoqaHanSansNeo-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "SpoqaHanSansNeo-Medium.otf"; path = "../src/assets/fonts/SpoqaHanSansNeo-Medium.otf"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Chalna/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-Chalna-ChalnaTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Chalna-ChalnaTests.release.xcconfig"; path = "Target Support Files/Pods-Chalna-ChalnaTests/Pods-Chalna-ChalnaTests.release.xcconfig"; sourceTree = "<group>"; };
-		CFDFE63199634B17B1603FEB /* SpoqaHanSansNeo-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "SpoqaHanSansNeo-Regular.otf"; path = "../src/assets/fonts/SpoqaHanSansNeo-Regular.otf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		10FAD0F56FAC48D98FE0E7D7 /* SpoqaHanSansNeo-Bold.otf */ = {isa = PBXFileReference; name = "SpoqaHanSansNeo-Bold.otf"; path = "../src/assets/fonts/SpoqaHanSansNeo-Bold.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		30E98DD400D2462B8E546850 /* SpoqaHanSansNeo-Light.otf */ = {isa = PBXFileReference; name = "SpoqaHanSansNeo-Light.otf"; path = "../src/assets/fonts/SpoqaHanSansNeo-Light.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		61976C0014D6412CBF29D7DB /* SpoqaHanSansNeo-Medium.otf */ = {isa = PBXFileReference; name = "SpoqaHanSansNeo-Medium.otf"; path = "../src/assets/fonts/SpoqaHanSansNeo-Medium.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		CFDFE63199634B17B1603FEB /* SpoqaHanSansNeo-Regular.otf */ = {isa = PBXFileReference; name = "SpoqaHanSansNeo-Regular.otf"; path = "../src/assets/fonts/SpoqaHanSansNeo-Regular.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		16BE4DB78FCD4ED992A75DBE /* SpoqaHanSansNeo-Thin.otf */ = {isa = PBXFileReference; name = "SpoqaHanSansNeo-Thin.otf"; path = "../src/assets/fonts/SpoqaHanSansNeo-Thin.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		2C8AB3A057B64A91AF7E4C7E /* LICENSE */ = {isa = PBXFileReference; name = "LICENSE"; path = "../src/assets/fonts/LICENSE"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -145,6 +136,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				E0697DD2937246568FDDD260 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -171,10 +163,8 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
-<<<<<<< Updated upstream
-=======
 		E0697DD2937246568FDDD260 /* Resources */ = {
-			isa = PBXGroup;
+			isa = "PBXGroup";
 			children = (
 				10FAD0F56FAC48D98FE0E7D7 /* SpoqaHanSansNeo-Bold.otf */,
 				30E98DD400D2462B8E546850 /* SpoqaHanSansNeo-Light.otf */,
@@ -184,10 +174,9 @@
 				2C8AB3A057B64A91AF7E4C7E /* LICENSE */,
 			);
 			name = Resources;
-			path = "";
 			sourceTree = "<group>";
+			path = "";
 		};
->>>>>>> Stashed changes
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -283,6 +272,12 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				2F06482232AB4C2C8928DA0C /* SpoqaHanSansNeo-Bold.otf in Resources */,
+				B30217B3A9D34FE483BC913C /* SpoqaHanSansNeo-Light.otf in Resources */,
+				7C89C6EB0ABF436FB8B5EE68 /* SpoqaHanSansNeo-Medium.otf in Resources */,
+				611ACC6DCA2B422581EFA44E /* SpoqaHanSansNeo-Regular.otf in Resources */,
+				4FE5DA98B30E4868AE7BBCF2 /* SpoqaHanSansNeo-Thin.otf in Resources */,
+				E7A89F6A667F4089AD6E7598 /* LICENSE in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -584,7 +579,7 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -612,7 +607,6 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "$(inherited)";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DFOLLY_NO_CONFIG",
@@ -621,13 +615,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
-				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
-				USE_HERMES = true;
 			};
 			name = Debug;
 		};
@@ -664,7 +652,7 @@
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -684,7 +672,6 @@
 					"\"$(inherited)\"",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
-				OTHER_CFLAGS = "$(inherited)";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DFOLLY_NO_CONFIG",
@@ -693,13 +680,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
-				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
-				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;

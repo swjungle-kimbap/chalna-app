@@ -6,6 +6,11 @@ buildscript {
         targetSdkVersion = 34
         ndkVersion = "26.1.10909125"
         kotlinVersion = "1.9.22"
+        // deviceID 오류 해결
+        firebaseIidVersion = "19.0.1" 
+        // Geolocation 오류 해결
+        playServicesLocationVersion = "21.0.1"
+        googlePlayServicesVersion = "18.0.0"
     }
     repositories {
         google()
@@ -18,4 +23,9 @@ buildscript {
     }
 }
 
+allprojects {
+    repositories {
+        maven { url 'https://repository.map.naver.com/archive/maven' }  // 네이버 지도 SDK 저장소 추가
+    }
+}
 apply plugin: "com.facebook.react.rootproject"
