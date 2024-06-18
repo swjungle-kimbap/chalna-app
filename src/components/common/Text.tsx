@@ -24,7 +24,7 @@ type TextProps = {
   variant?: "title" | "main" | "sub";
 };
 
-const Text: React.FC<TextProps> = ({ children, variant="main"}) => {
+const Text: React.FC<TextProps> = ({ children, variant="main", ...rest}) => {
   let TextComponent: React.ElementType;
 
   switch (variant) {
@@ -42,14 +42,15 @@ const Text: React.FC<TextProps> = ({ children, variant="main"}) => {
   }
 
   return (
+    <TextWrapper {...rest}>
       <TextComponent>
-      {children}
+        {children}
       </TextComponent>
+    </TextWrapper>
   );
 };
 
 const TextWrapper = styled.View`
-  flex: 1;
   justify-content: center;
   align-items: center;
   text-align: center;

@@ -1,8 +1,14 @@
 import styled from "styled-components/native";
 import Text from "../../components/common/Text";
 import { Button } from "react-native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RootStackParamList } from "../../interfaces/Navigation";
 
-const MypageScreen: React.FC = ({navigation}) => {
+type MypageScreenProps = {
+  navigation: StackNavigationProp<RootStackParamList, '앱 설정'>
+};
+
+const MypageScreen: React.FC<MypageScreenProps> = ({navigation}) => {
   return (
     <MypageStyle> 
       <Text>마이페이지 입니다</Text>

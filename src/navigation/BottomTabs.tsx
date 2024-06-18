@@ -1,10 +1,6 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Image, StyleSheet } from 'react-native';
 import MapScreen from '../screens/Map/MapScreen';
-import FriendIcon from "../assets/Icons/FriendIcon.png";
-import MapIcon from "../assets/Icons/MapIcon.png";
-import MessageIcon from "../assets/Icons/MessageIcon.png";
-import MypageIcon from "../assets/Icons/MypageIcon.png";
 import FontTheme from "../styles/FontTheme";
 import MypageStackScreen from "./MypageStack";
 import FriendsStackScreen from "./FriendsStack";
@@ -20,16 +16,16 @@ const BottomTabs = () => {
             let iconSource;
             switch (route.name) {
               case '친구목록' :
-                iconSource = FriendIcon;
+                iconSource = require("../assets/Icons/FriendsIcon.png");;
                 break;
               case '지도':
-                iconSource = MapIcon;
+                iconSource = require("../assets/Icons/MapIcon.png");
                 break;
               case '채팅목록':
-                iconSource = MessageIcon;
+                iconSource = require("../assets/Icons/MessageIcon.png");
                 break;
               case '마이페이지':
-                iconSource = MypageIcon;
+                iconSource = require("../assets/Icons/MypageIcon.png");
                 break;
             }
             return <Image source={iconSource} resizeMode="contain"

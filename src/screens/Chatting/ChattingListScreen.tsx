@@ -1,8 +1,14 @@
 import Text from "../../components/common/Text";
 import styled from "styled-components/native";
 import { Button } from "react-native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RootStackParamList } from "../../interfaces/Navigation";
 
-const ChattingListScreen: React.FC = ({navigation}) => {
+type ChattingListScreenProps = {
+  navigation: StackNavigationProp<RootStackParamList, '채팅'>
+};
+
+const ChattingListScreen: React.FC<ChattingListScreenProps> = ({navigation}) => {
   return (
     <ChattingListStyle> 
       <Text>채팅 목록 페이지입니다.</Text>

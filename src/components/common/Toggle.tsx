@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { TouchableOpacity, StyleSheet, Animated } from 'react-native';
 
-const Toggle = () => {
+const Toggle: React.FC<void> = () => {
   const [isActive, setIsActive] = useState(false);
   const animation = useRef(new Animated.Value(1)).current;
 

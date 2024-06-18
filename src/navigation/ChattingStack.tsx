@@ -1,7 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import FontTheme from "../styles/FontTheme"
 import ChattingListScreen from "../screens/Chatting/ChattingListScreen";
 import ChattingScreen from "../screens/Chatting/ChattingScreen";
+import FontTheme from "../styles/FontTheme"
 
 const ChattingStack = createNativeStackNavigator();
 
