@@ -1,6 +1,6 @@
 import styled from "styled-components/native";
 import Text from "../../components/common/Text";
-import { Button } from "react-native";
+import Button from '../../components/common/Button'
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../interfaces/Navigation";
 
@@ -12,7 +12,7 @@ const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
   return (
     <SettingStyle> 
       <Text>설정 페이지 입니다.</Text>
-      <Button title="설정 페이지" onPress={()=>navigation.navigate('선호 태그 설정')}/>
+      <Button title="선호 태그 설정 페이지" onPress={()=>navigation.navigate('선호 태그 설정')}/>
     </SettingStyle>
   )
 }

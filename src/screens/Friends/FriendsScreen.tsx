@@ -1,6 +1,6 @@
 import Text from "../../components/common/Text";
 import styled from "styled-components/native";
-import { Button } from "react-native";
+import Button from '../../components/common/Button'
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../interfaces/Navigation";
 

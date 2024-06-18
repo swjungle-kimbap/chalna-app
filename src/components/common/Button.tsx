@@ -1,8 +1,9 @@
 import React from 'react';
-import { Text, Image, TouchableOpacity, TouchableOpacityProps, 
+import Text from './Text';
+import { Image, TouchableOpacity, TouchableOpacityProps, 
   ImageSourcePropType, ImageStyle, TextStyle, ViewStyle } from 'react-native';
 
-interface ImageTextButtonProps extends TouchableOpacityProps {
+type ImageTextButtonProps = TouchableOpacityProps & {
   iconSource?: ImageSourcePropType;
   title?: string; 
   titleStyle?: TextStyle; 
