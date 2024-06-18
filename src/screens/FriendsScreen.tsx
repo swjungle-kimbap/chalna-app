@@ -3,9 +3,9 @@ import styled from "styled-components/native";
 
 const FriendsScreen: React.FC = ({}) => {
   return (
-    <View> 
+    <FriendsStyle> 
       <Text>Friends page</Text>
-    </View>
+    </FriendsStyle>
   )
 }
 
