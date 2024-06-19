@@ -20,6 +20,7 @@
     "axios": "^1.7.2",
     "react": "*",
     "react-native": "*",
+    "react-native-config": "^1.5.2",
     "react-native-device": "^1.0.1",
     "react-native-geolocation-service": "^5.3.1",
     "react-native-keychain": "^8.2.0",
