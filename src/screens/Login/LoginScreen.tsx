@@ -4,7 +4,7 @@ import Text from "../../components/common/Text";
 import { Button } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../interfaces/Navigation";
-import { useFCMToken, useFcmMessage } from "../../hooks/useFCMToken";
+import { useFCMToken, useFcmMessage } from "../../hooks/FCM";
 
 type ChattingListScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, '로그인 성공'>

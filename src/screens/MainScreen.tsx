@@ -2,11 +2,14 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import BottomTabs from '../navigation/BottomTabs';
 import { NavigationContainer } from '@react-navigation/native';
 import LoginScreen from './Login/LoginScreen';
+import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 
 const MainScreen : React.FC = () => {
   const LogInStack = createBottomTabNavigator();
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef} onReady={()=> {
+      isReadyRef.current = true;
+    }}>
       <LogInStack.Navigator
         initialRouteName='로그인'
         screenOptions={{
