@@ -3242,7 +3242,6 @@ __metadata:
     react: "*"
     react-native: "*"
     react-native-config: ^1.5.2
-    react-native-device: ^1.0.1
     react-native-geolocation-service: ^5.3.1
     react-native-keychain: ^8.2.0
     react-native-permissions: ^4.1.5
@@ -8455,13 +8454,6 @@ __metadata:
     react-native-windows:
       optional: true
   checksum: fc777546557704629f7aabdd2cf24decdea666ba90975602523103ed0a26a358f2f23241cae2aed646b82784e657cc01ecf7b6df2d5524d6b0ea3edfa9054d7f
-  languageName: node
-  linkType: hard
-
-"react-native-device@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "react-native-device@npm:1.0.1"
-  checksum: ed35fb9c0f0afafb3f41978ba52bc05b09b79c967be4a807c9631bad88ef258c157551941456a6ac414e322a72489cf1ba10d67d7b53bd2f4f41f1169550f7fc
   languageName: node
   linkType: hard
 

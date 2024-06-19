@@ -1,5 +1,4 @@
 export interface LocationData {
-  userUUID: string;
   latitude: number;
   longitude: number;
   distance : number;

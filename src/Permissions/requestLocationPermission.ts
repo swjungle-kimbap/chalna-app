@@ -1,7 +1,8 @@
 import { Platform } from 'react-native';
-import { PERMISSIONS, request, requestMultiple, requestLocationAccuracy, check, checkMultiple } from 'react-native-permissions'; // check, checkMultiple 추가
+import { PERMISSIONS, request, requestMultiple, 
+  requestLocationAccuracy, check, checkMultiple, Permission } from 'react-native-permissions'; 
 
-export const requestLocationPermission = async () => {
+export const requestLocationPermission = async (): Promise<boolean> => {
   if (Platform.OS === 'ios') {
     try {
       // iOS 권한 확인
@@ -15,6 +16,7 @@ export const requestLocationPermission = async () => {
               purposeKey: 'common-purpose',
             });
             console.log(`Location accuracy is: ${accuracy}`);
+            return true;
           } catch (e: any) {
             console.error(`Location accuracy request has been failed: ${e}`);
           }
@@ -23,10 +25,12 @@ export const requestLocationPermission = async () => {
         }
       } else {
         console.log('Location permission already granted.');
+        return true;
       }
     } catch (e: any) {
-      console.error(`Location request has been failed: ${e}`);
+      console.error(`Location request has been failed: ${e}`); 
     }
+    return false;
   }
 
   if (Platform.OS === 'android') {
@@ -37,7 +41,7 @@ export const requestLocationPermission = async () => {
         PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION,
       ]);
 
-      const permissionsToRequest: Array<string> = [];
+      const permissionsToRequest: Array<Permission> = [];
 
       // 필요한 권한만 요청하도록 필터링
       if (statuses[PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION] !== 'granted') {
@@ -46,16 +50,24 @@ export const requestLocationPermission = async () => {
       if (statuses[PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION] !== 'granted') {
         permissionsToRequest.push(PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION);
       }
-
+      if (permissionsToRequest.length === 0){
+        console.log('Location permissions already granted.');
+        return true;
+      }
+        
       // 권한 요청 (필요한 경우에만)
       if (permissionsToRequest.length > 0) {
         const newStatuses = await requestMultiple(permissionsToRequest);
         console.log(`Location request status:`, newStatuses);
+        if (newStatuses[PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION] === 'granted'
+           && newStatuses[PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION] === 'granted')
+          return true;
       } else {
-        console.log('Location permissions already granted.');
+        console.log('Location permissions has been denied or blocked');
       }
     } catch (e: any) {
       console.error(`Location request has been failed: ${e}`);
     }
+    return false;
   }
 };

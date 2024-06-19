@@ -1,10 +1,10 @@
 import axios, { AxiosInstance } from "axios";
-import { apiUrl } from "../config/config";
 import { getKeychain } from "../utils/keychain";
 import { navigate } from "../navigation/RootNavigation";
+import Config from "react-native-config";
 
 const instance: AxiosInstance = axios.create({
-  baseURL:apiUrl,
+  baseURL:Config.apiUrl,
   withCredentials : true,
 })
 
