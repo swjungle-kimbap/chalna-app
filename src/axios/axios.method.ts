@@ -4,10 +4,13 @@ import instance from "./axios.instance";
 // check error handling
 
 export const axiosGet = async<T>(
-  url:string, 
+  url:string | undefined, 
   errorMsg: string,
   config?:AxiosRequestConfig,
 ): Promise<AxiosResponse<T>> => {
+  if (!url)
+    throw new Error('URL is undefined')
+  
   try {
     const response = await instance.get<T>(url, config);
     return response;
@@ -18,11 +21,14 @@ export const axiosGet = async<T>(
 }
 
 export const axiosPost = async<T>(
-  url:string, 
+  url:string | undefined , 
   errorMsg: string,
   data?:any,
   config?:AxiosRequestConfig,
 ): Promise<AxiosResponse<T>> => {
+  if (!url)
+    throw new Error('URL is undefined')
+
   try {
     const response = await instance.post<T>(url, data, config);
     return response;
@@ -33,11 +39,14 @@ export const axiosPost = async<T>(
 }
 
 export const axiosPatch = async<T>(
-  url:string, 
+  url:string | undefined, 
   errorMsg: string,
   data?:any,
   config?:AxiosRequestConfig,
 ): Promise<AxiosResponse<T>> => {
+  if (!url)
+    throw new Error('URL is undefined')
+  
   try {
     const response = await instance.patch<T>(url, data, config);
     return response;
@@ -48,10 +57,13 @@ export const axiosPatch = async<T>(
 }
 
 export const axiosDelete = async<T>(
-  url:string, 
+  url:string | undefined, 
   errorMsg: string,
   config?:AxiosRequestConfig,
 ): Promise<AxiosResponse<T>> => {
+  if (!url)
+    throw new Error('URL is undefined')
+
   try {
     const response = await instance.delete<T>(url, config);
     return response;

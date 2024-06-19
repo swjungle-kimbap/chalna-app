@@ -1,18 +1,21 @@
 import { NaverMapView, NaverMapMarkerOverlay } from "@mj-studio/react-native-naver-map";
-import { Position } from '../interfaces';
+import { Position } from '../../interfaces';
 
-export const NaverMap: React.FC<Position> = ({ latitude, longitude }) => {
+interface NaverMapProps {
+  pos: Position;
+}
 
+export const NaverMap: React.FC<NaverMapProps> = ({pos}) => {
   return (
   <NaverMapView 
   style={{flex: 1}}
   initialCamera={{
-    latitude,
-    longitude,
+    latitude : pos.latitude,
+    longitude : pos.longitude,
     zoom:16}}>
       <NaverMapMarkerOverlay
-        latitude={latitude}
-        longitude={longitude}
+        latitude={pos.latitude}
+        longitude={pos.longitude}
         onTap={() => alert('안녕')}
         anchor={{ x: 0.5, y: 1 }}
         caption={{
@@ -22,6 +25,6 @@ export const NaverMap: React.FC<Position> = ({ latitude, longitude }) => {
         width={20}
         height={30}
       />
-  </NaverMapView>
+  </NaverMapView> 
 );
 }

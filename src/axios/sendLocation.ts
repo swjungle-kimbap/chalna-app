@@ -5,12 +5,7 @@ import { Position, LocationData, TestResponse } from '../interfaces';
 const sendLocation = async (id: string, currentLocation : Position) : Promise<TestResponse> => { 
   try {
     // Define the interface for the request body
-    const response = await axios.post(apiUrl, {
-      userUUID: id,
-      latitude: currentLocation.latitude,
-      longitude: currentLocation.longitude,
-      distance: 300,
-    } as LocationData); // Ensure data is type-safe
+    const response = await axios.post(apiUrl, ); // Ensure data is type-safe
     console.log('Device ID sent successfully:', response.data);
     return response.data;
 
