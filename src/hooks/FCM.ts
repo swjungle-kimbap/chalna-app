@@ -1,6 +1,6 @@
 import messaging from '@react-native-firebase/messaging';
 import { useEffect, useState } from 'react';
-import { storeToken, getToken } from '../utils/keychain';
+import { setKeychain, getKeychain } from '../utils/keychain';
 import requestNotificationPermission from '../Permissions/requestNotificationPermssions';
 
 export const useFCMToken = () => {
@@ -10,7 +10,7 @@ export const useFCMToken = () => {
     const initializeFCMToken = async () => {
       try {
         // 먼저 저장된 토큰을 가져옴
-        const storedToken = await getToken();
+        const storedToken = await getKeychain();
         if (storedToken) {
           setFcmToken(storedToken);
           console.log('Using stored FCM token:', storedToken);
@@ -21,7 +21,7 @@ export const useFCMToken = () => {
             const token = await messaging().getToken();
             console.log('New FCM Token:', token);
             setFcmToken(token);
-            await storeToken(token);
+            await setKeychain('fcmToken', token);
           } else {
             console.log('Notification permission denied');
           }
@@ -37,7 +37,7 @@ export const useFCMToken = () => {
     return () => messaging().onTokenRefresh(async (token: string) => {
       console.log('FCM Token refreshed:', token);
       setFcmToken(token);
-      await storeToken(token);
+      await setKeychain('fcmToken', token);
     });
   }, []);
 
