@@ -14,7 +14,7 @@ interface FriendCardProps {
     navigation: StackNavigationProp<RootStackParamList, '채팅'>
 }
 
-const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, navigation}) => {
+const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand}, navigation) => {
     const [expanded, setExpanded] = useState(false);
 
     const handlePress = () => {
