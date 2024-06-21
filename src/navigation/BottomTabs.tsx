@@ -35,12 +35,12 @@ const BottomTabs = () => {
           tabBarInactiveTintColor: 'gray',
           tabBarStyle: styles.tabContainer,
           tabBarLabelStyle : {
-            fontFamily: FontTheme.fonts.main, 
+            fontFamily: FontTheme.fonts.main,
             fontSize: 10,
           },
           tabBarLabelShown: false,
           headerTitleStyle: {
-            fontFamily: FontTheme.fonts.title, 
+            fontFamily: FontTheme.fonts.title,
             fontSize: 20,
           },
           headerShown: false
@@ -64,6 +64,8 @@ const styles = StyleSheet.create({
       borderRadius: 15,
       justifyContent: 'space-around',
       paddingHorizontal: 10,
+      paddingVertical: 5,
+      paddingBottom: 5,
       alignItems: 'center',
   },
 });

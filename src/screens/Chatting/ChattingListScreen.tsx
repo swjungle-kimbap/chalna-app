@@ -1,27 +1,48 @@
-import Text from "../../components/common/Text";
-import styled from "styled-components/native";
-import Button from '../../components/common/Button'
+import React, { useState } from 'react';
+import { View, FlatList, StyleSheet, SafeAreaView } from 'react-native';
+import ChatRoomCard from '../../components/ChatRoomCard';
+import { User } from '../../interfaces/User';
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../../interfaces/Navigation";
+import { RootStackParamList } from "../../interfaces";
 
-type ChattingListScreenProps = {
-  navigation: StackNavigationProp<RootStackParamList, '채팅'>
+type ChatRoomListScreenProps = {
+    navigation: StackNavigationProp<RootStackParamList, '채팅'>
 };
 
-const ChattingListScreen: React.FC<ChattingListScreenProps> = ({navigation}) => {
-  return (
-    <ChattingListStyle>
-      <Text>채팅 목록 페이지입니다.</Text>
-      <Button title="채팅" onPress={()=>navigation.navigate('채팅')}/>
-    </ChattingListStyle>
-  )
-}
+const DATA = [
+    { id: '1', user: { id: '1', name: 'John Doe' }, lastMsg: 'Hey there!', status: 'normal' },
+    { id: '2', user: { id: '2', name: 'Jane Smith' }, lastMsg: 'How are you?', status: 'friend' },
+    { id: '3', user: { id: '3', name: 'Alice Johnson' }, lastMsg: 'See you soon!', status: 'normal' },
+    // Add more chat room data here
+];
 
-const ChattingListStyle = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-  background-color: #FFFFFF;
-`;
+const ChatRoomListScreen: React.FC<ChatRoomListScreenProps> = ({ navigation }) => {
+    const renderItem = ({ item }) => (
+        <ChatRoomCard
+            user={item.user}
+            lastMsg={item.lastMsg}
+            status={item.status}
+            navigation={navigation}
+        />
+    );
 
-export default ChattingListScreen;
+    return (
+        <SafeAreaView style={styles.container}>
+            <FlatList
+                data={DATA}
+                renderItem={renderItem}
+                keyExtractor={item => item.id}
+            />
+        </SafeAreaView>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#f5f5f5',
+        padding: 10,
+    },
+});
+
+export default ChatRoomListScreen;

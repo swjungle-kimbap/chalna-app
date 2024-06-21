@@ -1,6 +1,7 @@
 import Realm from "realm";
+import {ObjectSchema} from 'realm';
 
-const UserSchema = {
+const UserSchema: ObjectSchema = {
     name: "User",
     properties: {
         id: "int",
@@ -24,7 +25,7 @@ const UserSchema = {
 // };
 
 
-const ChatRoomSchema = {
+const ChatRoomSchema: ObjectSchema = {
     name: "ChatRoom",
     properties: {
         id: "int",
@@ -39,7 +40,7 @@ const ChatRoomSchema = {
     primaryKey: "id",
 };
 
-const MessageSchema = {
+const MessageSchema: ObjectSchema = {
     name: "Message",
     properties: {
         id: "int",
@@ -55,7 +56,7 @@ const MessageSchema = {
     primaryKey: "id",
 };
 
-const SyncMetadataSchema = {
+const SyncMetadataSchema: ObjectSchema = {
     name: "SyncMetadata",
     properties: {
         id: "int",

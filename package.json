@@ -34,6 +34,7 @@
     "react-native-screens": "^3.31.1",
     "realm": "^12.11.0",
     "recoil": "^0.7.7",
+    "sqlite3": "^5.1.7",
     "styled-components": "^6.1.11"
   },
   "devDependencies": {

@@ -57,56 +57,64 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
         />);
 
     return (
-        <SafeAreaView>
-            <FriendsStyle>
-                <Text>친구목록 페이지 입니다.</Text>
-                <Button title="차단친구 목록" onPress={() => navigation.navigate('차단친구 목록')} />
-                <View style={styles.searchContainer}>
+        <SafeAreaView style={{flex: 1}}>
+            <CardContainer>
+                <View style={{padding:10, flexDirection: 'row', justifyContent:'flex-end', marginRight: 25}}>
+                    <Button
+                        iconSource={require('../../assets/Icons/MoreInfo.png')}
+                        imageStyle={{ width: 20, height: 20}}
+                        onPress={() => navigation.navigate('차단친구 목록')} />
+                </View>
+                <SearchContainer>
                     <Image source={require('../../assets/Icons/SearchIcon.png')} style={styles.searchIcon} />
                     <TextInput
                         placeholder="친구 검색"
                         value={searchQuery}
                         onChangeText={handleSearch}
                     />
-                </View>
+                </SearchContainer>
                 <FlatList
                     data={filteredData}
                     renderItem={renderFriendCard}
                     keyExtractor={(item) => item.id}
                 />
-            </FriendsStyle>
+            </CardContainer>
         </SafeAreaView>
     );
 };
 
-const FriendsStyle = styled.View`
-  background-color: #FFFFFF;
+const CardContainer = styled.View`
+    flex: 1;
+    background-color: #FFFFFF;
+    padding-bottom: 60px;
    
 `;
 
+const SearchContainer = styled.View`
+  flex-direction: row;
+
+  border-color: #CCC;
+  border-width: 1px;
+  border-radius: 5px;
+
+
+  width: 85%;
+  align-self: center;
+    align-items: center;
+`;
+
+const SearchInput = styled.TextInput`
+  flex: 1;
+  height: 40px;
+`;
+
+
 const styles = StyleSheet.create({
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderColor: '#CCC',
-        borderWidth: 1,
-        borderRadius: 5,
-        paddingHorizontal: 10,
-        paddingVertical: 10,
-        width: '90%',
-        alignSelf: 'center',
-    },
     searchIcon: {
-        width: 20,  // Set the desired width
-        height: 20, // Set the desired height
+        width: 20,
+        height: 20,
         marginRight: 10,
-    },
-    searchInput: {
-        flex: 1,
-        height: 40,
-    },
-    listContentContainer: {
-        paddingHorizontal: 0, // Remove horizontal padding
+        marginLeft: 15,
     },
 });
 

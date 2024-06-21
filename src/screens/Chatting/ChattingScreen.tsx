@@ -47,6 +47,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'space-between',
         padding: 10,
+        paddingBottom: 60,
     },
     messagesContainer: {
         flexGrow: 1,
