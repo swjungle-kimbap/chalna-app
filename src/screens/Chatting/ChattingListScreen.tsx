@@ -1,38 +1,50 @@
-import React, { useState } from 'react';
-import { View, FlatList, StyleSheet, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, StyleSheet, SafeAreaView } from 'react-native';
+import {useDatabase} from "@nozbe/watermelondb/hooks";
+import ChatRoom from '../../database/model/ChatRoom';
 import ChatRoomCard from '../../components/ChatRoomCard';
-import { User } from '../../interfaces/User';
-import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../../interfaces";
+//import { StackNavigationProp } from "@react-navigation/stack";
+//import { RootStackParamList } from "../../interfaces";
 
-type ChatRoomListScreenProps = {
-    navigation: StackNavigationProp<RootStackParamList, '채팅'>
-};
 
-const DATA = [
-    { id: '1', user: { id: '1', name: 'John Doe' }, lastMsg: 'Hey there!', status: 'normal' },
-    { id: '2', user: { id: '2', name: 'Jane Smith' }, lastMsg: 'How are you?', status: 'friend' },
-    { id: '3', user: { id: '3', name: 'Alice Johnson' }, lastMsg: 'See you soon!', status: 'normal' },
-    // Add more chat room data here
-];
+interface ChatRoomListScreenProps {
+    navigation: any;
+}
 
 const ChatRoomListScreen: React.FC<ChatRoomListScreenProps> = ({ navigation }) => {
-    const renderItem = ({ item }) => (
+    const database = useDatabase();
+    const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
+
+    useEffect(() => {
+        const fetchChatRooms = async () => {
+            const chatRoomCollection = database.get<ChatRoom>('chat_rooms');
+            const rooms = await chatRoomCollection.query().fetch();
+            setChatRooms(rooms);
+        };
+
+        fetchChatRooms();
+    }, [database]);
+
+    const renderItem = ({ item }: { item: ChatRoom }) => (
         <ChatRoomCard
-            user={item.user}
-            lastMsg={item.lastMsg}
-            status={item.status}
+            user={item.type} // assuming user is derived from type, modify as needed
+            lastMsg={item.recentMessageId}
+            status={item.updatedAt ? 'Updated' : 'New'} // example status logic
             navigation={navigation}
         />
     );
 
     return (
         <SafeAreaView style={styles.container}>
-            <FlatList
-                data={DATA}
-                renderItem={renderItem}
-                keyExtractor={item => item.id}
-            />
+            {chatRooms.length > 0 ? (
+                <FlatList
+                    data={chatRooms}
+                    renderItem={renderItem}
+                    keyExtractor={(item) => item.id}
+                />
+            ) : (
+                <Text>No chat rooms available</Text>
+            )}
         </SafeAreaView>
     );
 };

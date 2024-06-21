@@ -1606,6 +1606,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:7.21.0":
+  version: 7.21.0
+  resolution: "@babel/runtime@npm:7.21.0"
+  dependencies:
+    regenerator-runtime: ^0.13.11
+  checksum: 7b33e25bfa9e0e1b9e8828bb61b2d32bdd46b41b07ba7cb43319ad08efc6fda8eb89445193e67d6541814627df0ca59122c0ea795e412b99c5183a0540d338ab
+  languageName: node
+  linkType: hard
+
 "@babel/runtime@npm:>=7, @babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.8.4":
   version: 7.24.7
   resolution: "@babel/runtime@npm:7.24.7"
@@ -2736,6 +2745,35 @@ __metadata:
     "@nodelib/fs.scandir": 2.1.5
     fastq: ^1.6.0
   checksum: 190c643f156d8f8f277bf2a6078af1ffde1fd43f498f187c2db24d35b4b4b5785c02c7dc52e356497b9a1b65b13edc996de08de0b961c32844364da02986dc53
+  languageName: node
+  linkType: hard
+
+"@nozbe/simdjson@npm:3.1.0-wmelon1":
+  version: 3.1.0-wmelon1
+  resolution: "@nozbe/simdjson@npm:3.1.0-wmelon1"
+  checksum: 161bbeaeb469468b16c67ac2ec07f9b486f79eb46a89cc306e0d836ba4fe8bf6734f1aac7140a0abc8323ca8ed58c0b6380cf15a0345757fca233ffd061a6097
+  languageName: node
+  linkType: hard
+
+"@nozbe/sqlite@npm:3.40.1":
+  version: 3.40.1
+  resolution: "@nozbe/sqlite@npm:3.40.1"
+  checksum: 7a603f836bccdf2d87af5c69595bc10a481aed489c7eab317b56f0fa4cd64d7913a6f5a2e34ea2098598322ffaf79e2ce5e94b930e555e3bda758052f63fcc75
+  languageName: node
+  linkType: hard
+
+"@nozbe/watermelondb@npm:^0.27.1":
+  version: 0.27.1
+  resolution: "@nozbe/watermelondb@npm:0.27.1"
+  dependencies:
+    "@babel/runtime": 7.21.0
+    "@nozbe/simdjson": 3.1.0-wmelon1
+    "@nozbe/sqlite": 3.40.1
+    hoist-non-react-statics: ^3.3.2
+    lokijs: "npm:@nozbe/lokijs@1.5.12-wmelon6"
+    rxjs: ^7.8.0
+    sql-escape-string: ^1.1.0
+  checksum: 6bb1b71f96e03aac26aa7ef266fb0eca8588000204516d497010f0b15b69628b143009f9f2cad1256b85591aed0411c8b310b802e8d4e9414bb7db68d966d1de
   languageName: node
   linkType: hard
 
@@ -3952,6 +3990,7 @@ __metadata:
     "@babel/preset-env": ^7.20.0
     "@babel/runtime": ^7.20.0
     "@mj-studio/react-native-naver-map": ^1.5.9
+    "@nozbe/watermelondb": ^0.27.1
     "@react-native-community/netinfo": ^11.3.2
     "@react-native-community/viewpager": ^5.0.11
     "@react-native-firebase/app": ^20.1.0
@@ -3985,6 +4024,7 @@ __metadata:
     react-native-permissions: ^4.1.5
     react-native-safe-area-context: ^4.10.5
     react-native-screens: ^3.31.1
+    react-native-sqlite-storage: ^6.0.1
     react-test-renderer: 18.2.0
     realm: ^12.11.0
     recoil: ^0.7.7
@@ -6714,7 +6754,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hoist-non-react-statics@npm:^3.3.0":
+"hoist-non-react-statics@npm:^3.3.0, hoist-non-react-statics@npm:^3.3.2":
   version: 3.3.2
   resolution: "hoist-non-react-statics@npm:3.3.2"
   dependencies:
@@ -8195,6 +8235,13 @@ __metadata:
   bin:
     logkitty: bin/logkitty.js
   checksum: f1af990ff09564ef5122597a52bba6d233302c49865e6ddea1343d2a0e2efe3005127e58e93e25c98b6b1f192731fc5c52e3204876a15fc9a52abc8b4f1af931
+  languageName: node
+  linkType: hard
+
+"lokijs@npm:@nozbe/lokijs@1.5.12-wmelon6":
+  version: 1.5.12-wmelon6
+  resolution: "@nozbe/lokijs@npm:1.5.12-wmelon6"
+  checksum: a7200cccdc836e808650bc73f7045251ff65fd4cb335be2e21a65f516746a1d22e3051658820c719cec486fa193902be55a16df16b287297370088c0d18ae76a
   languageName: node
   linkType: hard
 
@@ -9882,6 +9929,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-sqlite-storage@npm:^6.0.1":
+  version: 6.0.1
+  resolution: "react-native-sqlite-storage@npm:6.0.1"
+  peerDependencies:
+    react-native: ">=0.14.0"
+  checksum: 79bd454682beb22cdfb5a234b9d52b454d0451dccf03a3c15b70b9c331b32cf0066703652b0d23707bda9b9b4c8063e92d31084171af3ea647855b5d727746e0
+  languageName: node
+  linkType: hard
+
 "react-native-typing-animation@npm:0.1.7":
   version: 0.1.7
   resolution: "react-native-typing-animation@npm:0.1.7"
@@ -10099,7 +10155,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"regenerator-runtime@npm:^0.13.2":
+"regenerator-runtime@npm:^0.13.11, regenerator-runtime@npm:^0.13.2":
   version: 0.13.11
   resolution: "regenerator-runtime@npm:0.13.11"
   checksum: 27481628d22a1c4e3ff551096a683b424242a216fee44685467307f14d58020af1e19660bf2e26064de946bad7eff28950eae9f8209d55723e2d9351e632bbb4
@@ -10314,6 +10370,15 @@ __metadata:
   dependencies:
     queue-microtask: ^1.2.2
   checksum: cb4f97ad25a75ebc11a8ef4e33bb962f8af8516bb2001082ceabd8902e15b98f4b84b4f8a9b222e5d57fc3bd1379c483886ed4619367a7680dad65316993021d
+  languageName: node
+  linkType: hard
+
+"rxjs@npm:^7.8.0":
+  version: 7.8.1
+  resolution: "rxjs@npm:7.8.1"
+  dependencies:
+    tslib: ^2.1.0
+  checksum: de4b53db1063e618ec2eca0f7965d9137cabe98cf6be9272efe6c86b47c17b987383df8574861bcced18ebd590764125a901d5506082be84a8b8e364bf05f119
   languageName: node
   linkType: hard
 
@@ -10729,6 +10794,13 @@ __metadata:
   version: 1.0.3
   resolution: "sprintf-js@npm:1.0.3"
   checksum: 19d79aec211f09b99ec3099b5b2ae2f6e9cdefe50bc91ac4c69144b6d3928a640bb6ae5b3def70c2e85a2c3d9f5ec2719921e3a59d3ca3ef4b2fd1a4656a0df3
+  languageName: node
+  linkType: hard
+
+"sql-escape-string@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "sql-escape-string@npm:1.1.0"
+  checksum: 4e65c06031ba81d2bf3d94301b606d2c0254a2b0725ae426bb32015e407dedd45942c85386a8cacad64a76714d296652f94500331657a7676a57b1be48b85380
   languageName: node
   linkType: hard
 
