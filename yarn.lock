@@ -3345,6 +3345,7 @@ __metadata:
     react-native: 0.74.1
     react-native-background-actions: ^4.0.0
     react-native-ble-advertiser: ^0.0.17
+    react-native-bluetooth-client: ^0.1.12
     react-native-config: ^1.5.2
     react-native-geolocation-service: ^5.3.1
     react-native-keychain: ^8.2.0
@@ -8582,6 +8583,16 @@ __metadata:
   peerDependencies:
     react-native: ">=0.50"
   checksum: 004008f405d46cb33f6316bdda3cb2c2d34f353217196378dd1973077aa411cbdfdd5c9c847f6830ce4f738d29a790d97c36211d0e2188b4c44de4717a114c5e
+  languageName: node
+  linkType: hard
+
+"react-native-bluetooth-client@npm:^0.1.12":
+  version: 0.1.12
+  resolution: "react-native-bluetooth-client@npm:0.1.12"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: e363216ab0f8049a78286edcbfcfd6322b573a15abcc8d7e0129f9af32f97f9ed0f99dc412b9e7cc9d7392e558d268e9580950762b7ff3b318fbb21c2166432a
   languageName: node
   linkType: hard
 

@@ -11,6 +11,7 @@ import RoundBox from "../../components/common/RoundBox";
 import Button from '../../components/common/Button'
 import requestPermissions from "../../utils/requestPermissions";
 import { PERMISSIONS } from "react-native-permissions";
+import retryPermissions from "../../utils/retryPermissions";
 
 const MapScreen: React.FC = ({}) => {
   const [currentLocation, setCurrentLocation] = useState<Position | null>(null);
@@ -89,7 +90,11 @@ const MapScreen: React.FC = ({}) => {
           <Text>위치를 찾을 수 없습니다</Text>
           <Text>위치 설정을 허용해 주세요</Text>
           <RoundBox>
-            <Button title='위치 권한 설정' onPress={() => {WatchingPosition()}} />
+            <Button title='위치 권한 설정' onPress={async () => {
+              const hasPermission = await retryPermissions([PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION])
+              if (hasPermission)
+                startWatchingPosition()
+              }} />
           </RoundBox>
         </MapStyle>
       )}

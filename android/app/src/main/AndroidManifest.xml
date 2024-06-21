@@ -4,20 +4,20 @@
   >
   <!-- BLE setting -->
   <!-- android >= 12 -->
-  <uses-permission android:name="android.permission.BLUETOOTH" tools:remove="android:maxSdkVersion" />   
+  <uses-permission android:name="android.permission.BLUETOOTH" tools:remove="android:maxSdkVersion" android:required="true"/>   
    <!-- android < 12 -->
-  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" tools:remove="android:maxSdkVersion" />          
-  <uses-permission android:name="android.permission.BLUETOOTH_SCAN" tools:remove="android:maxSdkVersion" />   
-  <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" tools:remove="android:maxSdkVersion" />   
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" tools:remove="android:maxSdkVersion" android:required="true"/>          
+  <uses-permission android:name="android.permission.BLUETOOTH_SCAN" tools:remove="android:maxSdkVersion" android:required="true"/>   
+  <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" tools:remove="android:maxSdkVersion" android:required="true"/>   
+  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" tools:remove="android:maxSdkVersion" android:required="true"/>   
   <!-- # optional for background location -->
-  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" android:required="true"/>
   <!-- react-native-background-actions -->
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-  <uses-permission android:name="android.permission.WAKE_LOCK" />
-
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" android:required="true"/>
+  <uses-permission android:name="android.permission.WAKE_LOCK" android:required="true"/>
   <!-- naver api -->
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:required="true"/>
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:required="true"/>
 
   <uses-permission android:name="android.permission.INTERNET" />
 

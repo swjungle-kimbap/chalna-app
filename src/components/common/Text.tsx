@@ -22,6 +22,7 @@ const SubText = styled.Text`
 type TextProps = {
   children: React.ReactNode;
   variant?: "title" | "main" | "sub";
+  style?: object;
 };
 
 const Text: React.FC<TextProps> = ({ children, variant="main", ...rest}) => {

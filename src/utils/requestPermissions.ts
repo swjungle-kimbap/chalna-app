@@ -1,38 +1,25 @@
 import { Platform } from 'react-native';
-import { Permission, check, request, RESULTS } from 'react-native-permissions';
+import { requestMultiple, checkMultiple, RESULTS, Permission } from 'react-native-permissions'; 
 
 const requestPermissions = async (
   permissions: Array<Permission>,
-  onFailed?: () => void,
 ): Promise<boolean> => {
   if (Platform.OS === 'android') {
     try {
-      const permissionsResult = await Promise.all(
-        permissions.map(async (permission) => {
-          const result = await check(permission);
-          if (result !== RESULTS.GRANTED) {
-            const requestResult = await request(permission);
-            if (requestResult === RESULTS.GRANTED) {
-              console.log(`${permission} has been granted`)
-              return true
-            }
-            console.log(`${permission} has been denied`)
-            return false;
-          }
-          console.log(`${permission} is already granted`)
-          return true; // Already granted
-        })
+      await requestMultiple(permissions);
+      const allPermissionsGranted = await checkMultiple(permissions);
+      console.log(allPermissionsGranted);
+
+      const allGranted = Object.values(allPermissionsGranted).every(
+        (status) => status === RESULTS.GRANTED,
       );
 
-      if (permissionsResult.every(Boolean)) {
+      if (allGranted) {
         return true;
-      } else {
-        onFailed && onFailed();
-        return false;
       }
+      return false;
     } catch (error) {
       console.error(`Permission request failed: ${error}`);
-      onFailed && onFailed();
       return false;
     }
   }
