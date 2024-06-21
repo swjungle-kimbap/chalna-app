@@ -9,6 +9,8 @@ buildscript {
         // Geolocation 오류 해결
         playServicesLocationVersion = "21.0.1"
         googlePlayServicesVersion = "18.0.0"
+        // Realm
+        realm_version = "10.10.0"
     }
     repositories {
         google()
@@ -21,6 +23,8 @@ buildscript {
         // FCM setting
         classpath("com.google.gms.google-services:com.google.gms.google-services.gradle.plugin:4.4.2")
         classpath('com.google.firebase:firebase-crashlytics-gradle:3.0.0')
+        // Realm
+        classpath "io.realm:realm-gradle-plugin:$realm_version"
     }
 }
 

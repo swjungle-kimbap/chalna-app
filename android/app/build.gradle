@@ -3,6 +3,8 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 // FCM services
 apply plugin: "com.google.gms.google-services"
+// Realm
+apply plugin: 'realm-android'
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -127,6 +129,9 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("com.google.firebase:firebase-messaging")
     implementation project(':react-native-config')
+    // Realm
+    implementation project(':realm')
+
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
