@@ -3,13 +3,14 @@ import { NaverMap } from "../../components/Map/NaverMap";
 import { useState, useEffect } from "react";
 import { TestResponse, Position, LocationData } from '../../interfaces';
 import Geolocation from "react-native-geolocation-service";
-import { requestLocationPermission } from "../../Permissions/requestLocationPermission";
 import Text from "../../components/common/Text";
 import { ActivityIndicator } from "react-native";
 import { axiosPost } from "../../axios/axios.method";
 import Config from 'react-native-config';
 import RoundBox from "../../components/common/RoundBox";
 import Button from '../../components/common/Button'
+import requestPermissions from "../../utils/requestPermissions";
+import { PERMISSIONS } from "react-native-permissions";
 
 const MapScreen: React.FC = ({}) => {
   const [currentLocation, setCurrentLocation] = useState<Position | null>(null);
@@ -18,8 +19,9 @@ const MapScreen: React.FC = ({}) => {
 
   const WatchingPosition = async () => {
     try {
-      const flg = await requestLocationPermission();
-      if (flg)
+      const hasPermission = await requestPermissions([
+        PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION]);
+      if (hasPermission)
         startWatchingPosition();
     } catch (error: any) { // Use any type for the error object
       console.error('Error fetching device ID:', error);

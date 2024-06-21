@@ -1,9 +1,23 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  pakage="com.chalna"
+  >
+  <!-- BLE setting -->
+  <!-- android >= 12 -->
+  <uses-permission android:name="android.permission.BLUETOOTH" tools:remove="android:maxSdkVersion" />   
+   <!-- android < 12 -->
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" tools:remove="android:maxSdkVersion" />          
+  <uses-permission android:name="android.permission.BLUETOOTH_SCAN" tools:remove="android:maxSdkVersion" />   
+  <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" tools:remove="android:maxSdkVersion" />   
+  <!-- # optional for background location -->
+  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+  <!-- react-native-background-actions -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
+
   <!-- naver api -->
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-  <!-- # optional for background location -->
-  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
   <uses-permission android:name="android.permission.INTERNET" />
 
@@ -29,8 +43,16 @@
           <action android:name="android.intent.action.MAIN" />
           <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
+      <!-- react-native-background-actions -->
+      <intent-filter android:label="filter_react_native">
+          <action android:name="android.intent.action.VIEW" />
+          <category android:name="android.intent.category.DEFAULT" />
+          <category android:name="android.intent.category.BROWSABLE" />
+          <data android:scheme="ChalnaMap" />
+      </intent-filter>
     </activity>
-    
+    <!-- react-native-background-actions -->
+    <service android:name="com.asterinet.react.bgactions.RNBackgroundActionsTask" android:foregroundServiceType="shortService"/>
     <!-- [START firebase_service] -->
     <service
         android:name=".java.MyFirebaseMessagingService"

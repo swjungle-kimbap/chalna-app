@@ -3336,20 +3336,23 @@ __metadata:
     "@types/styled-components-react-native": ^5.2.5
     axios: ^1.7.2
     babel-jest: ^29.6.3
+    dayjs: ^1.11.11
     eslint: ^8.19.0
+    immutability-helper: ^3.1.1
     jest: ^29.6.3
     prettier: 2.8.8
     react: "*"
     react-native: 0.74.1
-    react-native-ble-manager: ^11.5.5
+    react-native-background-actions: ^4.0.0
+    react-native-ble-advertiser: ^0.0.17
     react-native-config: ^1.5.2
     react-native-geolocation-service: ^5.3.1
-    react-native-ibeacon-advertiser: ^3.0.2
     react-native-keychain: ^8.2.0
     react-native-permissions: ^4.1.5
     react-native-safe-area-context: ^4.10.5
     react-native-screens: ^3.31.1
     react-native-uuid: ^2.0.2
+    react-native-uuid-generator: ^6.1.1
     react-test-renderer: 18.2.0
     recoil: ^0.7.7
     styled-components: ^6.1.11
@@ -4454,7 +4457,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:^1.8.15":
+"dayjs@npm:^1.11.11, dayjs@npm:^1.8.15":
   version: 1.11.11
   resolution: "dayjs@npm:1.11.11"
   checksum: 84788275aad8a87fee4f1ce4be08861df29687aae6b7b43dd65350118a37dda56772a3902f802cb2dc651dfed447a5a8df62d88f0fb900dba8333e411190a5d5
@@ -5175,6 +5178,13 @@ __metadata:
   version: 5.0.1
   resolution: "event-target-shim@npm:5.0.1"
   checksum: 1ffe3bb22a6d51bdeb6bf6f7cf97d2ff4a74b017ad12284cc9e6a279e727dc30a5de6bb613e5596ff4dc3e517841339ad09a7eec44266eccb1aa201a30448166
+  languageName: node
+  linkType: hard
+
+"eventemitter3@npm:^4.0.7":
+  version: 4.0.7
+  resolution: "eventemitter3@npm:4.0.7"
+  checksum: 1875311c42fcfe9c707b2712c32664a245629b42bb0a5a84439762dd0fd637fc54d078155ea83c2af9e0323c9ac13687e03cfba79b03af9f40c89b4960099374
   languageName: node
   linkType: hard
 
@@ -5921,6 +5931,13 @@ __metadata:
   bin:
     image-size: bin/image-size.js
   checksum: 23b3a515dded89e7f967d52b885b430d6a5a903da954fce703130bfb6069d738d80e6588efd29acfaf5b6933424a56535aa7bf06867e4ebd0250c2ee51f19a4a
+  languageName: node
+  linkType: hard
+
+"immutability-helper@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "immutability-helper@npm:3.1.1"
+  checksum: 6fdbf6d2123efa567263e904bbaff07aca0e24560d270d34967b03aab8ec20bd3e4057f394d59e50eb6c4718c9415591a6281692bb0aafd522ad72cf4887133f
   languageName: node
   linkType: hard
 
@@ -8548,12 +8565,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-ble-manager@npm:^11.5.5":
-  version: 11.5.5
-  resolution: "react-native-ble-manager@npm:11.5.5"
+"react-native-background-actions@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "react-native-background-actions@npm:4.0.0"
+  dependencies:
+    eventemitter3: ^4.0.7
   peerDependencies:
-    react-native: ">=0.60.0"
-  checksum: 1679c55e86c73dbb3316a8c2dd71ac7253b4aae5e88edd753495cf6ccaf99f2de8ed2021ca01ff9c766e5e4a40b4ab0dc4ec3f99022f5e7b1ff5228d37523d40
+    react-native: ">=0.47.0"
+  checksum: a78b370d7114cdea124a5b404ab15a78e4f83141adf0f0c81f5d1b24a0c9f9388f6266ece3250a6919b15a9da92c341a5ecee10c5952c59cc9ca8717579e8526
+  languageName: node
+  linkType: hard
+
+"react-native-ble-advertiser@npm:^0.0.17":
+  version: 0.0.17
+  resolution: "react-native-ble-advertiser@npm:0.0.17"
+  peerDependencies:
+    react-native: ">=0.50"
+  checksum: 004008f405d46cb33f6316bdda3cb2c2d34f353217196378dd1973077aa411cbdfdd5c9c847f6830ce4f738d29a790d97c36211d0e2188b4c44de4717a114c5e
   languageName: node
   linkType: hard
 
@@ -8573,13 +8601,6 @@ __metadata:
   version: 5.3.1
   resolution: "react-native-geolocation-service@npm:5.3.1"
   checksum: 9a625c9f87811933491055fd8cbd1ef46f97fbbe0262714ad1d9aa969a8900dcb4abc47e58fe162400a81bcdee79324dfcc8e631862df9a22d59ac84af9acfde
-  languageName: node
-  linkType: hard
-
-"react-native-ibeacon-advertiser@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "react-native-ibeacon-advertiser@npm:3.0.2"
-  checksum: 12cd9418d8ae1d2fe7e005ff60099ca4155161711b32c5e6bfab5d18468a7abf413ff7783cd97b1e16b821fb8ac976e72789bec82941df2ed7dced6039f9be75
   languageName: node
   linkType: hard
 
@@ -8624,6 +8645,15 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: afcb93e9cd48d5071278213bbc4ddc18112dbdbd16c11e3c7129368614396d8aae13fd70bb299f3c84f52a28e34af06ccdc514de1e97a99f4197069301dab136
+  languageName: node
+  linkType: hard
+
+"react-native-uuid-generator@npm:^6.1.1":
+  version: 6.1.1
+  resolution: "react-native-uuid-generator@npm:6.1.1"
+  peerDependencies:
+    react-native: ">=0.47"
+  checksum: c82001b368ca73649beba8d55658599e93ea86c5a18a00690d3ec0803e87319a1a72c8eb12d03195341bb71701b7c4292b726a4e034a6fb1bcb381f985adb920
   languageName: node
   linkType: hard
 

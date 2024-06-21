@@ -1,7 +1,8 @@
 import messaging from '@react-native-firebase/messaging';
 import { useEffect, useState } from 'react';
 import { setKeychain, getKeychain } from '../utils/keychain';
-import requestNotificationPermission from '../Permissions/requestNotificationPermssions';
+import requestPermissions from '../utils/requestPermissions';
+import { PERMISSIONS } from 'react-native-permissions';
 
 export const useFCMToken = () => {
   const [fcmToken, setFcmToken] = useState<string | null>(null);
@@ -15,14 +16,12 @@ export const useFCMToken = () => {
           setFcmToken(storedToken);
         } else {
           // 저장된 토큰이 없으면 새로운 토큰 요청
-          const hasPermission = await requestNotificationPermission();
+          const hasPermission = await requestPermissions([PERMISSIONS.ANDROID.POST_NOTIFICATIONS]);
           if (hasPermission) {
             const token = await messaging().getToken();
             console.log('New FCM Token:', token);
             setFcmToken(token);
             await setKeychain('fcmToken', token);
-          } else {
-            console.log('Notification permission denied');
           }
         }
       } catch (error) {
