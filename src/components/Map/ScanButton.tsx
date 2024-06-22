@@ -3,12 +3,18 @@ import ScanNearbyAndPost, { ScanNearbyStop } from '../../service/ScanNearbyAndPo
 import { getKeychain } from '../../utils/keychain';
 import RoundBox from '../common/RoundBox';
 import Button from '../../components/common/Button';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { Linking, StyleSheet, TextInput, View } from 'react-native';
 import { EmitterSubscription } from 'react-native';
 import Text from '../common/Text';
 import { getAsyncString, setAsyncString } from "../../utils/asyncStorage";
+import showPermissionAlert from '../../utils/showPermissionAlert';
+import requestPermissions from '../../utils/requestPermissions';
+import requestBluetooth from '../../utils/requestBluetooth';
 
-const ScanButton: React.FC = () => {
+interface ScanButtonProps {
+  disable: boolean;
+}
+const ScanButton: React.FC<ScanButtonProps> = ({ disable })  => {
   const [onDeviceFound, setOnDeviceFound] = useState<EmitterSubscription | null>(null);
   const [showMsgBox, setShowMsgBox] = useState(false);
   const [showTagBox, setShowTagBox] = useState(false);
@@ -47,6 +53,20 @@ const ScanButton: React.FC = () => {
       setIsScanning(false);
       await setAsyncString('isScanning', 'false');
     }
+  };
+
+  const handleCheckPermission = async () => {
+    requestBluetooth().then(async (checkNotBluetooth) => {
+      if (disable || !checkNotBluetooth) {
+        await showPermissionAlert();
+        const granted = await requestPermissions();
+        if (granted)
+          disable = false;
+      } else {
+        setShowMsgBox(true);
+      }
+    });
+    
   };
 
   return (
@@ -93,9 +113,7 @@ const ScanButton: React.FC = () => {
         </>
       ) : (
         <RoundBox width='95%' style={[styles.buttonContainer, {borderColor : isScanning ? '#14F12A': '#2344F0'}]}>
-          <Button
-            title='인연 만나기'
-            onPress={() => setShowMsgBox(true)}/>
+          <Button title='인연 만나기' onPress={handleCheckPermission}/>
         </RoundBox>
       )}
     </>

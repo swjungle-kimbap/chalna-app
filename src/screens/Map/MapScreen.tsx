@@ -16,12 +16,6 @@ import { useRecoilState } from "recoil";
 import { locationState } from "../../recoil/atoms";
 import { setAsyncObject } from "../../utils/asyncStorage";
 
-const requiredPermissions = [
-  PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-  PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
-  PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
-  PERMISSIONS.ANDROID.BLUETOOTH_ADVERTISE];
-
 const MapScreen: React.FC = ({}) => {
   const [currentLocation, setCurrentLocation] = useRecoilState<Position>(locationState);
   const [isLoading, setIsLoading] = useState<boolean | null>(true); // 로딩 상태 추가
@@ -31,7 +25,7 @@ const MapScreen: React.FC = ({}) => {
   const requestPermissionAndBluetooth = async () => {
     try {
       if (Platform.OS === 'android') {
-        const allGranted = await requestPermissions(requiredPermissions);
+        const allGranted = await requestPermissions();
         const bluetoothActive = await requestBluetooth();
         if (allGranted && bluetoothActive) {
           console.log("ALL permssions has been ready")
@@ -81,7 +75,7 @@ const MapScreen: React.FC = ({}) => {
       await setAsyncObject<Position>('lastLocation', currentLocation);
     }
   };
-  
+
   useEffect(() => {
     const subscription = AppState.addEventListener('change', handleAppStateChange);
     return () => {
@@ -120,7 +114,7 @@ const MapScreen: React.FC = ({}) => {
         <>
           <NaverMap pos={currentLocation} />
           <AlarmButton />
-          <ScanButton />
+          <ScanButton disable={!granted} />
         </>
       )}
     </>
