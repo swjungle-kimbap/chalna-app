@@ -11,7 +11,7 @@ const requestPermissions = async (
       console.log(allPermissionsGranted);
 
       const allGranted = Object.values(allPermissionsGranted).every(
-        (status) => status === RESULTS.GRANTED,
+        (status) => status === RESULTS.GRANTED || RESULTS.UNAVAILABLE,
       );
 
       if (allGranted) {

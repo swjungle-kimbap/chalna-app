@@ -8,7 +8,7 @@ const useDeviceUUID = () => {
       try {
         const deviceUUID = await getKeychain('deviceUUID');
         if (!deviceUUID) {
-          const newDeviceUUID:string = uuid.v4() as string;
+          const newDeviceUUID:string = uuid.v4().slice(0, -2) + '00' as string;
           await setKeychain('deviceUUID', newDeviceUUID);
         } 
       } catch (error) {

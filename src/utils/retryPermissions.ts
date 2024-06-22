@@ -14,7 +14,7 @@ const permissionMSG: Record<Permission, string> = {
 const checkAndRequestPermission = async (permission: Permission): Promise<boolean> => {
   const result = await check(permission);
 
-  if (result === RESULTS.GRANTED) {
+  if (result === RESULTS.GRANTED || RESULTS.UNAVAILABLE)  {
     console.log(`${permission} is already granted`);
     return true;
   } else {
