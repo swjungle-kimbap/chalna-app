@@ -10,7 +10,7 @@ interface Device {
   uuid: string;
   end: Date;
 }
-
+BLEAdvertiser.setCompanyId(APPLE_ID);
 const devicesFound: Device[] = [];
 
 const addDevice = (
@@ -35,8 +35,7 @@ const addDevice = (
   }
 };
 
-const ScanNearbyAndPost = async (uuid:String): Promise<EmitterSubscription> => {
-  BLEAdvertiser.setCompanyId(APPLE_ID);
+const ScanNearbyAndPost = async (uuid:String): EmitterSubscription => {
   const eventEmitter = new NativeEventEmitter(NativeModules.BLEAdvertiser);
   const onDeviceFound = eventEmitter.addListener('onDeviceFound', (event) => {
     if (event.serviceUuids) {
@@ -69,7 +68,7 @@ const ScanNearbyAndPost = async (uuid:String): Promise<EmitterSubscription> => {
   return onDeviceFound;
 }
 
-export const ScanNearbyStop = () => {
+export const ScanNearbyStop = async () => {
   BLEAdvertiser.stopBroadcast()
   .then(() => console.log('Stop Broadcast Successful'))
   .catch((error) => console.log('Stop Broadcast Error', error));

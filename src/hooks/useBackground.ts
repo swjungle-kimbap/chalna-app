@@ -11,15 +11,19 @@ const useBackground = () => {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
         console.log('App has come to the foreground!');
-        endBackgroundService();
+        const endService = async () => {
+          await endBackgroundService();
+        } 
+        endService();
+        
       } else if (nextAppState === 'background') {
         console.log('App has gone to the background!');
         const checkIsScanning = async () => {
           const isScaaningString = await getAsyncString('isScanning');
           if (isScaaningString === 'true') {
-            ScanNearbyStop();
+            await ScanNearbyStop();
             console.log('Scanning is continued in background!');
-            startBackgroundService(); 
+            await startBackgroundService(); 
           }
         } 
         checkIsScanning();

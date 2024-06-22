@@ -8,7 +8,12 @@ let onDeviceFoundListener: EmitterSubscription | null = null;
 const backgroundBLE = async (args:any) => {
   const { uuid } = args;
   await new Promise(async () => {
-    if (!onDeviceFoundListener) {
+    if (onDeviceFoundListener) {
+      onDeviceFoundListener.remove();
+      onDeviceFoundListener = null;
+    }
+
+    while(!onDeviceFoundListener) {
       onDeviceFoundListener = await ScanNearbyAndPost(uuid);
     }
   });

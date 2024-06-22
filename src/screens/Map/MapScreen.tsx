@@ -13,7 +13,6 @@ import requestPermissions from "../../utils/requestPermissions";
 import requestBluetooth from "../../utils/requestBluetooth";
 import { PERMISSIONS } from "react-native-permissions";
 import retryPermissions from "../../utils/retryPermissions";
-import useBackground from "../../hooks/useBackground";
 import { Platform } from "react-native";
 import ScanButton from "../../components/Map/ScanButton";
 import AlarmButton from "../../components/Map/AlarmButton";
@@ -49,9 +48,6 @@ const MapScreen: React.FC = ({}) => {
     }
   }
 
-  // background ble sevice
-  useBackground();
-
   const WatchingPosition = async () => {
     try {
       const hasPermission = await requestPermissions([
@@ -82,7 +78,7 @@ const MapScreen: React.FC = ({}) => {
       },
       { 
         accuracy: {android : "high"},
-        interval: 1000,
+        interval: 5000,
         distanceFilter: 1,
         enableHighAccuracy: true,
         showLocationDialog: true,

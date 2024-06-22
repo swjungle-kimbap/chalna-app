@@ -6,6 +6,8 @@ import { RootStackParamList } from "../../interfaces/Navigation";
 import { useFCMToken, useFcmMessage } from "../../hooks/useFCM";
 import useDeviceUUID from '../../hooks/useDeviceUUID'
 import { useEffect } from "react";
+import useBackground from "../../hooks/useBackground";
+import { endBackgroundService } from "../../service/BackgroundTask";
 
 type ChattingListScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, '로그인 성공'>
@@ -18,7 +20,11 @@ const LoginScreen: React.FC<ChattingListScreenProps> = ({navigation}) => {
       useFcmMessage();
     }
   },[fcmToken])
+  useEffect(()=>{
+    endBackgroundService();
+  },[])
   useDeviceUUID();
+  useBackground();
   return (
     <LoginStyle> 
       <Text>Login page</Text>
