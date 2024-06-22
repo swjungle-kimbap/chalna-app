@@ -8,15 +8,49 @@ import { ActivityIndicator } from "react-native";
 import { axiosPost } from "../../axios/axios.method";
 import Config from 'react-native-config';
 import RoundBox from "../../components/common/RoundBox";
-import Button from '../../components/common/Button'
+import Button from '../../components/common/Button';
 import requestPermissions from "../../utils/requestPermissions";
+import requestBluetooth from "../../utils/requestBluetooth";
 import { PERMISSIONS } from "react-native-permissions";
 import retryPermissions from "../../utils/retryPermissions";
+import useBackground from "../../hooks/useBackground";
+import { Platform } from "react-native";
+import ScanButton from "../../components/Map/ScanButton";
+import AlarmButton from "../../components/Map/AlarmButton";
+
+const requiredPermissions = [
+  PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
+  PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
+  PERMISSIONS.ANDROID.BLUETOOTH_ADVERTISE];
 
 const MapScreen: React.FC = ({}) => {
   const [currentLocation, setCurrentLocation] = useState<Position | null>(null);
   const [isLoading, setIsLoading] = useState<boolean | null>(true); // 로딩 상태 추가
   const [fetchedData, setfetchedData] = useState<TestResponse>([]);
+  const [granted, setGranted] = useState<boolean>(false);
+
+  const requestPermissionAndBluetooth = async () => {
+    try {
+      if (Platform.OS === 'android') {
+        const allGranted = await requestPermissions(requiredPermissions);
+        const bluetoothActive = await requestBluetooth();
+        if (allGranted && bluetoothActive) {
+          console.log("ALL permssions has been ready")
+          setGranted(true);
+        } else {
+          console.log("ALL permssions are not satisfied")
+          setGranted(false);
+        }
+      }
+      else 
+        console.log('Not supported OS');
+    } catch (err) {
+      console.warn(err);
+    }
+  }
+
+  // background ble sevice
+  useBackground();
 
   const WatchingPosition = async () => {
     try {
@@ -32,8 +66,9 @@ const MapScreen: React.FC = ({}) => {
     }
   }
 
-  useEffect(() => {  
+  useEffect(() => {
     WatchingPosition();
+    requestPermissionAndBluetooth();
   }, []); 
 
   const startWatchingPosition = () => {
@@ -84,7 +119,11 @@ const MapScreen: React.FC = ({}) => {
           <ActivityIndicator size="large" color="#0000ff" />
         </MapStyle>
       ) : currentLocation ? ( 
-        <NaverMap pos={currentLocation} />
+        <>
+          <NaverMap pos={currentLocation} />
+          <AlarmButton />
+          <ScanButton />
+        </>
       ) : (
         <MapStyle>
           <Text>위치를 찾을 수 없습니다</Text>

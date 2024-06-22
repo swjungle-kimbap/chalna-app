@@ -8,11 +8,12 @@ interface NaverMapProps {
 export const NaverMap: React.FC<NaverMapProps> = ({pos}) => {
   return (
   <NaverMapView 
-  style={{flex: 1}}
+  style={{flex: 1, zIndex:1}}
   initialCamera={{
     latitude : pos.latitude,
     longitude : pos.longitude,
-    zoom:16}}>
+    zoom:16}}
+    mapPadding={{ bottom: 20 }}>
       <NaverMapMarkerOverlay
         latitude={pos.latitude}
         longitude={pos.longitude}
