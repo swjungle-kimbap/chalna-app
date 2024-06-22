@@ -6,7 +6,7 @@ import RoundBox  from "../../components/common/RoundBox";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../interfaces";
 import { User } from "../../interfaces/User";
-import {View, FlatList, Image, TextInput, StyleSheet, SafeAreaView} from "react-native";
+import {View, FlatList, Image, TextInput, StyleSheet} from "react-native";
 import FriendCard from "../../components/FriendCard.tsx";
 
 
@@ -57,25 +57,23 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
         />);
 
     return (
-        <SafeAreaView>
-            <FriendsStyle>
-                <Text>친구목록 페이지 입니다.</Text>
-                <Button title="차단친구 목록" onPress={() => navigation.navigate('차단친구 목록')} />
-                <View style={styles.searchContainer}>
-                    <Image source={require('../../assets/Icons/SearchIcon.png')} style={styles.searchIcon} />
-                    <TextInput
-                        placeholder="친구 검색"
-                        value={searchQuery}
-                        onChangeText={handleSearch}
-                    />
-                </View>
-                <FlatList
-                    data={filteredData}
-                    renderItem={renderFriendCard}
-                    keyExtractor={(item) => item.id}
+        <FriendsStyle>
+            <Text>친구목록 페이지 입니다.</Text>
+            <Button title="차단친구 목록" onPress={() => navigation.navigate('차단친구 목록')} />
+            <View style={styles.searchContainer}>
+                <Image source={require('../../assets/Icons/SearchIcon.png')} style={styles.searchIcon} />
+                <TextInput
+                    placeholder="친구 검색"
+                    value={searchQuery}
+                    onChangeText={handleSearch}
                 />
-            </FriendsStyle>
-        </SafeAreaView>
+            </View>
+            <FlatList
+                data={filteredData}
+                renderItem={renderFriendCard}
+                keyExtractor={(item) => item.id}
+            />
+        </FriendsStyle>
     );
 };
 

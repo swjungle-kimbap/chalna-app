@@ -10,7 +10,7 @@ type ChattingListScreenProps = {
 
 const ChattingListScreen: React.FC<ChattingListScreenProps> = ({navigation}) => {
   return (
-    <ChattingListStyle>
+    <ChattingListStyle> 
       <Text>채팅 목록 페이지입니다.</Text>
       <Button title="채팅" onPress={()=>navigation.navigate('채팅')}/>
     </ChattingListStyle>
