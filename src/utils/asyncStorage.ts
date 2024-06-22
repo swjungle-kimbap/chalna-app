@@ -1,54 +1,56 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const setAsyncString = async (key: string, value: string) => {
+export const setAsyncString = async (key: string, value: string) => {
   try {
     await AsyncStorage.setItem(key, value);
-    console.log(`${key} stored in AsyncStorage`);
+    console.log(`${key} stored ${value} in AsyncStorage`);
   } catch (e) {
     console.log(`Error storing ${key} key: `, e);
   }
 };
 
-const setAsyncObject = async (key: string, value: object) => {
+export const setAsyncObject = async (key: string, value: object) => {
   try {
     const jsonValue = JSON.stringify(value);
     await AsyncStorage.setItem(key, jsonValue);
-    console.log(`${key} stored in AsyncStorage`);
+    console.log(`${key} stored ${value} in AsyncStorage`);
   } catch (e) {
     console.log(`Error storing ${key} key: `, e);
   }
 };
 
-const getAsyncString = async (key: string) => {
+export const getAsyncString = async (key: string):Promise<string> => {
   try {
     const value = await AsyncStorage.getItem(key);
     if (value === null) {
-      console.log(`Using stored ${key} in AsyncStorage`);
+      console.log(`${key} is not stored in AsyncStorage`);
       return ''
     } 
-    console.log(`${key} is not stored in AsyncStorage`);
+    console.log(`Using stored ${key} : ${value} in AsyncStorage`);
     return value
       
   } catch (e) {
     console.log(`Error retrieving ${key} key: `, e);
+    return ''
   }
 };
 
-const getAsyncObject = async (key: string) => {
+export const getAsyncObject = async (key: string):Promise<Object | null> => {
   try {
     const jsonValue = await AsyncStorage.getItem(key);
     if (jsonValue != null) {
-      console.log(`Using stored ${key} in AsyncStorage`);
+      console.log(`Using stored ${key} : ${jsonValue} in AsyncStorage`);
       return JSON.parse(jsonValue);
     }
     console.log(`${key} is not stored in AsyncStorage`);
     return null;
   } catch (e) {
     console.log(`Error retrieving ${key} key: `, e);
+    return null;
   }
 };
 
-const removeAsyncItem = async (key: string) => {
+export const removeAsyncItem = async (key: string) => {
   try {
     await AsyncStorage.removeItem(key)
     console.log(`Remove ${key} compeletly in AsyncStorage`);

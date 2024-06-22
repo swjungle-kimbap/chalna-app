@@ -6,15 +6,10 @@ import { EmitterSubscription } from 'react-native';
 let onDeviceFoundListener: EmitterSubscription | null = null;
 
 const backgroundBLE = async (args:any) => {
-  const { uuid } = args._j;
+  const { uuid } = args;
   await new Promise(async () => {
-    console.log('1')
-    while (BackgroundService.isRunning()) {
-      console.log('2')
-      if (!onDeviceFoundListener) {
-        console.log('3')
-        onDeviceFoundListener = await ScanNearbyAndPost(uuid);
-      }
+    if (!onDeviceFoundListener) {
+      onDeviceFoundListener = await ScanNearbyAndPost(uuid);
     }
   });
 };
@@ -25,7 +20,7 @@ export const startBackgroundService = async () => {
   if (!deviceUUID) {
     console.error('deviceUUID is not available');
     return;
-  }
+  } 
 
   const options = {
     taskName: 'shortService',
@@ -53,10 +48,6 @@ export const startBackgroundService = async () => {
 export const endBackgroundService = async () => {
   if (BackgroundService.isRunning()) {
     console.log('Stopping background service.');
-    if (onDeviceFoundListener) {
-      ScanNearbyStop(onDeviceFoundListener);
-      onDeviceFoundListener = null;
-    }
     await BackgroundService.stop();
     console.log('Stopped background service');
   }

@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react"
 import { AppState, AppStateStatus } from "react-native";
 import { startBackgroundService, endBackgroundService } from "../service/BackgroundTask";
+import { getAsyncString } from "../utils/asyncStorage";
+import { ScanNearbyStop } from "../service/ScanNearbyAndPost";
 
 const useBackground = () => {
   const appState = useRef(AppState.currentState);
@@ -12,13 +14,20 @@ const useBackground = () => {
         endBackgroundService();
       } else if (nextAppState === 'background') {
         console.log('App has gone to the background!');
-        startBackgroundService(); 
+        const checkIsScanning = async () => {
+          const isScaaningString = await getAsyncString('isScanning');
+          if (isScaaningString === 'true') {
+            ScanNearbyStop();
+            console.log('Scanning is continued in background!');
+            startBackgroundService(); 
+          }
+        } 
+        checkIsScanning();
       }
       appState.current = nextAppState;
     };
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
-
     return () => {
       subscription.remove();
     };

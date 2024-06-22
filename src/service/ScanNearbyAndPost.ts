@@ -6,8 +6,6 @@ import Config from 'react-native-config';
 const APPLE_ID = 0x4c;
 const MANUF_DATA = [1, 0];
 
-BLEAdvertiser.setCompanyId(APPLE_ID);
-
 interface Device {
   uuid: string;
   end: Date;
@@ -37,7 +35,8 @@ const addDevice = (
   }
 };
 
-const ScanNearbyAndPost = async (uuid:String): Promise<EmitterSubscription>=> {
+const ScanNearbyAndPost = async (uuid:String): Promise<EmitterSubscription> => {
+  BLEAdvertiser.setCompanyId(APPLE_ID);
   const eventEmitter = new NativeEventEmitter(NativeModules.BLEAdvertiser);
   const onDeviceFound = eventEmitter.addListener('onDeviceFound', (event) => {
     if (event.serviceUuids) {
@@ -70,7 +69,7 @@ const ScanNearbyAndPost = async (uuid:String): Promise<EmitterSubscription>=> {
   return onDeviceFound;
 }
 
-export const ScanNearbyStop = (onDeviceFound :EmitterSubscription) => {
+export const ScanNearbyStop = () => {
   BLEAdvertiser.stopBroadcast()
   .then(() => console.log('Stop Broadcast Successful'))
   .catch((error) => console.log('Stop Broadcast Error', error));
@@ -78,7 +77,6 @@ export const ScanNearbyStop = (onDeviceFound :EmitterSubscription) => {
   BLEAdvertiser.stopScan()
     .then(() => console.log('Stop Scan Successful'))
     .catch((error) => console.log( 'Stop Scan Error', error));
-  onDeviceFound.remove();
 }
 
 export default ScanNearbyAndPost;
