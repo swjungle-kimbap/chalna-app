@@ -3,27 +3,27 @@ import { NaverMap } from "../../components/Map/NaverMap";
 import { useState, useEffect } from "react";
 import { TestResponse, Position, LocationData } from '../../interfaces';
 import Geolocation from "react-native-geolocation-service";
-import Text from "../../components/common/Text";
-import { ActivityIndicator } from "react-native";
+import { ActivityIndicator, AppState, AppStateStatus } from "react-native";
 import { axiosPost } from "../../axios/axios.method";
 import Config from 'react-native-config';
-import RoundBox from "../../components/common/RoundBox";
-import Button from '../../components/common/Button';
 import requestPermissions from "../../utils/requestPermissions";
 import requestBluetooth from "../../utils/requestBluetooth";
 import { PERMISSIONS } from "react-native-permissions";
-import retryPermissions from "../../utils/retryPermissions";
 import { Platform } from "react-native";
 import ScanButton from "../../components/Map/ScanButton";
 import AlarmButton from "../../components/Map/AlarmButton";
+import { useRecoilState } from "recoil";
+import { locationState } from "../../recoil/atoms";
+import { setAsyncObject } from "../../utils/asyncStorage";
 
 const requiredPermissions = [
+  PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
   PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
   PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
   PERMISSIONS.ANDROID.BLUETOOTH_ADVERTISE];
 
 const MapScreen: React.FC = ({}) => {
-  const [currentLocation, setCurrentLocation] = useState<Position | null>(null);
+  const [currentLocation, setCurrentLocation] = useRecoilState<Position>(locationState);
   const [isLoading, setIsLoading] = useState<boolean | null>(true); // 로딩 상태 추가
   const [fetchedData, setfetchedData] = useState<TestResponse>([]);
   const [granted, setGranted] = useState<boolean>(false);
@@ -48,27 +48,8 @@ const MapScreen: React.FC = ({}) => {
     }
   }
 
-  const WatchingPosition = async () => {
-    try {
-      const hasPermission = await requestPermissions([
-        PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION]);
-      if (hasPermission)
-        startWatchingPosition();
-    } catch (error: any) { // Use any type for the error object
-      console.error('Error fetching device ID:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    WatchingPosition();
-    requestPermissionAndBluetooth();
-  }, []); 
-
   const startWatchingPosition = () => {
-    const watchId = Geolocation.watchPosition(
+    Geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         setCurrentLocation({ latitude, longitude });
@@ -77,15 +58,36 @@ const MapScreen: React.FC = ({}) => {
         console.log("Location following failed", error);
       },
       { 
-        accuracy: {android : "high"},
-        interval: 5000,
+        accuracy: { android: "high" },
+        interval: 3000,
         distanceFilter: 1,
         enableHighAccuracy: true,
         showLocationDialog: true,
       }
     );
-    return () => Geolocation.clearWatch(watchId);
-  } 
+  };
+
+  useEffect(() => {
+    requestPermissionAndBluetooth().then(() => {
+      if (granted) {
+        startWatchingPosition();
+      }
+      setIsLoading(false);
+    });
+  }, [granted]);
+
+  const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+    if (nextAppState === 'background') {
+      await setAsyncObject<Position>('lastLocation', currentLocation);
+    }
+  };
+  
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -105,7 +107,7 @@ const MapScreen: React.FC = ({}) => {
         console.error('Error fetching data:', error);
       } 
     };
-    // fetchData();  
+    // fetchData();
   }, [currentLocation])
   
   return (
@@ -114,24 +116,12 @@ const MapScreen: React.FC = ({}) => {
         <MapStyle>
           <ActivityIndicator size="large" color="#0000ff" />
         </MapStyle>
-      ) : currentLocation ? ( 
+      ) : ( 
         <>
           <NaverMap pos={currentLocation} />
           <AlarmButton />
           <ScanButton />
         </>
-      ) : (
-        <MapStyle>
-          <Text>위치를 찾을 수 없습니다</Text>
-          <Text>위치 설정을 허용해 주세요</Text>
-          <RoundBox>
-            <Button title='위치 권한 설정' onPress={async () => {
-              const hasPermission = await retryPermissions([PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION])
-              if (hasPermission)
-                startWatchingPosition()
-              }} />
-          </RoundBox>
-        </MapStyle>
       )}
     </>
   );

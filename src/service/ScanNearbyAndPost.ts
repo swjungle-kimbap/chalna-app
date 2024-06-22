@@ -35,7 +35,7 @@ const addDevice = (
   }
 };
 
-const ScanNearbyAndPost = async (uuid:String): EmitterSubscription => {
+const ScanNearbyAndPost = async (uuid:String): Promise<EmitterSubscription> => {
   const eventEmitter = new NativeEventEmitter(NativeModules.BLEAdvertiser);
   const onDeviceFound = eventEmitter.addListener('onDeviceFound', (event) => {
     if (event.serviceUuids) {

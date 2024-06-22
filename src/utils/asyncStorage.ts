@@ -9,11 +9,11 @@ export const setAsyncString = async (key: string, value: string) => {
   }
 };
 
-export const setAsyncObject = async (key: string, value: object) => {
+export const setAsyncObject = async <T>(key: string, value: T) => {
   try {
     const jsonValue = JSON.stringify(value);
     await AsyncStorage.setItem(key, jsonValue);
-    console.log(`${key} stored ${value} in AsyncStorage`);
+    console.log(`${key} stored in AsyncStorage`);
   } catch (e) {
     console.log(`Error storing ${key} key: `, e);
   }
@@ -35,7 +35,7 @@ export const getAsyncString = async (key: string):Promise<string> => {
   }
 };
 
-export const getAsyncObject = async (key: string):Promise<Object | null> => {
+export const getAsyncObject = async <T>(key: string):Promise<T | null> => {
   try {
     const jsonValue = await AsyncStorage.getItem(key);
     if (jsonValue != null) {
