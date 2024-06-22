@@ -3,7 +3,8 @@ import { View, StyleSheet, ViewStyle } from 'react-native';
 
 interface RoundBoxProps {
   children: React.ReactNode;
-  size?: number;          // 박스 크기 (width & height)
+  width?: string | number;          // 박스 크기 (width & height)
+  height?: string | number;          // 박스 크기 (width & height)
   radius?: number;        // 둥근 정도 (borderRadius)
   shadow?: ViewStyle;     // 그림자 스타일 (선택 사항)
   style?: ViewStyle;      // 추가적인 스타일
@@ -14,7 +15,8 @@ interface RoundBoxProps {
 
 const RoundBox: React.FC<RoundBoxProps> = ({
   children,
-  size,
+  width,         // 박스 크기 (width & height)
+  height, 
   radius = 5,
   shadow,
   style,
@@ -25,8 +27,8 @@ const RoundBox: React.FC<RoundBoxProps> = ({
   const containerStyle = StyleSheet.flatten([
     styles.container,
     {
-      width: size,
-      height: size,
+      width: height,
+      height: height,
       borderRadius: radius,
       backgroundColor: color,
       padding: padding,

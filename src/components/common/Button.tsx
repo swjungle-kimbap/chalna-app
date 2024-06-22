@@ -8,6 +8,7 @@ type ImageTextButtonProps = TouchableOpacityProps & {
   title?: string; 
   titleStyle?: TextStyle; 
   imageStyle?: ImageStyle; 
+  variant?: "title" | "main" | "sub";
   containerStyle?: ViewStyle; 
 }
 
@@ -18,6 +19,7 @@ const ImageTextButton: React.FC<ImageTextButtonProps> = ({
   titleStyle,
   imageStyle,
   containerStyle,
+  variant,
   ...rest
 }) => {
   const renderContent = () => {
@@ -27,7 +29,7 @@ const ImageTextButton: React.FC<ImageTextButtonProps> = ({
       );
     } else if (title) {
       return (
-        <Text style={titleStyle}>{title}</Text>
+        <Text variant={variant} style={titleStyle}>{title}</Text>
       );
     }
     return null; 

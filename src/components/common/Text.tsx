@@ -15,7 +15,7 @@ const MainText = styled.Text`
 
 const SubText = styled.Text`
   font-family: ${(props) => props.theme.fonts.sub};
-  font-size: 14px;
+  font-size: 12px;
   color: #979797;
 `;
 
@@ -23,9 +23,10 @@ type TextProps = {
   children: React.ReactNode;
   variant?: "title" | "main" | "sub";
   style?: object;
+  numberOfLines?: any;
 };
 
-const Text: React.FC<TextProps> = ({ children, variant="main", ...rest}) => {
+const Text: React.FC<TextProps> = ({ children, numberOfLines, variant="main", ...rest}) => {
   let TextComponent: React.ElementType;
 
   switch (variant) {
