@@ -7,8 +7,8 @@ import { navigate } from '../../navigation/RootNavigation';
 import { useFocusEffect } from '@react-navigation/core';
 
 const Alarms = [
-  {idx:1, content:"메세지 내용을 아세요?. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다.", cnt: 1},
-  {idx:2, content:"메세지 내용입니다.", cnt: 8},
+  {idx:1, content:"메세지 내용을 아세요?. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다.", cnt: 1, tag:"없음"},
+  {idx:2, content:"메세지 내용입니다.", cnt: 8, tag:"없음"},
   {idx:3, content:"메세지 내용입니다.", cnt: 3},
   {idx:4, content:"메세지 내용입니다.", cnt: 6},
   {idx:5, content:"메세지 내용입니다.", cnt: 4},
@@ -29,7 +29,7 @@ const AlarmModal = ({ visible, alarms, onClose }) => {
         {expandedCardId === item.idx ? (
           <>
             <Text 
-              numberOfLines={3}
+              numberOfLines={5}
               ellipsizeMode="tail"
               style={styles.alarmContent}
             >
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 15,
     right:10,
-    width:'65%',
+    width:'80%',
   },
   modalContent: {
     width: '100%',
