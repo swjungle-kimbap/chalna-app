@@ -3,7 +3,7 @@ import Text from "../../components/common/Text";
 import { Button } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../interfaces/Navigation";
-import { useFCMToken, useFcmMessage } from "../../hooks/FCM";
+import { useFCMToken, useFcmMessage } from "../../hooks/useFCM";
 import useDeviceUUID from '../../hooks/useDeviceUUID'
 import { useEffect } from "react";
 
@@ -19,7 +19,6 @@ const LoginScreen: React.FC<ChattingListScreenProps> = ({navigation}) => {
     }
   },[fcmToken])
   useDeviceUUID();
-  
   return (
     <LoginStyle> 
       <Text>Login page</Text>

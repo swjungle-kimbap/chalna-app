@@ -17,7 +17,7 @@ export async function setKeychain(username: string, password: string) {
   }
 }
 
-export async function getKeychain(username: string): Promise<string | null> {
+export async function getKeychain(username: string): Promise<string> {
   try {
     const credentials: KeychainCredentials | false 
       = await Keychain.getGenericPassword({ service: `${SERVICE_PREFIX}.${username}` });
@@ -26,11 +26,11 @@ export async function getKeychain(username: string): Promise<string | null> {
       return credentials.password;
     } else {
       console.log(`Not stored ${username} in keychain`);
-      return null;
+      return '';
     }
   } catch (error) {
     console.error(`Error retrieving ${username} token:`, error);
-    return null;
+    return '';
   }
 }
 
