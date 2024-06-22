@@ -1,40 +1,44 @@
 import * as Keychain from 'react-native-keychain';
 
 interface KeychainCredentials {
-  service: string;
-  username?: string; 
+  username: string; 
   password: string;
+  service?: string;
 }
 
-export async function setKeychain(service:string, token:string) {
+const SERVICE_PREFIX = 'com.chalna';
+
+export async function setKeychain(username: string, password: string) {
   try {
-    await Keychain.setGenericPassword(service, token);
-    console.log(`${service} stored in keychain`);
+    await Keychain.setGenericPassword(username, password, { service: `${SERVICE_PREFIX}.${username}` });
+    console.log(`${username} stored in keychain`);
   } catch (error) {
-    console.log(`Error storing ${service} token: `, error);
+    console.log(`Error storing ${username} token: `, error);
   }
 }
 
-export async function getKeychain(service:string): Promise<string | null> {
+export async function getKeychain(username: string): Promise<string> {
   try {
     const credentials: KeychainCredentials | false 
-      = await Keychain.getGenericPassword({service});
+      = await Keychain.getGenericPassword({ service: `${SERVICE_PREFIX}.${username}` });
     if (credentials) {
+      console.log(`Using stored ${username} ${credentials.password}`);
       return credentials.password;
     } else {
-      return null;
+      console.log(`Not stored ${username} in keychain`);
+      return '';
     }
   } catch (error) {
-    console.error(`Error retrieving ${service} token:`, error);
-    return null
+    console.error(`Error retrieving ${username} token:`, error);
+    return '';
   }
 }
 
-export async function deleteKeychain(service:string): Promise<void> {
+export async function deleteKeychain(username: string): Promise<void> {
   try {
-    await Keychain.resetGenericPassword({service});
-    console.log(`${service} token deleted successfully`);
+    await Keychain.resetGenericPassword({ service: `${SERVICE_PREFIX}.${username}` });
+    console.log(`${username} token deleted successfully`);
   } catch (error) {
-    console.error(`Error deleting ${service} token`, error);
+    console.error(`Error deleting ${username} token`, error);
   }
-};
+}

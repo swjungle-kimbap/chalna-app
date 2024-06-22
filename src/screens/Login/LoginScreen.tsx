@@ -1,10 +1,11 @@
 import styled from "styled-components/native";
 import Text from "../../components/common/Text";
-
 import { Button } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../interfaces/Navigation";
-import { useFCMToken, useFcmMessage } from "../../hooks/FCM";
+import { useFCMToken, useFcmMessage } from "../../hooks/useFCM";
+import useDeviceUUID from '../../hooks/useDeviceUUID'
+import { useEffect } from "react";
 
 type ChattingListScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, '로그인 성공'>
@@ -12,9 +13,12 @@ type ChattingListScreenProps = {
 
 const LoginScreen: React.FC<ChattingListScreenProps> = ({navigation}) => {
   const fcmToken = useFCMToken();
-  if (fcmToken)
-    useFcmMessage();
-
+  useEffect(() => {
+    if (fcmToken) {
+      useFcmMessage();
+    }
+  },[fcmToken])
+  useDeviceUUID();
   return (
     <LoginStyle> 
       <Text>Login page</Text>
