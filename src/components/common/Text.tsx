@@ -44,8 +44,8 @@ const Text: React.FC<TextProps> = ({ children, numberOfLines, variant="main", ..
   }
 
   return (
-    <TextWrapper {...rest}>
-      <TextComponent>
+    <TextWrapper>
+      <TextComponent {...rest}>
         {children}
       </TextComponent>
     </TextWrapper>
