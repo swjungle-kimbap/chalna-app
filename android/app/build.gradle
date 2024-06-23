@@ -87,7 +87,9 @@ android {
         versionCode 1
         versionName "1.0"
         resValue "string", "build_config_package", "com.chalna"
-        manifestPlaceholders = [NAVER_MAP_CLINET_ID: project.ext.env['NAVER_MAP_CLINET_ID']]
+        resValue "string", "kakao_native_app_key", project.ext.env['KAKAO_NATIVE_APP_KEY']
+        manifestPlaceholders = [NAVER_MAP_CLINET_ID: project.ext.env['NAVER_MAP_CLINET_ID'], 
+                KAKAO_NATIVE_APP_KEY:project.ext.env['KAKAO_NATIVE_APP_KEY'] ]
     }
     signingConfigs {
         debug {
@@ -127,6 +129,9 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.1.0")) 
     implementation("com.google.firebase:firebase-messaging")
     implementation project(':react-native-config')
+    // kakao login
+    implementation "com.kakao.sdk:v2-user:2.2.0" // Add the Kakao SDK dependency
+
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)

@@ -31,6 +31,7 @@ export const axiosPost = async<T>(
 
   try {
     const response = await instance.post<T>(url, data, config);
+    console.log(response);
     return response;
   } catch (error) {
     console.error('Post fail:', errorMsg, error)
