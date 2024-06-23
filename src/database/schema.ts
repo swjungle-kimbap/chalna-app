@@ -1,7 +1,7 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
 export default appSchema({
-    version: 1,
+    version: 2,
     tables: [
         tableSchema({
             name: 'chat_rooms',
@@ -9,7 +9,6 @@ export default appSchema({
                 { name: 'chat_room_id', type: 'number'}, // change to string if needed
                 { name: 'type', type: 'string' },
                 { name: 'member_count', type: 'number' },
-                { name: 'username', type: 'string'},
                 { name: 'recent_message', type: 'string', isOptional: true },
                 { name: 'opened_at', type: 'string' },
                 { name: 'last_updated_at', type: 'string', isOptional: true },
@@ -19,22 +18,15 @@ export default appSchema({
         tableSchema({
             name: 'members',
             columns: [
-                { name: 'chat_room_id', type: 'string' },
-                { name: 'member_id', type: 'string' },
+                { name: 'member_id', type: 'number', isIndexed: true},
                 { name: 'username', type: 'string' },
             ],
         }),
-        tableSchema({
-            name: 'memberships',
-            columns:[
-                {name: 'chat_room_id', type:'string', isIndexed: true},
-                {name: 'member_id', type: 'string', isIndexed: true},
-            ],
-        }),
+
         tableSchema({
             name: 'messages',
             columns: [
-                { name: 'chat_room_id', type: 'string' },
+                { name: 'chat_room_id', type: 'string', isIndexed: true },
                 { name: 'type', type: 'string' },
                 { name: 'content', type: 'string' },
                 { name: 'sender_id', type: 'string' },

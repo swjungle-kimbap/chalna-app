@@ -10,6 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@babel/preset-react": "^7.24.7",
     "@mj-studio/react-native-naver-map": "^1.5.9",
     "@nozbe/watermelondb": "^0.27.1",
     "@react-native-community/netinfo": "^11.3.2",
@@ -27,6 +28,7 @@
     "react-native": "*",
     "react-native-background-timer": "^2.4.1",
     "react-native-config": "^1.5.2",
+    "react-native-fs": "^2.20.0",
     "react-native-geolocation-service": "^5.3.1",
     "react-native-gifted-chat": "^2.4.0",
     "react-native-keychain": "^8.2.0",
@@ -42,7 +44,8 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@babel/plugin-proposal-decorators": "^7.24.7",
-    "@babel/preset-env": "^7.20.0",
+    "@babel/plugin-transform-private-methods": "^7.24.7",
+    "@babel/preset-env": "^7.24.7",
     "@babel/runtime": "^7.20.0",
     "@react-native/babel-preset": "0.74.84",
     "@react-native/eslint-config": "0.74.84",

@@ -10,81 +10,61 @@ import Message from "../model/Message";
 // insertMockData.ts
 import { database } from '../database';
 
+const verifyTableExists = async () => {
+    try {
+        const memberships = await database.adapter.query("SELECT name FROM sqlite_master WHERE type='table' AND name='memberships';");
+        if (memberships.length > 0) {
+            console.log('Memberships table exists');
+        } else {
+            console.log('Memberships table does not exist');
+        }
+    } catch (error) {
+        console.error('Error verifying table:', error);
+    }
+};
+
+verifyTableExists();
+
+
 const insertMockData = async () => {
     await database.write(async () => {
-        const chatRoomCollection = database.collections.get<ChatRoom>('chat_rooms');
-        const memberCollection = database.collections.get<Member>('members');
-        const membershipCollection = database.collections.get<Membership>('memberships');
-
-        // Check if mock data already exists to avoid duplicate insertions
-        const existingRooms = await chatRoomCollection.query().fetch();
-        if (existingRooms.length === 0) {
-            const room1 = await chatRoomCollection.create((room) => {
-                // room.name = 'Mock Chat Room 1';
-                room.ChatRoomId=1;
-                room.type='FRIEND';
-                room.memberCount=2;
-                room.recentMessage='Last Message for Chat Room 1';
+        try {
+            const chatRoom = await database.collections.get('chat_rooms').create((room) => {
+                room.chatRoomId = 1;
+                room.type = 'MATCH';
+                room.memberCount = 2;
+                room.recentMessage = 'Hello!';
+                room.createdAt = new Date().toISOString();
             });
+            console.log('Chat room created:', chatRoom);
 
-            const room2 = await chatRoomCollection.create((room) => {
-                // room.name = 'Mock Chat Room 2';
-                room.ChatRoomId=2;
-                room.type='anonymous';
-                room.memberCount=4;
-                room.recentMessage='Last Message for Chat Room 2';
-            });
-
-            // myself = user1
-            const member1 = await memberCollection.create((member) => {
-                member.username = 'User1';
+            const member1 = await database.collections.get('members').create((member) => {
                 member.memberId = 1;
+                member.username = 'User1';
             });
+            console.log('Member 1 created:', member1);
 
-            const member2 = await memberCollection.create((member) => {
-                member.username = 'User2';
+            const member2 = await database.collections.get('members').create((member) => {
                 member.memberId = 2;
+                member.username = 'User2';
             });
+            console.log('Member 2 created:', member2);
 
-            const memberA = await memberCollection.create((member) => {
-                member.username = 'Ann';
-                member.memberId = 3;
+            const membership1 = await database.collections.get('memberships').create((membership) => {
+                membership.chatRoomId = chatRoom.id;
+                membership.memberId = member1.id;
+                membership.status = 'active';
             });
+            console.log('Membership 1 created:', membership1);
 
-            const memberB = await memberCollection.create((member) => {
-                member.username = 'Beatrice';
-                member.memberId = 4;
+            const membership2 = await database.collections.get('memberships').create((membership) => {
+                membership.chatRoomId = chatRoom.id;
+                membership.memberId = member2.id;
+                membership.status = 'active';
             });
-
-            const memberC = await memberCollection.create((member) => {
-                member.username = 'Clair';
-                member.memberId = 5;
-            });
-
-            await membershipCollection.create((membership) => {
-                membership.chatRoom.set(room1);
-                membership.member.set(member1);
-            });
-
-            await membershipCollection.create((membership) => {
-                membership.chatRoom.set(room1);
-                membership.member.set(member2);
-            });
-
-            await membershipCollection.create((membership) => {
-                membership.chatRoom.set(room2);
-                membership.member.set(memberA);
-            });
-
-            await membershipCollection.create((membership) => {
-                membership.chatRoom.set(room2);
-                membership.member.set(memberB);
-            });
-
-            await membershipCollection.create((membership) => {
-                membership.chatRoom.set(room2);
-                membership.member.set(memberC);
-            });
+            console.log('Membership 2 created:', membership2);
+        } catch (error) {
+            console.error('Error creating mock data:', error);
         }
     });
 };

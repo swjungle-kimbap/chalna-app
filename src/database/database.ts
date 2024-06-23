@@ -1,6 +1,7 @@
 import { Database } from '@nozbe/watermelondb';
 import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite';
 import schema from './schema.ts';
+import migrations from "./migrations.ts";
 import ChatRoom from './model/ChatRoom';
 import Member from './model/Member';
 import Message from './model/Message';
@@ -9,6 +10,10 @@ import Membership from "./model/Membership.ts";
 const adapter = new SQLiteAdapter({
     schema,
     // jsi: true,
+    migrations,
+    onSetUpError: error=>{
+        console.log('db error', error);
+    },
     dbName: 'chalnaApp', // you can change this name if needed
 });
 
