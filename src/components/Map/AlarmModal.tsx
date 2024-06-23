@@ -1,42 +1,16 @@
-import { axiosGet } from '../../axios/axios.method';
+import { axiosGet, axiosPut } from '../../axios/axios.method';
 import Config from 'react-native-config';
 import { AlarmItem, AlarmListResponse } from '../../interfaces';
 import AlarmCardRender from './AlarmCardRender';
-import { navigate } from '../../navigation/RootNavigation';
 import { FlatList, Modal, StyleSheet, TouchableWithoutFeedback, View }from 'react-native';
 import { useCallback, useState, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/core';
-
-const Alarms = {
-  "code": "200",
-  "data": [
-      {
-          "createAt": "2024-06-23T05:45:32.318738",
-          "message": "push 알림",
-          "senderId": "3",
-          "overlapCount": "1"
-      },
-      {
-          "createAt": "2024-06-23T05:45:32.318738",
-          "message": "push 알림",
-          "senderId": "3",
-          "overlapCount": "1"
-      },
-      {
-          "createAt": "2024-06-23T05:45:32.318738",
-          "message": "push 알림",
-          "senderId": "3",
-          "overlapCount": "1"
-      }
-  ],
-  "message": "요청 처리에 성공했습니다."
-}
+import Button from '../common/Button';
 
 export interface AlarmModalProps{
   closeModal: () => void,
   modalVisible: boolean,
 }
-
 
 const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal}) => {
   const [expandedCardId, setExpandedCardId] = useState<string>("");
@@ -48,8 +22,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal}) => {
 
   useFocusEffect(
     useCallback(() => {
-      // 화면이 포커스를 받을 때 모달 상태 초기화
-      closeModal();
+      closeModal();       // 화면이 포커스를 받을 때 모달 상태 초기화
     }, [])
   );
 
@@ -78,14 +51,21 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal}) => {
     };
   }, [modalVisible])
   
-  const navigateToChat = () => {
-    navigate('채팅');
-  };
-
-  const removeAlarmItem = (createAt:string) => {
-    if (alarms) {
+  const removeAlarmItem = (createAt:string, DeleteAll = false) => {
+    if (DeleteAll) {
+      setAlarms([]);
+    } else if (alarms) {
       const newAlarmList = alarms.filter(item => item.createAt !== createAt);
       setAlarms(newAlarmList);
+    }
+  }
+
+  const handleAllDeleteAlarm = async () => {
+    try {
+      await axiosPut(Config.DELETE_ALL_MSG_URL, "인연 알림 모두 지우기");
+      removeAlarmItem("", true);
+    } catch (e) {
+      console.error("fail: 인연 수락 요청 실패", e);
     }
   }
 
@@ -94,7 +74,6 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal}) => {
       item={item}
       expandedCardId={expandedCardId}
       handleCardPress={handleCardPress}
-      navigate={navigateToChat}
       removeAlarmItem={removeAlarmItem}
     />
   );
@@ -111,10 +90,11 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal}) => {
           <TouchableWithoutFeedback>
             <View style={styles.modalpos}>
               <FlatList
-                data={Alarms?.data ?? []}
+                data={alarms}
                 keyExtractor={(item) => item.createAt}
                 renderItem={renderAlarmCard}
               />
+              <Button title='모두 지우기' variant='sub' onPress={async () => handleAllDeleteAlarm}/>
             </View>
           </TouchableWithoutFeedback>
         </View>

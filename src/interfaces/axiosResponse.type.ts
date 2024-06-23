@@ -47,6 +47,6 @@ export interface MatchAcceptResponse {
   chatRoomId: number
 }
 
-export interface MatchRejectResponse {
+export interface MatchDeleteResponse {
   message: string
 }
