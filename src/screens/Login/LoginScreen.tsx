@@ -7,13 +7,14 @@ import useBackground from "../../hooks/useBackground";
 import { endBackgroundService } from "../../service/BackgroundTask";
 import { useSetRecoilState } from "recoil";
 import { locationState } from "../../recoil/atoms";
-import { getAsyncObject, getAsyncString } from "../../utils/asyncStorage";
+import { getAsyncObject } from "../../utils/asyncStorage";
 import { Position } from "../../interfaces";
 import RoundBox from "../../components/common/RoundBox";
 import Button from "../../components/common/Button";
 import { SignUpByWithKakao } from "../../components/Login/SignUpByWithKakao";
 import { navigate } from "../../navigation/RootNavigation";
 import { logIn } from "../../components/Login/login";
+import { getKeychain } from "../../utils/keychain";
 
 const LoginScreen: React.FC = ({}) => {
   const setLocation = useSetRecoilState(locationState);
@@ -40,7 +41,7 @@ const LoginScreen: React.FC = ({}) => {
 
   const handleLogin = async () => {
     try {
-      const loginToken = await getAsyncString('loginToken');
+      const loginToken = await getKeychain('loginToken');
       let loginSuccess;
       if (!loginToken) {
         loginSuccess = await SignUpByWithKakao(fcmToken, deviceUUID);

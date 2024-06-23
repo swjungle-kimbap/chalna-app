@@ -1,5 +1,5 @@
 import BackgroundService from 'react-native-background-actions';
-import ScanNearbyAndPost, { ScanNearbyStop } from './ScanNearbyAndPost'
+import ScanNearbyAndPost from './ScanNearbyAndPost'
 import { getKeychain } from '../utils/keychain';
 import { EmitterSubscription } from 'react-native';
 
@@ -29,8 +29,8 @@ export const startBackgroundService = async () => {
 
   const options = {
     taskName: 'shortService',
-    taskTitle: '인연 찾기',
-    taskDesc: '주변의 인연에게 메세지를 보내고 있습니다.',
+    taskTitle: '인연 만나기',
+    taskDesc: '새로운 인연을 찾고 있습니다.',
     taskIcon: {
       name: 'ic_launcher',
       type: 'mipmap',

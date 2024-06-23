@@ -3,7 +3,7 @@ import { NaverMap } from "../../components/Map/NaverMap";
 import { useState, useEffect, useRef } from "react";
 import { TestResponse, Position, LocationData } from '../../interfaces';
 import Geolocation from "react-native-geolocation-service";
-import { ActivityIndicator, AppState, AppStateStatus } from "react-native";
+import { ActivityIndicator } from "react-native";
 import { axiosPost } from "../../axios/axios.method";
 import Config from 'react-native-config';
 import requestPermissions from "../../utils/requestPermissions";
@@ -15,6 +15,13 @@ import { useRecoilValue } from "recoil";
 import { locationState } from "../../recoil/atoms";
 import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
 import { useStartWatchingPosition } from "../../hooks/useStartWatchingPosition";
+import { PERMISSIONS } from "react-native-permissions";
+
+const requiredPermissions = [
+  PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+  PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
+  PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
+  PERMISSIONS.ANDROID.BLUETOOTH_ADVERTISE];
 
 const MapScreen: React.FC = ({}) => {
   const currentLocation = useRecoilValue<Position>(locationState);
@@ -27,7 +34,7 @@ const MapScreen: React.FC = ({}) => {
   const requestPermissionAndBluetooth = async () => {
     try {
       if (Platform.OS === 'android') {
-        const allGranted = await requestPermissions();
+        const allGranted = await requestPermissions(requiredPermissions);
         const bluetoothActive = await requestBluetooth();
         if (allGranted && bluetoothActive) {
           console.log("ALL permssions has been ready")
