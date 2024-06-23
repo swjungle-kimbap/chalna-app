@@ -13,7 +13,7 @@ import requestBluetooth from '../../utils/requestBluetooth';
 import useBackgroundSave from '../../hooks/useChangeBackgroundSave';
 import Toggle from '../common/Toggle';
 
-const tags = ['상담', '질문', '대화'];
+const tags = ['상담', '질문', '대화', '만남'];
 
 interface ScanButtonProps {
   disable: boolean;

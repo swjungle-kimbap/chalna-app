@@ -1,55 +1,92 @@
 import Button from '../common/Button'
 import RoundBox from '../common/RoundBox';
-import { Text, FlatList, Modal, StyleSheet, TouchableWithoutFeedback, View, TouchableOpacity } from 'react-native';
-import { useCallback, useState } from 'react';
+import { FlatList, Modal, StyleSheet, TouchableWithoutFeedback, View }from 'react-native';
+import { useCallback, useState, useEffect } from 'react';
 import FontTheme from "../../styles/FontTheme";
-import { navigate } from '../../navigation/RootNavigation';
 import { useFocusEffect } from '@react-navigation/core';
+import { axiosGet } from '../../axios/axios.method';
+import Config from 'react-native-config';
+import { GetAlarmData, AlarmItem } from '../../interfaces';
+import AlarmCardRender from './AlarmCardRender';
+import { navigate } from '../../navigation/RootNavigation';
 
-const Alarms = [
-  {idx:1, content:"메세지 내용을 아세요?. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다.", cnt: 1, tag:"없음"},
-  {idx:2, content:"메세지 내용입니다.", cnt: 8, tag:"없음"},
-  {idx:3, content:"메세지 내용입니다.", cnt: 3},
-  {idx:4, content:"메세지 내용입니다.", cnt: 6},
-  {idx:5, content:"메세지 내용입니다.", cnt: 4},
-]
+const Alarms = {
+  "code": "200",
+  "data": [
+      {
+          "createAt": "2024-06-23T05:45:32.318738",
+          "message": "push 알림",
+          "senderId": "3",
+          "overlapCount": "1"
+      },
+      {
+          "createAt": "2024-06-23T05:45:32.318738",
+          "message": "push 알림",
+          "senderId": "3",
+          "overlapCount": "1"
+      },
+      {
+          "createAt": "2024-06-23T05:45:32.318738",
+          "message": "push 알림",
+          "senderId": "3",
+          "overlapCount": "1"
+      }
+  ],
+  "message": "요청 처리에 성공했습니다."
+}
 
-const AlarmModal = ({ visible, alarms, onClose }) => {
+const AlarmModal = ({ visible, onClose }:{ visible: boolean, onClose: () => void }) => {
   const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
+  const [alarms, setAlarms] = useState<AlarmItem[] | null>(null);
 
   const handleCardPress = (cardId: number) => {
     setExpandedCardId(expandedCardId === cardId ? null : cardId);
   };
 
-  const AlarmCardRender = ({ item }) => (
-    <TouchableOpacity onPress={() => handleCardPress(item.idx)}>
-      <View style={styles.modalContent}>
-        <Text style={styles.alarmCnt}>{`${item.cnt}번 스쳐간 인연입니다.`}</Text>
-        {expandedCardId === item.idx ? (
-          <>
-            <Text 
-              numberOfLines={5}
-              ellipsizeMode="tail"
-              style={styles.alarmContent}
-            >
-              {item.content}
-            </Text>
-            <View style={styles.btnContainer}>
-              <Button style={{flex:1}} variant="sub" title="대화하기" onPress={() => navigate('채팅')} />
-              <Button style={{flex:1}} variant="sub" title="지우기" onPress={() => { /* 지우기 기능 추가 */ }} />
-            </View>
-          </>
-        ) : (
-          <Text 
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            style={styles.alarmContent}
-          >
-            {item.content}
-          </Text>
-        )}
-      </View>
-    </TouchableOpacity>
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
+    const startPolling = () => {
+      intervalId = setInterval(async () => {
+        try {
+          const fetchedData = await axiosGet<GetAlarmData>(Config.GET_MSG_LIST_URL, "알림 목록 조회");
+          if (fetchedData) {
+            setAlarms(fetchedData.data);
+          }
+        } catch (error) {
+          console.error('Error fetching alarm data:', error);
+        }
+      }, 3000); // 3초마다 데이터 가져오기
+    };
+
+    //startPolling();
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [visible])
+
+  const navigateToChat = () => {
+    navigate('채팅');
+  };
+
+  const removeAlarmItem = ({idx}) => {
+    if (alarms) {
+      const newAlarmList = alarms.filter(item => item.idx !== idx);
+      setAlarms(newAlarmList);
+    }
+
+  }
+
+  const renderAlarmCard = ({ item }: { item: AlarmItem }) => (
+    <AlarmCardRender
+      item={item}
+      expandedCardId={expandedCardId}
+      handleCardPress={handleCardPress}
+      navigate={navigateToChat}
+      removeAlarmItem={removeAlarmItem}
+    />
   );
 
   return (
@@ -64,9 +101,9 @@ const AlarmModal = ({ visible, alarms, onClose }) => {
           <TouchableWithoutFeedback>
             <View style={styles.modalpos}>
               <FlatList
-                data={alarms}
-                keyExtractor={(item) => item.idx.toString()}
-                renderItem={AlarmCardRender}
+                data={Alarms?.data ?? []}
+                keyExtractor={(item) => item.createAt.toString()}
+                renderItem={renderAlarmCard}
               />
               <Button title="Close" onPress={onClose} />
             </View>
@@ -76,7 +113,6 @@ const AlarmModal = ({ visible, alarms, onClose }) => {
     </Modal>
   );
 };
-
 
 const AlarmButton = () => {
   const [modalVisible, setModalVisible] = useState(false);
