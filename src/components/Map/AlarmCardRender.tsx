@@ -5,14 +5,14 @@ import FontTheme from '../../styles/FontTheme';
 
 export interface AlaramItemProps{
   item: AlarmItem;
-  expandedCardId: number | null;
-  handleCardPress: (createAt: number) => void;
+  expandedCardId: string;
+  handleCardPress: (createAt: string) => void;
   navigate: () => void;
-  removeAlarmItem: (idx:number) =>void;
+  removeAlarmItem: (createAt: string) =>void;
 }
 
 const AlarmCardRender: React.FC<AlaramItemProps> = ({ item, expandedCardId, handleCardPress, navigate, removeAlarmItem }) => {
-  return (<TouchableOpacity onPress={() => handleCardPress(item.idx)}>
+  return (<TouchableOpacity onPress={() => handleCardPress(item.createAt)}>
     <View style={styles.modalContent}>
       <Text style={styles.alarmCnt}>{`${item.overlapCount}번 스쳐간 인연입니다.`}</Text>
       {expandedCardId === item.idx ? (
@@ -26,7 +26,7 @@ const AlarmCardRender: React.FC<AlaramItemProps> = ({ item, expandedCardId, hand
           </Text>
           <View style={styles.btnContainer}>
             <Button style={{flex:1}} variant="sub" title="대화하기" onPress={() => navigate()} />
-            <Button style={{flex:1}} variant="sub" title="지우기" onPress={() => removeAlarmItem(item.idx)} />
+            <Button style={{flex:1}} variant="sub" title="지우기" onPress={() => removeAlarmItem(item.createAt)} />
           </View>
         </>
       ) : (

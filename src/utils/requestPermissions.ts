@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { requestMultiple, checkMultiple, RESULTS, PERMISSIONS, Permission } from 'react-native-permissions'; 
+import { requestMultiple, checkMultiple, RESULTS, Permission } from 'react-native-permissions'; 
 
 const requestPermissions = async (requiredPermissions:Permission[]): Promise<boolean> => {
   if (Platform.OS === 'android') {

@@ -4,7 +4,7 @@ import { axiosPost } from "../../axios/axios.method";
 import { AxiosResponse } from "axios";
 import { LoginResponse } from "../../interfaces";
 
-export const logIn = async (loginToken: string, deviceId:string, fcmToken:string) : boolean=> {
+export const logIn = async (loginToken: string, deviceId:string, fcmToken:string) : Promise<boolean>=> {
   try {
     const loginRequestBody:LoginRequest = {
       loginToken, deviceId, fcmToken,

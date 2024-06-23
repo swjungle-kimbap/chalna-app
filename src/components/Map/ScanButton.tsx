@@ -12,8 +12,15 @@ import requestPermissions from '../../utils/requestPermissions';
 import requestBluetooth from '../../utils/requestBluetooth';
 import useBackgroundSave from '../../hooks/useChangeBackgroundSave';
 import Toggle from '../common/Toggle';
+import { PERMISSIONS } from 'react-native-permissions';
 
 const tags = ['상담', '질문', '대화', '만남'];
+
+const requiredPermissions = [
+  PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+  PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
+  PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
+  PERMISSIONS.ANDROID.BLUETOOTH_ADVERTISE];
 
 interface ScanButtonProps {
   disable: boolean;
@@ -120,7 +127,7 @@ const ScanButton: React.FC<ScanButtonProps> = ({ disable })  => {
     const checkNotBluetooth = await requestBluetooth();
     if (disable || !checkNotBluetooth) {
       await showPermissionAlert();
-      const granted = await requestPermissions();
+      const granted = await requestPermissions(requiredPermissions);
       if (granted && checkNotBluetooth) {
         return true;
       } else {
