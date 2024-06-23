@@ -5,7 +5,7 @@ import requestPermissions from '../utils/requestPermissions';
 import { PERMISSIONS } from 'react-native-permissions';
 
 export const useFCMToken = () => {
-  const [fcmToken, setFcmToken] = useState<string | null>(null);
+  const [fcmToken, setFcmToken] = useState<string>("");
 
   useEffect(() => {
     const initializeFCMToken = async () => {
