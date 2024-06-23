@@ -1,7 +1,15 @@
-import { AlaramItemProps } from '../../interfaces';
+import { AlarmItem } from '../../interfaces';
 import Button from '../common/Button'
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import FontTheme from '../../styles/FontTheme';
+
+export interface AlaramItemProps{
+  item: AlarmItem;
+  expandedCardId: number | null;
+  handleCardPress: (createAt: number) => void;
+  navigate: () => void;
+  removeAlarmItem: (idx:number) =>void;
+}
 
 const AlarmCardRender: React.FC<AlaramItemProps> = ({ item, expandedCardId, handleCardPress, navigate, removeAlarmItem }) => {
   return (<TouchableOpacity onPress={() => handleCardPress(item.idx)}>

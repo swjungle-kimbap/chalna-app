@@ -1,13 +1,7 @@
 import { Platform } from 'react-native';
-import { requestMultiple, checkMultiple, RESULTS, PERMISSIONS } from 'react-native-permissions'; 
+import { requestMultiple, checkMultiple, RESULTS, PERMISSIONS, Permission } from 'react-native-permissions'; 
 
-const requiredPermissions = [
-  PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-  PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
-  PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
-  PERMISSIONS.ANDROID.BLUETOOTH_ADVERTISE];
-
-const requestPermissions = async (): Promise<boolean> => {
+const requestPermissions = async (requiredPermissions:Permission[]): Promise<boolean> => {
   if (Platform.OS === 'android') {
     try {
       await requestMultiple(requiredPermissions);
