@@ -18,6 +18,7 @@ const requestPermissions = async (): Promise<boolean> => {
         (status) => status === RESULTS.GRANTED || status === RESULTS.UNAVAILABLE,
       );
       if (allGranted) {
+        console.log('All permissions are granted')
         return true;
       }
       return false;

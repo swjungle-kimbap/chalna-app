@@ -1,35 +1,42 @@
-import React, { useState, useRef } from 'react';
-import { TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Switch, StyleSheet, SwitchProps } from 'react-native';
 
-const Toggle: React.FC<void> = () => {
-  const [isActive, setIsActive] = useState(false);
-  const animation = useRef(new Animated.Value(1)).current;
+interface ToggleProps {
+  isEnabled: boolean;
+  toggleHandler: () => Promise<void>;
+}
 
-  const toggle = () => {
-    setIsActive(prevState => !prevState); // 토글 상태 변경
+const Toggle: React.FC<ToggleProps> = ({ isEnabled, toggleHandler }) => {
+  const [isPending, setIsPending] = useState(false);
+
+  const handleToggle = async () => {
+    setIsPending(true);
+
+    const timeout = setTimeout(() => {
+      setIsPending(false);
+    }, 500); // 500ms 타임아웃
+
+    try {
+      await toggleHandler();
+    } finally {
+      clearTimeout(timeout);
+      setIsPending(false);
+    }
   };
 
-  const backgroundColorStyle = {
-    backgroundColor: animatedValue.interpolate({
-      inputRange: [0, 1],
-      outputRange: ['#E52222', '#2EAA3B'],
-    }),
+  const switchProps: SwitchProps = {
+    trackColor: { false: '#2344F0', true: '#14F12A' },
+    thumbColor: '#f4f3f4',
+    ios_backgroundColor: '#3e3e3e',
+    onValueChange: handleToggle,
+    value: isEnabled,
+    disabled: isPending,
   };
 
   return (
-    <TouchableOpacity onPress={toggle}>
-      <Animated.View style={[styles.button, backgroundColorStyle]}>
-      </Animated.View>
-    </TouchableOpacity>
+    <View>
+      <Switch {...switchProps} />
+    </View>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-  },
-});
-
 export default Toggle;

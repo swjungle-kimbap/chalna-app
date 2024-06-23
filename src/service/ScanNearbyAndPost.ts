@@ -6,36 +6,51 @@ import { getAsyncObject, getAsyncString, setAsyncObject, setAsyncString } from '
 
 const APPLE_ID = 0x4c;
 const MANUF_DATA = [1, 0];
-
-interface Device {
-  uuid: string;
-  end: Date;
-}
+const DelayedCntTime = 3 * 60 * 60 * 1000;
+const DelayedMSGTime = 60 * 60 * 1000;
 
 BLEAdvertiser.setCompanyId(APPLE_ID);
 
-const sendMsg = async (myuuid:string, _uuid:string) => {
+const sendMsg = async ( _uuid:string) => {
   const savedMsgText = await getAsyncString('msgText');
   const savedTag = await getAsyncString('tag');
   await axiosPost(Config.SEND_MSG_URL, "인연 보내기",{
-    receiverList: [myuuid, _uuid],
+    receiverList: _uuid,
     message: savedMsgText,
     interestTag:savedTag
   })
 }
 
-const addDevice = (myuuid:string, _uuid: string, _date: Date) => {
-  getAsyncObject<Date>(`${_uuid}`).then((lastMeetTime) => {
+const sendRelationCnt = async (_uuid:string) => {
+  await axiosPost(Config.SET_RELATION_CNT_URL + _uuid, "만난 횟수 증가")
+}
+
+const addDevice = (_uuid: string, _date: number) => {
+  getAsyncObject<number>(`CNT${_uuid}`).then((lastMeetTime) => {
     if (!lastMeetTime) {
-      console.log(`Added device: ${_uuid}`);
-      setAsyncObject<Date>(`${_uuid}`, _date);
-      sendMsg(myuuid, _uuid);
+      console.log(`CNT Added device: ${_uuid}`);
+      setAsyncObject<number>(`CNT${_uuid}`, _date);
+      sendRelationCnt(_uuid);
     } else {
-      console.log(`Updated device: ${_uuid}`);  
-      const threeHoursAgo = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
-      if (lastMeetTime < threeHoursAgo) {
-        setAsyncObject<Date>(`${_uuid}`, _date);
-        sendMsg(myuuid, _uuid);
+      const checkDelayedCntTime = new Date().getTime() - DelayedCntTime;
+      console.log(`CNT Updated device: ${_uuid}`); 
+      if (lastMeetTime < checkDelayedCntTime) {
+        setAsyncObject<number>(`CNT${_uuid}`, _date);
+        sendRelationCnt(_uuid);
+      }
+    }
+  });
+  getAsyncObject<number>(`MSG${_uuid}`).then((lastMeetTime) => {
+    if (!lastMeetTime) {
+      console.log(`MSG Added device: ${_uuid}`);
+      setAsyncObject<number>(`MSG${_uuid}`, _date);
+      sendMsg(_uuid);
+    } else {
+      const checkDelayedCntTime = new Date().getTime() - DelayedMSGTime;
+      console.log(`MSG Updated device: ${_uuid}`); 
+      if (lastMeetTime < checkDelayedCntTime) {
+        setAsyncObject<number>(`MSG${_uuid}`, _date);
+        sendMsg(_uuid);
       }
     }
   });
@@ -47,7 +62,7 @@ const ScanNearbyAndPost = async (uuid:string): Promise<EmitterSubscription> => {
     if (event.serviceUuids) {
       for (let i = 0; i < event.serviceUuids.length; i++) {
         if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00')) {
-          addDevice(uuid, event.serviceUuids[i], new Date());
+          addDevice(event.serviceUuids[i], new Date().getTime());
         }
       }
     }
@@ -62,14 +77,22 @@ const ScanNearbyAndPost = async (uuid:string): Promise<EmitterSubscription> => {
     includeTxPowerLevel: false,
   })
     .then((success) => console.log(uuid, 'Advertise Successful', success))
-    .catch((error) => console.log(uuid, 'Advertise Error', error));
+    .catch((error) => {
+      console.log(uuid, 'Advertise Error', error);
+      setAsyncString('isScanning', 'false');
+      setAsyncString('isSendingMsg', 'false');
+    });
 
   console.log(uuid, 'Starting Scanner');
   BLEAdvertiser.scan(MANUF_DATA, {
     scanMode: 2,
   })
     .then((success) => console.log(uuid, 'Scan Successful', success))
-    .catch((error) => console.log(uuid, 'Scan Error', error));
+    .catch((error) => {
+      console.log(uuid, 'Scan Error', error);
+      setAsyncString('isScanning', 'false');
+      setAsyncString('isSendingMsg', 'false');
+    });
 
   return onDeviceFound;
 }
@@ -77,11 +100,19 @@ const ScanNearbyAndPost = async (uuid:string): Promise<EmitterSubscription> => {
 export const ScanNearbyStop = async () => {
   BLEAdvertiser.stopBroadcast()
   .then(() => console.log('Stop Broadcast Successful'))
-  .catch((error) => console.log('Stop Broadcast Error', error));
+  .catch((error) => {
+    console.log('Stop Broadcast Error', error);
+    setAsyncString('isScanning', 'true');
+    setAsyncString('isSendingMsg', 'true');
+  });
 
   BLEAdvertiser.stopScan()
     .then(() => console.log('Stop Scan Successful'))
-    .catch((error) => console.log( 'Stop Scan Error', error));
+    .catch((error) => {
+      console.log( 'Stop Scan Error', error);
+      setAsyncString('isScanning', 'true');
+      setAsyncString('isSendingMsg', 'true');
+    });
 }
 
 export default ScanNearbyAndPost;
