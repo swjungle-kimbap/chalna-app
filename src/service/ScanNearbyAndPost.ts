@@ -24,17 +24,17 @@ const sendMsg = async (myuuid:string, _uuid:string) => {
   })
 }
 
-const addDevice = (myuuid:string, _uuid: string, _date: Date) => {
-  getAsyncObject<Date>(`${_uuid}`).then((lastMeetTime) => {
+const addDevice = (myuuid:string, _uuid: string, _date: number) => {
+  getAsyncObject<number>(`${_uuid}`).then((lastMeetTime) => {
     if (!lastMeetTime) {
       console.log(`Added device: ${_uuid}`);
-      setAsyncObject<Date>(`${_uuid}`, _date);
+      setAsyncObject<number>(`${_uuid}`, _date);
       sendMsg(myuuid, _uuid);
     } else {
-      console.log(`Updated device: ${_uuid}`);  
-      const threeHoursAgo = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
+      const threeHoursAgo = new Date().getTime() - 3 * 60 * 60 * 1000;
+      console.log(`Updated device: ${_uuid}`); 
       if (lastMeetTime < threeHoursAgo) {
-        setAsyncObject<Date>(`${_uuid}`, _date);
+        setAsyncObject<number>(`${_uuid}`, _date);
         sendMsg(myuuid, _uuid);
       }
     }
@@ -47,7 +47,7 @@ const ScanNearbyAndPost = async (uuid:string): Promise<EmitterSubscription> => {
     if (event.serviceUuids) {
       for (let i = 0; i < event.serviceUuids.length; i++) {
         if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00')) {
-          addDevice(uuid, event.serviceUuids[i], new Date());
+          addDevice(uuid, event.serviceUuids[i], new Date().getTime());
         }
       }
     }

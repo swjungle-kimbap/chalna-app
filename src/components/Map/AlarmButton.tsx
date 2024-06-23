@@ -21,7 +21,6 @@ const AlarmModal = ({ visible, alarms, onClose }) => {
     setExpandedCardId(expandedCardId === cardId ? null : cardId);
   };
 
-
   const AlarmCardRender = ({ item }) => (
     <TouchableOpacity onPress={() => handleCardPress(item.idx)}>
       <View style={styles.modalContent}>
