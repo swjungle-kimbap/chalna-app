@@ -6,12 +6,14 @@ export default appSchema({
         tableSchema({
             name: 'chat_rooms',
             columns: [
+                { name: 'chat_room_id', type: 'number'}, // change to string if needed
                 { name: 'type', type: 'string' },
                 { name: 'member_count', type: 'number' },
-                { name: 'recent_message_id', type: 'string', isOptional: true },
-                { name: 'created_at', type: 'number' },
-                { name: 'updated_at', type: 'number', isOptional: true },
-                { name: 'removed_at', type: 'number', isOptional: true },
+                { name: 'username', type: 'string'},
+                { name: 'recent_message', type: 'string', isOptional: true },
+                { name: 'opened_at', type: 'string' },
+                { name: 'last_updated_at', type: 'string', isOptional: true },
+                { name: 'removed_at', type: 'string', isOptional: true },
             ],
         }),
         tableSchema({
@@ -23,6 +25,13 @@ export default appSchema({
             ],
         }),
         tableSchema({
+            name: 'memberships',
+            columns:[
+                {name: 'chat_room_id', type:'string', isIndexed: true},
+                {name: 'member_id', type: 'string', isIndexed: true},
+            ],
+        }),
+        tableSchema({
             name: 'messages',
             columns: [
                 { name: 'chat_room_id', type: 'string' },
@@ -30,7 +39,7 @@ export default appSchema({
                 { name: 'content', type: 'string' },
                 { name: 'sender_id', type: 'string' },
                 { name: 'status', type: 'boolean', isOptional: true },
-                { name: 'created_at', type: 'number' },
+                { name: 'sent_at', type: 'string' },
             ],
         }),
     ],

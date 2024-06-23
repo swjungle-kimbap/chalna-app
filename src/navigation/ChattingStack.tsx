@@ -2,6 +2,8 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import ChattingListScreen from "../screens/Chatting/ChattingListScreen";
 import ChattingScreen from "../screens/Chatting/ChattingScreen";
 import FontTheme from "../styles/FontTheme"
+// test
+import ChatRoomListScreen from "../database/test/ChatRoomListTestScreen.tsx";
 
 const ChattingStack = createNativeStackNavigator();
 
@@ -18,7 +20,7 @@ const ChattingStackScreen = () => {
         >
             <ChattingStack.Screen
                 name="채팅 목록"
-                component={ChattingListScreen}
+                component={ChatRoomListScreen} //testing purpose
                 options={{ title: 'Chat Rooms' }}
             />
             <ChattingStack.Screen

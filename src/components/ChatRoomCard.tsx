@@ -1,71 +1,66 @@
-import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { User } from '../interfaces/User';
-import RoundBox from './common/RoundBox';
-import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../interfaces";
-import Button from './common/Button';
-
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import Member from '../database/model/Member';
 
 interface ChatRoomCardProps {
-    user: User; //includes profile image
-    lastMsg: string; // ChatRoomCard -> latest msg, FriendCard-> status msg
-    navigation: StackNavigationProp<RootStackParamList, '채팅'>
-    status: string; // default state(friend, normal)
+    members: Member[];
+    lastMsg: string;
+    lastUpdate: number;
+    status: string; //active 인지 아닌지 판단하려고 넣어둔 필드인듯
+    navigation: any;
+    type: string;
+    myUserId: number;   // temp.. might not save my info at the first plac
 }
 
-const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ user , lastMsg, status}, navigation) => {
+const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ members, lastMsg, lastUpdate,status, navigation, type, myUserId }) => {
+    // Filter out your own username if memberCount == 2'
+    console.log(members);
+    const filteredMembers = Array.isArray(members) ? members.filter(member => member.memberId !== myUserId):[];
+    const usernames = filteredMembers.map(member => member.username).join(', ');
+
     return (
-        <TouchableOpacity onPress={()=>navigation.navigate('채팅')}>
-            <RoundBox style={styles.container}>
-                <View style={styles.header}>
-                    <Image source={require('../assets/images/anonymous.png')} style={styles.avatar} />
-                    <View style={styles.textContainer}>
-                        <Text style={styles.name} >{user.name}</Text>
-                        <Text style={styles.statusMessage}>{lastMsg}</Text>
-                    </View>
-                </View>
-            </RoundBox>
+        <TouchableOpacity
+            onPress={() => navigation.navigate('채팅', { members, lastMsg, status })}
+            style={[styles.card, type === 'FRIEND' ? styles.friendCard : styles.matchCard]} // Conditional styles
+        >
+            <Text style={styles.usernames}>{usernames}</Text>
+            <Text style={styles.lastMsg}>{lastMsg}</Text>
+            <Text style={styles.status}>{lastUpdate}</Text>
         </TouchableOpacity>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        margin: 0,
-        borderRadius: 0,
+    card: {
+        padding: 15,
         backgroundColor: '#fff',
+        borderRadius: 10,
+        marginBottom: 10,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0,
-        shadowRadius: 0,
-        elevation: 0,
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        shadowOffset: { width: 0, height: 2 },
     },
-    header: {
-        flexDirection: 'row',
-        alignItems:  'flex-start',
+    matchCard: {
+        backgroundColor: '#e0f7fa',  // Example color for MATCH type
     },
-    avatar: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        marginRight: 15,
+    friendCard: {
+        backgroundColor: '#fff3e0',  // Example color for FRIEND type
     },
-    textContainer: {
-        flex: 1,
-    },
-    name: {
-        fontSize: 18,
+    usernames: {
+        fontSize: 16,
         fontWeight: 'bold',
         marginBottom: 5,
     },
-    statusMessage: {
+    lastMsg: {
         fontSize: 14,
-        color: '#555',
+        color: '#666',
     },
-
+    status: {
+        fontSize: 12,
+        color: '#999',
+        marginTop: 5,
+    },
 });
 
 export default ChatRoomCard;

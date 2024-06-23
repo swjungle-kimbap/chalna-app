@@ -2,24 +2,16 @@ import { database } from '../../database/database';
 import ChatRoom from "../../database/model/ChatRoom";
 import Member from "../../database/model/Member";
 import Message from "../../database/model/Message";
+import {axiosGet} from "../../axios/axios.method.ts";
+import Config from "react-native-config";
 
 // Function to fetch chat rooms from API
-const fetchChatRoomsFromAPI = async (lastSyncTime: number) => {
-    try {
-        const response = await fetch(`https://yourapi.com/api/v1/chatRoom?lastSync=${lastSyncTime}`);
-        const result = await response.json();
-
-        if (result.status === 200) {
-            return result.data.list; // Return the list of chat rooms
-        }
-    } catch (error) {
-        console.error('Error fetching chat rooms from API', error);
-    }
+export const fetchChatRoomsFromAPI = async (lastSyncTime: number) => {
+    const response = await axiosGet(Config.GET_CHAT_LIST_URL, "채팅방 리스트 요청")
     return [];
 };
 
-
-const syncChatRooms = async (rooms: any[]) => {
+export const syncChatRooms = async (rooms: any[]) => {
     await database.action(async () => {
         const chatRoomCollection = database.get<ChatRoom>('chat_rooms');
         const memberCollection = database.get<Member>('members');
@@ -34,7 +26,7 @@ const syncChatRooms = async (rooms: any[]) => {
                 await existingRoom.update(chatRoom => {
                     chatRoom.type = room.type;
                     chatRoom.memberCount = room.memberCount;
-                    chatRoom.recentMessageId = room.recentMessage?.id;
+                    chatRoom.recentMessage = room.recentMessage;
                     chatRoom.updatedAt = new Date(room.updatedAt).getTime();
                     chatRoom.removedAt = room.removedAt ? new Date(room.removedAt).getTime() : undefined;
                 });
@@ -45,7 +37,7 @@ const syncChatRooms = async (rooms: any[]) => {
                         id: room.id,
                         type: room.type,
                         member_count: room.memberCount,
-                        recent_message_id: room.recentMessage?.id,
+                        recent_message: room.recentMessage,
                         created_at: new Date(room.createdAt).getTime(),
                         updated_at: room.updatedAt ? new Date(room.updatedAt).getTime() : undefined,
                         removed_at: room.removedAt ? new Date(room.removedAt).getTime() : undefined,

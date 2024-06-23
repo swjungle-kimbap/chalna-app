@@ -1,11 +1,13 @@
 import { Model } from '@nozbe/watermelondb';
-import { field, relation } from '@nozbe/watermelondb/decorators';
-import ChatRoom from './ChatRoom';
+import { field,  children } from '@nozbe/watermelondb/decorators';
+import Membership from "./Membership.ts";
+
 
 export default class Member extends Model {
     static table = 'members';
 
-    @relation('chat_rooms', 'chat_room_id') chatRoom!: ChatRoom;
-    @field('member_id') memberId!: string;
+    @field('member_id') memberId!: number;
     @field('username') username!: string;
+
+    @children('memberships') memberships!: Membership[];
 }
