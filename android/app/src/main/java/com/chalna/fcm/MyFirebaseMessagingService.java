@@ -47,7 +47,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String createdAt = data.get("createdAt");
         String additionalDataString = data.get("additionalData");
 
-        Log.d(TAG, "SenderId: " + senderId + ", Message: " + message + ", CreatedAt: " + createdAt);
+        Log.d(TAG, "start===SenderId: " + senderId + ", Message: " + message + ", CreatedAt: " + createdAt);
 
         /* additionalData 처리*/
         String title = null;
@@ -66,7 +66,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             else if (fcmType.equals("chat")) {
                 senderName = additionalData.getString("senderName");
                 chatRoomId = additionalData.getString("chatRoomId");
-                messageType = additionalData.getString("messageType"); // 언제 쓰는지?
+                messageType = additionalData.getString("messageType");
                 title = "Message from " + senderName;
             }
         } catch(JSONException e) {
@@ -84,8 +84,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-        if (chatRoomId != null) {
-            intent.putExtra("screen", "채팅 목록");
+        if (chatRoomId == null) {
+            intent.putExtra("screen", "채팅목록");
+            Log.d(TAG, "screen: " + "채팅목록");
         }
 
         // 데이터 전달
