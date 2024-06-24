@@ -1,3 +1,45 @@
+// // MessageBubble.tsx
+// import React from 'react';
+// import { View, Text, StyleSheet } from 'react-native';
+//
+// interface MessageBubbleProps {
+//     message: string;
+//     isOwnMessage: boolean;
+// }
+//
+// const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMessage }) => {
+//     return (
+//         <View style={[styles.bubble, isOwnMessage ? styles.ownBubble : styles.otherBubble]}>
+//             <Text style={styles.text}>{message}</Text>
+//         </View>
+//     );
+// };
+//
+// const styles = StyleSheet.create({
+//     bubble: {
+//         padding: 10,
+//         borderRadius: 10,
+//         marginVertical: 5,
+//         maxWidth: '80%',
+//     },
+//     ownBubble: {
+//         backgroundColor: '#dcf8c6',
+//         alignSelf: 'flex-end',
+//     },
+//     otherBubble: {
+//         backgroundColor: '#f1f1f1',
+//         alignSelf: 'flex-start',
+//     },
+//     text: {
+//         fontSize: 16,
+//     },
+// });
+//
+// export default MessageBubble;
+
+
+
+
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Button from '../../components/common/Button';

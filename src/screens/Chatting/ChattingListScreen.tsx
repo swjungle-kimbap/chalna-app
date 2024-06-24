@@ -36,15 +36,12 @@ const ChattingListScreen = ({ navigation }) => {
     useEffect(() => {
         const fetchChatRooms = async () => {
             try {
-                const response = await axiosGet<{ list: ChatRoom[] }>(
+                const response = await axiosGet<{ list: ChatRoom[]}>(
                     'https://chalna.shop/api/v1/chatRoom',
                     'Failed to fetch chat rooms',
-                    {
-                        headers:{
-                            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MjAyLCJpYXQiOjE3MTkxNjQxODcsImV4cCI6MTcxOTc2ODk4N30.X6q2d5bSPNDX3Wnb_XqHM96POz9baikyb1C5UU8Yyq0'
-                        }
-                    });
+                    );
                 setChatRooms(response.data.list);
+                console.log(response);
             } catch (error) {
                 console.error(error);
             } finally {
@@ -63,13 +60,13 @@ const ChattingListScreen = ({ navigation }) => {
         );
     }
 
-    if (!loading && chatRooms.length === 0) {
-        return (
-            <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No chat rooms available</Text>
-            </View>
-        );
-    }
+    // if (!loading && chatRooms.length === 0) {
+    //     return (
+    //         <View style={styles.emptyContainer}>
+    //             <Text style={styles.emptyText}>No chat rooms available</Text>
+    //         </View>
+    //     );
+    // }
 
     return (
         <View style={styles.container}>

@@ -2954,6 +2954,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stomp/stompjs@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "@stomp/stompjs@npm:7.0.0"
+  checksum: 94618b5a394339ed3098dae213eef27c462f504ba050208598c9ef396abb527b57e6333b2e78af4715693d6ba04fffb23df4b1bf7041bc0f1b3bc6e92138f1dc
+  languageName: node
+  linkType: hard
+
 "@types/babel__core@npm:^7.1.14":
   version: 7.20.5
   resolution: "@types/babel__core@npm:7.20.5"
@@ -3115,6 +3122,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/sockjs-client@npm:^1.5.4":
+  version: 1.5.4
+  resolution: "@types/sockjs-client@npm:1.5.4"
+  checksum: 197ff99955d6e08442b27871811294c1348c51904a4f6d2c1d337cd4bfd0ffed0d00bf8ac000d8c275c9934c65e6cc4ce25c58974939921deb817a4b30fbb859
+  languageName: node
+  linkType: hard
+
 "@types/stack-utils@npm:^2.0.0":
   version: 2.0.3
   resolution: "@types/stack-utils@npm:2.0.3"
@@ -3148,6 +3162,13 @@ __metadata:
   version: 4.2.5
   resolution: "@types/stylis@npm:4.2.5"
   checksum: 24f91719db5569979e9e2f197e050ef82e1fd72474e8dc45bca38d48ee56481eae0f0d4a7ac172540d7774b45a2a78d901a4c6d07bba77a33dbccff464ea3edf
+  languageName: node
+  linkType: hard
+
+"@types/text-encoding@npm:^0.0.39":
+  version: 0.0.39
+  resolution: "@types/text-encoding@npm:0.0.39"
+  checksum: a310f06c27f7848661114534e6e48927f47f5b32d2aa30a6ee668aba3a0c747c3b24069a1e0286415767956760cacf5173902728396223a2128be4b9ec415790
   languageName: node
   linkType: hard
 
@@ -3385,10 +3406,13 @@ __metadata:
     "@react-navigation/native": ^6.1.17
     "@react-navigation/native-stack": ^6.9.26
     "@react-navigation/stack": ^6.3.29
+    "@stomp/stompjs": ^7.0.0
     "@types/react": ^18.2.6
     "@types/react-test-renderer": ^18.0.0
+    "@types/sockjs-client": ^1.5.4
     "@types/styled-components": ^5.1.34
     "@types/styled-components-react-native": ^5.2.5
+    "@types/text-encoding": ^0.0.39
     axios: ^1.7.2
     babel-jest: ^29.6.3
     dayjs: ^1.11.11
@@ -3416,6 +3440,7 @@ __metadata:
     socket.io-client: ^4.7.5
     sockjs-client: ^1.6.1
     styled-components: ^6.1.11
+    text-encoding: ^0.7.0
     typescript: 5.0.4
   languageName: unknown
   linkType: soft
@@ -10119,6 +10144,13 @@ __metadata:
     glob: ^7.1.4
     minimatch: ^3.0.4
   checksum: 3b34a3d77165a2cb82b34014b3aba93b1c4637a5011807557dc2f3da826c59975a5ccad765721c4648b39817e3472789f9b0fa98fc854c5c1c7a1e632aacdc28
+  languageName: node
+  linkType: hard
+
+"text-encoding@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "text-encoding@npm:0.7.0"
+  checksum: b6109a843fb1b8748b32e1ecd6df74d370f46c13ac136bcb6ca15db70209bb0b8ec1f296ebb4b0dd9961150e205dcc044b89f8cf7657f6faef78c7569a2a81bc
   languageName: node
   linkType: hard
 
