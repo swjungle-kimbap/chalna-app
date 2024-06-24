@@ -13,7 +13,7 @@ import RoundBox from "../../components/common/RoundBox";
 import Button from "../../components/common/Button";
 import { SignUpByWithKakao } from "../../components/Login/SignUpByWithKakao";
 import { navigate } from "../../navigation/RootNavigation";
-import { logIn } from "../../components/Login/login";
+import { logIn } from "../../components/Login/logIn";
 import { getKeychain } from "../../utils/keychain";
 
 const LoginScreen: React.FC = ({}) => {
