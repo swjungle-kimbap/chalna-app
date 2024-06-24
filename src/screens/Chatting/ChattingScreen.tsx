@@ -8,6 +8,10 @@ import Modal from 'react-native-modal';
 
 import { TextEncoder, TextDecoder } from 'text-encoding';
 import { RouteProp, useRoute, useFocusEffect } from "@react-navigation/native";
+import { useRecoilValue} from "recoil";
+import { userInfoState} from "../../recoil/atoms.ts";
+import {LoginResponse} from "../../interfaces";
+import {getKeychain} from "../../utils/keychain.ts";
 
 Object.assign(global, {
     TextEncoder: TextEncoder,
@@ -20,7 +24,10 @@ const ChattingScreen = () => {
     const route = useRoute<ChattingScreenRouteProp>();
     const { chatRoomId } = route.params;
 
-    const currentUserId = 4; // Assume the current user's ID is 4 (replace with actual user ID logic)
+    const userInfo = useRecoilValue<LoginResponse>(userInfoState);
+    const currentUserId = userInfo.id;
+    console.log("currentUserId: ", currentUserId);
+    console.log("chatRoomId: ", chatRoomId);
 
     const [messageContent, setMessageContent] = useState<string>('');
     const [messages, setMessages] = useState<any[]>([]);
@@ -32,7 +39,7 @@ const ChattingScreen = () => {
 
     useFocusEffect(
         useCallback(() => {
-            const currentTimestamp = new Date().toISOString();
+            const currentTimestamp = new Date().toISOString().slice(0,19);
             setLastLeaveAt(currentTimestamp);
             console.log("Focused", currentTimestamp);
 
@@ -43,9 +50,11 @@ const ChattingScreen = () => {
                     const response = await axiosInstance.get(
                         `https://chalna.shop/api/v1/chatRoom/message/${chatRoomId}?lastLeaveAt=${currentTimestamp}`
                     );
+
                     const fetchedMessages = response.data.data.list.map((msg: any) => ({
                         ...msg,
                         isSelf: msg.senderId === currentUserId,
+
                     }));
                     setMessages(fetchedMessages);
                 } catch (error) {
@@ -59,9 +68,7 @@ const ChattingScreen = () => {
 
             const setupWebSocket = async () => {
                 try {
-                    // Fetch the token using the axios instance
-                    const tokenResponse = await axiosInstance.get('/api/token'); // Example endpoint to get the token
-                    const accessToken = tokenResponse.data.token;
+                    const accessToken = await getKeychain('accessToken');;
 
                     const newClient = new Client({
                         brokerURL: 'wss://chalna.shop/ws',
@@ -136,15 +143,11 @@ const ChattingScreen = () => {
             const messageObject = {
                 type: 'CHAT',
                 content: messageContent,
-                datetime: new Date().toISOString(),
-                isSelf: true,
-                status: false, // Assuming the message is initially unread
-                senderId: currentUserId,
             };
             const messageJson = JSON.stringify(messageObject);
             console.log('Sending message: ' + messageJson);
-            client.publish({ destination: `/app/chat/${chatRoomId}/message`, body: messageJson });
-            setMessages((prevMessages) => [...prevMessages, messageObject]);
+            client.publish({ destination: `/app/chat/${chatRoomId}/sendMessage`, body: messageJson });
+            // setMessages((prevMessages) => [...prevMessages, messageObject]);
             setMessageContent('');
         } else {
             console.log('Client is not connected.');
@@ -183,6 +186,8 @@ const ChattingScreen = () => {
                     value={messageContent}
                     onChangeText={setMessageContent}
                     placeholder="Type a message"
+                    multiline
+                    textBreakStrategy="highQuality"
                 />
                 <RNButton title="Send" onPress={sendMessage} />
             </View>
@@ -266,3 +271,4 @@ const styles = StyleSheet.create({
 });
 
 export default ChattingScreen;
+

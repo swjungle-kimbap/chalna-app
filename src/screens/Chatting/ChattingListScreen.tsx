@@ -41,7 +41,7 @@ const ChattingListScreen = ({ navigation }) => {
                 'https://chalna.shop/api/v1/chatRoom',
                 'Failed to fetch chat rooms',
             );
-            console.log('API Response:', response);
+            // console.log('API Response:', response);
             setChatRooms(response.data.data.list);
         } catch (error) {
             console.error(error);
@@ -50,20 +50,19 @@ const ChattingListScreen = ({ navigation }) => {
         }
     };
 
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-        if (appState.match(/inactive|background/) && nextAppState === 'active') {
-            fetchChatRooms();
-        }
-        setAppState(nextAppState);
-    };
-
     useEffect(() => {
-        AppState.addEventListener('change', handleAppStateChange);
-
-        return () => {
-            AppState.removeEventListener('change', handleAppStateChange);
+        const handleAppStateChange = (nextAppState: AppStateStatus) => {
+            console.log('AppState changed to', nextAppState);
+            // Your logic here
         };
-    }, [appState]);
+
+        const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+        // Clean up the subscription on unmount
+        return () => {
+            subscription.remove();
+        };
+    }, []);
 
     useFocusEffect(
         useCallback(() => {

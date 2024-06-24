@@ -8,7 +8,7 @@ interface ChatRoomCardProps {
     lastMsg: string;
     lastUpdate: string;
     navigation: any;
-    chatRoomType: string; //MATCH | FRIEND
+    chatRoomType: 'FRIEND'|'MATCH'|'WAITING'
     chatRoomId: number; // chatRoomId
 }
 interface ChatRoomMember {
@@ -25,7 +25,9 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ members, lastMsg, lastUpdat
     return (
         <TouchableOpacity
             onPress={() => navigation.navigate('채팅', { members, chatRoomType, chatRoomId })}
-            style={[styles.card, chatRoomType === 'FRIEND' ? styles.friendCard : styles.matchCard]} // Conditional styles
+            style={[
+                styles.card,
+                chatRoomType === 'FRIEND' ? styles.friendCard : chatRoomType==='MATCH'? styles.matchCard:styles.waitCard]} // Conditional styles
         >
             <Text style={styles.usernames}>{usernames}</Text>
             <Text style={styles.lastMsg}>{lastMsg}</Text>
@@ -53,6 +55,9 @@ const styles = StyleSheet.create({
     },
     friendCard: {
         backgroundColor: '#fff3e0',  // Example color for FRIEND type
+    },
+    waitCard: {
+        backgroundColor: '#c5e7c8',  // Example color for WATING type
     },
     usernames: {
         fontSize: 16,
