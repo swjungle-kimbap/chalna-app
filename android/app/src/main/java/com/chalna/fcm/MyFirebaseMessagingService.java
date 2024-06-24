@@ -16,6 +16,9 @@ import com.chalna.MainActivity;
 import java.util.Map;
 import java.util.Random;
 
+/* fcm additionalData parsing */
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
@@ -42,21 +45,48 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String senderId = data.get("senderId");
         String message = data.get("message");
         String createdAt = data.get("createdAt");
-        List<String> additionalData = data.get("additionalData");
+        String additionalDataString = data.get("additionalData");
 
         Log.d(TAG, "SenderId: " + senderId + ", Message: " + message + ", CreatedAt: " + createdAt);
 
-        String title = "인연으로부터 메시지가 도착했습니다";
+        /* additionalData 처리*/
+        String title = null;
+
+        /* chatFCM */
+        String senderName = null;
+        String chatRoomId = null;
+        String messageType = null;
+
+        try {
+            JSONObject additionalData = new JSONObject(additionalDataString);
+            String fcmType = additionalData.getString("fcmType");
+            if (fcmType.equals("match")) {
+                title = "인연으로부터 메시지가 도착했습니다";
+            }
+            else if (fcmType.equals("chat")) {
+                senderName = additionalData.getString("senderName");
+                chatRoomId = additionalData.getString("chatRoomId");
+                messageType = additionalData.getString("messageType"); // 언제 쓰는지?
+                title = "Message from " + senderName;
+            }
+        } catch(JSONException e) {
+            e.printStackTrace();
+        }
+
         String messageBody = message;
 
-        sendNotification(title, messageBody, data);
+        sendNotification(title, messageBody, data, chatRoomId);
     }
 
-    private void sendNotification(String title, String messageBody, Map<String, String> data) {
+    private void sendNotification(String title, String messageBody, Map<String, String> data, String chatRoomId) {
         createNotificationChannel();
 
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        if (chatRoomId != null) {
+            intent.putExtra("screen", "")
+        }
 
         // 데이터 전달
         for (Map.Entry<String, String> entry : data.entrySet()) {
