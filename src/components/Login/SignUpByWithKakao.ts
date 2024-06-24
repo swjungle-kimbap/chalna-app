@@ -3,7 +3,7 @@ import { axiosPost } from '../../axios/axios.method';
 import Config from 'react-native-config';
 import { AxiosResponse, SignUpResponse } from '../../interfaces';
 import { SignUpRequest } from '../../interfaces/axiosRequest.type';
-import { logIn } from './login';
+import { logIn } from './logIn';
 import { setKeychain } from '../../utils/keychain';
 
 export const SignUpByWithKakao = async (deviceId:string, fcmToken:string) :Promise<boolean>=> {
