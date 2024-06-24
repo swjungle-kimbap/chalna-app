@@ -34,7 +34,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         // 메시지 수신 처리
         if (remoteMessage.getNotification() != null) {
             Log.d(TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());
-            sendNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(), remoteMessage.getData());
+            sendNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(), remoteMessage.getData(), null);
         } else if (remoteMessage.getData().size() > 0) {
             Log.d(TAG, "Data Message: " + remoteMessage.getData());
             handleDataMessage(remoteMessage.getData());
@@ -85,7 +85,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         if (chatRoomId != null) {
-            intent.putExtra("screen", "")
+            intent.putExtra("screen", "채팅 목록");
         }
 
         // 데이터 전달
