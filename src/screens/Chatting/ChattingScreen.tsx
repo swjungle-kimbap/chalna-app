@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TextInput, Button as RNButton, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
@@ -7,7 +7,7 @@ import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the p
 import Modal from 'react-native-modal';
 
 import { TextEncoder, TextDecoder } from 'text-encoding';
-import { RouteProp, useRoute } from "@react-navigation/native";
+import { RouteProp, useRoute, useFocusEffect } from "@react-navigation/native";
 
 Object.assign(global, {
     TextEncoder: TextEncoder,
@@ -30,93 +30,106 @@ const ChattingScreen = () => {
     const [lastLeaveAt, setLastLeaveAt] = useState<string>('');
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-    useEffect(() => {
-        // Save the current time as lastLeaveAt when the component mounts
-        const currentTimestamp = new Date().toISOString();
-        setLastLeaveAt(currentTimestamp);
+    useFocusEffect(
+        useCallback(() => {
+            const currentTimestamp = new Date().toISOString();
+            setLastLeaveAt(currentTimestamp);
+            console.log("Focused", currentTimestamp);
 
-        // Fetch initial messages from the API
-        const fetchMessages = async () => {
-            try {
-                const response = await axiosInstance.get(
-                    `https://chalna.shop/api/v1/chatRoom/message/${chatRoomId}?lastLeaveAt=${currentTimestamp}`
-                );
-                const fetchedMessages = response.data.data.list.map((msg: any) => ({
-                    ...msg,
-                    isSelf: msg.senderId === currentUserId,
-                }));
-                setMessages(fetchedMessages);
-            } catch (error) {
-                console.error('Failed to fetch messages:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+            // Fetch initial messages from the API
+            const fetchMessages = async () => {
+                try {
+                    setLoading(true);
+                    const response = await axiosInstance.get(
+                        `https://chalna.shop/api/v1/chatRoom/message/${chatRoomId}?lastLeaveAt=${currentTimestamp}`
+                    );
+                    const fetchedMessages = response.data.data.list.map((msg: any) => ({
+                        ...msg,
+                        isSelf: msg.senderId === currentUserId,
+                    }));
+                    setMessages(fetchedMessages);
+                } catch (error) {
+                    console.error('Failed to fetch messages:', error);
+                } finally {
+                    setLoading(false);
+                }
+            };
 
-        fetchMessages();
+            fetchMessages();
 
-        const setupWebSocket = async () => {
-            try {
-                // Fetch the token using the axios instance
-                const tokenResponse = await axiosInstance.get('/api/token'); // Example endpoint to get the token
-                const accessToken = tokenResponse.data.token;
+            const setupWebSocket = async () => {
+                try {
+                    // Fetch the token using the axios instance
+                    const tokenResponse = await axiosInstance.get('/api/token'); // Example endpoint to get the token
+                    const accessToken = tokenResponse.data.token;
 
-                const newClient = new Client({
-                    brokerURL: 'wss://chalna.shop/ws',
-                    connectHeaders: {
-                        chatRoomId: `${chatRoomId}`,
-                        Authorization: `Bearer ${accessToken}`, // Use fetched token
-                    },
-                    debug: (str) => {
-                        console.log(str);
-                    },
-                    reconnectDelay: 5000,
-                    heartbeatIncoming: 4000,
-                    heartbeatOutgoing: 4000,
-                    webSocketFactory: () => {
-                        console.log('Creating SockJS instance');
-                        return new SockJS('https://chalna.shop/ws');
-                    },
-                });
-
-                newClient.onConnect = (frame) => {
-                    console.log('Connected: ' + frame);
-                    setConnected(true);
-                    newClient.subscribe(`/topic/${chatRoomId}`, (message: IMessage) => {
-                        console.log('Received message: ' + message.body);
-                        try {
-                            const parsedMessage = JSON.parse(message.body);
-                            if (parsedMessage.type === 'CHAT' && parsedMessage.content) {
-                                parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
-                                setMessages((prevMessages) => [...prevMessages, parsedMessage]);
-                            } else {
-                                console.warn('Received message format is invalid:', message.body);
-                            }
-                        } catch (error) {
-                            console.error('Failed to parse received message:', error);
-                        }
+                    const newClient = new Client({
+                        brokerURL: 'wss://chalna.shop/ws',
+                        connectHeaders: {
+                            chatRoomId: `${chatRoomId}`,
+                            Authorization: `Bearer ${accessToken}`, // Use fetched token
+                        },
+                        debug: (str) => {
+                            console.log(str);
+                        },
+                        reconnectDelay: 5000,
+                        heartbeatIncoming: 4000,
+                        heartbeatOutgoing: 4000,
+                        webSocketFactory: () => {
+                            console.log('Creating SockJS instance');
+                            return new SockJS('https://chalna.shop/ws');
+                        },
                     });
-                };
 
-                newClient.onStompError = (frame) => {
-                    console.error('Broker reported error: ' + frame.headers['message']);
-                    console.error('Additional details: ' + frame.body);
-                };
+                    newClient.onConnect = (frame) => {
+                        console.log('Connected: ' + frame);
+                        setConnected(true);
+                        newClient.subscribe(`/topic/${chatRoomId}`, (message: IMessage) => {
+                            console.log('Received message: ' + message.body);
+                            try {
+                                const parsedMessage = JSON.parse(message.body);
+                                if (parsedMessage.type === 'CHAT' && parsedMessage.content) {
+                                    parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
+                                    setMessages((prevMessages) => [...prevMessages, parsedMessage]);
+                                } else {
+                                    console.warn('Received message format is invalid:', message.body);
+                                }
+                            } catch (error) {
+                                console.error('Failed to parse received message:', error);
+                            }
+                        });
+                    };
 
-                newClient.activate();
-                setClient(newClient);
+                    newClient.onStompError = (frame) => {
+                        console.error('Broker reported error: ' + frame.headers['message']);
+                        console.error('Additional details: ' + frame.body);
+                    };
 
-                return () => {
-                    newClient.deactivate();
+                    newClient.activate();
+                    setClient(newClient);
+
+                    return () => {
+                        newClient.deactivate();
+                        setConnected(false);
+                    };
+                } catch (error) {
+                    console.error('Failed to set up WebSocket:', error);
+                }
+            };
+
+            setupWebSocket();
+
+            return () => {
+                const leaveTimestamp = new Date().toISOString();
+                setLastLeaveAt(leaveTimestamp);
+                console.log("Unfocused", leaveTimestamp);
+                if (client) {
+                    client.deactivate();
                     setConnected(false);
-                };
-            } catch (error) {
-                console.error('Failed to set up WebSocket:', error);
-            }
-        };
-
-        setupWebSocket();
-    }, [chatRoomId, currentUserId]);
+                }
+            };
+        }, [chatRoomId, currentUserId])
+    );
 
     const sendMessage = () => {
         if (client && connected) {
