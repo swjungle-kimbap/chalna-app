@@ -1,71 +1,77 @@
-// // MessageBubble.tsx
-// import React from 'react';
-// import { View, Text, StyleSheet } from 'react-native';
-//
-// interface MessageBubbleProps {
-//     message: string;
-//     isOwnMessage: boolean;
-// }
-//
-// const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMessage }) => {
-//     return (
-//         <View style={[styles.bubble, isOwnMessage ? styles.ownBubble : styles.otherBubble]}>
-//             <Text style={styles.text}>{message}</Text>
-//         </View>
-//     );
-// };
-//
-// const styles = StyleSheet.create({
-//     bubble: {
-//         padding: 10,
-//         borderRadius: 10,
-//         marginVertical: 5,
-//         maxWidth: '80%',
-//     },
-//     ownBubble: {
-//         backgroundColor: '#dcf8c6',
-//         alignSelf: 'flex-end',
-//     },
-//     otherBubble: {
-//         backgroundColor: '#f1f1f1',
-//         alignSelf: 'flex-start',
-//     },
-//     text: {
-//         fontSize: 16,
-//     },
-// });
-//
-// export default MessageBubble;
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Button, Alert } from 'react-native';
+import axiosInstance from '../../axios/axios.instance'; // Adjust the path as necessary
 
-
-
-
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Button from '../../components/common/Button';
-
-interface MessageProps {
+interface MessageBubbleProps {
     message: string;
     datetime: string;
     isSelf: boolean;
-    type?: string; // message type
-    status: boolean; // status indicating if the message has been read
+    type?: string;
+    status: boolean;
 }
 
-const MessageBubble: React.FC<MessageProps> = ({ message, datetime, isSelf, type, status }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf, type, status }) => {
+    const date = new Date(datetime);
+    const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const [isDisabled, setIsDisabled] = useState(false);
+
+    const handleAccept = async () => {
+        Alert.alert(
+            'Confirmation',
+            'Are you sure you want to accept the friend request?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'OK', onPress: async () => {
+                        try {
+                            await axiosInstance.post(`/api/v1/relation/accept/${uuid}`); //get uuid and myUserId from somewhere
+                            Alert.alert('Success', 'Friend request accepted!');
+                            setIsDisabled(true);
+                            // Add additional logic here if needed, e.g., updating the message status
+                        } catch (error) {
+                            console.error('Failed to accept friend request:', error);
+                            Alert.alert('Error', 'Failed to accept friend request.');
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleReject = async () => {
+        Alert.alert(
+            'Confirmation',
+            'Are you sure you want to reject the friend request?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'OK', onPress: async () => {
+                        try {
+                            await axiosInstance.post(`/api/v1/relation/reject/${uuid}`);
+                            Alert.alert('Success', 'Friend request rejected!');
+                            setIsDisabled(true);
+                            // Add additional logic here if needed, e.g., removing the message
+                        } catch (error) {
+                            console.error('Failed to reject friend request:', error);
+                            Alert.alert('Error', 'Failed to reject friend request.');
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
     return (
         <View style={[styles.container, isSelf ? styles.selfContainer : styles.otherContainer]}>
             <View style={styles.messageContent}>
                 <Text style={styles.messageText}>{message}</Text>
-                <View style={styles.footer}>
-                    <Text style={styles.datetime}>{datetime}</Text>
-                    {isSelf && <Text style={styles.status}>{status ? 'Read' : 'Unread'}</Text>}
-                </View>
+                <Text style={styles.datetime}>{formattedTime}</Text>
             </View>
             {type === 'friendRequest' && !isSelf && (
                 <View style={styles.buttonContainer}>
-                    <Button title='수락' />
-                    <Button title='거절' />
+                    <Button title='수락' onPress={handleAccept} disabled={isDisabled} />
+                    <Button title='거절' onPress={handleReject} disabled={isDisabled} />
                 </View>
             )}
         </View>
@@ -80,10 +86,10 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         borderWidth: 1,
         borderColor: '#ccc',
-        alignSelf: 'flex-start', // Align to the left by default
+        alignSelf: 'flex-start',
     },
     selfContainer: {
-        alignSelf: 'flex-end', // Align to the right if it's a self message
+        alignSelf: 'flex-end',
         backgroundColor: '#DCF8C6',
     },
     otherContainer: {
@@ -95,41 +101,13 @@ const styles = StyleSheet.create({
     messageText: {
         fontSize: 16,
     },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
     datetime: {
         fontSize: 12,
         color: '#666',
     },
-    status: {
-        fontSize: 12,
-        color: '#666',
-        marginLeft: 10,
-    },
     buttonContainer: {
         flexDirection: 'row',
         marginTop: 5,
-    },
-    acceptButton: {
-        backgroundColor: '#5cb85c',
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        borderRadius: 5,
-        marginRight: 5,
-    },
-    rejectButton: {
-        backgroundColor: '#d9534f',
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        borderRadius: 5,
-        marginRight: 5,
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 14,
     },
 });
 

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, FlatList, StyleSheet, ActivityIndicator, Text, RefreshControl, AppState, AppStateStatus } from 'react-native';
 import ChatRoomCard from '../../components/Chat/ChatRoomCard';
-import {axiosGet} from "../../axios/axios.method";
-
+import { axiosGet } from "../../axios/axios.method";
+import { useFocusEffect } from '@react-navigation/native';
 
 interface ChatRoomMember {
     memberId: number;
@@ -32,24 +32,54 @@ interface ChatRoom {
 const ChattingListScreen = ({ navigation }) => {
     const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [appState, setAppState] = useState(AppState.currentState);
+
+    const fetchChatRooms = async () => {
+        try {
+            const response = await axiosGet<{ data: { list: ChatRoom[] } }>(
+                'https://chalna.shop/api/v1/chatRoom',
+                'Failed to fetch chat rooms',
+            );
+            console.log('API Response:', response);
+            setChatRooms(response.data.data.list);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+        if (appState.match(/inactive|background/) && nextAppState === 'active') {
+            fetchChatRooms();
+        }
+        setAppState(nextAppState);
+    };
 
     useEffect(() => {
-        const fetchChatRooms = async () => {
-            try {
-                const response = await axiosGet<{ list: ChatRoom[]}>(
-                    'https://chalna.shop/api/v1/chatRoom',
-                    'Failed to fetch chat rooms',
-                    );
-                setChatRooms(response.data.list);
-                console.log(response);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        };
+        AppState.addEventListener('change', handleAppStateChange);
 
-        fetchChatRooms();
+        return () => {
+            AppState.removeEventListener('change', handleAppStateChange);
+        };
+    }, [appState]);
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchChatRooms();
+
+            const interval = setInterval(() => {
+                fetchChatRooms();
+            }, 60000); // Poll every 60 seconds
+
+            return () => clearInterval(interval); // Clear interval on screen unfocus
+        }, [])
+    );
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        fetchChatRooms().then(() => setRefreshing(false));
     }, []);
 
     if (loading) {
@@ -60,20 +90,13 @@ const ChattingListScreen = ({ navigation }) => {
         );
     }
 
-    // if (!loading && chatRooms.length === 0) {
-    //     return (
-    //         <View style={styles.emptyContainer}>
-    //             <Text style={styles.emptyText}>No chat rooms available</Text>
-    //         </View>
-    //     );
-    // }
-
     return (
         <View style={styles.container}>
             <FlatList
                 data={chatRooms}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => {
+                    console.log('Rendering item:', item);
                     const usernames = item.members.map(member => member.username).join(', ');
                     return (
                         <ChatRoomCard
@@ -88,6 +111,17 @@ const ChattingListScreen = ({ navigation }) => {
                         />
                     );
                 }}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                    />
+                }
+                ListEmptyComponent={() => (
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>No chat rooms available</Text>
+                    </View>
+                )}
             />
         </View>
     );
