@@ -2,7 +2,7 @@ import Text from "../../components/common/Text";
 import { Alert, StyleSheet, View } from "react-native";
 import { useFCMToken, useFcmMessage } from "../../hooks/useFCM";
 import useDeviceUUID from '../../hooks/useDeviceUUID'
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useBackground from "../../hooks/useBackground";
 import { endBackgroundService } from "../../service/BackgroundTask";
 import { useSetRecoilState } from "recoil";
@@ -20,6 +20,7 @@ const LoginScreen: React.FC = ({}) => {
   const setLocation = useSetRecoilState(locationState);
   const fcmToken:string = useFCMToken();
   const deviceUUID:string = useDeviceUUID();
+  const [loginToken, setLoginToken] = useState<string>("");
 
   useEffect(() => {
     if (fcmToken) {
@@ -29,24 +30,26 @@ const LoginScreen: React.FC = ({}) => {
 
   useEffect(()=>{
     endBackgroundService();
-    const setLastLocation = async () => {
+    const setSavedData = async () => {
+      const logintoken = await getKeychain('loginToken');
+      setLoginToken(logintoken);
+
       const lastLocation : Position|null = await getAsyncObject<Position>('lastLocation');
       if (lastLocation)
         setLocation(lastLocation);
     }
-    setLastLocation();
+    setSavedData();
   },[])
 
   useBackground();
 
   const handleLogin = async () => {
     try {
-      const loginToken = await getKeychain('loginToken');
       let loginSuccess;
       if (!loginToken) {
         loginSuccess = await SignUpByWithKakao(fcmToken, deviceUUID);
         if (loginSuccess) {
-          await Alert.alert("회원가입 완료!", "Welcome 🎉");
+          await Alert.alert("회원가입 완료!", "환영합니다~🎉 \n메세지를 작성한뒤 인연 보내기를 눌러보세요!");
         }
       } else {
         loginSuccess = logIn(loginToken, deviceUUID, fcmToken);
@@ -67,7 +70,7 @@ const LoginScreen: React.FC = ({}) => {
           <Text variant="title">찰나, 스치다</Text>
         </View>
         <RoundBox style={styles.buttonContainer}>
-          <Button title="카카오로 시작하기" onPress={handleLogin}/>
+          <Button title={loginToken ? "로그인" : "카카오로 시작하기"} onPress={handleLogin}/>
         </RoundBox>
       </View>
     );
