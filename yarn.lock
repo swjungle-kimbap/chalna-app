@@ -2434,6 +2434,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-seoul/kakao-login@npm:^5.4.1":
+  version: 5.4.1
+  resolution: "@react-native-seoul/kakao-login@npm:5.4.1"
+  dependencies:
+    dooboolab-welcome: ^1.3.2
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 09bdaad24ebc4d1fc39b2a7c08f8f133c1a8190216628684329e5068c8a1910091a834ca4ed36ba7c0cbc648fbfd7ffaae0ad22be43d21dffb63e9ce989eb5ca
+  languageName: node
+  linkType: hard
+
 "@react-native/assets-registry@npm:0.74.83":
   version: 0.74.83
   resolution: "@react-native/assets-registry@npm:0.74.83"
@@ -3364,6 +3376,7 @@ __metadata:
     "@react-native-community/viewpager": ^5.0.11
     "@react-native-firebase/app": ^20.1.0
     "@react-native-firebase/messaging": ^20.1.0
+    "@react-native-seoul/kakao-login": ^5.4.1
     "@react-native/babel-preset": 0.74.84
     "@react-native/eslint-config": 0.74.84
     "@react-native/metro-config": 0.74.84
@@ -4688,6 +4701,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dooboolab-welcome@npm:^1.3.2":
+  version: 1.3.2
+  resolution: "dooboolab-welcome@npm:1.3.2"
+  bin:
+    dooboolab-welcome: bin/hello.js
+  checksum: 9a4e5c17a16b5cf874bdc1482ee7a2a221a8f269d8bfe6ba1425f678e764d256e265e30ca6169635ce9fa77af53b2e5a0b810a5c4b48b01c13d906613f799c96
+  languageName: node
+  linkType: hard
+
 "eastasianwidth@npm:^0.2.0":
   version: 0.2.0
   resolution: "eastasianwidth@npm:0.2.0"
@@ -4703,9 +4725,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.4.796":
-  version: 1.4.809
-  resolution: "electron-to-chromium@npm:1.4.809"
-  checksum: 21fb66cec14777415fcbff12a75aad039432b53174bbf1671debf6a0d8a0bd6d6e926318b4e66756d11ee6a1c3e5b26ea6951eaf4cd0ceacfc04f4fa2a4d2241
+  version: 1.4.810
+  resolution: "electron-to-chromium@npm:1.4.810"
+  checksum: a7c13bec90b6a617183bb5420538f6692b6e2aed83d023ef5815858b5a6008daeeca62c9a9809a52059c0e88eeaae87306b38e7b9ea7d0d7e0769e51af50022e
   languageName: node
   linkType: hard
 
@@ -10468,13 +10490,13 @@ __metadata:
   linkType: hard
 
 "v8-to-istanbul@npm:^9.0.1":
-  version: 9.2.0
-  resolution: "v8-to-istanbul@npm:9.2.0"
+  version: 9.3.0
+  resolution: "v8-to-istanbul@npm:9.3.0"
   dependencies:
     "@jridgewell/trace-mapping": ^0.3.12
     "@types/istanbul-lib-coverage": ^2.0.1
     convert-source-map: ^2.0.0
-  checksum: 31ef98c6a31b1dab6be024cf914f235408cd4c0dc56a5c744a5eea1a9e019ba279e1b6f90d695b78c3186feed391ed492380ccf095009e2eb91f3d058f0b4491
+  checksum: ded42cd535d92b7fd09a71c4c67fb067487ef5551cc227bfbf2a1f159a842e4e4acddaef20b955789b8d3b455b9779d036853f4a27ce15007f6364a4d30317ae
   languageName: node
   linkType: hard
 

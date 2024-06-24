@@ -29,8 +29,12 @@
     android:label="@string/app_name"
     android:icon="@mipmap/ic_launcher"
     android:roundIcon="@mipmap/ic_launcher_round"
-    android:allowBackup="false"
+    android:allowBackup="true"    
     android:theme="@style/AppTheme">
+    <!-- kakao login android:allowBackup="true" -->
+    <meta-data
+    android:name="com.kakao.sdk.AppKey"
+    android:value="${KAKAO_NATIVE_APP_KEY}" />
     <!-- naver api id -->
     <meta-data
         android:name="com.naver.maps.map.CLIENT_ID"
@@ -52,6 +56,16 @@
           <category android:name="android.intent.category.DEFAULT" />
           <category android:name="android.intent.category.BROWSABLE" />
           <data android:scheme="ChalnaApp" />
+      </intent-filter>
+    </activity>
+    <!-- kakao login -->
+    <activity android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:host="oauth" android:scheme="kakao${KAKAO_NATIVE_APP_KEY}" />
       </intent-filter>
     </activity>
     <!-- react-native-background-actions -->

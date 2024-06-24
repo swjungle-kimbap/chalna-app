@@ -31,6 +31,7 @@ export const axiosPost = async<T>(
 
   try {
     const response = await instance.post<T>(url, data, config);
+    console.log(response);
     return response;
   } catch (error) {
     console.error('Post fail:', errorMsg, error)
@@ -55,6 +56,25 @@ export const axiosPatch = async<T>(
     throw error;
   }
 }
+
+export const axiosPut = async<T>(
+  url:string | undefined, 
+  errorMsg: string,
+  data?:any,
+  config?:AxiosRequestConfig,
+): Promise<AxiosResponse<T>> => {
+  if (!url)
+    throw new Error('URL is undefined')
+  
+  try {
+    const response = await instance.put<T>(url, data, config);
+    return response;
+  } catch (error) {
+    console.error('Put fail:', errorMsg, error)
+    throw error;
+  }
+}
+
 
 export const axiosDelete = async<T>(
   url:string | undefined, 

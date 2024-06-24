@@ -13,6 +13,8 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        // kakao login
+        maven { url 'https://devrepo.kakao.com/nexus/content/groups/public/' }
     }
     dependencies {
         classpath("com.android.tools.build:gradle")

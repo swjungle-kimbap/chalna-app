@@ -1,8 +1,10 @@
 import uuid from 'react-native-uuid'
 import { deleteKeychain, getKeychain, setKeychain } from '../utils/keychain';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-const useDeviceUUID = () => {
+const useDeviceUUID = ():string => {
+  const [UUID, SetUUID] = useState<string>("");
+
   useEffect(() => {
     const fetchAndSetDeviceUUID = async () => {
       try {
@@ -10,6 +12,7 @@ const useDeviceUUID = () => {
         const deviceUUID = await getKeychain('deviceUUID');
         if (!deviceUUID) {
           const newDeviceUUID:string = uuid.v4().slice(0, -2) + '00' as string;
+          SetUUID(newDeviceUUID);
           await setKeychain('deviceUUID', newDeviceUUID);
         } 
       } catch (error) {
@@ -19,6 +22,7 @@ const useDeviceUUID = () => {
 
     fetchAndSetDeviceUUID();
   }, []);
+  return UUID;
 };
 
 export default useDeviceUUID;

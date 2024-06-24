@@ -1,93 +1,12 @@
 import Button from '../common/Button'
 import RoundBox from '../common/RoundBox';
-import { Text, FlatList, Modal, StyleSheet, TouchableWithoutFeedback, View, TouchableOpacity } from 'react-native';
-import { useCallback, useState } from 'react';
+import { StyleSheet }from 'react-native';
 import FontTheme from "../../styles/FontTheme";
-import { navigate } from '../../navigation/RootNavigation';
-import { useFocusEffect } from '@react-navigation/core';
-
-const Alarms = [
-  {idx:1, content:"메세지 내용을 아세요?. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다. 메세지 내용입니다.", cnt: 1, tag:"없음"},
-  {idx:2, content:"메세지 내용입니다.", cnt: 8, tag:"없음"},
-  {idx:3, content:"메세지 내용입니다.", cnt: 3},
-  {idx:4, content:"메세지 내용입니다.", cnt: 6},
-  {idx:5, content:"메세지 내용입니다.", cnt: 4},
-]
-
-const AlarmModal = ({ visible, alarms, onClose }) => {
-  const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
-
-  const handleCardPress = (cardId: number) => {
-    setExpandedCardId(expandedCardId === cardId ? null : cardId);
-  };
-
-
-  const AlarmCardRender = ({ item }) => (
-    <TouchableOpacity onPress={() => handleCardPress(item.idx)}>
-      <View style={styles.modalContent}>
-        <Text style={styles.alarmCnt}>{`${item.cnt}번 스쳐간 인연입니다.`}</Text>
-        {expandedCardId === item.idx ? (
-          <>
-            <Text 
-              numberOfLines={5}
-              ellipsizeMode="tail"
-              style={styles.alarmContent}
-            >
-              {item.content}
-            </Text>
-            <View style={styles.btnContainer}>
-              <Button style={{flex:1}} variant="sub" title="대화하기" onPress={() => navigate('채팅')} />
-              <Button style={{flex:1}} variant="sub" title="지우기" onPress={() => { /* 지우기 기능 추가 */ }} />
-            </View>
-          </>
-        ) : (
-          <Text 
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            style={styles.alarmContent}
-          >
-            {item.content}
-          </Text>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-
-  return (
-    <Modal
-      animationType="fade"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onClose}
-    >
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.modalOverlay}>
-          <TouchableWithoutFeedback>
-            <View style={styles.modalpos}>
-              <FlatList
-                data={alarms}
-                keyExtractor={(item) => item.idx.toString()}
-                renderItem={AlarmCardRender}
-              />
-              <Button title="Close" onPress={onClose} />
-            </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
-    </Modal>
-  );
-};
-
+import AlarmModal from './AlarmModal';
+import { useState } from 'react';
 
 const AlarmButton = () => {
   const [modalVisible, setModalVisible] = useState(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      // 화면이 포커스를 받을 때 모달 상태 초기화
-      closeModal();
-    }, [])
-  );
 
   const openModal = () => {
     setModalVisible(true);
@@ -98,7 +17,7 @@ const AlarmButton = () => {
   };
   return (
     <>
-    <AlarmModal visible={modalVisible} alarms={Alarms} onClose={closeModal}/>
+    <AlarmModal modalVisible={modalVisible} closeModal={closeModal}/>
     <RoundBox style={styles.buttonContainer}>
       <Button iconSource={require('../../assets/Icons/AlarmIcon.png')}
         imageStyle={{
