@@ -33,8 +33,8 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
   async (response) => {
-    const accessToken = response.data.headers?.Authorization;
-    const refreshToken = response.data.headers?.Authorization_Refresh;
+    const accessToken = response.headers?.authorization;
+    const refreshToken = response.headers?.authorization_refresh;
     if (accessToken)
       await setKeychain('accessToken', accessToken);
     if (refreshToken)

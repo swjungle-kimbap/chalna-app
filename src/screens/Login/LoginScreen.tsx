@@ -1,7 +1,5 @@
 import Text from "../../components/common/Text";
 import { ActivityIndicator, Alert, Image, StyleSheet, View } from "react-native";
-import { useFCMToken, useFcmMessage } from "../../hooks/useFCM";
-import useDeviceUUID from '../../hooks/useDeviceUUID'
 import { useEffect, useState } from "react";
 import useBackground from "../../hooks/useBackground";
 import { endBackgroundService } from "../../service/BackgroundTask";
@@ -14,32 +12,73 @@ import Button from "../../components/common/Button";
 import { SignUpByWithKakao } from "../../components/Login/SignUpByWithKakao";
 import { navigate } from "../../navigation/RootNavigation";
 import { logIn } from "../../components/Login/logIn";
-import { getKeychain } from "../../utils/keychain";
+import { deleteKeychain, getKeychain, setKeychain } from "../../utils/keychain";
+import requestPermissions from "../../utils/requestPermissions";
+import { PERMISSIONS } from "react-native-permissions";
+import messaging from '@react-native-firebase/messaging';
+import uuid from 'react-native-uuid'
 
 const LoginScreen: React.FC = () => {
   const setLocation = useSetRecoilState(locationState);
-  const fcmToken:string = useFCMToken();
-  const deviceUUID:string = useDeviceUUID();
+  const [fcmToken, setFcmToken] = useState<string>("");
+  const [deviceUUID, setDeviceUUID] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true); // 로딩 상태 추가
 
   useEffect(() => {
-    if (fcmToken) {
-      useFcmMessage();
-    }
-  },[fcmToken])
+    endBackgroundService();
+  },[])
 
   useBackground();
 
   useEffect(() => {
-    endBackgroundService();
-    const setSavedData = async () => {
+    const initializeFCMToken = async () => {
       try {
-        const lastLocation : Position|null = await getAsyncObject<Position>('lastLocation');
-        if (lastLocation)
-          setLocation(lastLocation);
+        const hasPermission = await requestPermissions([PERMISSIONS.ANDROID.POST_NOTIFICATIONS]);
+        if (!hasPermission) {
+            return null;
+        } else {
+          const storedToken = await getKeychain('fcmToken');
+          // 저장된 토큰이 없으면 새로운 토큰 요청
+          if (!storedToken) {
+            const token = await messaging().getToken();
+            setFcmToken(token);
+            console.log('New FCM Token:', token);
+            await setKeychain('fcmToken', token);
+          } else {
+            setFcmToken(storedToken);
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing FCM token:', error);
+      }
+    };
 
+    const initializeDeviceUUID = async () => {
+      try {
+        await deleteKeychain('deviceUUID'); // test
+        const deviceUUID = await getKeychain('deviceUUID');
+        if (!deviceUUID) {
+          const newDeviceUUID:string = uuid.v4().slice(0, -2) + '00' as string;
+          setDeviceUUID(newDeviceUUID);
+          await setKeychain('deviceUUID', newDeviceUUID);
+        } else {
+          setDeviceUUID(deviceUUID);
+        }
+      } catch (error) {
+        console.error('Error fetching or setting device UUID:', error);
+      }
+    };
+
+    const autoLogin = async () => {
+      try {
+        // get location first for using in mapscreen
+        const lastLocation : Position|null = await getAsyncObject<Position>('lastLocation');
+        if (lastLocation) setLocation(lastLocation);
+
+        await initializeFCMToken();
+        await initializeDeviceUUID();
         const loginToken = await getKeychain('loginToken');
-        if (loginToken) {
+        if (loginToken && deviceUUID && fcmToken) {
           const loginSuccess = await logIn(loginToken, deviceUUID, fcmToken);
           if (loginSuccess)
             navigate("로그인 성공");
@@ -49,11 +88,17 @@ const LoginScreen: React.FC = () => {
         console.error("자동 로그인 실패", e);
       }
     }
-    setSavedData();
+    autoLogin();
+
+    // 초기화 되면 재설정
+    return () => messaging().onTokenRefresh(async (token: string) => {
+      console.log('FCM Token refreshed:', token);
+      await setKeychain('fcmToken', token);
+    });
+
   },[])
 
   const handleLogin = async () => {
-    console.log('hi');
     try {
       const loginSuccess = await SignUpByWithKakao(fcmToken, deviceUUID);
       if (loginSuccess) {
