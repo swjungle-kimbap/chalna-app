@@ -1,9 +1,9 @@
-import { AlarmItem, MatchAcceptResponse, MatchRejectResponse } from '../../interfaces';
+import { AlarmItem, MatchAcceptResponse } from '../../interfaces';
 import Button from '../common/Button'
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import FontTheme from '../../styles/FontTheme';
 import { navigate } from '../../navigation/RootNavigation';
-import { axiosGet, axiosPost } from '../../axios/axios.method';
+import { axiosPost } from '../../axios/axios.method';
 import Config from 'react-native-config';
 import { AxiosResponse } from 'axios';
 

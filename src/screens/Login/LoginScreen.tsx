@@ -3,8 +3,8 @@ import { ActivityIndicator, Alert, Image, StyleSheet, View } from "react-native"
 import { useEffect, useState } from "react";
 import useBackground from "../../hooks/useBackground";
 import { endBackgroundService } from "../../service/BackgroundTask";
-import { useSetRecoilState } from "recoil";
-import { locationState } from "../../recoil/atoms";
+import { useRecoilState, useSetRecoilState } from "recoil";
+import { locationState, userInfoState } from "../../recoil/atoms";
 import { getAsyncObject } from "../../utils/asyncStorage";
 import { Position } from "../../interfaces";
 import RoundBox from "../../components/common/RoundBox";
@@ -20,8 +20,10 @@ import uuid from 'react-native-uuid'
 
 const LoginScreen: React.FC = () => {
   const setLocation = useSetRecoilState(locationState);
+  const setUserInfo = useSetRecoilState(userInfoState);
   const [fcmToken, setFcmToken] = useState<string>("");
   const [deviceUUID, setDeviceUUID] = useState<string>("");
+  const [loginToken, setLoginToken] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true); // 로딩 상태 추가
 
   useEffect(() => {
@@ -69,43 +71,47 @@ const LoginScreen: React.FC = () => {
       }
     };
 
-    const autoLogin = async () => {
+    const getLoginToken = async () => {
+      const logintoken = await getKeychain('loginToken');
+      setLoginToken(logintoken);
+    };
+
+    (async () => {
       try {
-        // get location first for using in mapscreen
         const lastLocation : Position|null = await getAsyncObject<Position>('lastLocation');
         if (lastLocation) setLocation(lastLocation);
-
+        
         await initializeFCMToken();
         await initializeDeviceUUID();
-        const loginToken = await getKeychain('loginToken');
+        await getLoginToken();
+        
         if (loginToken && deviceUUID && fcmToken) {
-          const loginSuccess = await logIn(loginToken, deviceUUID, fcmToken);
-          if (loginSuccess)
+          const loginResponse = await logIn(loginToken, deviceUUID, fcmToken);
+          if (loginResponse) {
+            setUserInfo(loginResponse);
             navigate("로그인 성공");
+          }
         }
-        setIsLoading(false)
+        setIsLoading(false);
       } catch (e) {
         console.error("자동 로그인 실패", e);
       }
-    }
-    autoLogin();
-
-    // 초기화 되면 재설정
+    })();
+    
     return () => messaging().onTokenRefresh(async (token: string) => {
       console.log('FCM Token refreshed:', token);
       await setKeychain('fcmToken', token);
     });
-
-  },[])
+  }, [])
 
   const handleLogin = async () => {
     try {
-      const loginSuccess = await SignUpByWithKakao(fcmToken, deviceUUID);
-      if (loginSuccess) {
-        await Alert.alert("회원가입 완료!", "환영합니다~🎉 \n메세지를 작성한뒤 인연 보내기를 눌러보세요!");
+      const loginResponse = await SignUpByWithKakao(fcmToken, deviceUUID);
+      if (loginResponse) {
+        await Alert.alert("로그인 완료!", "환영합니다~🎉 \n메세지를 작성한뒤 인연 보내기를 눌러보세요!");
       }
        
-      if (loginSuccess)
+      if (loginResponse)
         navigate("로그인 성공");
 
     } catch {
