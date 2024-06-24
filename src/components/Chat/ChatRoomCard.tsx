@@ -2,14 +2,18 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 interface ChatRoomCardProps {
-    members: string;
+    members: ChatRoomMember[];
+    numMember: number;
+    usernames: string;
     lastMsg: string;
-    lastUpdate: number;
-    status: string; //active 인지 아닌지 판단하려고 넣어둔 필드인듯
+    lastUpdate: string;
     navigation: any;
-    chatRoomType: string;
-    myUserId: number;   // temp.. might not save my info at the first plac
-
+    chatRoomType: string; //MATCH | FRIEND
+    chatRoomId: number; // chatRoomId
+}
+interface ChatRoomMember {
+    memberId: number;
+    username: string;
 }
 
 const formatTime = (timestamp) => {
@@ -17,17 +21,16 @@ const formatTime = (timestamp) => {
     return `${date.getHours()}:${date.getMinutes() < 10 ? '0' : ''}${date.getMinutes()}`;
 };
 
-const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ members, lastMsg, lastUpdate, status, navigation, chatRoomType, myUserId }) => {
-
+const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ members, lastMsg, lastUpdate, usernames, navigation, chatRoomType,chatRoomId }) => {
     return (
         <TouchableOpacity
-            onPress={() => navigation.navigate('채팅', { members, lastMsg, status, chatRoomType })}
+            onPress={() => navigation.navigate('채팅', { members, chatRoomType, chatRoomId })}
             style={[styles.card, chatRoomType === 'FRIEND' ? styles.friendCard : styles.matchCard]} // Conditional styles
         >
-            <Text style={styles.usernames}>{members}</Text>
+            <Text style={styles.usernames}>{usernames}</Text>
             <Text style={styles.lastMsg}>{lastMsg}</Text>
             <View style={styles.bottomRow}>
-                <Text style={styles.status}>{status}</Text>
+                {/*<Text style={styles.status}>{status}</Text>*/}
                 <Text style={styles.lastUpdate}>{formatTime(lastUpdate)}</Text>
             </View>
         </TouchableOpacity>
