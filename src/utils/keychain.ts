@@ -22,7 +22,7 @@ export async function getKeychain(username: string): Promise<string> {
     const credentials: KeychainCredentials | false 
       = await Keychain.getGenericPassword({ service: `${SERVICE_PREFIX}.${username}` });
     if (credentials) {
-      console.log(`Using stored ${username} ${credentials.password}`);
+      //console.log(`Using stored ${username} ${credentials.password}`);
       return credentials.password;
     } else {
       console.log(`Not stored ${username} in keychain`);

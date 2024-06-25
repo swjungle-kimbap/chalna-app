@@ -3,7 +3,7 @@ import Button from '../common/Button'
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import FontTheme from '../../styles/FontTheme';
 import { navigate } from '../../navigation/RootNavigation';
-import { axiosPost } from '../../axios/axios.method';
+import { axiosPost, axiosPut } from '../../axios/axios.method';
 import Config from 'react-native-config';
 import { AxiosResponse } from 'axios';
 
@@ -17,26 +17,19 @@ export interface AlaramItemProps{
 const AlarmCardRender: React.FC<AlaramItemProps> = 
   ({ item, expandedCardId, handleCardPress, removeAlarmItem }) => {
   
-  const handleAcceptButton = async () => {
-    try {
-      const matchAcceptResponse = await axiosPost<AxiosResponse<MatchAcceptResponse>>
-                                        (Config.ACCEPT_MSG_URL, "인연 수락");
-      navigate('채팅', {chatRoomId: matchAcceptResponse.data.data.chatRoomId});
-    } catch (e) {
-      console.error("fail: 인연 수락 요청 실패", e);
-    }
+  const handleAcceptButton = async (notificationId:number) => {
+    const matchAcceptResponse = await axiosPost<AxiosResponse<MatchAcceptResponse>>
+                              (Config.ACCEPT_MSG_URL + notificationId.toString(), "인연 수락");
+    navigate('채팅', {chatRoomId: matchAcceptResponse.data.data.chatRoomId});
   }
 
-  const handleDeleteButton = async (item:AlarmItem) => {
-    try {
-      await axiosPost(Config.DELETE_MSG_URL, "인연 알림 지우기");
-      removeAlarmItem(item.notificationId);
-    } catch (e) {
-      console.error("fail: 인연 수락 요청 실패", e);
-    }
+  const handleDeleteButton = async (notificationId:number) => {
+    await axiosPut(Config.DELETE_MSG_URL + notificationId.toString(), "인연 알림 지우기");
+    removeAlarmItem(notificationId);
   } 
 
-  return (<TouchableOpacity onPress={() => handleCardPress(item.notificationId)}>
+  return (
+  <TouchableOpacity onPress={() => handleCardPress(item.notificationId)}>
     <View style={styles.modalContent}>
       <Text style={styles.alarmCnt}>{`${item.overlapCount}번 스쳐간 인연입니다.`}</Text>
       {expandedCardId === item.notificationId ? (
@@ -50,9 +43,9 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
           </Text>
           <View style={styles.btnContainer}>
             <Button style={{flex:1}} variant="sub" title="대화하기" 
-              onPress={async () => handleAcceptButton} />
+              onPress={async () => {handleAcceptButton(item.notificationId)}} />
             <Button style={{flex:1}} variant="sub" title="지우기" 
-              onPress={async () => {handleDeleteButton(item)}} />
+              onPress={async () => {handleDeleteButton(item.notificationId)}} />
           </View>
         </>
       ) : (

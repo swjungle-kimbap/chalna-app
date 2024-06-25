@@ -31,16 +31,16 @@ const BottomTabs = () => {
             return <Image source={iconSource} resizeMode="contain"
                     style={{ width: size, height: size, tintColor: color }} />;
           },
-          tabBarActiveTintColor: '#024812',
+          tabBarActiveTintColor: '#3EB297',
           tabBarInactiveTintColor: 'gray',
           tabBarStyle: styles.tabContainer,
           tabBarLabelStyle : {
-            fontFamily: FontTheme.fonts.main, 
+            fontFamily: FontTheme.fonts.main,
             fontSize: 10,
           },
           tabBarLabelShown: false,
           headerTitleStyle: {
-            fontFamily: FontTheme.fonts.title, 
+            fontFamily: FontTheme.fonts.title,
             fontSize: 20,
           },
           headerShown: false

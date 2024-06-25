@@ -13,12 +13,11 @@ instance.interceptors.request.use(
   async (axiosConfig) => {
     const refreshToken = await getKeychain('refreshToken');;
     const accessToken = await getKeychain('accessToken');;
-    if (!accessToken && axiosConfig.url !== Config.SIGNUP_URL 
+    if (!accessToken && axiosConfig.url !== Config.SIGNUP_URL
           && axiosConfig.url !== Config.LOGIN_URL){
       Alert.alert('로그인 필요', '로그인이 필요한 서비스입니다.');
-      navigate('로그인');      
+      navigate('로그인');
     } else {
-      console.log("accessToken 입니다.",accessToken);
       if (accessToken)
         axiosConfig.headers['Authorization'] = `Bearer ${accessToken}`;
       if (refreshToken)
@@ -39,7 +38,7 @@ instance.interceptors.response.use(
       await setKeychain('accessToken', accessToken);
     if (refreshToken)
       await setKeychain('refreshToken', refreshToken);
-    
+
     return response
   },
   async (error:any) => {
@@ -49,8 +48,8 @@ instance.interceptors.response.use(
         const refreshToken = await getKeychain('refreshToken');
         if (!refreshToken) {
           Alert.alert('로그인 만료', '재로그인이 필요합니다.');
-          navigate('로그인');     
-    }  
+          navigate('로그인');
+    }
       } catch (error) {
         console.error("refresh 재발급 실패", error)
       }
