@@ -1,6 +1,6 @@
 import Text from "../../components/common/Text";
 import { ActivityIndicator, Alert, Image, StyleSheet, View } from "react-native";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import useBackground from "../../hooks/useBackground";
 import { endBackgroundService } from "../../service/BackgroundTask";
 import { useRecoilState, useSetRecoilState } from "recoil";
@@ -25,7 +25,6 @@ const LoginScreen: React.FC = () => {
   const fcmTokenRef = useRef<string>("");
   const deviceUUIDRef = useRef<string>("");
   const loginTokenRef = useRef<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(true); // 로딩 상태 추가
 
   useBackground();
 
@@ -122,7 +121,7 @@ const LoginScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {isLoading ? (
+      {isLoadingRef.current ? (
         <>
           <View style={styles.loadingConatiner}>
             <Text variant="title">반갑티비</Text>
