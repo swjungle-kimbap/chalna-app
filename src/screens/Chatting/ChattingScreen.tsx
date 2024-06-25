@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, TextInput, Button as RNButton, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, AppState, AppStateStatus } from 'react-native';
-import { RouteProp, useRoute, useFocusEffect } from "@react-navigation/native";
+import { View, Text, TextInput, Button as RNButton, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, AppState, AppStateStatus, Alert } from 'react-native';
+import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRecoilValue } from "recoil";
 import { userInfoState } from "../../recoil/atoms";
 import { LoginResponse } from "../../interfaces";
@@ -10,13 +10,15 @@ import axiosInstance from '../../axios/axios.instance'; // Adjust the path as ne
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
 import Modal from 'react-native-modal';
 import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
+
 import 'text-encoding-polyfill';
 
-type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
+type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string, chatRoomType: string } }, 'ChattingScreen'>;
 
 const ChattingScreen = () => {
     const route = useRoute<ChattingScreenRouteProp>();
-    const { chatRoomId } = route.params;
+    const { chatRoomId, chatRoomType } = route.params;
+    const navigation = useNavigation();
 
     const userInfo = useRecoilValue<LoginResponse>(userInfoState);
     const currentUserId = userInfo.id;
@@ -122,6 +124,36 @@ const ChattingScreen = () => {
         setIsModalVisible(!isModalVisible);
     };
 
+    const deleteChat = () => {
+        Alert.alert(
+            "채팅방 나가기",
+            "정말 나가시겠습니까?",
+            [
+                {
+                    text: "취소",
+                    style: "cancel"
+                },
+                {
+                    text: "나가기",
+                    onPress: async () => {
+                        try {
+                            await axiosInstance.delete(
+                                `https://chalna.shop/api/v1/chatRoom/leave/${chatRoomId}`
+                            );
+                            Alert.alert("채팅방 삭제 완료", "채팅 목록 화면으로 돌아갑니다.");
+                            navigation.navigate('채팅 목록');
+                        } catch (error) {
+                            console.error('Failed to delete chat:', error);
+                            Alert.alert("Error", "Failed to delete the chat.");
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+
+
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -129,6 +161,9 @@ const ChattingScreen = () => {
             </View>
         );
     }
+
+
+
 
     return (
         <SWRConfig value={{}}>
@@ -171,7 +206,7 @@ const ChattingScreen = () => {
                     <View style={styles.modalContent}>
                         <RNButton title="Option 1" onPress={() => { /* Handle Option 1 */ }} />
                         <RNButton title="Option 2" onPress={() => { /* Handle Option 2 */ }} />
-                        <RNButton title="Option 3" onPress={() => { /* Handle Option 3 */ }} />
+                        <RNButton title="채팅방 나가기" onPress={() => { deleteChat() }} />
                         <RNButton title="Close" onPress={toggleModal} />
                     </View>
                 </Modal>
