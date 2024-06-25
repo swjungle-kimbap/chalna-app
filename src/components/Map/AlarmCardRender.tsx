@@ -9,9 +9,9 @@ import { AxiosResponse } from 'axios';
 
 export interface AlaramItemProps{
   item: AlarmItem;
-  expandedCardId: string;
-  handleCardPress: (createAt: string) => void;
-  removeAlarmItem: (createAt: string, DeleteAll?:boolean) =>void;
+  expandedCardId: number;
+  handleCardPress: (notificationId: number) => void;
+  removeAlarmItem: (notificationId: number, DeleteAll?:boolean) =>void;
 }
 
 const AlarmCardRender: React.FC<AlaramItemProps> = 
@@ -21,7 +21,7 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
     try {
       const matchAcceptResponse = await axiosPost<AxiosResponse<MatchAcceptResponse>>
                                         (Config.ACCEPT_MSG_URL, "인연 수락");
-      navigate('채팅', {chatRoomType: "MATCH", chatRoomId: matchAcceptResponse.data.data.chatRoomId});
+      navigate('채팅', {chatRoomId: matchAcceptResponse.data.data.chatRoomId});
     } catch (e) {
       console.error("fail: 인연 수락 요청 실패", e);
     }
@@ -30,16 +30,16 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
   const handleDeleteButton = async (item:AlarmItem) => {
     try {
       await axiosPost(Config.DELETE_MSG_URL, "인연 알림 지우기");
-      removeAlarmItem(item.createAt);
+      removeAlarmItem(item.notificationId);
     } catch (e) {
       console.error("fail: 인연 수락 요청 실패", e);
     }
   } 
 
-  return (<TouchableOpacity onPress={() => handleCardPress(item.createAt)}>
+  return (<TouchableOpacity onPress={() => handleCardPress(item.notificationId)}>
     <View style={styles.modalContent}>
       <Text style={styles.alarmCnt}>{`${item.overlapCount}번 스쳐간 인연입니다.`}</Text>
-      {expandedCardId === item.createAt ? (
+      {expandedCardId === item.notificationId ? (
         <>
           <Text 
             numberOfLines={5}

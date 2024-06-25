@@ -4,9 +4,17 @@ import { StyleSheet }from 'react-native';
 import FontTheme from "../../styles/FontTheme";
 import AlarmModal from './AlarmModal';
 import { useState } from 'react';
+import { useRecoilValue } from 'recoil';
+import { AlarmCountState } from '../../recoil/atoms';
+import Text from '../common/Text';
 
-const AlarmButton = () => {
-  const [modalVisible, setModalVisible] = useState(false);
+interface AlarmButtonPrams {
+  notificationId : number
+}
+
+const AlarmButton : React.FC<AlarmButtonPrams> = ({notificationId}) => {
+  const [modalVisible, setModalVisible] = useState(notificationId ? true : false);
+  const alarmCount = useRecoilValue(AlarmCountState);
 
   const openModal = () => {
     setModalVisible(true);
@@ -17,19 +25,47 @@ const AlarmButton = () => {
   };
   return (
     <>
-    <AlarmModal modalVisible={modalVisible} closeModal={closeModal}/>
+    <AlarmModal modalVisible={modalVisible} closeModal={closeModal} 
+      notificationId = {notificationId}/>
     <RoundBox style={styles.buttonContainer}>
       <Button iconSource={require('../../assets/Icons/AlarmIcon.png')}
         imageStyle={{
           width:30,
-          height:30,}}
+          height:30}}
         onPress={openModal}></Button>
     </RoundBox>
+    {alarmCount > 0 && ( 
+        <RoundBox style = {styles.badgeConatiner}>
+          <Text style = {styles.badgeText}>
+            {alarmCount < 99 ? alarmCount : '99'}
+          </Text>
+        </RoundBox>
+      )}
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  badgeConatiner: {
+    backgroundColor: 'red',
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    top: 20,
+    right: 15,
+    height: 20, // 너비와 높이 동일하게 설정
+    width: 20,
+    borderRadius: 20, 
+    paddingVertical: 2, // 상하 여백 설정
+    paddingHorizontal: 3, // 좌우 여백 설정
+    zIndex:3
+  },
+  badgeText:{
+    top: 0,
+    right: 0,
+    color: 'white', // 글자색 설정
+    fontSize:10,
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -77,7 +113,7 @@ const styles = StyleSheet.create({
     top: 20,
     right: 10,
     zIndex: 2,
-  },
+  }, 
 });
 
 

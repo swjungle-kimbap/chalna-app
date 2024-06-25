@@ -1,5 +1,5 @@
 import { EmitterSubscription, NativeEventEmitter, NativeModules } from 'react-native';
-import BLEAdvertiser from 'react-native-ble-advertiser';
+import BLEAdvertiser from 'react-native-ble-advertiser-advanced';
 import { axiosPost } from '../axios/axios.method';
 import Config from 'react-native-config';
 import { getAsyncObject, getAsyncString, setAsyncObject, setAsyncString } from '../utils/asyncStorage';
