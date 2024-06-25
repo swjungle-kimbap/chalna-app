@@ -10,8 +10,11 @@ import axiosInstance from '../../axios/axios.instance'; // Adjust the path as ne
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
 import Modal from 'react-native-modal';
 import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
-import sendFriendRequest from "../../service/Chatting/sendFriendRequest";
+import { sendFriendRequest, deleteChat } from "../../service/Chatting/chattingScreenAPI";
 import 'text-encoding-polyfill';
+import CustomHeader from "../../components/common/CustomHeader";
+import MenuModal from "../../components/common/MenuModal";
+import ImageTextButton from "../../components/common/Button";
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -22,8 +25,6 @@ const ChattingScreen = () => {
 
     const userInfo = useRecoilValue<LoginResponse>(userInfoState);
     const currentUserId = userInfo.id;
-    console.log("currentUserId: ", currentUserId);
-    console.log("chatRoomId: ", chatRoomId);
 
     const [messageContent, setMessageContent] = useState<string>('');
     const [messages, setMessages] = useState<any[]>([]);
@@ -35,22 +36,24 @@ const ChattingScreen = () => {
     const otherIdRef = useRef<number | null>(null);
     const otherUsernameRef = useRef<string>('');
 
+    // auto scroll
     const scrollViewRef = useRef<ScrollView>(null);
 
+    // Get out of screen -> disconnect
     useEffect(() => {
         const handleAppStateChange = (nextAppState: AppStateStatus) => {
             if (nextAppState === 'background' || nextAppState === 'inactive') {
                 WebSocketManager.disconnect();
+                // 여기서 timestamp 저장해야할듯
             }
         };
-
         const subscription = AppState.addEventListener('change', handleAppStateChange);
-
         return () => {
             subscription.remove();
         };
     }, []);
 
+    // Leaving TimeStamp: SWR Config 제외하고 테스트 / 여기서 focus effect로 감싸는 의미가..?
     useFocusEffect(
         useCallback(() => {
             const currentTimestamp = new Date().toISOString().slice(0, 19);
@@ -61,7 +64,7 @@ const ChattingScreen = () => {
                 try {
                     setLoading(true);
                     const response = await axiosInstance.get(
-                        `https://chalna.shop/api/v1/chatRoom/message/${chatRoomId}?lastLeaveAt=2024-06-23T10:32:40` //   ${currentTimestamp}`
+                        `https://chalna.shop/api/v1/chatRoom/message/${chatRoomId}?lastLeaveAt=2024-06-23T10:32:40` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
                     );
 
                     const responseData = response.data.data;
@@ -107,7 +110,7 @@ const ChattingScreen = () => {
                                 setMessages((prevMessages) => [...prevMessages, parsedMessage]);
                                 scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
                             } else {
-                                console.warn('Received message format is invalid:', message.body);
+                                //여기에 상태 메세지 받아서 처리하는 로직 추가
                             }
                         } catch (error) {
                             console.error('Failed to parse received message:', error);
@@ -148,35 +151,6 @@ const ChattingScreen = () => {
         setIsModalVisible(!isModalVisible);
     };
 
-    const deleteChat = () => {
-        Alert.alert(
-            "채팅방 나가기",
-            "정말 나가시겠습니까?",
-            [
-                {
-                    text: "취소",
-                    style: "cancel"
-                },
-                {
-                    text: "나가기",
-                    onPress: async () => {
-                        try {
-                            await axiosInstance.delete(
-                                `https://chalna.shop/api/v1/chatRoom/leave/${chatRoomId}`
-                            );
-                            Alert.alert("채팅방 삭제 완료", "채팅 목록 화면으로 돌아갑니다.");
-                            navigation.navigate('채팅 목록');
-                        } catch (error) {
-                            console.error('Failed to delete chat:', error);
-                            Alert.alert("Error", "Failed to delete the chat.");
-                        }
-                    }
-                }
-            ]
-        );
-    };
-
-
 
     if (loading) {
         return (
@@ -187,8 +161,20 @@ const ChattingScreen = () => {
     }
 
 
+    // 연결상태 표기 나중에 추가
+    //    <Text style={styles.status}> Status: {WebSocketManager.isConnected() ? 'Connected' : 'Not Connected'} </Text>
+
     return (
         <SWRConfig value={{}}>
+            <CustomHeader
+                title={otherUsernameRef.current}
+                onBackPress={()=>navigation.goBack()} //뒤로가기
+                onBtnPress={()=>sendFriendRequest(chatRoomId, otherIdRef.current)} //친구요청 보내기
+                showBtn={chatRoomTypeRef.current!=='FRIEND'} //친구상태 아닐때만 노출
+                onMenuPress={toggleModal}
+                useNav={true}
+                useMenu={true}
+            />
             <View style={styles.container}>
                 <ScrollView
                     contentContainerStyle={styles.scrollView}
@@ -203,6 +189,8 @@ const ChattingScreen = () => {
                             isSelf={msg.isSelf}
                             type={msg.type}
                             status={msg.status}
+                            chatRoomId={chatRoomId}
+                            otherId={otherIdRef.current}
                         />
                     ))}
                 </ScrollView>
@@ -216,33 +204,20 @@ const ChattingScreen = () => {
                         textBreakStrategy="highQuality"
                         editable={chatRoomTypeRef.current !== 'WAITING'}
                     />
-                    <RNButton title="Send" onPress={sendMessage} disabled={chatRoomTypeRef.current==='WAITING'}/>
-                </View>
-                <TouchableOpacity style={styles.menuButton} onPress={toggleModal}>
-                    <Text style={styles.menuButtonText}>Menu</Text>
-                </TouchableOpacity>
-                <Modal
-                    isVisible={isModalVisible}
-                    onBackdropPress={toggleModal}
-                    style={styles.modal}
-                >
-                    <View style={styles.modalContent}>
-                        <RNButton title="Option 1" onPress={() => { /* Handle Option 1 */ }} />
-                        <RNButton title="Option 2" onPress={() => { /* Handle Option 2 */ }} />
-                        <RNButton title="채팅방 나가기" onPress={() => { deleteChat() }} />
-                        <RNButton title="Close" onPress={toggleModal} />
-                    </View>
-                </Modal>
-                <Text style={styles.status}>
-                    Status: {WebSocketManager.isConnected() ? 'Connected' : 'Not Connected'}
-                </Text>
-                <TouchableOpacity style={styles.topRightButton}
-                                  onPress={() => sendFriendRequest(chatRoomId, otherIdRef.current)}>
-                    <Image
-                        source = {require('../../assets/Icons/addFriendIcon.png')}
-                        style = {styles.topRightButtonImage}
+                    <ImageTextButton
+                        onPress={sendMessage}
+                        iconSource={require('../../assets/Icons/sendMsgIcon.png')}
+                        disabled={chatRoomTypeRef.current==='WAITING' || messageContent===''}
+                        imageStyle={{height:15, width:15}}
+                        containerStyle={{paddingRight:15}}
                     />
-                </TouchableOpacity>
+                </View>
+                <MenuModal
+                    isVisible = {isModalVisible}
+                    onClose={toggleModal}
+                    menu1={'채팅방 나가기'}
+                    onMenu1={()=>deleteChat(navigation, chatRoomId)}
+                    />
 
             </View>
         </SWRConfig>
@@ -252,7 +227,7 @@ const ChattingScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
+        paddingHorizontal: 20
     },
     scrollView: {
         flexGrow: 1,
@@ -260,16 +235,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     inputContainer: {
+        backgroundColor: 'white',
+        borderColor: "#ececec",
         flexDirection: 'row',
+        borderRadius: 25,
+        borderWidth:0.8,
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginTop: 20,
+        marginTop: 10,
     },
     input: {
         flex: 1,
-        borderWidth: 1,
         padding: 10,
-        marginRight: 10,
+        marginLeft: 10
     },
     status: {
         marginTop: 20,

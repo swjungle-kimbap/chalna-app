@@ -3,6 +3,11 @@ import { View, FlatList, StyleSheet, ActivityIndicator, Text, RefreshControl, Ap
 import ChatRoomCard from '../../components/Chat/ChatRoomCard';
 import { axiosGet } from "../../axios/axios.method";
 import { useFocusEffect } from '@react-navigation/native';
+import CustomHeader from "../../components/common/CustomHeader";
+import {sendFriendRequest} from "../../service/Chatting/chattingScreenAPI";
+import {useRecoilValue} from "recoil";
+import {LoginResponse} from "../../interfaces";
+import {userInfoState} from "../../recoil/atoms";
 
 interface ChatRoomMember {
     memberId: number;
@@ -34,6 +39,9 @@ const ChattingListScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [appState, setAppState] = useState(AppState.currentState);
+
+    const userInfo = useRecoilValue<LoginResponse>(userInfoState);
+    const currentUserId = userInfo.id;
 
     const fetchChatRooms = async () => {
         try {
@@ -78,18 +86,26 @@ const ChattingListScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
+            <CustomHeader
+                title={"채팅 목록"}
+                useMenu={false}
+                useNav={false}
+            />
             <FlatList
                 data={chatRooms}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => {
                     console.log('Rendering item:', item);
-                    const usernames = item.members.map(member => member.username).join(', ');
+                    const usernames = item.members
+                        .filter(member => member.memberId !== currentUserId)
+                        .map(member => member.username)
+                        .join(', ');
+
                     return (
                         <ChatRoomCard
-                            members={item.members}
                             usernames={usernames}
                             lastMsg={item.recentMessage === null ? "" : item.recentMessage.content}
-                            lastUpdate={item.updatedAt}
+                            lastUpdate={item.recentMessage ===null? "" : item.recentMessage.createdAt}
                             navigation={navigation}
                             chatRoomType={item.type}
                             chatRoomId={item.id}
@@ -117,7 +133,6 @@ const ChattingListScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 10,
         backgroundColor: '#f5f5f5',
     },
     loadingContainer: {
