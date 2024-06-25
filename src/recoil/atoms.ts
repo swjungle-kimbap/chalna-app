@@ -1,5 +1,6 @@
 import {atom, useRecoilValue} from "recoil";
 import { LoginResponse, Position } from "../interfaces";
+import { ToggleValueState } from "./atomtypes";
 
 export const locationState = atom<Position>({
   key: 'location',
@@ -25,3 +26,16 @@ export const AlarmCountState = atom<number>({
   default: 0
   }
 )
+
+export const isScanningToggleState = atom<boolean>({
+  key: 'isScanningToggle',
+  default: false
+  }
+)
+
+export const isSendingMsgToggleState = atom<boolean>({
+  key: 'isSendingMsgToggle',
+  default: false
+  }
+)
+

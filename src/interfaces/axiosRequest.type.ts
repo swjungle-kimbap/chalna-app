@@ -12,7 +12,7 @@ export interface SignUpRequest {
 }
 
 export interface SendMsgRequest {
-  receiverId : string,
+  receiverDeviceId : string,
   message: string,
-  InterestTag: string[],
+  interestTag: string[],
 }

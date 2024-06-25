@@ -18,7 +18,6 @@ instance.interceptors.request.use(
       Alert.alert('로그인 필요', '로그인이 필요한 서비스입니다.');
       navigate('로그인');
     } else {
-      console.log("accessToken 입니다.",accessToken);
       if (accessToken)
         axiosConfig.headers['Authorization'] = `Bearer ${accessToken}`;
       if (refreshToken)

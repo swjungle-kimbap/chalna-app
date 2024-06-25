@@ -5,7 +5,7 @@ import instance from "./axios.instance";
 
 export const axiosGet = async<T>(
   url:string | undefined, 
-  logMsg: string,
+  logMsg?: string,
   config?:AxiosRequestConfig,
 ): Promise<AxiosResponse<T>> => {
   if (!url)
@@ -13,17 +13,18 @@ export const axiosGet = async<T>(
   
   try {
     const response = await instance.get<T>(url, config);
-    console.log('Get Success:', logMsg);
+    if (logMsg)
+      console.log('Get Success:', logMsg);
     return response;
   } catch (error) {
     console.error('Get fail:', logMsg, error);
     throw error;
-  }
+  } 
 }
 
 export const axiosPost = async<T>(
   url:string | undefined , 
-  logMsg: string,
+  logMsg?: string,
   data?:any,
   config?:AxiosRequestConfig,
 ): Promise<AxiosResponse<T>> => {
@@ -32,7 +33,8 @@ export const axiosPost = async<T>(
 
   try {
     const response = await instance.post<T>(url, data, config);
-    console.log('Post Success:', logMsg);
+    if (logMsg)
+      console.log('Post Success:', logMsg);
     return response;
   } catch (error) {
     console.error('Post fail:', logMsg, error)
@@ -42,7 +44,7 @@ export const axiosPost = async<T>(
 
 export const axiosPatch = async<T>(
   url:string | undefined, 
-  logMsg: string,
+  logMsg?: string,
   data?:any,
   config?:AxiosRequestConfig,
 ): Promise<AxiosResponse<T>> => {
@@ -51,7 +53,8 @@ export const axiosPatch = async<T>(
   
   try {
     const response = await instance.patch<T>(url, data, config);
-    console.log('Patch Success:', logMsg);
+    if (logMsg)
+      console.log('Patch Success:', logMsg);
     return response;
   } catch (error) {
     console.error('Patch fail:', logMsg, error);
@@ -61,7 +64,7 @@ export const axiosPatch = async<T>(
 
 export const axiosPut = async<T>(
   url:string | undefined, 
-  logMsg: string,
+  logMsg?: string,
   data?:any,
   config?:AxiosRequestConfig,
 ): Promise<AxiosResponse<T>> => {
@@ -70,7 +73,8 @@ export const axiosPut = async<T>(
   
   try {
     const response = await instance.put<T>(url, data, config);
-    console.log('Put Success:', logMsg);
+    if (logMsg)
+      console.log('Put Success:', logMsg);
     return response;
   } catch (error) {
     console.error('Put fail:', logMsg, error);
@@ -81,7 +85,7 @@ export const axiosPut = async<T>(
 
 export const axiosDelete = async<T>(
   url:string | undefined, 
-  logMsg: string,
+  logMsg?: string,
   config?:AxiosRequestConfig,
 ): Promise<AxiosResponse<T>> => {
   if (!url)
@@ -89,7 +93,8 @@ export const axiosDelete = async<T>(
 
   try {
     const response = await instance.delete<T>(url, config);
-    console.log('Delete Success:', logMsg);
+    if (logMsg)
+      console.log('Delete Success:', logMsg);
     return response;
   } catch (error) {
     console.error('Delete fail:', logMsg, error);

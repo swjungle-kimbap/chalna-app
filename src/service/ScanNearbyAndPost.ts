@@ -3,6 +3,7 @@ import BLEAdvertiser from 'react-native-ble-advertiser-advanced';
 import { axiosPost } from '../axios/axios.method';
 import Config from 'react-native-config';
 import { getAsyncObject, getAsyncString, setAsyncObject, setAsyncString } from '../utils/asyncStorage';
+import { SendMsgRequest } from '../interfaces';
 
 const APPLE_ID = 0x4c;
 const MANUF_DATA = [1, 0];
@@ -15,10 +16,10 @@ const sendMsg = async ( _uuid:string) => {
   const savedMsgText = await getAsyncString('msgText');
   const savedTag = await getAsyncString('tag');
   await axiosPost(Config.SEND_MSG_URL, "인연 보내기",{
-    receiverList: _uuid,
+    receiverDeviceId: _uuid,
     message: savedMsgText,
-    interestTag:savedTag
-  })
+    interestTag:[savedTag]
+  } as SendMsgRequest)
 }
 
 const sendRelationCnt = async (_uuid:string) => {
