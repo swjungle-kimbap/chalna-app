@@ -24,7 +24,7 @@ const formatTime = (timestamp) => {
 const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ members, lastMsg, lastUpdate, usernames, navigation, chatRoomType,chatRoomId }) => {
     return (
         <TouchableOpacity
-            onPress={() => navigation.navigate('채팅', { members, chatRoomType, chatRoomId })}
+            onPress={() => navigation.navigate('채팅', { chatRoomId })}
             style={[
                 styles.card,
                 chatRoomType === 'FRIEND' ? styles.friendCard : chatRoomType==='MATCH'? styles.matchCard:styles.waitCard]} // Conditional styles
