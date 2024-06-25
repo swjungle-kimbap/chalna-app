@@ -31,8 +31,18 @@ buildscript {
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
         // FCM setting
-        classpath("com.google.gms.google-services:com.google.gms.google-services.gradle.plugin:4.4.2") 
+        classpath("com.google.gms.google-services:com.google.gms.google-services.gradle.plugin:4.4.2")
         classpath('com.google.firebase:firebase-crashlytics-gradle:3.0.0')
+    }
+    subprojects { subproject ->
+        afterEvaluate{
+            if((subproject.plugins.hasPlugin('android') || subproject.plugins.hasPlugin('android-library'))) {
+                android {
+                    compileSdkVersion rootProject.ext.compileSdkVersion
+                    buildToolsVersion rootProject.ext.buildToolsVersion
+                }
+            }
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-import { atom } from "recoil";
+import {atom, useRecoilValue} from "recoil";
 import { LoginResponse, Position } from "../interfaces";
 
 export const locationState = atom<Position>({
@@ -8,6 +8,7 @@ export const locationState = atom<Position>({
     longitude: 127.041588,
   }
 })
+
 
 export const userInfoState = atom<LoginResponse>({
   key: 'userInfo',
