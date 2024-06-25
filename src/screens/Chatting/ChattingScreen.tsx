@@ -13,6 +13,7 @@ import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path 
 import { sendFriendRequest, deleteChat } from "../../service/Chatting/chattingScreenAPI";
 import 'text-encoding-polyfill';
 import CustomHeader from "../../components/common/CustomHeader";
+import MenuModal from "../../components/common/MenuModal";
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -150,8 +151,6 @@ const ChattingScreen = () => {
     };
 
 
-
-
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -161,8 +160,20 @@ const ChattingScreen = () => {
     }
 
 
+    // 연결상태 표기 나중에 추가
+    //    <Text style={styles.status}> Status: {WebSocketManager.isConnected() ? 'Connected' : 'Not Connected'} </Text>
+
     return (
         <SWRConfig value={{}}>
+            <CustomHeader
+                title={otherUsernameRef.current}
+                onBackPress={()=>navigation.goBack()} //뒤로가기
+                onBtnPress={()=>sendFriendRequest(chatRoomId, otherIdRef.current)} //친구요청 보내기
+                showBtn={chatRoomTypeRef.current!=='FRIEND'} //친구상태 아닐때만 노출
+                onMenuPress={toggleModal}
+                useNav={true}
+                useMenu={true}
+            />
             <View style={styles.container}>
                 <ScrollView
                     contentContainerStyle={styles.scrollView}
@@ -194,33 +205,13 @@ const ChattingScreen = () => {
                     />
                     <RNButton title="Send" onPress={sendMessage} disabled={chatRoomTypeRef.current==='WAITING' || messageContent===''}/>
                 </View>
-                <TouchableOpacity style={styles.menuButton} onPress={toggleModal}>
-                    <Text style={styles.menuButtonText}>Menu</Text>
-                </TouchableOpacity>
-                <Modal
-                    isVisible={isModalVisible}
-                    onBackdropPress={toggleModal}
-                    style={styles.modal}
-                >
-                    <View style={styles.modalContent}>
-                        <RNButton title="Option 1" onPress={() => { /* Handle Option 1 */ }} />
-                        <RNButton title="Option 2" onPress={() => { /* Handle Option 2 */ }} />
-                        <RNButton title="채팅방 나가기" onPress={() => { deleteChat(navigation, chatRoomId) }} />
-                        <RNButton title="Close" onPress={toggleModal} />
-                    </View>
-                </Modal>
-                <Text style={styles.status}>
-                    Status: {WebSocketManager.isConnected() ? 'Connected' : 'Not Connected'}
-                </Text>
-                {chatRoomTypeRef.current!=='FRIEND' && (
-                <TouchableOpacity style={styles.topRightButton}
-                                  onPress={() => sendFriendRequest(chatRoomId, otherIdRef.current)}>
-                    <Image
-                        source = {require('../../assets/Icons/addFriendIcon.png')}
-                        style = {styles.topRightButtonImage}
+                <MenuModal
+                    isVisible = {isModalVisible}
+                    onClose={toggleModal}
+                    menu1={'채팅방 나가기'}
+                    onMenu1={()=>deleteChat(navigation, chatRoomId)}
                     />
-                </TouchableOpacity>
-                )}
+
             </View>
         </SWRConfig>
     );
@@ -229,7 +220,7 @@ const ChattingScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
+        paddingHorizontal: 20
     },
     scrollView: {
         flexGrow: 1,

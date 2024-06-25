@@ -3,6 +3,8 @@ import { View, FlatList, StyleSheet, ActivityIndicator, Text, RefreshControl, Ap
 import ChatRoomCard from '../../components/Chat/ChatRoomCard';
 import { axiosGet } from "../../axios/axios.method";
 import { useFocusEffect } from '@react-navigation/native';
+import CustomHeader from "../../components/common/CustomHeader";
+import {sendFriendRequest} from "../../service/Chatting/chattingScreenAPI";
 
 interface ChatRoomMember {
     memberId: number;
@@ -78,6 +80,11 @@ const ChattingListScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
+            <CustomHeader
+                title={"채팅 목록"}
+                useMenu={false}
+                useNav={false}
+            />
             <FlatList
                 data={chatRooms}
                 keyExtractor={(item) => item.id.toString()}
@@ -117,7 +124,6 @@ const ChattingListScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 10,
         backgroundColor: '#f5f5f5',
     },
     loadingContainer: {

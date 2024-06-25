@@ -32,7 +32,7 @@ export const sendFriendRequest = async (chatRoomId:string, otherId: number) => {
                         WebSocketManager.sendMessage(chatRoomId, messageJson);
 
                     } catch (error) {
-                        console.error('Failed to delete chat:', error);
+                        // 친구요청 status 받아서 친구요청 진행중입니다 등 문구 띄우는 걸로 변경
                         Alert.alert("Error", "요청 전송이 실패했습니다.");
                     }
                 }
@@ -61,8 +61,7 @@ export const deleteChat = async (navigation: any, chatRoomId:string) => {
                         Alert.alert("채팅방 삭제 완료", "채팅 목록 화면으로 돌아갑니다.");
                         navigation.navigate('채팅 목록');
                     } catch (error) {
-                        console.error('Failed to delete chat:', error);
-                        Alert.alert("Error", "Failed to delete the chat.");
+                        Alert.alert("채팅방 나가기 실패", "채팅방 나가기가 실패했습니다. 연결 상태일 때 다시 시도해주세요.");
                     }
                 }
             }

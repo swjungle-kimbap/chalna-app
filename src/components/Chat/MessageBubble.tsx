@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Button, Alert } from 'react-native';
 import axiosInstance from '../../axios/axios.instance'; // Adjust the path as necessary
+import ImageTextButton from "../common/Button";
 
 interface MessageBubbleProps {
     message: string;
@@ -23,14 +24,14 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
             '친구 요청 수락',
             '친구 요청을 수락하시겠습니까?',
             [
-                { text: '아니오', style: 'cancel' },
+                { text: '취소', style: 'cancel' },
                 {
-                    text: '네', onPress: async () => {
+                    text: '수락', onPress: async () => {
                         // try {
                             const response = await axiosInstance.patch(`https://chalna.shop/api/v1/relation/accept/${chatRoomId}`);
                             console.log(response)
 
-                            Alert.alert('Success', 'Friend request accepted!');
+                            Alert.alert('친구 맺기 성공', '친구가 되었습니다!');
                             setIsDisabled(true);
                             // Add additional logic here if needed, e.g., updating the message status
                         // } catch (error) {
@@ -46,20 +47,21 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
 
     const handleReject = async () => {
         Alert.alert(
-            'Confirmation',
-            'Are you sure you want to reject the friend request?',
+            '친구 요청 거절',
+            '친구 요청을 거절하시겠습니까?',
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: '취소', style: 'cancel' },
                 {
-                    text: 'OK', onPress: async () => {
+                    text: '거절', onPress: async () => {
                         try {
                             await axiosInstance.patch(`https://chalna.shop/api/v1/relation/reject/${otherId}`);
-                            Alert.alert('Success', 'Friend request rejected!');
+                            Alert.alert('친구 요청 거절 성공', '친구 요청을 거절했습니다.');
                             setIsDisabled(true);
                             // Add additional logic here if needed, e.g., removing the message
                         } catch (error) {
-                            console.error('Failed to reject friend request:', error);
-                            Alert.alert('Error', 'Failed to reject friend request.');
+                            // console.error('Failed to reject friend request:', error);
+                            // 리턴코드에 따라 수정
+                            Alert.alert('전송 실패', 'Failed to reject friend request.');
                         }
                     }
                 }
@@ -75,8 +77,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
             </View>
             {type === 'FRIEND_REQUEST' && !isSelf && (
                 <View style={styles.buttonContainer}>
-                    <Button title='수락' onPress={handleAccept} disabled={isDisabled} />
-                    <Button title='거절' onPress={handleReject} disabled={isDisabled} />
+                    <ImageTextButton title='수락' onPress={handleAccept} disabled={isDisabled} />
+                    <ImageTextButton title='거절' onPress={handleReject} disabled={isDisabled} />
                 </View>
             )}
         </View>
@@ -113,7 +115,9 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         marginTop: 5,
+        marginHorizontal:15,
     },
 });
 

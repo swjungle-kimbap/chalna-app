@@ -1,30 +1,40 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import Text from './Text';
 
 interface HeaderProps {
     title: string;
-    onBackPress: () => void;
-    onMenuPress: () => void;
+    onBackPress?: () => void;
+    onMenuPress?: () => void;
     onBtnPress?:()=>void;
+    useNav?:boolean;
+    useMenu?:boolean;
+    showBtn?:boolean; // Btn이 필요한 조건 받는 상태값
 }
 
 
-const CustomHeader: React.FC<HeaderProps> = ({ title, onBackPress, onMenuPress, onBtnPress }) => {
+const CustomHeader: React.FC<HeaderProps> = ({ title, onBackPress, onMenuPress, onBtnPress, showBtn, useNav, useMenu }) => {
     return (
         <View style={styles.headerContainer}>
-            <TouchableOpacity onPress={onBackPress} style={styles.iconButton}>
-                <Image source={require('../../assets/icons/backIcon.png')} style={styles.icon} />
-            </TouchableOpacity>
-            <Text style={styles.title}>{title}</Text>
+            {onBtnPress!==null && useNav && (
+                <TouchableOpacity onPress={onBackPress} style={styles.iconButton}>
+                    <Image source={require('../../assets/Icons/goBackIcon.png')} style={styles.icon} />
+                </TouchableOpacity>)
+            }
+            <View style={styles.title}>
+                <Text variant='title' children={title} />
+            </View>
             <View style={styles.rightIcons}>
-                {onBtnPress!==null &&(
+                {onBtnPress!==null && showBtn && (
                     <TouchableOpacity onPress={onBtnPress} style={styles.iconButton}>
                         <Image source={require('../../assets/Icons/addFriendIcon.png')} style={styles.icon} />
                     </TouchableOpacity>
                 )}
-                <TouchableOpacity onPress={onMenuPress} style={styles.iconButton}>
-                    <Image source={require('../../assets/icons/menuIcon.png')} style={styles.icon} />
-                </TouchableOpacity>
+                {onMenuPress!==null && useMenu && (
+                    <TouchableOpacity onPress={onMenuPress} style={styles.iconButton}>
+                        <Image source={require('../../assets/Icons/menuIcon.png')} style={styles.icon} />
+                    </TouchableOpacity>
+                )}
             </View>
         </View>
     );
@@ -32,7 +42,7 @@ const CustomHeader: React.FC<HeaderProps> = ({ title, onBackPress, onMenuPress, 
 
 const styles = StyleSheet.create({
     headerContainer: {
-        position: 'absolute',
+        position: 'static',
         top: 0,
         left: 0,
         right: 0,
@@ -41,8 +51,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 10,
-        elevation: 4,
+        // paddingHorizontal: 10,
+        // elevation: 4,
         zIndex: 1000, // Ensure the header is above other elements
     },
     iconButton: {
@@ -54,8 +64,8 @@ const styles = StyleSheet.create({
         resizeMode: 'contain',
     },
     title: {
-        fontSize: 18,
-        fontWeight: 'bold',
+        alignItems: 'center',
+        paddingLeft: 24,
     },
     rightIcons: {
         flexDirection: 'row',
