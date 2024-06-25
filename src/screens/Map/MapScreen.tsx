@@ -11,8 +11,8 @@ import requestBluetooth from "../../utils/requestBluetooth";
 import { Platform } from "react-native";
 import ScanButton from "../../components/Map/ScanButton";
 import AlarmButton from "../../components/Map/AlarmButton";
-import { useRecoilValue } from "recoil";
-import { locationState } from "../../recoil/atoms";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { locationState, userInfoState } from "../../recoil/atoms";
 import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
 import { useStartWatchingPosition } from "../../hooks/useStartWatchingPosition";
 import { PERMISSIONS } from "react-native-permissions";
@@ -23,7 +23,16 @@ const requiredPermissions = [
   PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
   PERMISSIONS.ANDROID.BLUETOOTH_ADVERTISE];
 
-const MapScreen: React.FC = ({}) => {
+interface MapPrams {
+  route: {
+    params?: {
+      notificationId? : number;
+    }
+  }
+}
+
+const MapScreen: React.FC<MapPrams> = ({ route }) => {
+  const { notificationId }  = route.params?.notificationId ?? -1;
   const currentLocation = useRecoilValue<Position>(locationState);
   const [isLoading, setIsLoading] = useState<boolean | null>(true); // 로딩 상태 추가
   const [fetchedData, setfetchedData] = useState<TestResponse>([]);
@@ -97,7 +106,7 @@ const MapScreen: React.FC = ({}) => {
       ) : ( 
         <>
           <NaverMap pos={currentLocation} />
-          <AlarmButton />
+          <AlarmButton notificationId={notificationId} />
           <ScanButton disable={!granted} />
         </>
       )}

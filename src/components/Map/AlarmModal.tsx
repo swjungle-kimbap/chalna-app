@@ -10,14 +10,15 @@ import Button from '../common/Button';
 export interface AlarmModalProps{
   closeModal: () => void,
   modalVisible: boolean,
+  notificationId: number,
 }
 
-const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal}) => {
-  const [expandedCardId, setExpandedCardId] = useState<string>("");
+const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notificationId}) => {
+  const [expandedCardId, setExpandedCardId] = useState<number>(notificationId);
   const [alarms, setAlarms] = useState<AlarmItem[]>([]);
 
-  const handleCardPress = (createAt: string) => {
-    setExpandedCardId(expandedCardId === createAt ? "" : createAt);
+  const handleCardPress = (notificationId: number) => {
+    setExpandedCardId(expandedCardId === notificationId ? 0 : notificationId);
   };
 
   useFocusEffect(
@@ -51,11 +52,12 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal}) => {
     };
   }, [modalVisible])
   
-  const removeAlarmItem = (createAt:string, DeleteAll = false) => {
+  const removeAlarmItem = (notificationId:number, DeleteAll = false) => {
     if (DeleteAll) {
       setAlarms([]);
+
     } else if (alarms) {
-      const newAlarmList = alarms.filter(item => item.createAt !== createAt);
+      const newAlarmList = alarms.filter(item => item.notificationId !== notificationId);
       setAlarms(newAlarmList);
     }
   }
@@ -63,7 +65,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal}) => {
   const handleAllDeleteAlarm = async () => {
     try {
       await axiosPut(Config.DELETE_ALL_MSG_URL, "인연 알림 모두 지우기");
-      removeAlarmItem("", true);
+      removeAlarmItem(0, true);
     } catch (e) {
       console.error("fail: 인연 수락 요청 실패", e);
     }
@@ -91,7 +93,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal}) => {
             <View style={styles.modalpos}>
               <FlatList
                 data={alarms}
-                keyExtractor={(item) => item.createAt}
+                keyExtractor={(item) => item.notificationId.toString()}
                 renderItem={renderAlarmCard}
               />
               <Button title='모두 지우기' variant='sub' onPress={async () => handleAllDeleteAlarm}/>

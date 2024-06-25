@@ -5,8 +5,12 @@ import FontTheme from "../../styles/FontTheme";
 import AlarmModal from './AlarmModal';
 import { useState } from 'react';
 
-const AlarmButton = () => {
-  const [modalVisible, setModalVisible] = useState(false);
+interface AlarmButtonPrams {
+  notificationId : number
+}
+
+const AlarmButton : React.FC<AlarmButtonPrams> = ({notificationId}) => {
+  const [modalVisible, setModalVisible] = useState(notificationId ? true : false);
 
   const openModal = () => {
     setModalVisible(true);
@@ -17,7 +21,7 @@ const AlarmButton = () => {
   };
   return (
     <>
-    <AlarmModal modalVisible={modalVisible} closeModal={closeModal}/>
+    <AlarmModal modalVisible={modalVisible} closeModal={closeModal} notificationId = {notificationId}/>
     <RoundBox style={styles.buttonContainer}>
       <Button iconSource={require('../../assets/Icons/AlarmIcon.png')}
         imageStyle={{

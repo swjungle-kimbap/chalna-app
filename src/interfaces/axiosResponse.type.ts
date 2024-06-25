@@ -34,6 +34,7 @@ export interface RelationCntResponse {
 }
 
 export interface AlarmItem {
+  notificationId: number;
   createAt: string;
   message: string;
   senderId: string;
