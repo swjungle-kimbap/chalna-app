@@ -27,13 +27,13 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
                 <View style={styles.header}>
                     <Image source={require('../assets/images/anonymous.png')} style={styles.avatar} />
                     <View style={styles.textContainer}>
-                        <Text style={styles.name} >{user.name}</Text>
-                        <Text style={styles.statusMessage}>{user.statusMsg}</Text>
+                        <Text style={styles.name} >{user.username}</Text>
+                        <Text style={styles.statusMessage}>{user.message}</Text>
                     </View>
                 </View>
                 {isExpanded && (
                     <View style={styles.expandedContainer}>
-                        <Text style={styles.additionalInfo}>Additional information about {user.name}</Text>
+                        <Text style={styles.additionalInfo}>Additional information about {user.username}</Text>
                         <View style={styles.btnContainer}>
                             <Button title="대화하기" onPress={() => navigation.navigate('채팅')}  />
                         </View>
