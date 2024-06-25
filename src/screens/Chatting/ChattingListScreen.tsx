@@ -89,7 +89,7 @@ const ChattingListScreen = ({ navigation }) => {
                             members={item.members}
                             usernames={usernames}
                             lastMsg={item.recentMessage === null ? "" : item.recentMessage.content}
-                            lastUpdate={item.updatedAt}
+                            lastUpdate={item.recentMessage ===null? "" : item.recentMessage.createdAt}
                             navigation={navigation}
                             chatRoomType={item.type}
                             chatRoomId={item.id}

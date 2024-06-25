@@ -8,7 +8,7 @@ interface ChatRoomCardProps {
     lastMsg?: string | null;
     lastUpdate?: string;
     navigation: any;
-    chatRoomType: 'FRIEND'|'MATCH'|'WAITING'
+    chatRoomType: string;
     chatRoomId: number; // chatRoomId
     unReadMsg?: number;
 }
