@@ -1,22 +1,16 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TextInput, Button as RNButton, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { Client, IMessage } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { View, Text, TextInput, Button as RNButton, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, AppState, AppStateStatus } from 'react-native';
+import { RouteProp, useRoute, useFocusEffect } from "@react-navigation/native";
+import { useRecoilValue } from "recoil";
+import { userInfoState } from "../../recoil/atoms";
+import { LoginResponse } from "../../interfaces";
+import { getKeychain } from "../../utils/keychain";
+import { SWRConfig } from 'swr';
 import axiosInstance from '../../axios/axios.instance'; // Adjust the path as necessary
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
 import Modal from 'react-native-modal';
-
-import { TextEncoder, TextDecoder } from 'text-encoding';
-import { RouteProp, useRoute, useFocusEffect } from "@react-navigation/native";
-import { useRecoilValue} from "recoil";
-import { userInfoState} from "../../recoil/atoms.ts";
-import {LoginResponse} from "../../interfaces";
-import {getKeychain} from "../../utils/keychain.ts";
-
-Object.assign(global, {
-    TextEncoder: TextEncoder,
-    TextDecoder: TextDecoder,
-});
+import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
+import 'text-encoding-polyfill';
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -31,16 +25,28 @@ const ChattingScreen = () => {
 
     const [messageContent, setMessageContent] = useState<string>('');
     const [messages, setMessages] = useState<any[]>([]);
-    const [client, setClient] = useState<Client | null>(null);
-    const [connected, setConnected] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
-    const [lastLeaveAt, setLastLeaveAt] = useState<string>('');
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    useEffect(() => {
+        const handleAppStateChange = (nextAppState: AppStateStatus) => {
+            if (nextAppState === 'background' || nextAppState === 'inactive') {
+                WebSocketManager.disconnect();
+            }
+        };
+
+        const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+        return () => {
+            subscription.remove();
+        };
+    }, []);
 
     useFocusEffect(
         useCallback(() => {
-            const currentTimestamp = new Date().toISOString().slice(0,19);
-            setLastLeaveAt(currentTimestamp);
+            const currentTimestamp = new Date().toISOString().slice(0, 19);
             console.log("Focused", currentTimestamp);
 
             // Fetch initial messages from the API
@@ -48,13 +54,12 @@ const ChattingScreen = () => {
                 try {
                     setLoading(true);
                     const response = await axiosInstance.get(
-                        `https://chalna.shop/api/v1/chatRoom/message/${chatRoomId}?lastLeaveAt=${currentTimestamp}`
+                        `https://chalna.shop/api/v1/chatRoom/message/${chatRoomId}?lastLeaveAt=2024-06-23T10:32:40` //   ${currentTimestamp}`
                     );
 
                     const fetchedMessages = response.data.data.list.map((msg: any) => ({
                         ...msg,
-                        isSelf: msg.senderId === currentUserId,
-
+                        isSelf: msg.senderId === 2 //currentUserId,
                     }));
                     setMessages(fetchedMessages);
                 } catch (error) {
@@ -68,57 +73,23 @@ const ChattingScreen = () => {
 
             const setupWebSocket = async () => {
                 try {
-                    const accessToken = await getKeychain('accessToken');;
+                    const accessToken = await getKeychain('accessToken');
 
-                    const newClient = new Client({
-                        brokerURL: 'wss://chalna.shop/ws',
-                        connectHeaders: {
-                            chatRoomId: `${chatRoomId}`,
-                            Authorization: `Bearer ${accessToken}`, // Use fetched token
-                        },
-                        debug: (str) => {
-                            console.log(str);
-                        },
-                        reconnectDelay: 5000,
-                        heartbeatIncoming: 4000,
-                        heartbeatOutgoing: 4000,
-                        webSocketFactory: () => {
-                            console.log('Creating SockJS instance');
-                            return new SockJS('https://chalna.shop/ws');
-                        },
-                    });
-
-                    newClient.onConnect = (frame) => {
-                        console.log('Connected: ' + frame);
-                        setConnected(true);
-                        newClient.subscribe(`/topic/${chatRoomId}`, (message: IMessage) => {
-                            console.log('Received message: ' + message.body);
-                            try {
-                                const parsedMessage = JSON.parse(message.body);
-                                if (parsedMessage.type === 'CHAT' && parsedMessage.content) {
-                                    parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
-                                    setMessages((prevMessages) => [...prevMessages, parsedMessage]);
-                                } else {
-                                    console.warn('Received message format is invalid:', message.body);
-                                }
-                            } catch (error) {
-                                console.error('Failed to parse received message:', error);
+                    WebSocketManager.connect(chatRoomId, accessToken, (message: IMessage) => {
+                        console.log('Received message: ' + message.body);
+                        try {
+                            const parsedMessage = JSON.parse(message.body);
+                            if (parsedMessage.type === 'CHAT' && parsedMessage.content) {
+                                parsedMessage.isSelf = parsedMessage.senderId === 2; //currentUserId;
+                                setMessages((prevMessages) => [...prevMessages, parsedMessage]);
+                                scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
+                            } else {
+                                console.warn('Received message format is invalid:', message.body);
                             }
-                        });
-                    };
-
-                    newClient.onStompError = (frame) => {
-                        console.error('Broker reported error: ' + frame.headers['message']);
-                        console.error('Additional details: ' + frame.body);
-                    };
-
-                    newClient.activate();
-                    setClient(newClient);
-
-                    return () => {
-                        newClient.deactivate();
-                        setConnected(false);
-                    };
+                        } catch (error) {
+                            console.error('Failed to parse received message:', error);
+                        }
+                    });
                 } catch (error) {
                     console.error('Failed to set up WebSocket:', error);
                 }
@@ -128,30 +99,23 @@ const ChattingScreen = () => {
 
             return () => {
                 const leaveTimestamp = new Date().toISOString();
-                setLastLeaveAt(leaveTimestamp);
                 console.log("Unfocused", leaveTimestamp);
-                if (client) {
-                    client.deactivate();
-                    setConnected(false);
-                }
+                WebSocketManager.disconnect();
             };
         }, [chatRoomId, currentUserId])
     );
 
     const sendMessage = () => {
-        if (client && connected) {
-            const messageObject = {
-                type: 'CHAT',
-                content: messageContent,
-            };
-            const messageJson = JSON.stringify(messageObject);
-            console.log('Sending message: ' + messageJson);
-            client.publish({ destination: `/app/chat/${chatRoomId}/sendMessage`, body: messageJson });
-            // setMessages((prevMessages) => [...prevMessages, messageObject]);
-            setMessageContent('');
-        } else {
-            console.log('Client is not connected.');
-        }
+        const messageObject = {
+            type: 'CHAT',
+            content: messageContent,
+        };
+        const messageJson = JSON.stringify(messageObject);
+        console.log('Sending message: ' + messageJson);
+        WebSocketManager.sendMessage(chatRoomId, messageJson);
+        // setMessages((prevMessages) => [...prevMessages, { ...messageObject, isSelf: true, createdAt: new Date().toISOString() }]);
+        setMessageContent('');
+        scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
     };
 
     const toggleModal = () => {
@@ -167,49 +131,55 @@ const ChattingScreen = () => {
     }
 
     return (
-        <View style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scrollView}>
-                {messages.map((msg, index) => (
-                    <MessageBubble
-                        key={index}
-                        message={msg.content}
-                        datetime={msg.createdAt}
-                        isSelf={msg.isSelf}
-                        type={msg.type}
-                        status={msg.status}
+        <SWRConfig value={{}}>
+            <View style={styles.container}>
+                <ScrollView
+                    contentContainerStyle={styles.scrollView}
+                    ref={scrollViewRef}
+                    onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })} // Auto-scroll to the bottom on content change
+                >
+                    {messages.map((msg, index) => (
+                        <MessageBubble
+                            key={index}
+                            message={msg.content}
+                            datetime={msg.createdAt}
+                            isSelf={msg.isSelf}
+                            type={msg.type}
+                            status={msg.status}
+                        />
+                    ))}
+                </ScrollView>
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        style={styles.input}
+                        value={messageContent}
+                        onChangeText={setMessageContent}
+                        placeholder="Type a message"
+                        multiline
+                        textBreakStrategy="highQuality"
                     />
-                ))}
-            </ScrollView>
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    value={messageContent}
-                    onChangeText={setMessageContent}
-                    placeholder="Type a message"
-                    multiline
-                    textBreakStrategy="highQuality"
-                />
-                <RNButton title="Send" onPress={sendMessage} />
-            </View>
-            <TouchableOpacity style={styles.menuButton} onPress={toggleModal}>
-                <Text style={styles.menuButtonText}>Menu</Text>
-            </TouchableOpacity>
-            <Modal
-                isVisible={isModalVisible}
-                onBackdropPress={toggleModal}
-                style={styles.modal}
-            >
-                <View style={styles.modalContent}>
-                    <RNButton title="Option 1" onPress={() => { /* Handle Option 1 */ }} />
-                    <RNButton title="Option 2" onPress={() => { /* Handle Option 2 */ }} />
-                    <RNButton title="Option 3" onPress={() => { /* Handle Option 3 */ }} />
-                    <RNButton title="Close" onPress={toggleModal} />
+                    <RNButton title="Send" onPress={sendMessage} />
                 </View>
-            </Modal>
-            <Text style={styles.status}>
-                Status: {connected ? 'Connected' : 'Not Connected'}
-            </Text>
-        </View>
+                <TouchableOpacity style={styles.menuButton} onPress={toggleModal}>
+                    <Text style={styles.menuButtonText}>Menu</Text>
+                </TouchableOpacity>
+                <Modal
+                    isVisible={isModalVisible}
+                    onBackdropPress={toggleModal}
+                    style={styles.modal}
+                >
+                    <View style={styles.modalContent}>
+                        <RNButton title="Option 1" onPress={() => { /* Handle Option 1 */ }} />
+                        <RNButton title="Option 2" onPress={() => { /* Handle Option 2 */ }} />
+                        <RNButton title="Option 3" onPress={() => { /* Handle Option 3 */ }} />
+                        <RNButton title="Close" onPress={toggleModal} />
+                    </View>
+                </Modal>
+                <Text style={styles.status}>
+                    Status: {WebSocketManager.isConnected() ? 'Connected' : 'Not Connected'}
+                </Text>
+            </View>
+        </SWRConfig>
     );
 };
 
@@ -271,4 +241,3 @@ const styles = StyleSheet.create({
 });
 
 export default ChattingScreen;
-

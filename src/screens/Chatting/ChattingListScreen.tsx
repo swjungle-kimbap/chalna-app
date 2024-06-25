@@ -70,7 +70,7 @@ const ChattingListScreen = ({ navigation }) => {
 
             const interval = setInterval(() => {
                 fetchChatRooms();
-            }, 60000); // Poll every 60 seconds
+            }, 5000); // Poll every 5 seconds
 
             return () => clearInterval(interval); // Clear interval on screen unfocus
         }, [])

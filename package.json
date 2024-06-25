@@ -46,7 +46,9 @@
     "socket.io-client": "^4.7.5",
     "sockjs-client": "^1.6.1",
     "styled-components": "^6.1.11",
-    "text-encoding": "^0.7.0"
+    "swr": "^2.2.5",
+    "text-encoding": "^0.7.0",
+    "text-encoding-polyfill": "^0.6.7"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
