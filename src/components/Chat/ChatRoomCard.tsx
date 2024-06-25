@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 interface ChatRoomCardProps {
-    members: ChatRoomMember[];
     numMember: number;
     usernames: string;
     lastMsg?: string | null;
@@ -22,7 +21,7 @@ const formatTime = (timestamp) => {
     return `${date.getHours()}:${date.getMinutes() < 10 ? '0' : ''}${date.getMinutes()}`;
 };
 
-const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ members, lastMsg, lastUpdate, usernames, navigation, chatRoomType,chatRoomId }) => {
+const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ lastMsg, lastUpdate, usernames, navigation, chatRoomType,chatRoomId }) => {
 
     return (
         <TouchableOpacity
@@ -44,9 +43,8 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ members, lastMsg, lastUpdat
 const styles = StyleSheet.create({
     card: {
         padding: 15,
+        paddingHorizontal:20,
         backgroundColor: '#fff',
-        borderRadius: 10,
-        marginBottom: 10,
         shadowColor: '#000',
         shadowOpacity: 0.1,
         shadowRadius: 5,

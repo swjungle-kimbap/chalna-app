@@ -14,6 +14,7 @@ import { sendFriendRequest, deleteChat } from "../../service/Chatting/chattingSc
 import 'text-encoding-polyfill';
 import CustomHeader from "../../components/common/CustomHeader";
 import MenuModal from "../../components/common/MenuModal";
+import ImageTextButton from "../../components/common/Button";
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -203,7 +204,13 @@ const ChattingScreen = () => {
                         textBreakStrategy="highQuality"
                         editable={chatRoomTypeRef.current !== 'WAITING'}
                     />
-                    <RNButton title="Send" onPress={sendMessage} disabled={chatRoomTypeRef.current==='WAITING' || messageContent===''}/>
+                    <ImageTextButton
+                        onPress={sendMessage}
+                        iconSource={require('../../assets/Icons/sendMsgIcon.png')}
+                        disabled={chatRoomTypeRef.current==='WAITING' || messageContent===''}
+                        imageStyle={{height:15, width:15}}
+                        containerStyle={{paddingRight:15}}
+                    />
                 </View>
                 <MenuModal
                     isVisible = {isModalVisible}
@@ -228,16 +235,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     inputContainer: {
+        backgroundColor: 'white',
+        borderColor: "#ececec",
         flexDirection: 'row',
+        borderRadius: 25,
+        borderWidth:0.8,
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginTop: 20,
+        marginTop: 10,
     },
     input: {
         flex: 1,
-        borderWidth: 1,
         padding: 10,
-        marginRight: 10,
+        marginLeft: 10
     },
     status: {
         marginTop: 20,

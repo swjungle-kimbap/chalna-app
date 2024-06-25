@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     },
     title: {
         alignItems: 'center',
-        paddingLeft: 24,
+        paddingLeft: 20,
     },
     rightIcons: {
         flexDirection: 'row',
