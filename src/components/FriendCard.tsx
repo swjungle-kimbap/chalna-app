@@ -7,6 +7,7 @@ import { RootStackParamList } from "../interfaces";
 import Button from './common/Button';
 import axios from 'axios';
 import { getKeychain, setKeychain } from "../utils/keychain";
+import { axiosGet } from "../axios/axios.method";
 
 interface FriendCardProps {
     user: User;
@@ -14,6 +15,18 @@ interface FriendCardProps {
     onExpand: ()=> void;
     navigation: StackNavigationProp<RootStackParamList, '채팅'>;
 }
+
+interface ApiResponse {
+    status: number;
+    message: string;
+    data: {
+        id: number;
+        username: string;
+        message: string;
+        profileImageUrl: string;
+        chatRoomId: number;
+    };
+  }
 
 const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, navigation}) => {
     // const [expanded, setExpanded] = useState(false);
@@ -24,15 +37,13 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
 
     const handleChat = async () => {
         try {
-            const token =  await getKeychain('accessToken');
-            const response = await axios.get(`https://chalna.shop/api/v1/friendroom/${user.id}`, {
-                 headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-            });
-            if (response.data && response.data.data && response.data.data.chatroomId) {
-                const { chatroomId } = response.data.data;
-                navigation.navigate('채팅', {chatroomId});
+    
+            const response = await axiosGet<ApiResponse>(`https://chalna.shop/api/v1/friend/${user.id}`);
+
+            console.log(response.data);
+            if (response.data && response.data.data && response.data.data.chatRoomId) {
+                const { chatRoomId } = response.data.data;
+                navigation.navigate('채팅',  { chatroomId: chatRoomId });
             } else {
                 Alert.alert('Error', 'chatroomId를 찾을 수 없습니다.');
             }

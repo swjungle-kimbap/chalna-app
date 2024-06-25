@@ -11,12 +11,7 @@ import Config from "react-native-config";
 import { ActivityIndicator } from "react-native";
 import axios, { AxiosInstance } from "axios";
 import { getKeychain, setKeychain } from "../../utils/keychain";
-// interface Friend {
-//   id : string;
-//   username: string;
-//   profileImage: string;
-//   message: string;
-// }
+import { axiosGet } from "../../axios/axios.method";
 
 interface ApiResponse {
   status: number;
@@ -53,12 +48,9 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     useEffect(() => {
         const fetchFriends = async () => {
             try {
-                const token =  await getKeychain('accessToken');
-                const response = await axios.get<ApiResponse>('https://chalna.shop/api/v1/friend', {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
+             
+                const response = await axiosGet<ApiResponse>('https://chalna.shop/api/v1/friend');
+          
                 console.log(response.data)
                 if (response.data && response.data.data && Array.isArray(response.data.data)) {
                     setFriendsData(response.data.data);
