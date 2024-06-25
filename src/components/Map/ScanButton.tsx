@@ -94,8 +94,9 @@ const ScanButton: React.FC = ()  => {
   }
   
   const handleCheckPermission = async (): Promise<boolean> => {
+    const granted = await requestPermissions(requiredPermissions);
     const checkNotBluetooth = await requestBluetooth();
-    if (!checkNotBluetooth) {
+    if (granted || !checkNotBluetooth) {
       await showPermissionAlert();
       const granted = await requestPermissions(requiredPermissions);
       if (granted && checkNotBluetooth) {
@@ -116,7 +117,7 @@ const ScanButton: React.FC = ()  => {
       return tag 
     }); 
   };
-  
+
   useEffect(()=> {
     setAsyncString('msgText', msgText);
   }, [showMsgBox])

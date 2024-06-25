@@ -19,7 +19,7 @@ const requiredPermissions = [
   PERMISSIONS.ANDROID.BLUETOOTH_ADVERTISE];
 
 
-const BleButton = ({disable}) => {
+const BleButton = () => {
   const [bleON, setBleOn] = useRecoilState(isScanningToggleState);
   const [isSendingMsg, setIsSendingMsg] = useRecoilState<boolean>(isSendingMsgToggleState);
   const onDeviceFoundRef = useRef<EmitterSubscription | null>(null);
@@ -40,8 +40,9 @@ const BleButton = ({disable}) => {
   }, []);
 
   const handleCheckPermission = async (): Promise<boolean> => {
+    const granted = await requestPermissions(requiredPermissions);
     const checkNotBluetooth = await requestBluetooth();
-    if (disable || !checkNotBluetooth) {
+    if (granted || !checkNotBluetooth) {
       await showPermissionAlert();
       const granted = await requestPermissions(requiredPermissions);
       if (granted && checkNotBluetooth) {
