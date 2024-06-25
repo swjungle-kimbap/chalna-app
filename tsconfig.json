@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "jsx": "preserve" 
+    "jsx": "preserve" ,
+    "esModuleInterop": true,
   },
   "include": ["src", "**/*.tsx"],
 }

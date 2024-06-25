@@ -1,6 +1,6 @@
 import Text from "../../components/common/Text";
 import { ActivityIndicator, Alert, Image, StyleSheet, View } from "react-native";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import useBackground from "../../hooks/useBackground";
 import { endBackgroundService } from "../../service/BackgroundTask";
 import { useRecoilState, useSetRecoilState } from "recoil";
@@ -9,9 +9,9 @@ import { getAsyncObject } from "../../utils/asyncStorage";
 import { Position } from "../../interfaces";
 import RoundBox from "../../components/common/RoundBox";
 import Button from "../../components/common/Button";
-import { SignUpByWithKakao } from "../../components/Login/SignUpByWithKakao";
+import { SignUpByWithKakao } from "./SignUpByWithKakao";
 import { navigate } from "../../navigation/RootNavigation";
-import { logIn } from "../../components/Login/logIn";
+import { logIn } from "./logIn";
 import { deleteKeychain, getKeychain, setKeychain } from "../../utils/keychain";
 import requestPermissions from "../../utils/requestPermissions";
 import { PERMISSIONS } from "react-native-permissions";
@@ -21,7 +21,7 @@ import uuid from 'react-native-uuid'
 const LoginScreen: React.FC = () => {
   const setLocation = useSetRecoilState(locationState);
   const [userInfo, setUserInfo] = useRecoilState(userInfoState);
-  const isLoadingRef = useRef<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const fcmTokenRef = useRef<string>("");
   const deviceUUIDRef = useRef<string>("");
   const loginTokenRef = useRef<string>("");
@@ -81,7 +81,6 @@ const LoginScreen: React.FC = () => {
         await initializeFCMToken();
         await initializeDeviceUUID();
         await getLoginToken();
-
         if (loginTokenRef.current && deviceUUIDRef.current && fcmTokenRef.current) {
           const loginResponse = await logIn(loginTokenRef.current, deviceUUIDRef.current, fcmTokenRef.current);
           if (loginResponse) {
@@ -89,11 +88,10 @@ const LoginScreen: React.FC = () => {
             navigate("로그인 성공");
           }
         }
-
-        isLoadingRef.current = false;
       } catch (e) {
         console.error("자동 로그인 실패", e);
       }
+      setIsLoading(false);
     };
 
     autoLogin();
@@ -122,7 +120,7 @@ const LoginScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {isLoadingRef.current ? (
+      {isLoading ? (
         <>
           <View style={styles.loadingConatiner}>
             <Text variant="title">반갑티비</Text>
