@@ -1,6 +1,5 @@
 import {atom, useRecoilValue} from "recoil";
 import { LoginResponse, Position } from "../interfaces";
-import { ToggleValueState } from "./atomtypes";
 
 export const locationState = atom<Position>({
   key: 'location',
@@ -9,7 +8,6 @@ export const locationState = atom<Position>({
     longitude: 127.041588,
   }
 })
-
 
 export const userInfoState = atom<LoginResponse>({
   key: 'userInfo',
