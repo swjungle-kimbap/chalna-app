@@ -80,7 +80,7 @@ const ChattingScreen = () => {
                     // Extract messages
                     const fetchedMessages = response.data.data.list.map((msg: any) => ({
                         ...msg,
-                        isSelf: msg.senderId === 2 //currentUserId,
+                        isSelf: msg.senderId === currentUserId,
 
                     }));
                     setMessages(fetchedMessages);
@@ -104,7 +104,7 @@ const ChattingScreen = () => {
                             if ((parsedMessage.type === 'CHAT'||parsedMessage.type==='FRIEND_REQUEST' )
                                 && parsedMessage.content && parsedMessage.senderId === 0)
                             {
-                                parsedMessage.isSelf = parsedMessage.senderId === 2; //currentUserId;
+                                parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
                                 setMessages((prevMessages) => [...prevMessages, parsedMessage]);
                                 scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
                             } else {

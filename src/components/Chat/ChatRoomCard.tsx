@@ -5,11 +5,12 @@ interface ChatRoomCardProps {
     members: ChatRoomMember[];
     numMember: number;
     usernames: string;
-    lastMsg: string;
-    lastUpdate: string;
+    lastMsg?: string;
+    lastUpdate?: string;
     navigation: any;
     chatRoomType: 'FRIEND'|'MATCH'|'WAITING'
     chatRoomId: number; // chatRoomId
+    unReadMsg?: number;
 }
 interface ChatRoomMember {
     memberId: number;
@@ -30,10 +31,10 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ members, lastMsg, lastUpdat
                 chatRoomType === 'FRIEND' ? styles.friendCard : chatRoomType==='MATCH'? styles.matchCard:styles.waitCard]} // Conditional styles
         >
             <Text style={styles.usernames}>{usernames}</Text>
-            <Text style={styles.lastMsg}>{lastMsg}</Text>
+            <Text style={styles.lastMsg}>{lastMsg || "대화를 시작해보세요"}</Text>
             <View style={styles.bottomRow}>
                 {/*<Text style={styles.status}>{status}</Text>*/}
-                <Text style={styles.lastUpdate}>{formatTime(lastUpdate)}</Text>
+                <Text style={styles.lastUpdate}>{formatTime(lastUpdate) || " "}</Text>
             </View>
         </TouchableOpacity>
     );

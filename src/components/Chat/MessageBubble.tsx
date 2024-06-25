@@ -16,16 +16,16 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
 
     const [isDisabled, setIsDisabled] = useState(false);
 
-    const handleAccept = async () => {
+    const handleAccept = async ({otherId: number }) => {
         Alert.alert(
-            'Confirmation',
-            'Are you sure you want to accept the friend request?',
+            '친구 요청 수락',
+            '친구 요청을 수락하시겠습니까?',
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: '아니오', style: 'cancel' },
                 {
-                    text: 'OK', onPress: async () => {
+                    text: '네', onPress: async () => {
                         try {
-                            // await axiosInstance.post(`/api/v1/relation/accept/${uuid}`); //get uuid and myUserId from somewhere
+                            await axiosInstance.post(`/api/v1/relation/accept/${otherId}`); //get uuid and myUserId from somewhere
                             Alert.alert('Success', 'Friend request accepted!');
                             setIsDisabled(true);
                             // Add additional logic here if needed, e.g., updating the message status
