@@ -1,4 +1,4 @@
-import { atom } from "recoil";
+import {atom, useRecoilValue} from "recoil";
 import { LoginResponse, Position } from "../interfaces";
 import { ToggleValueState } from "./atomtypes";
 
@@ -9,6 +9,7 @@ export const locationState = atom<Position>({
     longitude: 127.041588,
   }
 })
+
 
 export const userInfoState = atom<LoginResponse>({
   key: 'userInfo',
@@ -37,3 +38,4 @@ export const isSendingMsgToggleState = atom<boolean>({
   default: false
   }
 )
+
