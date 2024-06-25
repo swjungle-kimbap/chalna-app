@@ -3,7 +3,7 @@ import {Alert} from "react-native";
 import WebSocketManager from "../../utils/WebSocketManager"; // Adjust the path as necessary
 
 
-const sendFriendRequest = async (chatRoomId:string, friendId: number) => {
+const sendFriendRequest = async (chatRoomId:string, otherId: number) => {
     Alert.alert(
         "친구 요청",
         "친구 요청을 보내시겠습니까?",
@@ -17,7 +17,7 @@ const sendFriendRequest = async (chatRoomId:string, friendId: number) => {
                 onPress: async () => {
                     try {
                         await axiosInstance.patch(
-                            `https://chalna.shop/api/v1/relation/request/${friendId}`
+                            `https://chalna.shop/api/v1/relation/request/${chatRoomId}`
                         );
 
                         // 친구요청 채팅메세지 보내기

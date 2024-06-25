@@ -64,7 +64,6 @@ const ChattingScreen = () => {
                         `https://chalna.shop/api/v1/chatRoom/message/${chatRoomId}?lastLeaveAt=2024-06-23T10:32:40` //   ${currentTimestamp}`
                     );
 
-
                     const responseData = response.data.data;
 
                     // Extract chatRoomType
@@ -102,7 +101,7 @@ const ChattingScreen = () => {
                         try {
                             const parsedMessage = JSON.parse(message.body);
                             if ((parsedMessage.type === 'CHAT'||parsedMessage.type==='FRIEND_REQUEST' )
-                                && parsedMessage.content && parsedMessage.senderId === 0)
+                                && parsedMessage.content && parsedMessage.senderId !== 0)
                             {
                                 parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
                                 setMessages((prevMessages) => [...prevMessages, parsedMessage]);

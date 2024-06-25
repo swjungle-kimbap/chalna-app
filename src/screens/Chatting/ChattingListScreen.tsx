@@ -10,12 +10,11 @@ interface ChatRoomMember {
 }
 
 interface RecentMessage {
-    id: number;
-    type: string;
-    content: string;
-    senderId: number;
-    status: boolean;
-    createdAt: string;
+    id: number | null;
+    type: string | null;
+    content: string | null;
+    senderId: number | null;
+    createdAt: string | null;
 }
 
 interface ChatRoom {
@@ -23,10 +22,11 @@ interface ChatRoom {
     type: string;
     memberCount: number;
     members: ChatRoomMember[];
-    recentMessage: RecentMessage;
+    recentMessage?: RecentMessage;
+    unreadMessageCount?: number;
     createdAt: string;
-    updatedAt: string;
-    removedAt: string | null;
+    updatedAt?: string;
+    removedAt?: string | null;
 }
 
 const ChattingListScreen = ({ navigation }) => {
@@ -50,19 +50,6 @@ const ChattingListScreen = ({ navigation }) => {
         }
     };
 
-    useEffect(() => {
-        const handleAppStateChange = (nextAppState: AppStateStatus) => {
-            console.log('AppState changed to', nextAppState);
-            // Your logic here
-        };
-
-        const subscription = AppState.addEventListener('change', handleAppStateChange);
-
-        // Clean up the subscription on unmount
-        return () => {
-            subscription.remove();
-        };
-    }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -101,12 +88,13 @@ const ChattingListScreen = ({ navigation }) => {
                         <ChatRoomCard
                             members={item.members}
                             usernames={usernames}
-                            lastMsg={item.recentMessage.content}
+                            lastMsg={item.recentMessage === null ? "" : item.recentMessage.content}
                             lastUpdate={item.updatedAt}
                             navigation={navigation}
                             chatRoomType={item.type}
                             chatRoomId={item.id}
                             numMember={item.memberCount}
+                            unReadMsg={item.unreadMessageCount}
                         />
                     );
                 }}
