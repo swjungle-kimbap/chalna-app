@@ -37,3 +37,8 @@ export const isSendingMsgToggleState = atom<boolean>({
   }
 )
 
+export const showMsgBoxState = atom<boolean>({
+  key: 'showMsgBox',
+  default: false
+  }
+)

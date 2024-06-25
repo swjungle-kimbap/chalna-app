@@ -12,10 +12,11 @@ import { Platform } from "react-native";
 import ScanButton from "../../components/Map/ScanButton";
 import AlarmButton from "../../components/Map/AlarmButton";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { locationState, userInfoState } from "../../recoil/atoms";
+import { locationState, showMsgBoxState } from "../../recoil/atoms";
 import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
 import { useStartWatchingPosition } from "../../hooks/useStartWatchingPosition";
 import { PERMISSIONS } from "react-native-permissions";
+import BleButton from "../../components/Map/BleButton";
 
 const requiredPermissions = [
   PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
@@ -32,11 +33,12 @@ interface MapPrams {
 }
 
 const MapScreen: React.FC<MapPrams> = ({ route }) => {
-  const { notificationId }  = route.params?.notificationId ?? -1;
+  const { notificationId = -1 } = route.params ?? {};
   const currentLocation = useRecoilValue<Position>(locationState);
   const [isLoading, setIsLoading] = useState<boolean | null>(true); // 로딩 상태 추가
   const [fetchedData, setfetchedData] = useState<TestResponse>([]);
   const [granted, setGranted] = useState<boolean>(false);
+  const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
   const startWatchingPosition = useStartWatchingPosition();
   const locationRef = useRef(currentLocation);
 
@@ -105,9 +107,10 @@ const MapScreen: React.FC<MapPrams> = ({ route }) => {
         </MapStyle>
       ) : ( 
         <>
-          <NaverMap pos={currentLocation} />
+          <BleButton disable={!granted}/>
           <AlarmButton notificationId={notificationId} />
-          <ScanButton disable={!granted} />
+          <NaverMap pos={currentLocation} />
+          <ScanButton />
         </>
       )}
     </>

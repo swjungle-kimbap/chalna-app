@@ -1,11 +1,15 @@
 import { NaverMapView, NaverMapMarkerOverlay } from "@mj-studio/react-native-naver-map";
 import { Position } from '../../interfaces';
+import { showMsgBoxState } from "../../recoil/atoms";
+import { useRecoilState,  } from "recoil";
 
 interface NaverMapProps {
   pos: Position;
 }
 
 export const NaverMap: React.FC<NaverMapProps> = ({pos}) => {
+  const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
+
   return (
   <NaverMapView 
   style={{flex: 1, zIndex:1}}
@@ -13,7 +17,11 @@ export const NaverMap: React.FC<NaverMapProps> = ({pos}) => {
     latitude : pos.latitude,
     longitude : pos.longitude,
     zoom:16}}
-    mapPadding={{ bottom: 20 }}>
+    mapPadding={{ bottom: 20 }}
+    onTapMap={()=>{
+      if (showMsgBox)
+        setShowMsgBox(false)
+    }}>
       <NaverMapMarkerOverlay
         latitude={pos.latitude}
         longitude={pos.longitude}

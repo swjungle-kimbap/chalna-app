@@ -34,6 +34,7 @@
     "react-native-bluetooth-client": "^0.1.12",
     "react-native-config": "^1.5.2",
     "react-native-geolocation-service": "^5.3.1",
+    "react-native-gesture-handler": "^2.17.1",
     "react-native-gifted-chat": "^2.4.0",
     "react-native-keychain": "^8.2.0",
     "react-native-modal": "^13.0.1",
