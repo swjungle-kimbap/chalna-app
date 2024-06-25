@@ -31,7 +31,7 @@ const BottomTabs = () => {
             return <Image source={iconSource} resizeMode="contain"
                     style={{ width: size, height: size, tintColor: color }} />;
           },
-          tabBarActiveTintColor: 'blue',
+          tabBarActiveTintColor: '#024812',
           tabBarInactiveTintColor: 'gray',
           tabBarStyle: styles.tabContainer,
           tabBarLabelStyle : {

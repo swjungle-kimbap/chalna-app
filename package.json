@@ -30,7 +30,7 @@
     "react": "*",
     "react-native": "0.74.1",
     "react-native-background-actions": "^4.0.0",
-    "react-native-ble-advertiser": "^0.0.17",
+    "react-native-ble-advertiser-advanced": "https://github.com/eunsik-kim/react-native-ble-advertiser-advanced",
     "react-native-bluetooth-client": "^0.1.12",
     "react-native-config": "^1.5.2",
     "react-native-geolocation-service": "^5.3.1",

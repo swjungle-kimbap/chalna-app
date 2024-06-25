@@ -5,24 +5,25 @@ import instance from "./axios.instance";
 
 export const axiosGet = async<T>(
   url:string | undefined, 
-  errorMsg: string,
+  logMsg: string,
   config?:AxiosRequestConfig,
 ): Promise<AxiosResponse<T>> => {
   if (!url)
-    throw new Error('URL is undefined')
+    throw new Error('URL is undefined');
   
   try {
     const response = await instance.get<T>(url, config);
+    console.log('Get Success:', logMsg);
     return response;
   } catch (error) {
-    console.error('Get fail:', errorMsg, error)
+    console.error('Get fail:', logMsg, error);
     throw error;
   }
 }
 
 export const axiosPost = async<T>(
   url:string | undefined , 
-  errorMsg: string,
+  logMsg: string,
   data?:any,
   config?:AxiosRequestConfig,
 ): Promise<AxiosResponse<T>> => {
@@ -31,46 +32,48 @@ export const axiosPost = async<T>(
 
   try {
     const response = await instance.post<T>(url, data, config);
-    console.log(response);
+    console.log('Post Success:', logMsg);
     return response;
   } catch (error) {
-    console.error('Post fail:', errorMsg, error)
+    console.error('Post fail:', logMsg, error)
     throw error;
   }
 }
 
 export const axiosPatch = async<T>(
   url:string | undefined, 
-  errorMsg: string,
+  logMsg: string,
   data?:any,
   config?:AxiosRequestConfig,
 ): Promise<AxiosResponse<T>> => {
   if (!url)
-    throw new Error('URL is undefined')
+    throw new Error('URL is undefined');
   
   try {
     const response = await instance.patch<T>(url, data, config);
+    console.log('Patch Success:', logMsg);
     return response;
   } catch (error) {
-    console.error('Patch fail:', errorMsg, error)
+    console.error('Patch fail:', logMsg, error);
     throw error;
   }
 }
 
 export const axiosPut = async<T>(
   url:string | undefined, 
-  errorMsg: string,
+  logMsg: string,
   data?:any,
   config?:AxiosRequestConfig,
 ): Promise<AxiosResponse<T>> => {
   if (!url)
-    throw new Error('URL is undefined')
+    throw new Error('URL is undefined');
   
   try {
     const response = await instance.put<T>(url, data, config);
+    console.log('Put Success:', logMsg);
     return response;
   } catch (error) {
-    console.error('Put fail:', errorMsg, error)
+    console.error('Put fail:', logMsg, error);
     throw error;
   }
 }
@@ -78,17 +81,18 @@ export const axiosPut = async<T>(
 
 export const axiosDelete = async<T>(
   url:string | undefined, 
-  errorMsg: string,
+  logMsg: string,
   config?:AxiosRequestConfig,
 ): Promise<AxiosResponse<T>> => {
   if (!url)
-    throw new Error('URL is undefined')
+    throw new Error('URL is undefined');
 
   try {
     const response = await instance.delete<T>(url, config);
+    console.log('Delete Success:', logMsg);
     return response;
   } catch (error) {
-    console.error('Delete fail:', errorMsg, error)
+    console.error('Delete fail:', logMsg, error);
     throw error;
   }
 }
