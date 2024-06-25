@@ -5,8 +5,9 @@ import AlarmCardRender from './AlarmCardRender';
 import { FlatList, Modal, StyleSheet, TouchableWithoutFeedback, View }from 'react-native';
 import { useCallback, useState, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/core';
+import { useIsFocused } from '@react-navigation/native'; 
 import Button from '../common/Button';
-import { useRecoilState, useSetRecoilState } from 'recoil';
+import { useRecoilState } from 'recoil';
 import { AlarmCountState } from '../../recoil/atoms';
 
 export interface AlarmModalProps{
@@ -19,6 +20,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
   const [expandedCardId, setExpandedCardId] = useState<number>(notificationId);
   const [alarms, setAlarms] = useState<AlarmItem[]>([]);
   const [alarmCnt, setAlarmCnt] = useRecoilState(AlarmCountState);
+  const isFocused = useIsFocused(); // 화면 포커스 상태 가져오기
 
   const handleCardPress = (notificationId: number) => {
     setExpandedCardId(expandedCardId === notificationId ? 0 : notificationId);
@@ -35,9 +37,10 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
 
     const startPolling = () => {
       intervalId = setInterval(async () => {
+        
         try {
           const fetchedData = await axiosGet<AlarmListResponse>(
-                                Config.GET_MSG_LIST_URL, "알림 목록 조회");
+                                Config.GET_MSG_LIST_URL);
           if (fetchedData) {
             setAlarms(fetchedData.data.data);
             setAlarmCnt(fetchedData.data.data.length);
@@ -45,34 +48,34 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
         } catch (error) {
           console.error('Error fetching alarm data:', error);
         }
-      }, 3000); // 3초마다 데이터 가져오기
+      }, 5000); // 3초마다 데이터 가져오기
     };
 
-    startPolling();
+    if (isFocused) {
+      startPolling();
+    }
+      
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
       }
     };
-  }, [modalVisible])
+  }, [isFocused])
   
   const removeAlarmItem = (notificationId:number, DeleteAll = false) => {
     if (DeleteAll) {
       setAlarms([]);
-
+      setAlarmCnt(0);
     } else if (alarms) {
       const newAlarmList = alarms.filter(item => item.notificationId !== notificationId);
       setAlarms(newAlarmList);
+      setAlarmCnt((prev) => prev-1);
     }
   }
 
   const handleAllDeleteAlarm = async () => {
-    try {
-      await axiosPut(Config.DELETE_ALL_MSG_URL, "인연 알림 모두 지우기");
-      removeAlarmItem(0, true);
-    } catch (e) {
-      console.error("fail: 인연 수락 요청 실패", e);
-    }
+    await axiosPut(Config.DELETE_ALL_MSG_URL, "인연 알림 모두 지우기");
+    removeAlarmItem(0, true);
   }
 
   const renderAlarmCard = ({ item }: { item: AlarmItem }) => (
@@ -101,7 +104,8 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
                 renderItem={renderAlarmCard}
               />
               {alarmCnt === 0 ? <></> :
-                <Button title='모두 지우기' variant='sub' onPress={async () => handleAllDeleteAlarm}/> }
+              <Button title='모두 지우기' variant='sub' onPress={async () => {handleAllDeleteAlarm()}}
+                style={styles.deleteAllButtonPos} titleStyle={{color:'#FFF'}}/> }
             </View>
           </TouchableWithoutFeedback>
         </View>
@@ -114,13 +118,19 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    height:'70%',
   },
   modalpos: {
     position: 'absolute',
     top: 15,
     right:10,
     width:'80%',
+    maxHeight: '80%',
   },
+  deleteAllButtonPos: {
+    paddingLeft:10,
+    alignItems:'flex-start'
+  }
 });
 
 export default AlarmModal;

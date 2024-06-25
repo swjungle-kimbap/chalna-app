@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import  { useState, useEffect, useRef } from 'react';
 import ScanNearbyAndPost, { ScanNearbyStop } from '../../service/ScanNearbyAndPost';
 import { getKeychain } from '../../utils/keychain';
 import RoundBox from '../common/RoundBox';
@@ -13,6 +13,8 @@ import requestBluetooth from '../../utils/requestBluetooth';
 import useBackgroundSave from '../../hooks/useChangeBackgroundSave';
 import Toggle from '../common/Toggle';
 import { PERMISSIONS } from 'react-native-permissions';
+import { useRecoilState } from 'recoil';
+import { isScanningToggleState, isSendingMsgToggleState } from '../../recoil/atoms';
 
 const tags = ['상담', '질문', '대화', '만남'];
 
@@ -29,8 +31,8 @@ interface ScanButtonProps {
 const ScanButton: React.FC<ScanButtonProps> = ({ disable })  => {
   const [onDeviceFound, setOnDeviceFound] = useState<EmitterSubscription | null>(null);
   const [showMsgBox, setShowMsgBox] = useState<boolean>(false);
-  const [isScanning, setIsScanning] = useState<boolean>(false);
-  const [isSendingMsg, setIsSendingMsg] = useState<boolean>(false);
+  const [isScanning, setIsScanning] = useRecoilState<boolean>(isScanningToggleState);
+  const [isSendingMsg, setIsSendingMsg] = useRecoilState<boolean>(isSendingMsgToggleState);
   const [deviceUUID, setDeviceUUID] = useState<string>('');
   const [msgText, setMsgText] = useState('안녕하세요!');
   const [selectedTag, setSelectedTag] = useState<string>(''); 
@@ -43,11 +45,12 @@ const ScanButton: React.FC<ScanButtonProps> = ({ disable })  => {
         setDeviceUUID(uuid);
 
       const savedIsScanning = await getAsyncString('isScanning');
-      if (savedIsScanning === 'true')
+      if (savedIsScanning){
         setIsScanning(true);
-      const savedIsSendingMsg = await getAsyncString('isSendingMsg');
-      if (savedIsSendingMsg === 'true')
-        setIsSendingMsg(true);
+        const savedIsSendingMsg = await getAsyncString('isSendingMsg');
+        if (savedIsSendingMsg)
+          setIsSendingMsg(true);
+      }
 
       const savedmsgText = await getAsyncString('msgText')
       setMsgText(savedmsgText);
@@ -79,24 +82,20 @@ const ScanButton: React.FC<ScanButtonProps> = ({ disable })  => {
   };
 
   const sendingToggleHandler = async () => {
-    if (msgText.length >= 5) {
-      if (!isSendingMsg) {
+    if (!isSendingMsg) {
+      if (msgText.length >= 5) {
         if (!isScanning) {
-          const hasPermission = await scanToggleHandler();
-          if (!hasPermission) {
-            await setAsyncString('isSendingMsg', 'false');
-            setIsSendingMsg(false);
-            return false; 
-          }
+          await scanToggleHandler();
+          await setAsyncString('isSendingMsg', 'false');
         }
         await setAsyncString('isSendingMsg', 'true');
-        setIsSendingMsg(true);
+        setIsSendingMsg(true);      
       } else {
-        await setAsyncString('isSendingMsg', 'false');
-        setIsSendingMsg(false);
+        await Alert.alert('내용을 더 채워 주세요', '5글자 이상 입력해 주세요!')  
       }
     } else {
-      await Alert.alert('내용을 채워 주세요', '5글자 이상 입력해 주세요!')
+      await setAsyncString('isSendingMsg', 'false');
+      setIsSendingMsg(false);   
     }
   }
   
@@ -105,21 +104,18 @@ const ScanButton: React.FC<ScanButtonProps> = ({ disable })  => {
       const hasPermission = await handleCheckPermission();
       if (hasPermission) {
         await startScan();
-        await setAsyncString('isScanning', 'true');
         setIsScanning(true);
-        return true;
+        await setAsyncString('isScanning', 'true');
       } else {
         await setAsyncString('isScanning', 'false');
-        setIsScanning(false);
-        return false;
       }
     } else {
       await stopScan();
       if (isSendingMsg) {
         await sendingToggleHandler();
       }
-      await setAsyncString('isScanning', 'false');
       setIsScanning(false);
+      await setAsyncString('isScanning', 'false');
     }
   };
   
@@ -171,9 +167,9 @@ const ScanButton: React.FC<ScanButtonProps> = ({ disable })  => {
                   />
               <View style={styles.sendButtonContainer}>
                 <Text variant='main'>인연 받기</Text>
-                <Toggle isEnabled={isScanning} toggleHandler={scanToggleHandler}/>
+                <Toggle toggleValueState={isScanningToggleState} toggleHandler={scanToggleHandler}/>
                 <Text variant='main'>인연 보내기</Text>
-                <Toggle isEnabled={isSendingMsg} toggleHandler={sendingToggleHandler}/>
+                <Toggle toggleValueState={isSendingMsgToggleState} toggleHandler={sendingToggleHandler}/>
               </View>
             </RoundBox>
           </View>

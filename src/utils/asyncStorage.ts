@@ -26,7 +26,7 @@ export const getAsyncString = async (key: string):Promise<string> => {
       console.log(`${key} is not stored in AsyncStorage`);
       return ''
     } 
-    console.log(`Using stored ${key} : ${value} in AsyncStorage`);
+    //console.log(`Using stored ${key} : ${value} in AsyncStorage`);
     return value
       
   } catch (e) {
@@ -39,7 +39,7 @@ export const getAsyncObject = async <T>(key: string):Promise<T | null> => {
   try {
     const jsonValue = await AsyncStorage.getItem(key);
     if (jsonValue != null) {
-      console.log(`Using stored ${key} : ${jsonValue} in AsyncStorage`);
+      //console.log(`Using stored ${key} : ${jsonValue} in AsyncStorage`);
       return JSON.parse(jsonValue);
     }
     console.log(`${key} is not stored in AsyncStorage`);

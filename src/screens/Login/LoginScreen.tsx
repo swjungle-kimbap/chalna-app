@@ -53,14 +53,16 @@ const LoginScreen: React.FC = () => {
 
     const initializeDeviceUUID = async () => {
       try {
-        await deleteKeychain('deviceUUID'); // test
+        //await deleteKeychain('deviceUUID'); // test
         const UUID = await getKeychain('deviceUUID');
         if (!UUID) {
           const newDeviceUUID: string = uuid.v4().slice(0, -2) + '00' as string;
           deviceUUIDRef.current = newDeviceUUID;
           await setKeychain('deviceUUID', newDeviceUUID);
+          console.log("DeviceUUID:", newDeviceUUID);
         } else {
           deviceUUIDRef.current = UUID;
+          console.log("DeviceUUID:", UUID);
         }
       } catch (error) {
         console.error('Error fetching or setting device UUID:', error);
@@ -95,7 +97,6 @@ const LoginScreen: React.FC = () => {
     };
 
     autoLogin();
-
     return () => messaging().onTokenRefresh(async (token: string) => {
       console.log('FCM Token refreshed:', token);
       await setKeychain('fcmToken', token);

@@ -11,12 +11,15 @@ const NotificationRoute = (additionalData: string | undefined) => {
   
     try {
       const parsedData = JSON.parse(additionalData); // 문자열을 객체로 변환
-      if ((parsedData as ChatPushAlarm).chatRoomId !== undefined) {
+      if ('chatRoomId' in parsedData) {
         const chatData = parsedData as ChatPushAlarm;
         navigate('채팅', {chatRoomId: chatData.chatRoomId})
-      }
-      const chatData = parsedData as MatchPushAlarm;
-      navigate('지도', {notificationId: chatData.notificationId})
+      } else if ('notificationId' in parsedData) {
+        const matchData = parsedData as MatchPushAlarm;
+        navigate('지도', { notificationId: matchData.notificationId });
+      } else {
+        console.error('Unknown notification data format:', parsedData);
+    }
     } catch (e) {
       console.error("라우팅 실패!", e);
     }
@@ -66,13 +69,14 @@ export const linking = {
   },
   async getInitialURL() {
     const url = await Linking.getInitialURL();
+    console.log("url 입니다", url);
     if (typeof url === 'string') {
       return url;
     }
     //getInitialNotification: When the application is opened from a quit state.
     const message: FirebaseMessagingTypes.RemoteMessage | null = await messaging().getInitialNotification();
     const additionalData = message?.data?.additionalData;
-
+    console.log("additionalData 입니다", message);
     if (typeof additionalData === 'string') {
       NotificationRoute(additionalData);
     } else {
@@ -80,15 +84,15 @@ export const linking = {
     }
   },
   subscribe(listener: (url: string) => void)  {
-    const onReceiveURL = ({url}: {url: string}) => listener(url);
+    const onReceiveURL = ({url}: {url: string}) => {console.log("background url 입니다", url); listener(url)};
 
     // Listen to incoming links from deep linking
     const linkingSubscription = Linking.addEventListener('url', onReceiveURL);
 
     //onNotificationOpenedApp: When the application is running, but in the background.
     const unsubscribe = messaging().onNotificationOpenedApp(remoteMessage => {
+      console.log("background additionalData 입니다", remoteMessage);
       const additionalData = remoteMessage?.data?.additionalData;
-
       if (typeof additionalData === 'string') {
         NotificationRoute(additionalData);
       } else {

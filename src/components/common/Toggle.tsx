@@ -1,27 +1,28 @@
-import  { useState } from 'react';
-import { View, Switch,  SwitchProps } from 'react-native';
+import { useState, useRef, useEffect } from 'react';
+import { Switch, SwitchProps } from 'react-native';
+import { useRecoilValue, RecoilValue } from 'recoil';
 
 interface ToggleProps {
-  isEnabled: boolean;
   toggleHandler: () => Promise<void>;
+  toggleValueState: RecoilValue<boolean>;
 }
 
-const Toggle: React.FC<ToggleProps> = ({ isEnabled, toggleHandler }) => {
+const Toggle: React.FC<ToggleProps> = ({ toggleValueState, toggleHandler }) => {
   const [isPending, setIsPending] = useState(false);
+  const isEnabledToggle = useRecoilValue(toggleValueState);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleToggle = async () => {
-    setIsPending(true);
-
-    const timeout = setTimeout(() => {
-      setIsPending(false);
-    }, 500); // 500ms 타임아웃
-
-    try {
+    console.log("before disabled: ", isPending);
+    if (!isPending) {
+      setIsPending(true);
       await toggleHandler();
-    } finally {
-      clearTimeout(timeout);
-      setIsPending(false);
+      // 특정 기간 후에 isPending을 false로 설정
+      timeoutRef.current = setTimeout(() => {
+        setIsPending(false);
+      }, 1000); // 1초 (1000 밀리초) 후에 isPending을 false로 설정
     }
+    console.log("after disabled: ", isPending);
   };
 
   const switchProps: SwitchProps = {
@@ -29,14 +30,20 @@ const Toggle: React.FC<ToggleProps> = ({ isEnabled, toggleHandler }) => {
     thumbColor: '#f4f3f4',
     ios_backgroundColor: '#3e3e3e',
     onValueChange: handleToggle,
-    value: isEnabled,
+    value: isEnabledToggle,
     disabled: isPending,
   };
 
-  return (
-    <View>
-      <Switch {...switchProps} />
-    </View>
-  );
+  // 컴포넌트가 언마운트될 때 타임아웃을 정리
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  return <Switch {...switchProps} />;
 };
+
 export default Toggle;
