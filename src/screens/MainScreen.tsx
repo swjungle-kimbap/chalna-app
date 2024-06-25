@@ -3,7 +3,7 @@ import BottomTabs from '../navigation/BottomTabs';
 import { NavigationContainer } from '@react-navigation/native';
 import LoginScreen from './Login/LoginScreen';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
-import { linking } from '../service/HandleFCM';
+import { linking } from '../service/handleFCM';
 
 const MainScreen : React.FC = () => {
   const LogInStack = createBottomTabNavigator();

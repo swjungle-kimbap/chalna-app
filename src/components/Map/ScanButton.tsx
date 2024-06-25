@@ -153,7 +153,7 @@ const ScanButton: React.FC<ScanButtonProps> = ({ disable })  => {
       {showMsgBox ? (
         <>
           <View style={styles.msgcontainer} >
-            <RoundBox width='95%' style={[styles.msgBox, {borderColor : isScanning ? '#14F12A': '#2344F0'}]}>
+            <RoundBox width='95%' style={[styles.msgBox, {borderColor : isScanning ? '#14F12A': '#979797'}]}>
               <View style={styles.titleContainer}>
                 <Text variant='title' style={styles.title}>메세지</Text>
                   {tags.map((tag) => (
@@ -179,7 +179,7 @@ const ScanButton: React.FC<ScanButtonProps> = ({ disable })  => {
           </View>
         </>
       ) : (
-        <RoundBox width='95%' style={[styles.buttonContainer, {borderColor : isScanning ? '#14F12A': '#2344F0'}]}>
+        <RoundBox width='95%' style={[styles.buttonContainer, {borderColor : isScanning ? '#14F12A': '#979797'}]}>
           <Button title='인연 만나기' onPress={() => setShowMsgBox(true)}/>
         </RoundBox>
       )}

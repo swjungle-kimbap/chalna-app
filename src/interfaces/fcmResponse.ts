@@ -20,4 +20,5 @@ export interface ChatPushAlarm {
 
 export interface MatchPushAlarm {
   fcmType: string
+  notificationId: number
 }

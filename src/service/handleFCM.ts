@@ -3,14 +3,23 @@ import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messag
 import { ChatPushAlarm, MatchPushAlarm } from '../interfaces';
 import { navigate } from '../navigation/RootNavigation';
 
-type PushAlarm = ChatPushAlarm | MatchPushAlarm | undefined;
-
-const NotificationRoute = (data: PushAlarm)=> {
-  if ((data as ChatPushAlarm).chatRoomId !== undefined) {
-    const chatData = data as ChatPushAlarm;
-    navigate('채팅', {chatRoomId: chatData.chatRoomId})
-  }
-  navigate('지도', {modalOpen: true})
+const NotificationRoute = (additionalData: string | undefined) => {
+    if (!additionalData) {
+      console.error('Additional data is undefined or null.');
+      return;
+    }
+  
+    try {
+      const parsedData = JSON.parse(additionalData); // 문자열을 객체로 변환
+      if ((parsedData as ChatPushAlarm).chatRoomId !== undefined) {
+        const chatData = parsedData as ChatPushAlarm;
+        navigate('채팅', {chatRoomId: chatData.chatRoomId})
+      }
+      const chatData = parsedData as MatchPushAlarm;
+      navigate('지도', {notificationId: chatData.notificationId})
+    } catch (e) {
+      console.error("라우팅 실패!", e);
+    }
 }
 
 export const linking = {
@@ -62,7 +71,13 @@ export const linking = {
     }
     //getInitialNotification: When the application is opened from a quit state.
     const message: FirebaseMessagingTypes.RemoteMessage | null = await messaging().getInitialNotification();
-    NotificationRoute(message?.data as PushAlarm);
+    const additionalData = message?.data?.additionalData;
+
+    if (typeof additionalData === 'string') {
+      NotificationRoute(additionalData);
+    } else {
+      console.error('Invalid additionalData format:', additionalData);
+    }
   },
   subscribe(listener: (url: string) => void)  {
     const onReceiveURL = ({url}: {url: string}) => listener(url);
@@ -72,7 +87,13 @@ export const linking = {
 
     //onNotificationOpenedApp: When the application is running, but in the background.
     const unsubscribe = messaging().onNotificationOpenedApp(remoteMessage => {
-      NotificationRoute(remoteMessage?.data as PushAlarm)
+      const additionalData = remoteMessage?.data?.additionalData;
+
+      if (typeof additionalData === 'string') {
+        NotificationRoute(additionalData);
+      } else {
+        console.error('Invalid additionalData format:', additionalData);
+      }
     });
 
     return () => {

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Switch, StyleSheet, SwitchProps } from 'react-native';
+import  { useState } from 'react';
+import { View, Switch,  SwitchProps } from 'react-native';
 
 interface ToggleProps {
   isEnabled: boolean;
@@ -25,7 +25,7 @@ const Toggle: React.FC<ToggleProps> = ({ isEnabled, toggleHandler }) => {
   };
 
   const switchProps: SwitchProps = {
-    trackColor: { false: '#2344F0', true: '#14F12A' },
+    trackColor: { false: '#979797', true: '#14F12A' },
     thumbColor: '#f4f3f4',
     ios_backgroundColor: '#3e3e3e',
     onValueChange: handleToggle,

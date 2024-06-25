@@ -6,6 +6,8 @@ import { FlatList, Modal, StyleSheet, TouchableWithoutFeedback, View }from 'reac
 import { useCallback, useState, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/core';
 import Button from '../common/Button';
+import { useRecoilState, useSetRecoilState } from 'recoil';
+import { AlarmCountState } from '../../recoil/atoms';
 
 export interface AlarmModalProps{
   closeModal: () => void,
@@ -16,6 +18,7 @@ export interface AlarmModalProps{
 const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notificationId}) => {
   const [expandedCardId, setExpandedCardId] = useState<number>(notificationId);
   const [alarms, setAlarms] = useState<AlarmItem[]>([]);
+  const [alarmCnt, setAlarmCnt] = useRecoilState(AlarmCountState);
 
   const handleCardPress = (notificationId: number) => {
     setExpandedCardId(expandedCardId === notificationId ? 0 : notificationId);
@@ -37,6 +40,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
                                 Config.GET_MSG_LIST_URL, "알림 목록 조회");
           if (fetchedData) {
             setAlarms(fetchedData.data.data);
+            setAlarmCnt(fetchedData.data.data.length);
           }
         } catch (error) {
           console.error('Error fetching alarm data:', error);
@@ -44,7 +48,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
       }, 3000); // 3초마다 데이터 가져오기
     };
 
-    //startPolling();
+    startPolling();
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
@@ -96,7 +100,8 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
                 keyExtractor={(item) => item.notificationId.toString()}
                 renderItem={renderAlarmCard}
               />
-              <Button title='모두 지우기' variant='sub' onPress={async () => handleAllDeleteAlarm}/>
+              {alarmCnt === 0 ? <></> :
+                <Button title='모두 지우기' variant='sub' onPress={async () => handleAllDeleteAlarm}/> }
             </View>
           </TouchableWithoutFeedback>
         </View>

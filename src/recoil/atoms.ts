@@ -18,3 +18,9 @@ export const userInfoState = atom<LoginResponse>({
     id : 0,
   }
 })
+
+export const AlarmCountState = atom<number>({
+  key: 'AlaramCount',
+  default: 0
+  }
+)
