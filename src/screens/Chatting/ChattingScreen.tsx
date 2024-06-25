@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, TextInput, Button as RNButton, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, AppState, AppStateStatus } from 'react-native';
-import { RouteProp, useRoute, useFocusEffect } from "@react-navigation/native";
+import { View, Text, TextInput, Button as RNButton, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, AppState, AppStateStatus, Alert, Image } from 'react-native';
+import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRecoilValue } from "recoil";
 import { userInfoState } from "../../recoil/atoms";
 import { LoginResponse } from "../../interfaces";
@@ -10,6 +10,7 @@ import axiosInstance from '../../axios/axios.instance'; // Adjust the path as ne
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
 import Modal from 'react-native-modal';
 import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
+import sendFriendRequest from "../../service/Chatting/sendFriendRequest";
 import 'text-encoding-polyfill';
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
@@ -17,6 +18,7 @@ type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string 
 const ChattingScreen = () => {
     const route = useRoute<ChattingScreenRouteProp>();
     const { chatRoomId } = route.params;
+    const navigation = useNavigation();
 
     const userInfo = useRecoilValue<LoginResponse>(userInfoState);
     const currentUserId = userInfo.id;
@@ -27,6 +29,11 @@ const ChattingScreen = () => {
     const [messages, setMessages] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+
+    // chat room info
+    const chatRoomTypeRef = useRef<string>('');
+    const otherIdRef = useRef<number | null>(null);
+    const otherUsernameRef = useRef<string>('');
 
     const scrollViewRef = useRef<ScrollView>(null);
 
@@ -57,9 +64,24 @@ const ChattingScreen = () => {
                         `https://chalna.shop/api/v1/chatRoom/message/${chatRoomId}?lastLeaveAt=2024-06-23T10:32:40` //   ${currentTimestamp}`
                     );
 
+
+                    const responseData = response.data.data;
+
+                    // Extract chatRoomType
+                    chatRoomTypeRef.current = responseData.type;
+
+                    // Extract other member info
+                    const otherMember = responseData.members.find((member: any) => member.memberId !== currentUserId);
+                    if (otherMember) {
+                        otherIdRef.current = otherMember.memberId;
+                        otherUsernameRef.current = otherMember.username;
+                    }
+
+                    // Extract messages
                     const fetchedMessages = response.data.data.list.map((msg: any) => ({
                         ...msg,
                         isSelf: msg.senderId === 2 //currentUserId,
+
                     }));
                     setMessages(fetchedMessages);
                 } catch (error) {
@@ -79,7 +101,9 @@ const ChattingScreen = () => {
                         console.log('Received message: ' + message.body);
                         try {
                             const parsedMessage = JSON.parse(message.body);
-                            if (parsedMessage.type === 'CHAT' && parsedMessage.content) {
+                            if ((parsedMessage.type === 'CHAT'||parsedMessage.type==='FRIEND_REQUEST' )
+                                && parsedMessage.content && parsedMessage.senderId === 0)
+                            {
                                 parsedMessage.isSelf = parsedMessage.senderId === 2; //currentUserId;
                                 setMessages((prevMessages) => [...prevMessages, parsedMessage]);
                                 scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
@@ -106,6 +130,9 @@ const ChattingScreen = () => {
     );
 
     const sendMessage = () => {
+        if (chatRoomTypeRef.current === 'WAITING'){
+            return;
+        }
         const messageObject = {
             type: 'CHAT',
             content: messageContent,
@@ -122,6 +149,36 @@ const ChattingScreen = () => {
         setIsModalVisible(!isModalVisible);
     };
 
+    const deleteChat = () => {
+        Alert.alert(
+            "채팅방 나가기",
+            "정말 나가시겠습니까?",
+            [
+                {
+                    text: "취소",
+                    style: "cancel"
+                },
+                {
+                    text: "나가기",
+                    onPress: async () => {
+                        try {
+                            await axiosInstance.delete(
+                                `https://chalna.shop/api/v1/chatRoom/leave/${chatRoomId}`
+                            );
+                            Alert.alert("채팅방 삭제 완료", "채팅 목록 화면으로 돌아갑니다.");
+                            navigation.navigate('채팅 목록');
+                        } catch (error) {
+                            console.error('Failed to delete chat:', error);
+                            Alert.alert("Error", "Failed to delete the chat.");
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+
+
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -129,6 +186,7 @@ const ChattingScreen = () => {
             </View>
         );
     }
+
 
     return (
         <SWRConfig value={{}}>
@@ -157,8 +215,9 @@ const ChattingScreen = () => {
                         placeholder="Type a message"
                         multiline
                         textBreakStrategy="highQuality"
+                        editable={chatRoomTypeRef.current !== 'WAITING'}
                     />
-                    <RNButton title="Send" onPress={sendMessage} />
+                    <RNButton title="Send" onPress={sendMessage} disabled={chatRoomTypeRef.current==='WAITING'}/>
                 </View>
                 <TouchableOpacity style={styles.menuButton} onPress={toggleModal}>
                     <Text style={styles.menuButtonText}>Menu</Text>
@@ -171,13 +230,21 @@ const ChattingScreen = () => {
                     <View style={styles.modalContent}>
                         <RNButton title="Option 1" onPress={() => { /* Handle Option 1 */ }} />
                         <RNButton title="Option 2" onPress={() => { /* Handle Option 2 */ }} />
-                        <RNButton title="Option 3" onPress={() => { /* Handle Option 3 */ }} />
+                        <RNButton title="채팅방 나가기" onPress={() => { deleteChat() }} />
                         <RNButton title="Close" onPress={toggleModal} />
                     </View>
                 </Modal>
                 <Text style={styles.status}>
                     Status: {WebSocketManager.isConnected() ? 'Connected' : 'Not Connected'}
                 </Text>
+                <TouchableOpacity style={styles.topRightButton}
+                                  onPress={() => sendFriendRequest(chatRoomId, otherIdRef.current)}>
+                    <Image
+                        source = {require('../../assets/Icons/addFriendIcon.png')}
+                        style = {styles.topRightButtonImage}
+                    />
+                </TouchableOpacity>
+
             </View>
         </SWRConfig>
     );
@@ -237,6 +304,18 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         alignItems: 'center',
+    },
+    topRightButton: {
+        position: 'absolute',
+        top: 10,
+        left: 10,
+        backgroundColor: 'transparent',
+        padding: 10,
+    },
+    topRightButtonImage: {
+        width: 30,
+        height: 30,
+        resizeMode: 'contain',
     },
 });
 
