@@ -23,9 +23,9 @@ interface ChatRoom {
     type: string;
     memberCount: number;
     members: ChatRoomMember[];
-    recentMessage: RecentMessage;
+    recentMessage?: RecentMessage;
     createdAt: string;
-    updatedAt: string;
+    updatedAt?: string;
     removedAt: string | null;
 }
 

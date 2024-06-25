@@ -64,7 +64,6 @@ const ChattingScreen = () => {
                         `https://chalna.shop/api/v1/chatRoom/message/${chatRoomId}?lastLeaveAt=2024-06-23T10:32:40` //   ${currentTimestamp}`
                     );
 
-
                     const responseData = response.data.data;
 
                     // Extract chatRoomType
