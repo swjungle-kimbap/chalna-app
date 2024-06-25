@@ -133,7 +133,7 @@ const LoginScreen: React.FC = () => {
         <Text variant="title">찰나, 스치다</Text>
       </View>
       <RoundBox style={styles.buttonContainer}>
-        <Image source={require('../../assets/Icons/KakaoTalkIcon.png')} 
+        <Image source={require('../../assets/Icons/KakaoTalkIcon.png')}
           style={{width:30, height: 30}} />
         <Button title="카카오로 시작하기" onPress={async () => {handleLogin();}}/>
       </RoundBox>
