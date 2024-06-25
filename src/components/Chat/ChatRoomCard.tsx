@@ -5,7 +5,7 @@ interface ChatRoomCardProps {
     members: ChatRoomMember[];
     numMember: number;
     usernames: string;
-    lastMsg?: string;
+    lastMsg?: string | null;
     lastUpdate?: string;
     navigation: any;
     chatRoomType: 'FRIEND'|'MATCH'|'WAITING'
@@ -23,6 +23,7 @@ const formatTime = (timestamp) => {
 };
 
 const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ members, lastMsg, lastUpdate, usernames, navigation, chatRoomType,chatRoomId }) => {
+
     return (
         <TouchableOpacity
             onPress={() => navigation.navigate('채팅', { chatRoomId })}

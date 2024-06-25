@@ -101,7 +101,7 @@ const ChattingScreen = () => {
                         try {
                             const parsedMessage = JSON.parse(message.body);
                             if ((parsedMessage.type === 'CHAT'||parsedMessage.type==='FRIEND_REQUEST' )
-                                && parsedMessage.content && parsedMessage.senderId === 0)
+                                && parsedMessage.content && parsedMessage.senderId !== 0)
                             {
                                 parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
                                 setMessages((prevMessages) => [...prevMessages, parsedMessage]);
