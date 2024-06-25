@@ -11,7 +11,6 @@ import Config from "react-native-config";
 import { ActivityIndicator } from "react-native";
 import axios, { AxiosInstance } from "axios";
 import { getKeychain, setKeychain } from "../../utils/keychain";
-
 // interface Friend {
 //   id : string;
 //   username: string;
@@ -28,7 +27,7 @@ interface ApiResponse {
 }
 
 export interface User {
-    id: string;
+    id: number;
     username: string;
     message: string;
 }
@@ -45,7 +44,7 @@ type FriendsScreenProps = {
 
 
 const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
-    const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
+    const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [friendsData, setFriendsData] = useState<Friend[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -60,7 +59,6 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                         Authorization: `Bearer ${token}`
                     }
                 });
-
                 console.log(response.data)
                 if (response.data && response.data.data && Array.isArray(response.data.data)) {
                     setFriendsData(response.data.data);
@@ -81,11 +79,12 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
             }
         };
 
+
         fetchFriends();
     }, []);
 
 
-    const handleCardPress = (cardId: string) => {
+    const handleCardPress = (cardId: number) => {
         if(expandedCardId===cardId){
             setExpandedCardId(null);
         } else {
@@ -104,9 +103,9 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     const renderFriendCard = ({item}: {item: Friend}) => (
         <FriendCard
             user={item}
-            isExpanded={item.username===expandedCardId}
+            isExpanded={item.id === expandedCardId}
             onExpand={()=> handleCardPress(item.id)}
-            // navigation={navigation}
+            navigation={navigation}
         />);
 
     if (loading) {
@@ -116,6 +115,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                 </FriendsStyle>
             );
     }
+
     if (error) {
         return (
             <FriendsStyle>
