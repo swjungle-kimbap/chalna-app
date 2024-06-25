@@ -86,7 +86,7 @@ const ChattingListScreen = ({ navigation }) => {
                     const usernames = item.members.map(member => member.username).join(', ');
                     return (
                         <ChatRoomCard
-                            members={item.members}
+                            members={item.members === null ? "" : item.members}
                             usernames={usernames}
                             lastMsg={item.recentMessage === null ? "" : item.recentMessage.content}
                             lastUpdate={item.recentMessage ===null? "" : item.recentMessage.createdAt}

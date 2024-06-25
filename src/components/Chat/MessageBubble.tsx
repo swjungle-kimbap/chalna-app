@@ -7,10 +7,12 @@ interface MessageBubbleProps {
     datetime: string;
     isSelf: boolean;
     type?: string;
-    status: boolean;
+    status?: boolean;
+    otherId: number;
+    chatRoomId:string;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf, type, status }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf, type, status, otherId,chatRoomId  }) => {
     const date = new Date(datetime);
     const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -24,15 +26,18 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
                 { text: '아니오', style: 'cancel' },
                 {
                     text: '네', onPress: async () => {
-                        try {
-                            await axiosInstance.post(`https://chalna.shop/api/v1/relation/accept/${chatRoomId}`); //get uuid and myUserId from somewhere
+                        // try {
+                            const response = await axiosInstance.patch(`https://chalna.shop/api/v1/relation/accept/${chatRoomId}`);
+                            console.log(response)
+
                             Alert.alert('Success', 'Friend request accepted!');
                             setIsDisabled(true);
                             // Add additional logic here if needed, e.g., updating the message status
-                        } catch (error) {
-                            console.error('Failed to accept friend request:', error);
+                        // } catch (error) {
+                            console.log(response)
+                            // console.error('Failed to accept friend request:', error);
                             Alert.alert('Error', 'Failed to accept friend request.');
-                        }
+                        // }
                     }
                 }
             ]
@@ -48,7 +53,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
                 {
                     text: 'OK', onPress: async () => {
                         try {
-                            await axiosInstance.post(`https://chalna.shop/api/v1/relation/areject/${otherId}`);
+                            await axiosInstance.patch(`https://chalna.shop/api/v1/relation/reject/${otherId}`);
                             Alert.alert('Success', 'Friend request rejected!');
                             setIsDisabled(true);
                             // Add additional logic here if needed, e.g., removing the message
@@ -68,7 +73,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
                 <Text style={styles.messageText}>{message}</Text>
                 <Text style={styles.datetime}>{formattedTime}</Text>
             </View>
-            {type === 'friendRequest' && !isSelf && (
+            {type === 'FRIEND_REQUEST' && !isSelf && (
                 <View style={styles.buttonContainer}>
                     <Button title='수락' onPress={handleAccept} disabled={isDisabled} />
                     <Button title='거절' onPress={handleReject} disabled={isDisabled} />

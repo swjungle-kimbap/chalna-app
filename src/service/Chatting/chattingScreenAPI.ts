@@ -1,9 +1,10 @@
 import axiosInstance from '../../axios/axios.instance'; // Adjust the path as necessary
 import {Alert} from "react-native";
-import WebSocketManager from "../../utils/WebSocketManager"; // Adjust the path as necessary
+import WebSocketManager from "../../utils/WebSocketManager";
+import axios from "axios";
 
 
-const sendFriendRequest = async (chatRoomId:string, otherId: number) => {
+export const sendFriendRequest = async (chatRoomId:string, otherId: number) => {
     Alert.alert(
         "친구 요청",
         "친구 요청을 보내시겠습니까?",
@@ -41,5 +42,30 @@ const sendFriendRequest = async (chatRoomId:string, otherId: number) => {
 };
 
 
-
-export default sendFriendRequest;
+export const deleteChat = async (navigation: any, chatRoomId:string) => {
+    Alert.alert(
+        "채팅방 나가기",
+        "정말 나가시겠습니까?",
+        [
+            {
+                text: "취소",
+                style: "cancel"
+            },
+            {
+                text: "나가기",
+                onPress: async () => {
+                    try {
+                        await axiosInstance.delete(
+                            `https://chalna.shop/api/v1/chatRoom/leave/${chatRoomId}`
+                        );
+                        Alert.alert("채팅방 삭제 완료", "채팅 목록 화면으로 돌아갑니다.");
+                        navigation.navigate('채팅 목록');
+                    } catch (error) {
+                        console.error('Failed to delete chat:', error);
+                        Alert.alert("Error", "Failed to delete the chat.");
+                    }
+                }
+            }
+        ]
+    );
+};

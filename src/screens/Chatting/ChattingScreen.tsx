@@ -10,8 +10,9 @@ import axiosInstance from '../../axios/axios.instance'; // Adjust the path as ne
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
 import Modal from 'react-native-modal';
 import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
-import sendFriendRequest from "../../service/Chatting/sendFriendRequest";
+import { sendFriendRequest, deleteChat } from "../../service/Chatting/chattingScreenAPI";
 import 'text-encoding-polyfill';
+import CustomHeader from "../../components/common/CustomHeader";
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -22,8 +23,6 @@ const ChattingScreen = () => {
 
     const userInfo = useRecoilValue<LoginResponse>(userInfoState);
     const currentUserId = userInfo.id;
-    console.log("currentUserId: ", currentUserId);
-    console.log("chatRoomId: ", chatRoomId);
 
     const [messageContent, setMessageContent] = useState<string>('');
     const [messages, setMessages] = useState<any[]>([]);
@@ -35,22 +34,24 @@ const ChattingScreen = () => {
     const otherIdRef = useRef<number | null>(null);
     const otherUsernameRef = useRef<string>('');
 
+    // auto scroll
     const scrollViewRef = useRef<ScrollView>(null);
 
+    // Get out of screen -> disconnect
     useEffect(() => {
         const handleAppStateChange = (nextAppState: AppStateStatus) => {
             if (nextAppState === 'background' || nextAppState === 'inactive') {
                 WebSocketManager.disconnect();
+                // 여기서 timestamp 저장해야할듯
             }
         };
-
         const subscription = AppState.addEventListener('change', handleAppStateChange);
-
         return () => {
             subscription.remove();
         };
     }, []);
 
+    // Leaving TimeStamp: SWR Config 제외하고 테스트 / 여기서 focus effect로 감싸는 의미가..?
     useFocusEffect(
         useCallback(() => {
             const currentTimestamp = new Date().toISOString().slice(0, 19);
@@ -61,7 +62,7 @@ const ChattingScreen = () => {
                 try {
                     setLoading(true);
                     const response = await axiosInstance.get(
-                        `https://chalna.shop/api/v1/chatRoom/message/${chatRoomId}?lastLeaveAt=2024-06-23T10:32:40` //   ${currentTimestamp}`
+                        `https://chalna.shop/api/v1/chatRoom/message/${chatRoomId}?lastLeaveAt=2024-06-23T10:32:40` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
                     );
 
                     const responseData = response.data.data;
@@ -107,7 +108,7 @@ const ChattingScreen = () => {
                                 setMessages((prevMessages) => [...prevMessages, parsedMessage]);
                                 scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
                             } else {
-                                console.warn('Received message format is invalid:', message.body);
+                                //여기에 상태 메세지 받아서 처리하는 로직 추가
                             }
                         } catch (error) {
                             console.error('Failed to parse received message:', error);
@@ -148,33 +149,6 @@ const ChattingScreen = () => {
         setIsModalVisible(!isModalVisible);
     };
 
-    const deleteChat = () => {
-        Alert.alert(
-            "채팅방 나가기",
-            "정말 나가시겠습니까?",
-            [
-                {
-                    text: "취소",
-                    style: "cancel"
-                },
-                {
-                    text: "나가기",
-                    onPress: async () => {
-                        try {
-                            await axiosInstance.delete(
-                                `https://chalna.shop/api/v1/chatRoom/leave/${chatRoomId}`
-                            );
-                            Alert.alert("채팅방 삭제 완료", "채팅 목록 화면으로 돌아갑니다.");
-                            navigation.navigate('채팅 목록');
-                        } catch (error) {
-                            console.error('Failed to delete chat:', error);
-                            Alert.alert("Error", "Failed to delete the chat.");
-                        }
-                    }
-                }
-            ]
-        );
-    };
 
 
 
@@ -203,6 +177,8 @@ const ChattingScreen = () => {
                             isSelf={msg.isSelf}
                             type={msg.type}
                             status={msg.status}
+                            chatRoomId={chatRoomId}
+                            otherId={otherIdRef.current}
                         />
                     ))}
                 </ScrollView>
@@ -216,7 +192,7 @@ const ChattingScreen = () => {
                         textBreakStrategy="highQuality"
                         editable={chatRoomTypeRef.current !== 'WAITING'}
                     />
-                    <RNButton title="Send" onPress={sendMessage} disabled={chatRoomTypeRef.current==='WAITING'}/>
+                    <RNButton title="Send" onPress={sendMessage} disabled={chatRoomTypeRef.current==='WAITING' || messageContent===''}/>
                 </View>
                 <TouchableOpacity style={styles.menuButton} onPress={toggleModal}>
                     <Text style={styles.menuButtonText}>Menu</Text>
@@ -229,13 +205,14 @@ const ChattingScreen = () => {
                     <View style={styles.modalContent}>
                         <RNButton title="Option 1" onPress={() => { /* Handle Option 1 */ }} />
                         <RNButton title="Option 2" onPress={() => { /* Handle Option 2 */ }} />
-                        <RNButton title="채팅방 나가기" onPress={() => { deleteChat() }} />
+                        <RNButton title="채팅방 나가기" onPress={() => { deleteChat(navigation, chatRoomId) }} />
                         <RNButton title="Close" onPress={toggleModal} />
                     </View>
                 </Modal>
                 <Text style={styles.status}>
                     Status: {WebSocketManager.isConnected() ? 'Connected' : 'Not Connected'}
                 </Text>
+                {chatRoomTypeRef.current!=='FRIEND' && (
                 <TouchableOpacity style={styles.topRightButton}
                                   onPress={() => sendFriendRequest(chatRoomId, otherIdRef.current)}>
                     <Image
@@ -243,7 +220,7 @@ const ChattingScreen = () => {
                         style = {styles.topRightButtonImage}
                     />
                 </TouchableOpacity>
-
+                )}
             </View>
         </SWRConfig>
     );
