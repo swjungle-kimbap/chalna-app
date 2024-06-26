@@ -32,8 +32,8 @@ const ChattingScreen = () => {
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [chatRoomType, setChatRoomType] = useState<string>('');
     const [username, setUsername] = useState<string>('');
-    const anonName = '';
-    const friendName = '';
+
+
 
     const otherIdRef = useRef<number | null>(null);
     // const chatRoomTypeRef = useRef<string>('');
@@ -53,26 +53,28 @@ const ChattingScreen = () => {
                         && parsedMessage.content && parsedMessage.senderId !== 0)
                     {
                         parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
-                        setMessages((prevMessages) => [...prevMessages, parsedMessage]);
-                        scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
 
-                        // 상태메세지 바꾸기
+                        // 채팅방 타입 변경
                         if (parsedMessage.type==='FRIEND_REQUEST' && parsedMessage.content==='친구가 되었습니다!\n' +
                             '대화를 이어가보세요.'){
+                            console.log("친구 맺기 성공!!!")
+                            //타입 & 대화명 변경
                             setChatRoomType('FRIEND');
+                            setUsername(chatRoomType==='FRIEND'? otherMember.username : `익명${otherMember.memberId}`);
                             console.log("친구 맺기 성공! 채팅룸 타입: ",chatRoomType);
                             // chatRoomTypeRef.current='FRIEND';
                             // console.log("친구가 되었습니다");
                         }
+                        // 화면에 표기
+                        setMessages((prevMessages) => [...prevMessages, parsedMessage]);
+                        scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
 
                     } else {
                         //여기에 상태 메세지 받아서 처리하는 로직 추가
 
-
-                        if (parsedMessage.content==='5분이 지났습니다' && parsedMessage.senderId===0 ){
-
+                        if (parsedMessage.type==='TIMEOUT' && parsedMessage.senderId===0 ){
                             setChatRoomType('WAITING');
-                            console.log("5분지남! 채팅기능 비활성화: ",chatRoomType);
+                            console.log("5분지남! 채팅기능 비활성화 & 채팅룸타입 변경: ",chatRoomType);
                             // chatRoomTypeRef.current='WAITING';
                         }
                     }
@@ -126,9 +128,7 @@ const ChattingScreen = () => {
                     const otherMember = responseData.members.find((member: any) => member.memberId !== currentUserId);
                     if (otherMember) {
                         otherIdRef.current = otherMember.memberId;
-                        anonName =  `익명${otherMember.memberId}`;
-                        friendName = otherMember.username;
-
+                        setUsername(chatRoomType==='FRIEND'? otherMember.username : `익명${otherMember.memberId}`);
                         console.log('채팅방 타입: 유저네임',chatRoomType, ' : ', username)
                     }
                     // Extract messages
