@@ -29,13 +29,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
                     text: '수락', onPress: async () => {
                         // try {
                             const response = await axiosInstance.patch(`https://chalna.shop/api/v1/relation/accept/${chatRoomId}`);
-                            console.log(response)
 
                             Alert.alert('친구 맺기 성공', '친구가 되었습니다!');
                             setIsDisabled(true);
                             // Add additional logic here if needed, e.g., updating the message status
                         // } catch (error) {
-                            console.log(response)
                             // console.error('Failed to accept friend request:', error);
                             Alert.alert('Error', 'Failed to accept friend request.');
                         // }

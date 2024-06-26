@@ -57,7 +57,6 @@ const ChattingScreen = () => {
     useFocusEffect(
         useCallback(() => {
             const currentTimestamp = new Date().toISOString().slice(0, 19);
-            console.log("Focused", currentTimestamp);
 
             // Fetch initial messages from the API
             const fetchMessages = async () => {
@@ -100,7 +99,6 @@ const ChattingScreen = () => {
                     const accessToken = await getKeychain('accessToken');
 
                     WebSocketManager.connect(chatRoomId, accessToken, (message: IMessage) => {
-                        console.log('Received message: ' + message.body);
                         try {
                             const parsedMessage = JSON.parse(message.body);
                             if ((parsedMessage.type === 'CHAT'||parsedMessage.type==='FRIEND_REQUEST' )
@@ -125,7 +123,6 @@ const ChattingScreen = () => {
 
             return () => {
                 const leaveTimestamp = new Date().toISOString();
-                console.log("Unfocused", leaveTimestamp);
                 WebSocketManager.disconnect();
             };
         }, [chatRoomId, currentUserId])
@@ -140,7 +137,6 @@ const ChattingScreen = () => {
             content: messageContent,
         };
         const messageJson = JSON.stringify(messageObject);
-        console.log('Sending message: ' + messageJson);
         WebSocketManager.sendMessage(chatRoomId, messageJson);
         // setMessages((prevMessages) => [...prevMessages, { ...messageObject, isSelf: true, createdAt: new Date().toISOString() }]);
         setMessageContent('');

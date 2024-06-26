@@ -49,7 +49,6 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
              
                 const response = await axiosGet<ApiResponse>(Config.GET_FRIEND_LIST_URL);
           
-                console.log(response.data)
                 if (response.data && response.data.data && Array.isArray(response.data.data)) {
                     setFriendsData(response.data.data);
                     setFilteredData(response.data.data);

@@ -38,7 +38,6 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
     
             const response = await axiosGet<ApiResponse>(`${Config.GET_FRIEND_LIST_URL}/${user.id}`);
 
-            console.log(response.data);
             if (response.data && response.data.data && response.data.data.chatRoomId) {
                 const { chatRoomId } = response.data.data;
     

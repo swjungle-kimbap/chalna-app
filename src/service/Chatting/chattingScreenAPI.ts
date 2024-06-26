@@ -28,7 +28,6 @@ export const sendFriendRequest = async (chatRoomId:string, otherId: number) => {
                         };
 
                         const messageJson = JSON.stringify(messageObject);
-                        console.log('Sending message: ' + messageJson);
                         WebSocketManager.sendMessage(chatRoomId, messageJson);
 
                     } catch (error) {
