@@ -168,7 +168,7 @@ const ChattingScreen = () => {
         <SWRConfig value={{}}>
             <CustomHeader
                 title={otherUsernameRef.current}
-                onBackPress={()=>navigation.goBack()} //뒤로가기
+                onBackPress={()=>navigation.navigate("채팅 목록")} //채팅 목록으로 돌아가기
                 onBtnPress={()=>sendFriendRequest(chatRoomId, otherIdRef.current)} //친구요청 보내기
                 showBtn={chatRoomTypeRef.current!=='FRIEND'} //친구상태 아닐때만 노출
                 onMenuPress={toggleModal}
@@ -191,6 +191,7 @@ const ChattingScreen = () => {
                             status={msg.status}
                             chatRoomId={chatRoomId}
                             otherId={otherIdRef.current}
+                            chatRoomType={chatRoomTypeRef.current}
                         />
                     ))}
                 </ScrollView>
@@ -231,10 +232,12 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flexGrow: 1,
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         alignItems: 'center',
+        paddingTop: 10,
     },
     inputContainer: {
+        verticalAlign: 'top',
         backgroundColor: 'white',
         borderColor: "#ececec",
         flexDirection: 'row',
