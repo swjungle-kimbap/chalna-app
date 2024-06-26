@@ -48,6 +48,8 @@ const MessageBox: React.FC = ()  => {
       const savedIsScanning = await getAsyncString('isScanning');
       if (savedIsScanning === 'true'){
         setIsScanning(true);
+        await ScanNearbyStop();
+        await ScanNearbyAndPost(uuidRef.current, handleSetIsNearby);
       }
     };
     fetchSavedData();
