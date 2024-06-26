@@ -317,6 +317,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         marginTop: 10,
+        marginBottom: 15,
+        shadowOffset: { width: 0, height: 4 },  // Direction and distance of the shadow
+        shadowOpacity: 0.25,        // Opacity of the shadow
+        shadowRadius: 5,
     },
     input: {
         flex: 1,

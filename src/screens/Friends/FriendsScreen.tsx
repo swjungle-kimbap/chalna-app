@@ -11,6 +11,7 @@ import { ActivityIndicator } from "react-native";
 import axios, { AxiosInstance } from "axios";
 import { axiosGet } from "../../axios/axios.method";
 import { useFocusEffect } from '@react-navigation/native';
+import ImageTextButton from "../../components/common/Button";
 
 interface ApiResponse {
   status: number;
@@ -50,7 +51,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     //         try {
     //             console.log("Fetching friends data...");
     //             const response = await axiosGet<ApiResponse>(Config.GET_FRIEND_LIST_URL);
-          
+
     //             console.log(response.data)
     //             if (response.data && response.data.data && Array.isArray(response.data.data)) {
     //                 setFriendsData(response.data.data);
@@ -166,8 +167,12 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
 
     return (
         <FriendsStyle>
-            <Text>친구목록 페이지 입니다.</Text>
-            <Button title="차단친구 목록" onPress={() => navigation.navigate('차단친구 목록')} />
+
+            <ImageTextButton
+                    iconSource={require('../../assets/Icons/3dotsIcon.png')}
+                    imageStyle={{height:10, width:15}}
+                    style={{padding: 10, alignSelf:'flex-end', marginRight:20}}
+                    onPress={() => navigation.navigate('차단친구 목록')} />
             <View style={styles.searchContainer}>
                 <TextInput
                     placeholder="친구 검색"
@@ -188,7 +193,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                 keyExtractor={(item) => item.id.toString()}
                 />
       )}
-        
+
         </FriendsStyle>
     );
 };
@@ -204,9 +209,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderColor: '#CCC',
         borderWidth: 1,
-        borderRadius: 5,
+        borderRadius: 15,
         paddingHorizontal: 10,
-        paddingVertical: 10,
+        paddingVertical: 5,
+        marginBottom: 10,
         width: '90%',
         alignSelf: 'center',
     },
