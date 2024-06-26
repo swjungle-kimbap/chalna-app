@@ -7,6 +7,7 @@ import CustomHeader from "../../components/common/CustomHeader";
 import {useRecoilValue} from "recoil";
 import {LoginResponse} from "../../interfaces";
 import {userInfoState} from "../../recoil/atoms";
+import {SafeAreaView} from "react-native-safe-area-context";
 
 interface ChatRoomMember {
     memberId: number;
@@ -84,48 +85,52 @@ const ChattingListScreen = ({ navigation }) => {
     }
 
     return (
+
         <View style={styles.container}>
             <CustomHeader
                 title={"채팅 목록"}
                 useMenu={false}
                 useNav={false}
             />
-            <FlatList
-                data={chatRooms}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => {
-                    console.log('Rendering item:', item);
-                    const usernames = item.members
-                        .filter(member => member.memberId !== currentUserId)
-                        .map(member => item.type === 'FRIEND' ? member.username : `익명${member.memberId}`)
-                        .join(', ');
+            <SafeAreaView>
+                <FlatList
+                    data={chatRooms}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={({ item }) => {
+                        console.log('Rendering item:', item);
+                        const usernames = item.members
+                            .filter(member => member.memberId !== currentUserId)
+                            .map(member => item.type === 'FRIEND' ? member.username : `익명${member.memberId}`)
+                            .join(', ');
 
-                    return (
-                        <ChatRoomCard
-                            usernames={usernames}
-                            lastMsg={item.recentMessage === null ? "" : item.recentMessage.content}
-                            lastUpdate={item.recentMessage ===null? "" : item.recentMessage.createdAt}
-                            navigation={navigation}
-                            chatRoomType={item.type}
-                            chatRoomId={item.id}
-                            numMember={item.memberCount}
-                            unReadMsg={item.unreadMessageCount}
+                        return (
+                            <ChatRoomCard
+                                usernames={usernames}
+                                lastMsg={item.recentMessage === null ? "" : item.recentMessage.content}
+                                lastUpdate={item.recentMessage ===null? "" : item.recentMessage.createdAt}
+                                navigation={navigation}
+                                chatRoomType={item.type}
+                                chatRoomId={item.id}
+                                numMember={item.memberCount}
+                                unReadMsg={item.unreadMessageCount}
+                            />
+                        );
+                    }}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
                         />
-                    );
-                }}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                    />
-                }
-                ListEmptyComponent={() => (
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>새로운 인연과 대화를 시작해보세요</Text>
-                    </View>
-                )}
-            />
+                    }
+                    ListEmptyComponent={() => (
+                        <View style={styles.emptyContainer}>
+                            <Text style={styles.emptyText}>새로운 인연과 대화를 시작해보세요</Text>
+                        </View>
+                    )}
+                />
+            </SafeAreaView>
         </View>
+
     );
 };
 
