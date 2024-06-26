@@ -4,7 +4,6 @@ import ChatRoomCard from '../../components/Chat/ChatRoomCard';
 import { axiosGet } from "../../axios/axios.method";
 import { useFocusEffect } from '@react-navigation/native';
 import CustomHeader from "../../components/common/CustomHeader";
-import {sendFriendRequest} from "../../service/Chatting/chattingAPI";
 import {useRecoilValue} from "recoil";
 import {LoginResponse} from "../../interfaces";
 import {userInfoState} from "../../recoil/atoms";
@@ -98,7 +97,7 @@ const ChattingListScreen = ({ navigation }) => {
                     console.log('Rendering item:', item);
                     const usernames = item.members
                         .filter(member => member.memberId !== currentUserId)
-                        .map(member => member.username)
+                        .map(member => item.type === 'FRIEND' ? member.username : `익명${member.memberId}`)
                         .join(', ');
 
                     return (

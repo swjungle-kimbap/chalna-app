@@ -38,8 +38,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
 
                             // 친구수락 채팅메세지 보내기
                             const messageObject = {
-                                type: 'CHAT',
-                                content: "친구 요청을 수락했습니다.",
+                                type: 'FRIEND_REQUEST',
+                                content: "친구가 되었습니다! 대화를 이어가보세요.",
                             };
 
                             const messageJson = JSON.stringify(messageObject);
@@ -72,8 +72,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
 
                             // 친구수락 채팅메세지 보내기
                             const messageObject = {
-                                type: 'CHAT',
-                                content: "친구 요청을 거절했습니다.",
+                                type: 'FRIEND_REQUEST',
+                                content: "인연이 스쳐갔습니다.",
                             };
 
                             const messageJson = JSON.stringify(messageObject);
@@ -91,12 +91,16 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
     };
 
     return (
-        <View style={[styles.container, isSelf ? styles.selfContainer : styles.otherContainer]}>
+        <View style={[
+            styles.container,
+            isSelf ? styles.selfContainer : styles.otherContainer,
+            (type === 'FRIEND_REQUEST' && message!=='친구 요청을 보냈습니다.') && styles.centerContainer
+        ]}>
             <View style={styles.messageContent}>
                 <Text style={styles.messageText}>{message}</Text>
                 <Text style={styles.datetime}>{formattedTime}</Text>
             </View>
-            {type === 'FRIEND_REQUEST' && !isSelf && (
+            {type === 'FRIEND_REQUEST' && !isSelf && message==='친구 요청을 보냈습니다.' &&(
                 <View style={styles.buttonContainer}>
                     <ImageTextButton title='수락' onPress={handleAccept} disabled={isDisabled} />
                     <ImageTextButton title='거절' onPress={handleReject} disabled={isDisabled} />
@@ -123,6 +127,10 @@ const styles = StyleSheet.create({
     otherContainer: {
         alignSelf: 'flex-start',
         backgroundColor: '#FFFFFF',
+    },
+    centerContainer:{
+        alignSelf: 'center',
+        borderWidth: 0,
     },
     messageContent: {
         marginBottom: 5,
