@@ -1,103 +1,13 @@
 import RoundBox from "../../components/common/RoundBox";
 import Button from '../../components/common/Button';
-import { useRecoilState } from "recoil";
-import { isScanningToggleState, isSendingMsgToggleState } from "../../recoil/atoms";
-import { StyleSheet, EmitterSubscription } from 'react-native';
-import requestBluetooth from "../../utils/requestBluetooth";
-import showPermissionAlert from "../../utils/showPermissionAlert";
-import requestPermissions from "../../utils/requestPermissions";
-import { PERMISSIONS } from "react-native-permissions";
-import  { useState, useEffect, useRef } from 'react';
-import ScanNearbyAndPost, { ScanNearbyStop } from '../../service/ScanNearbyAndPost';
-import { getAsyncString, setAsyncString } from "../../utils/asyncStorage";
-import { getKeychain } from '../../utils/keychain';
+import { StyleSheet } from 'react-native';
 
-const requiredPermissions = [
-  PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-  PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
-  PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
-  PERMISSIONS.ANDROID.BLUETOOTH_ADVERTISE];
+type BleButtonProps = {
+  bleON: boolean;
+  bleHanddler: () => void;
+}
 
-
-const BleButton = () => {
-  const [bleON, setBleOn] = useRecoilState(isScanningToggleState);
-  const [isSendingMsg, setIsSendingMsg] = useRecoilState<boolean>(isSendingMsgToggleState);
-  const onDeviceFoundRef = useRef<EmitterSubscription | null>(null);
-  const [deviceUUID, setDeviceUUID] = useState<string>('');
-
-  useEffect(() => {
-    const fetchSavedData = async () => {
-      const uuid = await getKeychain('deviceUUID');
-      if (uuid)
-        setDeviceUUID(uuid);
-
-      const savedIsScanning = await getAsyncString('isScanning');
-      if (savedIsScanning){
-        setBleOn(true);
-      }
-    };
-    fetchSavedData();
-  }, []);
-
-  const handleCheckPermission = async (): Promise<boolean> => {
-    const granted = await requestPermissions(requiredPermissions);
-    const checkNotBluetooth = await requestBluetooth();
-    if (granted || !checkNotBluetooth) {
-      await showPermissionAlert();
-      const granted = await requestPermissions(requiredPermissions);
-      if (granted && checkNotBluetooth) {
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      return true; 
-    }
-  };
-  
-  const startScan = async () => {
-    if (!onDeviceFoundRef.current) {
-      if (onDeviceFoundRef.current) {
-        onDeviceFoundRef.current.remove();
-        onDeviceFoundRef.current = null;
-      }
-      const listener = await ScanNearbyAndPost(deviceUUID);
-      onDeviceFoundRef.current = listener;
-    }
-  };
-
-  const stopScan = async () => {
-    if (bleON) {
-      ScanNearbyStop();
-      if (onDeviceFoundRef.current){
-        onDeviceFoundRef.current.remove();
-        onDeviceFoundRef.current = null;
-      }
-    }
-  };
-
-  const bleHanddler = async () => {
-    if (!bleON) {
-      const hasPermission = await handleCheckPermission();
-      if (hasPermission) {
-        await startScan();
-        await setAsyncString('isScanning', 'true');
-        setBleOn(true);
-      } else {
-        await setAsyncString('isScanning', 'false');
-        setBleOn(false);
-      } 
-    } else {
-      await stopScan();
-      if (isSendingMsg) {
-        await setAsyncString('isSendingMsg', 'false');
-        setIsSendingMsg(false);   
-      }
-      setBleOn(false);
-      await setAsyncString('isScanning', 'false');
-    }
-  };
-
+const BleButton: React.FC<BleButtonProps> = ({bleON, bleHanddler}) => {
   return (
     <RoundBox style={styles.bleButton}>
     <Button iconSource={require('../../assets/Icons/bluetoothIcon.png')}

@@ -95,13 +95,13 @@ const ChattingListScreen = ({ navigation }) => {
                 data={chatRooms}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => {
-                    console.log('Rendering item:', item);
+                    //console.log('Rendering item:', item);
                     const usernames = item.members.map(member => member.username).join(', ');
                     return (
                         <ChatRoomCard
                             members={item.members}
                             usernames={usernames}
-                            lastMsg={item.recentMessage.content}
+                            lastMsg={item.recentMessage}
                             lastUpdate={item.updatedAt}
                             navigation={navigation}
                             chatRoomType={item.type}

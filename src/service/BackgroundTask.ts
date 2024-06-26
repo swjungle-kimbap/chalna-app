@@ -1,5 +1,5 @@
 import BackgroundService from 'react-native-background-actions';
-import ScanNearbyAndPost from './ScanNearbyAndPost'
+import ScanNearbyAndPost, { addDeviceBackground } from './ScanNearbyAndPost'
 import { getKeychain } from '../utils/keychain';
 import { EmitterSubscription } from 'react-native';
 
@@ -14,7 +14,7 @@ const backgroundBLE = async (args:any) => {
     }
 
     while(!onDeviceFoundListener) {
-      onDeviceFoundListener = await ScanNearbyAndPost(uuid);
+      onDeviceFoundListener = await ScanNearbyAndPost(uuid, addDeviceBackground);
     }
   });
 };
@@ -36,7 +36,7 @@ export const startBackgroundService = async () => {
       type: 'mipmap',
     },
     color: '#ff00ff',
-    linkingURI: 'ChalnaApp://지도',
+    linkingURI: 'myapp://지도',
     parameters: {
       uuid: deviceUUID,
     },

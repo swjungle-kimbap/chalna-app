@@ -1662,15 +1662,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@egjs/hammerjs@npm:^2.0.17":
-  version: 2.0.17
-  resolution: "@egjs/hammerjs@npm:2.0.17"
-  dependencies:
-    "@types/hammerjs": ^2.0.36
-  checksum: 8945137cec5837edd70af3f2e0ea621543eb0aa3b667e6269ec6485350f4d120c2434b37c7c30b1cf42a65275dd61c1f24626749c616696d3956ac0c008c4766
-  languageName: node
-  linkType: hard
-
 "@emotion/is-prop-valid@npm:1.2.2":
   version: 1.2.2
   resolution: "@emotion/is-prop-valid@npm:1.2.2"
@@ -3020,13 +3011,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/hammerjs@npm:^2.0.36":
-  version: 2.0.45
-  resolution: "@types/hammerjs@npm:2.0.45"
-  checksum: 40a29067c485a2a1f4345718104218fcf769adb1dbe091cdb6f679b3293dfa0798b207eb498ee7fd79ae8664c999117738fa0c01753f7465a639128f38c3ff5b
-  languageName: node
-  linkType: hard
-
 "@types/hoist-non-react-statics@npm:*, @types/hoist-non-react-statics@npm:^3.3.1":
   version: 3.3.5
   resolution: "@types/hoist-non-react-statics@npm:3.3.5"
@@ -3440,19 +3424,18 @@ __metadata:
     react: "*"
     react-native: 0.74.1
     react-native-background-actions: ^4.0.0
-    react-native-ble-advertiser-advanced: "https://github.com/eunsik-kim/react-native-ble-advertiser-advanced"
+    react-native-background-timer: ^2.4.1
+    react-native-ble-advertiser: ^0.0.17
     react-native-bluetooth-client: ^0.1.12
     react-native-config: ^1.5.2
     react-native-geolocation-service: ^5.3.1
-    react-native-gesture-handler: ^2.17.1
     react-native-gifted-chat: ^2.4.0
     react-native-keychain: ^8.2.0
     react-native-modal: ^13.0.1
     react-native-permissions: ^4.1.5
     react-native-safe-area-context: ^4.10.5
-    react-native-screens: ^3.31.1
+    react-native-screens: ^3.32.0
     react-native-uuid: ^2.0.2
-    react-native-uuid-generator: ^6.1.1
     react-test-renderer: 18.2.0
     recoil: ^0.7.7
     socket.io-client: ^4.7.5
@@ -8807,12 +8790,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-ble-advertiser-advanced@https://github.com/eunsik-kim/react-native-ble-advertiser-advanced":
+"react-native-background-timer@npm:^2.4.1":
+  version: 2.4.1
+  resolution: "react-native-background-timer@npm:2.4.1"
+  peerDependencies:
+    react-native: ">=0.47.0"
+  checksum: 635feb23bfdc8c43b8ee85dc85a5eb83f85aa9c285ce92ac329946ac83864121ae66bfb64fefa21e2a10462d094e03c17ff87eeb5d7e6349bc8e72d941f12754
+  languageName: node
+  linkType: hard
+
+"react-native-ble-advertiser@npm:^0.0.17":
   version: 0.0.17
-  resolution: "react-native-ble-advertiser-advanced@https://github.com/eunsik-kim/react-native-ble-advertiser-advanced.git#commit=cb3349b679e5bf8e909db7ba6548b699fbed54c8"
+  resolution: "react-native-ble-advertiser@npm:0.0.17"
   peerDependencies:
     react-native: ">=0.50"
-  checksum: 466962275fa6cb3d1423518e2a4cf289a49fbbfd7116ff9669632b5fa199ac2d8f3c6e3973f1c53909afa896141695caae97d65922bf7c89770f546443b14317
+  checksum: 004008f405d46cb33f6316bdda3cb2c2d34f353217196378dd1973077aa411cbdfdd5c9c847f6830ce4f738d29a790d97c36211d0e2188b4c44de4717a114c5e
   languageName: node
   linkType: hard
 
@@ -8849,21 +8841,6 @@ __metadata:
   version: 5.3.1
   resolution: "react-native-geolocation-service@npm:5.3.1"
   checksum: 9a625c9f87811933491055fd8cbd1ef46f97fbbe0262714ad1d9aa969a8900dcb4abc47e58fe162400a81bcdee79324dfcc8e631862df9a22d59ac84af9acfde
-  languageName: node
-  linkType: hard
-
-"react-native-gesture-handler@npm:^2.17.1":
-  version: 2.17.1
-  resolution: "react-native-gesture-handler@npm:2.17.1"
-  dependencies:
-    "@egjs/hammerjs": ^2.0.17
-    hoist-non-react-statics: ^3.3.0
-    invariant: ^2.2.4
-    prop-types: ^15.7.2
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  checksum: 70da4fc51d92899591aadf03396a8e0b78223fbe71da5b10e76232058c1ef5943d54c1dd8da815d5b6a8b41f259ea9d50457680e2ef7878c88d7396771170ae3
   languageName: node
   linkType: hard
 
@@ -8963,7 +8940,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-screens@npm:^3.31.1":
+"react-native-screens@npm:^3.32.0":
   version: 3.32.0
   resolution: "react-native-screens@npm:3.32.0"
   dependencies:
@@ -8984,15 +8961,6 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: e3d0d93313dccbee963d2a123f0901ac10c3c0f91258f419eab3c85969bb7872b0d93f43c5e59b7efb79d917259a1828f45389724c17ba9a50a14c29ed4b30d8
-  languageName: node
-  linkType: hard
-
-"react-native-uuid-generator@npm:^6.1.1":
-  version: 6.1.1
-  resolution: "react-native-uuid-generator@npm:6.1.1"
-  peerDependencies:
-    react-native: ">=0.47"
-  checksum: c82001b368ca73649beba8d55658599e93ea86c5a18a00690d3ec0803e87319a1a72c8eb12d03195341bb71701b7c4292b726a4e034a6fb1bcb381f985adb920
   languageName: node
   linkType: hard
 

@@ -1,5 +1,5 @@
-import { NaverMapView, NaverMapMarkerOverlay } from "@mj-studio/react-native-naver-map";
-import { locationState, showMsgBoxState } from "../../recoil/atoms";
+import { NaverMapView, NaverMapMarkerOverlay, NaverMapCircleOverlay } from "@mj-studio/react-native-naver-map";
+import { isNearbyState, locationState, showMsgBoxState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useState, useEffect, useRef } from "react";
 import { TestResponse, Position, LocationData } from '../../interfaces';
@@ -7,19 +7,22 @@ import Geolocation from "react-native-geolocation-service";
 import { axiosPost } from "../../axios/axios.method";
 import Config from 'react-native-config';
 import requestPermissions from "../../utils/requestPermissions";
-import { Platform } from "react-native";
+import { Platform, Alert } from "react-native";
 import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
 import { useStartWatchingPosition } from "../../hooks/useStartWatchingPosition";
 import { PERMISSIONS } from "react-native-permissions";
+import { navigate } from "../../navigation/RootNavigation";
+import { IsNearbyState } from "../../recoil/atomtypes";
 
 export const NaverMap: React.FC = ({}) => {
   const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
+  const [nearbyInfo, setNearbyInfo] = useRecoilState<IsNearbyState>(isNearbyState);
   const [fetchedData, setfetchedData] = useState<TestResponse>([]);
   const [granted, setGranted] = useState<boolean>(false);
   const currentLocation = useRecoilValue<Position>(locationState);
-  const startWatchingPosition = useStartWatchingPosition();
   const locationRef = useRef(currentLocation);
 
+  const startWatchingPosition = useStartWatchingPosition();
   const requestPermissionAndBluetooth = async () => {
     try {
       if (Platform.OS === 'android') {
@@ -71,6 +74,9 @@ export const NaverMap: React.FC = ({}) => {
       } 
     };
     // fetchData();
+    const currentTime = new Date().getTime(); 
+    if (nearbyInfo.lastMeetTime + 3000 < currentTime)
+      setNearbyInfo({isNearby: false, lastMeetTime:currentTime});
   }, [currentLocation])
 
   return (
@@ -79,7 +85,7 @@ export const NaverMap: React.FC = ({}) => {
   initialCamera={{
     latitude : currentLocation.latitude,
     longitude : currentLocation.longitude,
-    zoom:16}}
+    zoom:18}}
     mapPadding={{ bottom: 20 }}
     onTapMap={()=>{
       if (showMsgBox)
@@ -88,15 +94,21 @@ export const NaverMap: React.FC = ({}) => {
       <NaverMapMarkerOverlay
         latitude={currentLocation.latitude}
         longitude={currentLocation.longitude}
-        onTap={() => alert('안녕')}
+        onTap={() => Alert.alert("Hi", "반갑티비😀")}
         anchor={{ x: 0.5, y: 1 }}
         caption={{
-          key: '1',
           text: '나',
         }}
+        image={{symbol:(nearbyInfo.isNearby ? "green" : "red") }}
         width={20}
         height={30}
       />
+      <NaverMapCircleOverlay
+        latitude={currentLocation.latitude}
+        longitude={currentLocation.longitude}
+        radius={9}
+        color={nearbyInfo.isNearby ? '#3EB29780': '#D7351150'}
+      /> 
   </NaverMapView> 
 );
 }

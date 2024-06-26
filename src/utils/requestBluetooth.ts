@@ -1,5 +1,5 @@
 import { enableBluetooth } from 'react-native-bluetooth-client';
-import BLEAdvertiser from 'react-native-ble-advertiser-advanced';
+import BLEAdvertiser from 'react-native-ble-advertiser';
 import { Platform } from 'react-native';
 
 const requestBluetooth = async () => {
