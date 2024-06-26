@@ -315,7 +315,8 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 10,
         marginLeft: 10,
-        color: '#A5A5A5', // color 추가
+        color: '#a9a9a9',
+
     },
     status: {
         marginTop: 20,
