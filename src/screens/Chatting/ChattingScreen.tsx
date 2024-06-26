@@ -263,13 +263,14 @@ const ChattingScreen = () => {
                                 />
                             ))}
                         </ScrollView>
-                        <View style={chatRoomType !== 'WAITING' ? styles.inputContainer : styles.disabledInput}>
+                        <View style={chatRoomType !== 'WAITING' ? styles.inputContainer : styles.disabledInputContainer}>
                             <TextInput
                                 style={styles.input}
                                 value={messageContent}
                                 onChangeText={setMessageContent}
                                 placeholder={chatRoomType === 'WAITING' ? '5분이 지났습니다.\n' +
                                     '대화를 이어가려면 친구요청을 보내보세요.' : ''}
+                                placeholderTextColor={'#a9a9a9'}
                                 multiline
                                 textBreakStrategy="highQuality"
                                 editable={chatRoomType !== 'WAITING'}
@@ -369,7 +370,7 @@ const styles = StyleSheet.create({
         height: 30,
         resizeMode: 'contain',
     },
-    disabledInput: {
+    disabledInputContainer: {
         flex: 1,
         padding: 10,
         marginLeft: 10,
