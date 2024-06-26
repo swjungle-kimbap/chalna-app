@@ -71,8 +71,8 @@ const ChattingScreen = () => {
 
                     } else {
                         //여기에 상태 메세지 받아서 처리하는 로직 추가
-
-                        if (parsedMessage.type==='TIMEOUT' && parsedMessage.senderId===0 ){
+                        // 이미 친구가 된 상태에서 5분이 지나면 상태변경 하지않음
+                        if (parsedMessage.type==='TIMEOUT' && parsedMessage.senderId===0 && chatRoomType!=='FRIEND' ){
                             setChatRoomType('WAITING');
                             console.log("5분지남! 채팅기능 비활성화 & 채팅룸타입 변경: ",chatRoomType);
                             // chatRoomTypeRef.current='WAITING';
