@@ -282,7 +282,8 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         padding: 10,
-        marginLeft: 10
+        marginLeft: 10,
+        color: '#a9a9a9',
     },
     status: {
         marginTop: 20,
