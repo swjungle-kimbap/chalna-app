@@ -39,12 +39,40 @@ const ChattingScreen = () => {
     // auto scroll
     const scrollViewRef = useRef<ScrollView>(null);
 
+    const setupWebSocket = async () => {
+        try {
+            const accessToken = await getKeychain('accessToken');
+
+            WebSocketManager.connect(chatRoomId, accessToken, (message: IMessage) => {
+                console.log('Received message: ' + message.body);
+                try {
+                    const parsedMessage = JSON.parse(message.body);
+                    if ((parsedMessage.type === 'CHAT'||parsedMessage.type==='FRIEND_REQUEST' )
+                        && parsedMessage.content && parsedMessage.senderId !== 0)
+                    {
+                        parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
+                        setMessages((prevMessages) => [...prevMessages, parsedMessage]);
+                        scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
+                    } else {
+                        //여기에 상태 메세지 받아서 처리하는 로직 추가
+                    }
+                } catch (error) {
+                    console.error('Failed to parse received message:', error);
+                }
+            });
+        } catch (error) {
+            console.error('Failed to set up WebSocket:', error);
+        }
+    };
+
     // Get out of screen -> disconnect
     useEffect(() => {
         const handleAppStateChange = (nextAppState: AppStateStatus) => {
             if (nextAppState === 'background' || nextAppState === 'inactive') {
                 WebSocketManager.disconnect();
                 // 여기서 timestamp 저장해야할듯
+            } else {
+                setupWebSocket();
             }
         };
         const subscription = AppState.addEventListener('change', handleAppStateChange);
@@ -94,33 +122,6 @@ const ChattingScreen = () => {
             };
 
             fetchMessages();
-
-            const setupWebSocket = async () => {
-                try {
-                    const accessToken = await getKeychain('accessToken');
-
-                    WebSocketManager.connect(chatRoomId, accessToken, (message: IMessage) => {
-                        console.log('Received message: ' + message.body);
-                        try {
-                            const parsedMessage = JSON.parse(message.body);
-                            if ((parsedMessage.type === 'CHAT'||parsedMessage.type==='FRIEND_REQUEST' )
-                                && parsedMessage.content && parsedMessage.senderId !== 0)
-                            {
-                                parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
-                                setMessages((prevMessages) => [...prevMessages, parsedMessage]);
-                                scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
-                            } else {
-                                //여기에 상태 메세지 받아서 처리하는 로직 추가
-                            }
-                        } catch (error) {
-                            console.error('Failed to parse received message:', error);
-                        }
-                    });
-                } catch (error) {
-                    console.error('Failed to set up WebSocket:', error);
-                }
-            };
-
             setupWebSocket();
 
             return () => {
@@ -168,7 +169,7 @@ const ChattingScreen = () => {
         <SWRConfig value={{}}>
             <CustomHeader
                 title={otherUsernameRef.current}
-                onBackPress={()=>navigation.goBack()} //뒤로가기
+                onBackPress={()=>navigation.navigate("채팅 목록")} //채팅 목록으로 돌아가기
                 onBtnPress={()=>sendFriendRequest(chatRoomId, otherIdRef.current)} //친구요청 보내기
                 showBtn={chatRoomTypeRef.current!=='FRIEND'} //친구상태 아닐때만 노출
                 onMenuPress={toggleModal}
@@ -191,6 +192,7 @@ const ChattingScreen = () => {
                             status={msg.status}
                             chatRoomId={chatRoomId}
                             otherId={otherIdRef.current}
+                            chatRoomType={chatRoomTypeRef.current}
                         />
                     ))}
                 </ScrollView>
@@ -231,10 +233,12 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flexGrow: 1,
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         alignItems: 'center',
+        paddingTop: 10,
     },
     inputContainer: {
+        verticalAlign: 'top',
         backgroundColor: 'white',
         borderColor: "#ececec",
         flexDirection: 'row',

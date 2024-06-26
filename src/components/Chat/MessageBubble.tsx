@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Button, Alert } from 'react-native';
 import axiosInstance from '../../axios/axios.instance'; // Adjust the path as necessary
 import ImageTextButton from "../common/Button";
+import WebSocketManager from "../../utils/WebSocketManager";
 
 interface MessageBubbleProps {
     message: string;
@@ -11,13 +12,14 @@ interface MessageBubbleProps {
     status?: boolean;
     otherId: number;
     chatRoomId:string;
+    chatRoomType:string;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf, type, status, otherId,chatRoomId  }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf, type, status, otherId,chatRoomId, chatRoomType  }) => {
     const date = new Date(datetime);
     const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    const [isDisabled, setIsDisabled] = useState(false);
+    const [isDisabled, setIsDisabled] = useState(chatRoomType==='FRIEND');
 
     const handleAccept = async ({otherId: number }) => {
         Alert.alert(
@@ -27,18 +29,29 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
                 { text: '취소', style: 'cancel' },
                 {
                     text: '수락', onPress: async () => {
-                        // try {
+                        try {
                             const response = await axiosInstance.patch(`https://chalna.shop/api/v1/relation/accept/${chatRoomId}`);
                             console.log(response)
 
                             Alert.alert('친구 맺기 성공', '친구가 되었습니다!');
                             setIsDisabled(true);
+
+                            // 친구수락 채팅메세지 보내기
+                            const messageObject = {
+                                type: 'CHAT',
+                                content: "친구 요청을 수락했습니다.",
+                            };
+
+                            const messageJson = JSON.stringify(messageObject);
+                            console.log('Sending message: ' + messageJson);
+                            WebSocketManager.sendMessage(chatRoomId, messageJson);
+
                             // Add additional logic here if needed, e.g., updating the message status
-                        // } catch (error) {
-                            console.log(response)
+                        } catch (error) {
+                            // console.log(response)
                             // console.error('Failed to accept friend request:', error);
                             Alert.alert('Error', 'Failed to accept friend request.');
-                        // }
+                        }
                     }
                 }
             ]
@@ -57,7 +70,17 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
                             await axiosInstance.patch(`https://chalna.shop/api/v1/relation/reject/${otherId}`);
                             Alert.alert('친구 요청 거절 성공', '친구 요청을 거절했습니다.');
                             setIsDisabled(true);
-                            // Add additional logic here if needed, e.g., removing the message
+
+                            // 친구수락 채팅메세지 보내기
+                            const messageObject = {
+                                type: 'CHAT',
+                                content: "친구 요청을 거절했습니다.",
+                            };
+
+                            const messageJson = JSON.stringify(messageObject);
+                            console.log('Sending message: ' + messageJson);
+                            WebSocketManager.sendMessage(chatRoomId, messageJson);
+
                         } catch (error) {
                             // console.error('Failed to reject friend request:', error);
                             // 리턴코드에 따라 수정
