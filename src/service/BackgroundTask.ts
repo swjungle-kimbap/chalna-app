@@ -36,7 +36,7 @@ export const startBackgroundService = async () => {
       type: 'mipmap',
     },
     color: '#ff00ff',
-    linkingURI: 'ChalnaApp://지도',
+    linkingURI: 'myapp://지도',
     parameters: {
       uuid: deviceUUID,
     },

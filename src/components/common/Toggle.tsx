@@ -13,7 +13,6 @@ const Toggle: React.FC<ToggleProps> = ({ toggleValueState, toggleHandler }) => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleToggle = async () => {
-    console.log("before disabled: ", isPending);
     if (!isPending) {
       setIsPending(true);
       await toggleHandler();
@@ -22,7 +21,6 @@ const Toggle: React.FC<ToggleProps> = ({ toggleValueState, toggleHandler }) => {
         setIsPending(false);
       }, 1000); // 1초 (1000 밀리초) 후에 isPending을 false로 설정
     }
-    console.log("after disabled: ", isPending);
   };
 
   const switchProps: SwitchProps = {

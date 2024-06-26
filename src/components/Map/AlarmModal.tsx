@@ -2,13 +2,14 @@ import { axiosGet, axiosPut } from '../../axios/axios.method';
 import Config from 'react-native-config';
 import { AlarmItem, AlarmListResponse } from '../../interfaces';
 import AlarmCardRender from './AlarmCardRender';
-import { FlatList, Modal, StyleSheet, TouchableWithoutFeedback, View }from 'react-native';
-import { useCallback, useState, useEffect } from 'react';
+import { FlatList, Modal, StyleSheet, TouchableWithoutFeedback, View, AppState, AppStateStatus }from 'react-native';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/core';
 import { useIsFocused } from '@react-navigation/native'; 
 import Button from '../common/Button';
 import { useRecoilState } from 'recoil';
 import { AlarmCountState } from '../../recoil/atoms';
+import BackgroundTimer from 'react-native-background-timer';
 
 export interface AlarmModalProps{
   closeModal: () => void,
@@ -21,6 +22,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
   const [alarms, setAlarms] = useState<AlarmItem[]>([]);
   const [alarmCnt, setAlarmCnt] = useRecoilState(AlarmCountState);
   const isFocused = useIsFocused(); // 화면 포커스 상태 가져오기
+  const intervalId = useRef<NodeJS.Timeout | null>(null);
 
   const handleCardPress = (notificationId: number) => {
     setExpandedCardId(expandedCardId === notificationId ? 0 : notificationId);
@@ -33,35 +35,53 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
   );
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null;
-
     const startPolling = () => {
-      intervalId = setInterval(async () => {
-        
+      intervalId.current = BackgroundTimer.setInterval(async () => {
         try {
-          const fetchedData = await axiosGet<AlarmListResponse>(
-                                Config.GET_MSG_LIST_URL);
-          if (fetchedData) {
-            setAlarms(fetchedData.data.data);
-            setAlarmCnt(fetchedData.data.data.length);
+          const response = await axiosGet<AlarmListResponse>(
+            Config.GET_MSG_LIST_URL); // Adjust as necessary
+          if (response) {
+            const fetchedData = response.data; // Adjust as necessary
+            setAlarms(fetchedData.data);
+            setAlarmCnt(fetchedData.data.length);
           }
         } catch (error) {
           console.error('Error fetching alarm data:', error);
         }
-      }, 5000); // 3초마다 데이터 가져오기
+      }, 10000); 
+    };
+
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState !== 'active') {
+        // 앱이 background 상태로 변경될 때 polling 중지
+        if (intervalId.current !== null) {
+          BackgroundTimer.clearInterval(intervalId.current);
+          intervalId.current = null;
+        }
+      } if (nextAppState === 'active') {
+        startPolling();  
+      }
     };
 
     if (isFocused) {
       startPolling();
-    }
-      
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
+      const subscription = AppState.addEventListener('change', handleAppStateChange);
+      return () => {
+        if (intervalId.current !== null) {
+          BackgroundTimer.clearInterval(intervalId.current);
+          intervalId.current = null;
+        }
+        subscription.remove();
+      };
+    } else {
+      // 화면 focus를 잃으면 polling 중지
+      if (intervalId.current !== null) {
+        BackgroundTimer.clearInterval(intervalId.current);
+        intervalId.current = null;
       }
-    };
-  }, [isFocused])
-  
+    }
+  }, [isFocused]);
+
   const removeAlarmItem = (notificationId:number, DeleteAll = false) => {
     if (DeleteAll) {
       setAlarms([]);

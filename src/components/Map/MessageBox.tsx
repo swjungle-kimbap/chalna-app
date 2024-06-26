@@ -1,20 +1,20 @@
 import  { useState, useEffect, useRef } from 'react';
-import ScanNearbyAndPost, { ScanNearbyStop } from '../../service/ScanNearbyAndPost';
-import { getKeychain } from '../../utils/keychain';
 import RoundBox from '../common/RoundBox';
-import Button from '../../components/common/Button';
-import { Alert, StyleSheet, TextInput, View } from 'react-native';
-import { EmitterSubscription } from 'react-native';
+import Button from '../common/Button';
+import { StyleSheet, TextInput, View, Alert } from 'react-native';
 import Text from '../common/Text';
 import { getAsyncString, setAsyncString } from "../../utils/asyncStorage";
+import useBackgroundSave from '../../hooks/useChangeBackgroundSave';
+import { useRecoilState } from 'recoil';
+import { showMsgBoxState } from '../../recoil/atoms';
+import ScanNearbyAndPost, { ScanNearbyStop } from '../../service/ScanNearbyAndPost';
+import { getKeychain } from '../../utils/keychain';
+import { EmitterSubscription } from 'react-native';
 import showPermissionAlert from '../../utils/showPermissionAlert';
 import requestPermissions from '../../utils/requestPermissions';
 import requestBluetooth from '../../utils/requestBluetooth';
-import useBackgroundSave from '../../hooks/useChangeBackgroundSave';
-import Toggle from '../common/Toggle';
 import { PERMISSIONS } from 'react-native-permissions';
-import { useRecoilState } from 'recoil';
-import { isScanningToggleState, isSendingMsgToggleState } from '../../recoil/atoms';
+import { isNearbyState } from "../../recoil/atoms";
 
 const tags = ['상담', '질문', '대화', '만남'];
 
@@ -24,104 +24,101 @@ const requiredPermissions = [
   PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
   PERMISSIONS.ANDROID.BLUETOOTH_ADVERTISE];
 
-interface ScanButtonProps {
-  disable: boolean;
-}
-
-const ScanButton: React.FC<ScanButtonProps> = ({ disable })  => {
-  const [onDeviceFound, setOnDeviceFound] = useState<EmitterSubscription | null>(null);
-  const [showMsgBox, setShowMsgBox] = useState<boolean>(false);
-  const [isScanning, setIsScanning] = useRecoilState<boolean>(isScanningToggleState);
-  const [isSendingMsg, setIsSendingMsg] = useRecoilState<boolean>(isSendingMsgToggleState);
-  const [deviceUUID, setDeviceUUID] = useState<string>('');
+const MessageBox: React.FC = ()  => {
+  const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
   const [msgText, setMsgText] = useState('안녕하세요!');
   const [selectedTag, setSelectedTag] = useState<string>(''); 
+  const [nearInfo, setNearInfo] = useRecoilState(isNearbyState);
+  const [isScanning, setIsScanning] = useState(false);
+  const onDeviceFoundRef = useRef<EmitterSubscription | null>(null);
   const msgTextRef = useRef(msgText);
+  const uuidRef = useRef<string>('');
 
   useEffect(() => {
     const fetchSavedData = async () => {
-      const uuid = await getKeychain('deviceUUID');
-      if (uuid)
-        setDeviceUUID(uuid);
-
-      const savedIsScanning = await getAsyncString('isScanning');
-      if (savedIsScanning){
-        setIsScanning(true);
-        const savedIsSendingMsg = await getAsyncString('isSendingMsg');
-        if (savedIsSendingMsg)
-          setIsSendingMsg(true);
-      }
-
       const savedmsgText = await getAsyncString('msgText')
       setMsgText(savedmsgText);
       const savedTag = await getAsyncString('tag')
       setSelectedTag(savedTag);
+
+      const uuid = await getKeychain('deviceUUID');
+      if (uuid)
+        uuidRef.current = uuid;
+
+      const savedIsScanning = await getAsyncString('isScanning');
+      if (savedIsScanning === 'true'){
+        setIsScanning(true);
+        await ScanNearbyStop();
+        await ScanNearbyAndPost(uuidRef.current, handleSetIsNearby);
+      }
     };
     fetchSavedData();
+    return () => {
+      if (onDeviceFoundRef.current){
+        onDeviceFoundRef.current.remove();
+        onDeviceFoundRef.current = null;
+      }
+    }
+  }, []);
+
+  let timeoutId: NodeJS.Timeout | null = null;
+
+  const handleSetIsNearby = () => {
+    const currentTime = new Date().getTime();
+  
+    if (nearInfo.lastMeetTime + 3000 < currentTime) {
+      setNearInfo({ isNearby: true, lastMeetTime: currentTime });
+  
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+  
+      timeoutId = setTimeout(() => {
+        setNearInfo(prevNearInfo => ({
+          ...prevNearInfo,
+          isNearby: false
+        }));
+      }, 2000);
+    }
+  };
+  
+  useEffect(() => {
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, []);
 
   const startScan = async () => {
     if (!isScanning) {
-      if (onDeviceFound) {
-        onDeviceFound.remove();
-        setOnDeviceFound(null);
+      if (onDeviceFoundRef.current){
+        onDeviceFoundRef.current.remove();
+        onDeviceFoundRef.current = null;
       }
-      const listener = await ScanNearbyAndPost(deviceUUID);
-      setOnDeviceFound(listener);
+      const listener = await ScanNearbyAndPost(uuidRef.current, handleSetIsNearby);
+      onDeviceFoundRef.current = listener;
+      await setAsyncString('isScanning', 'true');
+      setIsScanning(true);
     }
   };
 
   const stopScan = async () => {
     if (isScanning) {
       ScanNearbyStop();
-      if (onDeviceFound){
-        onDeviceFound.remove();
-        setOnDeviceFound(null);
+      if (onDeviceFoundRef.current){
+        onDeviceFoundRef.current.remove();
+        onDeviceFoundRef.current = null;
       }
+      await setAsyncString('isScanning', 'false');
+      setIsScanning(false);
     }
   };
 
-  const sendingToggleHandler = async () => {
-    if (!isSendingMsg) {
-      if (msgText.length >= 5) {
-        if (!isScanning) {
-          await scanToggleHandler();
-          await setAsyncString('isSendingMsg', 'false');
-        }
-        await setAsyncString('isSendingMsg', 'true');
-        setIsSendingMsg(true);      
-      } else {
-        await Alert.alert('내용을 더 채워 주세요', '5글자 이상 입력해 주세요!')  
-      }
-    } else {
-      await setAsyncString('isSendingMsg', 'false');
-      setIsSendingMsg(false);   
-    }
-  }
-  
-  const scanToggleHandler = async () => {
-    if (!isScanning) {
-      const hasPermission = await handleCheckPermission();
-      if (hasPermission) {
-        await startScan();
-        setIsScanning(true);
-        await setAsyncString('isScanning', 'true');
-      } else {
-        await setAsyncString('isScanning', 'false');
-      }
-    } else {
-      await stopScan();
-      if (isSendingMsg) {
-        await sendingToggleHandler();
-      }
-      setIsScanning(false);
-      await setAsyncString('isScanning', 'false');
-    }
-  };
-  
   const handleCheckPermission = async (): Promise<boolean> => {
+    const granted = await requestPermissions(requiredPermissions);
     const checkNotBluetooth = await requestBluetooth();
-    if (disable || !checkNotBluetooth) {
+    if (!granted || !checkNotBluetooth) {
       await showPermissionAlert();
       const granted = await requestPermissions(requiredPermissions);
       if (granted && checkNotBluetooth) {
@@ -133,7 +130,7 @@ const ScanButton: React.FC<ScanButtonProps> = ({ disable })  => {
       return true; 
     }
   };
-  
+
   const handleTagPress = async (tag: string) => {
     setSelectedTag(prevTag => {
       if (prevTag === tag)
@@ -141,13 +138,35 @@ const ScanButton: React.FC<ScanButtonProps> = ({ disable })  => {
       setAsyncString('tag', tag);
       return tag 
     }); 
-    
   };
+
+  const checkvalidInput = () => {
+    if (!isScanning && msgTextRef.current.length < 5) {
+      Alert.alert('내용을 더 채워 주세요', '5글자 이상 입력해 주세요!');
+      return false;
+    } else {
+      setAsyncString('msgText', msgText);
+      return true;
+    }
+  };
+
+  const handleSendingMessage = async () => {
+    await handleCheckPermission()
+    const checkValid = await checkvalidInput();
+    if (!isScanning && checkValid)
+      await startScan();
+    else if (isScanning)
+      await stopScan();
+  };
+
+  useEffect(()=> {
+    setAsyncString('msgText', msgText);
+  }, [showMsgBox])
+
   useBackgroundSave<string>('msgText', msgTextRef, msgText);
   return (
     <>
       {showMsgBox ? (
-        <>
           <View style={styles.msgcontainer} >
             <RoundBox width='95%' style={[styles.msgBox, {borderColor : isScanning ? '#14F12A': '#979797'}]}>
               <View style={styles.titleContainer}>
@@ -157,26 +176,17 @@ const ScanButton: React.FC<ScanButtonProps> = ({ disable })  => {
                       variant='sub' title={`#${tag}`}  onPress={() => handleTagPress(tag)} 
                       key={tag} activeOpacity={0.6} />
                   ))}
-                <Button iconSource={require('../../assets/buttons/CloseButton.png')}
-                  imageStyle={styles.closebutton} 
-                  onPress={() => {setShowMsgBox(false); setAsyncString('msgText', msgText);}} />
               </View>
               <TextInput value={msgText} style={[styles.textInput, { color: '#333' }]}
                   onChange={(event) => {setMsgText(event.nativeEvent.text);}}
-                  onEndEditing={() => {setAsyncString('msgText', msgText);}}
                   />
-              <View style={styles.sendButtonContainer}>
-                <Text variant='main'>인연 받기</Text>
-                <Toggle toggleValueState={isScanningToggleState} toggleHandler={scanToggleHandler}/>
-                <Text variant='main'>인연 보내기</Text>
-                <Toggle toggleValueState={isSendingMsgToggleState} toggleHandler={sendingToggleHandler}/>
-              </View>
+              <Button title={isScanning ? '멈추기' : '보내기'} variant='main' 
+                onPress={handleSendingMessage}/>
             </RoundBox>
           </View>
-        </>
       ) : (
         <RoundBox width='95%' style={[styles.buttonContainer, {borderColor : isScanning ? '#14F12A': '#979797'}]}>
-          <Button title='인연 만나기' onPress={() => setShowMsgBox(true)}/>
+          <Button title='인연 보내기' onPress={() => setShowMsgBox(true)}/>
         </RoundBox>
       )}
     </>
@@ -209,7 +219,7 @@ const styles = StyleSheet.create({
   msgcontainer: {
     position: 'absolute',
     width: '95%',
-    bottom: 65, 
+    bottom: 10, 
     right: 5,
     zIndex: 2,
   },
@@ -256,11 +266,11 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '75%',
     position: 'absolute',
-    bottom: 65, 
+    bottom: 10, 
     right: 10,
     zIndex: 2,
     borderTopWidth: 2,
   }
 });
 
-export default ScanButton;
+export default MessageBox;

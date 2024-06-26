@@ -1,21 +1,25 @@
 import { EmitterSubscription, NativeEventEmitter, NativeModules } from 'react-native';
-import BLEAdvertiser from 'react-native-ble-advertiser-advanced';
+import BLEAdvertiser from 'react-native-ble-advertiser';
 import { axiosPost } from '../axios/axios.method';
 import Config from 'react-native-config';
-import { getAsyncObject, getAsyncString, setAsyncObject, setAsyncString } from '../utils/asyncStorage';
+import { getAsyncObject, getAsyncString, setAsyncObject } from '../utils/asyncStorage';
 import { SendMsgRequest } from '../interfaces';
 
 const APPLE_ID = 0x4c;
 const MANUF_DATA = [1, 0];
-const DelayedCntTime = 3 * 60 * 60 * 1000;
-const DelayedMSGTime = 60 * 60 * 1000;
+const DelayedMSGTime = 60000;
 
 BLEAdvertiser.setCompanyId(APPLE_ID);
 
 const sendMsg = async ( _uuid:string) => {
   const savedMsgText = await getAsyncString('msgText');
   const savedTag = await getAsyncString('tag');
-  await axiosPost(Config.SEND_MSG_URL, "인연 보내기",{
+  console.log({
+    receiverDeviceId: _uuid,
+    message: savedMsgText,
+    interestTag:[savedTag]
+  });
+  await axiosPost(Config.SEND_MSG_URL, "인연 보내기", {
     receiverDeviceId: _uuid,
     message: savedMsgText,
     interestTag:[savedTag]
@@ -26,43 +30,37 @@ const sendRelationCnt = async (_uuid:string) => {
   await axiosPost(Config.SET_RELATION_CNT_URL + _uuid, "만난 횟수 증가")
 }
 
-const addDevice = (_uuid: string, _date: number) => {
-  getAsyncObject<number>(`CNT${_uuid}`).then((lastMeetTime) => {
+export const addDevice = (_uuid: string, _date: number) => {
+  getAsyncObject<number>(`${_uuid}`).then((lastMeetTime) => {
     if (!lastMeetTime) {
-      console.log(`CNT Added device: ${_uuid}`);
-      setAsyncObject<number>(`CNT${_uuid}`, _date);
+      console.log(`Added device: ${_uuid}`);
+      setAsyncObject<number>(`${_uuid}`, _date);
       sendRelationCnt(_uuid);
-    } else {
-      const checkDelayedCntTime = new Date().getTime() - DelayedCntTime;
-      console.log(`CNT Updated device: ${_uuid}`); 
-      if (lastMeetTime < checkDelayedCntTime) {
-        setAsyncObject<number>(`CNT${_uuid}`, _date);
-        sendRelationCnt(_uuid);
-      }
-    }
-  });
-  getAsyncObject<number>(`MSG${_uuid}`).then((lastMeetTime) => {
-    if (!lastMeetTime) {
-      console.log(`MSG Added device: ${_uuid}`);
-      setAsyncObject<number>(`MSG${_uuid}`, _date);
       sendMsg(_uuid);
     } else {
       const checkDelayedCntTime = new Date().getTime() - DelayedMSGTime;
-      console.log(`MSG Updated device: ${_uuid}`); 
+      console.log(`Updated device: ${_uuid}`); 
       if (lastMeetTime < checkDelayedCntTime) {
-        setAsyncObject<number>(`MSG${_uuid}`, _date);
+        setAsyncObject<number>(`${_uuid}`, _date);
+        sendRelationCnt(_uuid);
         sendMsg(_uuid);
       }
     }
   });
 };
 
-const ScanNearbyAndPost = async (uuid:string): Promise<EmitterSubscription> => {
-  const eventEmitter = new NativeEventEmitter(NativeModules.BLEAdvertiser);
+const ScanNearbyAndPost = async (
+  uuid:string,
+  setIsNearby?: Function
+): Promise<EmitterSubscription> => {
+  const { BLEAdvertiser } = NativeModules;
+  const eventEmitter = new NativeEventEmitter(BLEAdvertiser);
   const onDeviceFound = eventEmitter.addListener('onDeviceFound', (event) => {
     if (event.serviceUuids) {
       for (let i = 0; i < event.serviceUuids.length; i++) {
         if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00')) {
+          if (setIsNearby)
+            setIsNearby();
           addDevice(event.serviceUuids[i], new Date().getTime());
         }
       }
@@ -71,29 +69,21 @@ const ScanNearbyAndPost = async (uuid:string): Promise<EmitterSubscription> => {
 
   console.log(uuid, 'Starting Advertising');
   BLEAdvertiser.broadcast(uuid, MANUF_DATA, {
-    advertiseMode: 2,
-    txPowerLevel: 3,
+    advertiseMode: BLEAdvertiser.ADVERTISE_MODE_BALANCED,
+    txPowerLevel: BLEAdvertiser.ADVERTISE_TX_POWER_MEDIUM,
     connectable: false,
     includeDeviceName: false,
     includeTxPowerLevel: false,
   })
     .then((success) => console.log(uuid, 'Advertise Successful', success))
-    .catch((error) => {
-      console.log(uuid, 'Advertise Error', error);
-      setAsyncString('isScanning', 'false');
-      setAsyncString('isSendingMsg', 'false');
-    });
+    .catch((error) => console.log(uuid, 'Advertise Error', error));
 
   console.log(uuid, 'Starting Scanner');
   BLEAdvertiser.scan(MANUF_DATA, {
-    scanMode: 2,
+    scanMode: BLEAdvertiser.SCAN_MODE_LOW_LATENCY,
   })
     .then((success) => console.log(uuid, 'Scan Successful', success))
-    .catch((error) => {
-      console.log(uuid, 'Scan Error', error);
-      setAsyncString('isScanning', 'false');
-      setAsyncString('isSendingMsg', 'false');
-    });
+    .catch((error) => console.log(uuid, 'Scan Error', error));
 
   return onDeviceFound;
 }
@@ -101,19 +91,12 @@ const ScanNearbyAndPost = async (uuid:string): Promise<EmitterSubscription> => {
 export const ScanNearbyStop = async () => {
   BLEAdvertiser.stopBroadcast()
   .then(() => console.log('Stop Broadcast Successful'))
-  .catch((error) => {
-    console.log('Stop Broadcast Error', error);
-    setAsyncString('isScanning', 'true');
-    setAsyncString('isSendingMsg', 'true');
-  });
+  .catch((error) => console.log('Stop Broadcast Error', error));
 
   BLEAdvertiser.stopScan()
     .then(() => console.log('Stop Scan Successful'))
-    .catch((error) => {
-      console.log( 'Stop Scan Error', error);
-      setAsyncString('isScanning', 'true');
-      setAsyncString('isSendingMsg', 'true');
-    });
+    .catch((error) => console.log( 'Stop Scan Error', error));
 }
+
 
 export default ScanNearbyAndPost;

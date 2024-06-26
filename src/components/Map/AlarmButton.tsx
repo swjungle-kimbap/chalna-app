@@ -1,7 +1,6 @@
 import Button from '../common/Button'
 import RoundBox from '../common/RoundBox';
 import { StyleSheet }from 'react-native';
-import FontTheme from "../../styles/FontTheme";
 import AlarmModal from './AlarmModal';
 import { useState } from 'react';
 import { useRecoilValue } from 'recoil';
@@ -65,42 +64,6 @@ const styles = StyleSheet.create({
     right: 0,
     color: 'white', // 글자색 설정
     fontSize:10,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalpos: {
-    position: 'absolute',
-    top: 15,
-    right:10,
-    width:'80%',
-  },
-  modalContent: {
-    width: '100%',
-    padding: 13,
-    backgroundColor: 'white',
-    borderRadius: 10,
-    marginBottom: 10,
-    alignItems: 'flex-start',
-  },
-  alarmCnt: {
-    fontSize:10,
-    marginBottom:5,
-    fontFamily: FontTheme.fonts.title,
-    color: '#979797',
-  },
-  alarmContent: {
-    fontSize: 14,
-    textAlign: 'left',  
-    width: '100%', 
-    fontFamily: FontTheme.fonts.main,
-    color: '#060606',
-  },
-  btnContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
   },
   buttonContainer: {
     width: 50,

@@ -1,5 +1,7 @@
-import {atom, useRecoilValue} from "recoil";
+import { atom } from "recoil";
 import { LoginResponse, Position } from "../interfaces";
+import { IsNearbyState } from "./atomtypes";
+import { EmitterSubscription } from 'react-native';
 
 export const locationState = atom<Position>({
   key: 'location',
@@ -25,15 +27,22 @@ export const AlarmCountState = atom<number>({
   }
 )
 
-export const isScanningToggleState = atom<boolean>({
-  key: 'isScanningToggle',
+export const onDeviceFoundState = atom<EmitterSubscription | null>({
+  key: 'onDeviceFound',
+  default: null
+  }
+)
+
+export const showMsgBoxState = atom<boolean>({
+  key: 'showMsgBox',
   default: false
   }
 )
 
-export const isSendingMsgToggleState = atom<boolean>({
-  key: 'isSendingMsgToggle',
-  default: false
+export const isNearbyState = atom<IsNearbyState>({
+  key: 'isNearby',
+  default: {
+    isNearby: false,
+    lastMeetTime: 0
   }
-)
-
+})

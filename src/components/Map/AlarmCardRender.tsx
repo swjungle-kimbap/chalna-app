@@ -20,8 +20,12 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
   const handleAcceptButton = async (notificationId:number) => {
     const matchAcceptResponse = await axiosPost<AxiosResponse<MatchAcceptResponse>>
                               (Config.ACCEPT_MSG_URL + notificationId.toString(), "인연 수락");
-    navigate('채팅', {chatRoomId: matchAcceptResponse.data.data.chatRoomId,
-      chatRoomType :'MATCH'
+    navigate("로그인 성공", {
+      screen: "채팅목록",
+      params: {
+        screen: "채팅",
+        params: { chatRoomId: matchAcceptResponse.data.data.chatRoomId } // 필요시 채팅방 ID를 전달합니다.
+      }
     });
   }
 
