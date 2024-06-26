@@ -11,7 +11,7 @@ export default function App() {
     // 이벤트 리스너 등록
     const subscription = DeviceEventEmitter.addListener('FCMOpenScreen', (event) => {
       const { screen, screenId } = event;
-      if (screen) {
+      if (screen === "채팅") {
         console.log('Joo Received screen value in App:', screen, screenId);
         navigate("로그인 성공", {
           screen: "채팅목록",

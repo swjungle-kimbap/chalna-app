@@ -18,6 +18,7 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
   ({ item, expandedCardId, handleCardPress, removeAlarmItem }) => {
   
   const handleAcceptButton = async (notificationId:number) => {
+    removeAlarmItem(notificationId);
     const matchAcceptResponse = await axiosPost<AxiosResponse<MatchAcceptResponse>>
                               (Config.ACCEPT_MSG_URL + notificationId.toString(), "인연 수락");
     navigate("로그인 성공", {

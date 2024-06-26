@@ -14,11 +14,6 @@ BLEAdvertiser.setCompanyId(APPLE_ID);
 const sendMsg = async ( _uuid:string) => {
   const savedMsgText = await getAsyncString('msgText');
   const savedTag = await getAsyncString('tag');
-  console.log({
-    receiverDeviceId: _uuid,
-    message: savedMsgText,
-    interestTag:[savedTag]
-  });
   await axiosPost(Config.SEND_MSG_URL, "인연 보내기", {
     receiverDeviceId: _uuid,
     message: savedMsgText,
@@ -31,23 +26,24 @@ const sendRelationCnt = async (_uuid:string) => {
 }
 
 export const addDevice = (_uuid: string, _date: number) => {
+  const currentTime = new Date(_date).getTime();
   getAsyncObject<number>(`${_uuid}`).then((lastMeetTime) => {
     if (!lastMeetTime) {
       console.log(`Added device: ${_uuid}`);
-      setAsyncObject<number>(`${_uuid}`, _date);
+      setAsyncObject<number>(`${_uuid}`, currentTime);
       sendRelationCnt(_uuid);
       sendMsg(_uuid);
     } else {
-      const checkDelayedCntTime = new Date().getTime() - DelayedMSGTime;
       console.log(`Updated device: ${_uuid}`); 
-      if (lastMeetTime < checkDelayedCntTime) {
-        setAsyncObject<number>(`${_uuid}`, _date);
+      if (new Date(lastMeetTime).getTime() > currentTime + DelayedMSGTime) {
+        setAsyncObject<number>(`${_uuid}`, currentTime);
         sendRelationCnt(_uuid);
         sendMsg(_uuid);
       }
     }
   });
 };
+
 
 const ScanNearbyAndPost = async (
   uuid:string,
