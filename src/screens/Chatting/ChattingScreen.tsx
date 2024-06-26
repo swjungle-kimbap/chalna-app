@@ -39,12 +39,40 @@ const ChattingScreen = () => {
     // auto scroll
     const scrollViewRef = useRef<ScrollView>(null);
 
+    const setupWebSocket = async () => {
+        try {
+            const accessToken = await getKeychain('accessToken');
+
+            WebSocketManager.connect(chatRoomId, accessToken, (message: IMessage) => {
+                console.log('Received message: ' + message.body);
+                try {
+                    const parsedMessage = JSON.parse(message.body);
+                    if ((parsedMessage.type === 'CHAT'||parsedMessage.type==='FRIEND_REQUEST' )
+                        && parsedMessage.content && parsedMessage.senderId !== 0)
+                    {
+                        parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
+                        setMessages((prevMessages) => [...prevMessages, parsedMessage]);
+                        scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
+                    } else {
+                        //여기에 상태 메세지 받아서 처리하는 로직 추가
+                    }
+                } catch (error) {
+                    console.error('Failed to parse received message:', error);
+                }
+            });
+        } catch (error) {
+            console.error('Failed to set up WebSocket:', error);
+        }
+    };
+
     // Get out of screen -> disconnect
     useEffect(() => {
         const handleAppStateChange = (nextAppState: AppStateStatus) => {
             if (nextAppState === 'background' || nextAppState === 'inactive') {
                 WebSocketManager.disconnect();
                 // 여기서 timestamp 저장해야할듯
+            } else {
+                setupWebSocket();
             }
         };
         const subscription = AppState.addEventListener('change', handleAppStateChange);
@@ -94,33 +122,6 @@ const ChattingScreen = () => {
             };
 
             fetchMessages();
-
-            const setupWebSocket = async () => {
-                try {
-                    const accessToken = await getKeychain('accessToken');
-
-                    WebSocketManager.connect(chatRoomId, accessToken, (message: IMessage) => {
-                        console.log('Received message: ' + message.body);
-                        try {
-                            const parsedMessage = JSON.parse(message.body);
-                            if ((parsedMessage.type === 'CHAT'||parsedMessage.type==='FRIEND_REQUEST' )
-                                && parsedMessage.content && parsedMessage.senderId !== 0)
-                            {
-                                parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
-                                setMessages((prevMessages) => [...prevMessages, parsedMessage]);
-                                scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
-                            } else {
-                                //여기에 상태 메세지 받아서 처리하는 로직 추가
-                            }
-                        } catch (error) {
-                            console.error('Failed to parse received message:', error);
-                        }
-                    });
-                } catch (error) {
-                    console.error('Failed to set up WebSocket:', error);
-                }
-            };
-
             setupWebSocket();
 
             return () => {
