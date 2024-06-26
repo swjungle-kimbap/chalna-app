@@ -3703,7 +3703,7 @@ __metadata:
     react-native: 0.74.1
     react-native-background-actions: ^4.0.0
     react-native-background-timer: ^2.4.1
-    react-native-ble-advertiser-advanced: ^1.0.0
+    react-native-ble-advertiser: ^0.0.17
     react-native-bluetooth-client: ^0.1.12
     react-native-config: ^1.5.2
     react-native-geolocation-service: ^5.3.1
@@ -9217,12 +9217,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-ble-advertiser-advanced@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "react-native-ble-advertiser-advanced@npm:1.0.0"
+"react-native-ble-advertiser@npm:^0.0.17":
+  version: 0.0.17
+  resolution: "react-native-ble-advertiser@npm:0.0.17"
   peerDependencies:
     react-native: ">=0.50"
-  checksum: dfd244adc0ba5a061934ce88f9064665c52be1081377831a7303525c881d768708dfcebeb521691f630d0e779ae343a8debdc7fec0b26e02a700ff25d900c116
+  checksum: 004008f405d46cb33f6316bdda3cb2c2d34f353217196378dd1973077aa411cbdfdd5c9c847f6830ce4f738d29a790d97c36211d0e2188b4c44de4717a114c5e
   languageName: node
   linkType: hard
 

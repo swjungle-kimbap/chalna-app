@@ -1,5 +1,5 @@
 import { EmitterSubscription, NativeEventEmitter, NativeModules } from 'react-native';
-import BLEAdvertiser from 'react-native-ble-advertiser-advanced';
+import BLEAdvertiser from 'react-native-ble-advertiser';
 import { axiosPost } from '../axios/axios.method';
 import Config from 'react-native-config';
 import { getAsyncObject, getAsyncString, setAsyncObject } from '../utils/asyncStorage';
@@ -7,7 +7,7 @@ import { SendMsgRequest } from '../interfaces';
 
 const APPLE_ID = 0x4c;
 const MANUF_DATA = [1, 0];
-const DelayedMSGTime = 60;
+const DelayedMSGTime = 60000;
 
 BLEAdvertiser.setCompanyId(APPLE_ID);
 
