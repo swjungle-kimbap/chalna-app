@@ -4,7 +4,7 @@ import ChatRoomCard from '../../components/Chat/ChatRoomCard';
 import { axiosGet } from "../../axios/axios.method";
 import { useFocusEffect } from '@react-navigation/native';
 import CustomHeader from "../../components/common/CustomHeader";
-import {sendFriendRequest} from "../../service/Chatting/chattingScreenAPI";
+import {sendFriendRequest} from "../../service/Chatting/chattingAPI";
 import {useRecoilValue} from "recoil";
 import {LoginResponse} from "../../interfaces";
 import {userInfoState} from "../../recoil/atoms";

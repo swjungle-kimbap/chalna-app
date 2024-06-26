@@ -50,7 +50,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
                         } catch (error) {
                             // console.log(response)
                             // console.error('Failed to accept friend request:', error);
-                            Alert.alert('Error', 'Failed to accept friend request.');
+                            Alert.alert('Error', error);
                         }
                     }
                 }
@@ -84,7 +84,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
                         } catch (error) {
                             // console.error('Failed to reject friend request:', error);
                             // 리턴코드에 따라 수정
-                            Alert.alert('전송 실패', 'Failed to reject friend request.');
+                            Alert.alert('전송 실패', error);
                         }
                     }
                 }
