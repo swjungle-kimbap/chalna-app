@@ -34,10 +34,10 @@ const ChattingScreen = () => {
     const [username, setUsername] = useState<string>('');
 
 
-
     const otherIdRef = useRef<number | null>(null);
     const friendNameRef = useRef<string>('');
-    // const chatRoomTypeRef = useRef<string>('');
+    const anonNameRef = useRef<string>('');
+    const chatRoomTypeRef = useRef<string>('');
 
     // auto scroll
     const scrollViewRef = useRef<ScrollView>(null);
@@ -122,7 +122,7 @@ const ChattingScreen = () => {
 
                     // Extract chatRoomType
                     setChatRoomType(responseData.type);
-                    // chatRoomTypeRef.current=responseData.type;
+                    chatRoomTypeRef.current=responseData.type;
                     console.log('set chatroomto: ',responseData.type);
 
                     // Extract other member info
@@ -130,8 +130,11 @@ const ChattingScreen = () => {
                     if (otherMember) {
                         otherIdRef.current = otherMember.memberId;
                         friendNameRef.current = otherMember.username;
-                        setUsername(chatRoomType==='FRIEND'? otherMember.username : `익명${otherMember.memberId}`);
+                        anonNameRef.current = `익명${otherMember.memberId}`;
+                        console.log( 'friendName', friendNameRef.current);
+                        setUsername(chatRoomTypeRef.current==='FRIEND'? friendNameRef.current : anonNameRef.current  );
                         console.log('채팅방 타입: 유저네임',chatRoomType, ' : ', username)
+
                     }
                     // Extract messages
                     const fetchedMessages = response.data.data.list.map((msg: any) => ({
