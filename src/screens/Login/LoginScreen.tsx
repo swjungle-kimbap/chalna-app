@@ -80,9 +80,11 @@ const LoginScreen: React.FC = () => {
         const lastLocation: Position | null = await getAsyncObject<Position>('lastLocation');
         if (lastLocation) setLocation(lastLocation);
 
-        await initializeFCMToken();
-        await initializeDeviceUUID();
-        await getLoginToken();
+        Promise.all([
+          initializeFCMToken(),
+          initializeDeviceUUID(),
+          getLoginToken()
+        ])
         if (loginTokenRef.current && deviceUUIDRef.current && fcmTokenRef.current) {
           const loginResponse = await logIn(loginTokenRef.current, deviceUUIDRef.current, fcmTokenRef.current);
           if (loginResponse) {

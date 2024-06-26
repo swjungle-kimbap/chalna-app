@@ -7,7 +7,7 @@ import { SendMsgRequest } from '../interfaces';
 
 const APPLE_ID = 0x4c;
 const MANUF_DATA = [1, 0];
-const DelayedMSGTime = 100000;
+const DelayedMSGTime = 10000;
 
 BLEAdvertiser.setCompanyId(APPLE_ID);
 
