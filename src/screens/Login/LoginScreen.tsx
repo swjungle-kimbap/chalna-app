@@ -125,7 +125,6 @@ const LoginScreen: React.FC = () => {
       {isLoading ? (
         <>
           <View style={styles.loadingConatiner}>
-            <Text variant="title">반갑티비</Text>
             <ActivityIndicator size="large" color="#0000ff" />
           </View>
         </>

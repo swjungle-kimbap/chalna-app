@@ -25,21 +25,25 @@ const sendRelationCnt = async (_uuid:string) => {
   await axiosPost(Config.SET_RELATION_CNT_URL + _uuid, "만난 횟수 증가")
 }
 
-export const addDevice = (_uuid: string, _date: number) => {
+const addDevice = async (_uuid: string, _date: number) => {
   const currentTime = new Date(_date).getTime();
   getAsyncObject<number>(`${_uuid}`).then((lastMeetTime) => {
     if (!lastMeetTime) {
       console.log(`Added device: ${_uuid}`);
-      setAsyncObject<number>(`${_uuid}`, currentTime);
-      sendRelationCnt(_uuid);
-      sendMsg(_uuid);
+      Promise.all([
+        setAsyncObject<number>(`${_uuid}`, currentTime),
+        sendRelationCnt(_uuid),
+        sendMsg(_uuid)
+      ])
     } else {
       console.log(`Updated device: ${_uuid}`); 
       if (new Date(lastMeetTime).getTime() + DelayedMSGTime < currentTime) {
         console.log(`Sending msg: ${_uuid}`); 
-        setAsyncObject<number>(`${_uuid}`, currentTime);
-        sendRelationCnt(_uuid);
-        sendMsg(_uuid);
+        Promise.all([
+          setAsyncObject<number>(`${_uuid}`, currentTime),
+          sendRelationCnt(_uuid),
+          sendMsg(_uuid)
+        ])
       }
     }
   });
@@ -52,13 +56,13 @@ const ScanNearbyAndPost = async (
 ): Promise<EmitterSubscription> => {
   const { BLEAdvertiser } = NativeModules;
   const eventEmitter = new NativeEventEmitter(BLEAdvertiser);
-  const onDeviceFound = eventEmitter.addListener('onDeviceFound', (event) => {
+  const onDeviceFound = eventEmitter.addListener('onDeviceFound', async (event) => {
     if (event.serviceUuids) {
       for (let i = 0; i < event.serviceUuids.length; i++) {
         if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00')) {
           if (setIsNearby)
             setIsNearby();
-          addDevice(event.serviceUuids[i], new Date().getTime());
+          await addDevice(event.serviceUuids[i], new Date().getTime());
         }
       }
     }
