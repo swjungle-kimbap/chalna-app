@@ -10,7 +10,7 @@ import axiosInstance from '../../axios/axios.instance'; // Adjust the path as ne
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
 import Modal from 'react-native-modal';
 import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
-import { sendFriendRequest, deleteChat } from "../../service/Chatting/chattingScreenAPI";
+import { sendFriendRequest, deleteChat } from "../../service/Chatting/chattingAPI";
 import 'text-encoding-polyfill';
 import CustomHeader from "../../components/common/CustomHeader";
 import MenuModal from "../../components/common/MenuModal";
@@ -30,9 +30,8 @@ const ChattingScreen = () => {
     const [messages, setMessages] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+    const [chatRoomType, setChatRoomType] = useState<string>('');
 
-    // chat room info
-    const chatRoomTypeRef = useRef<string>('');
     const otherIdRef = useRef<number | null>(null);
     const otherUsernameRef = useRef<string>('');
 
@@ -53,8 +52,17 @@ const ChattingScreen = () => {
                         parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
                         setMessages((prevMessages) => [...prevMessages, parsedMessage]);
                         scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
+
+                        // 상태메세지 바꾸기
+                        if (parsedMessage.type==='FRIEND_REQUEST' && parsedMessage.content==='친구가 되었습니다! 대화를 이어가보세요.'){
+                            setChatRoomType('FRIEND')
+                        }
+
                     } else {
                         //여기에 상태 메세지 받아서 처리하는 로직 추가
+                        if (parsedMessage.content==='5분이 지났습니다' && parsedMessage.senderId===0 ){
+                            setChatRoomType('WAITING')
+                        }
                     }
                 } catch (error) {
                     console.error('Failed to parse received message:', error);
@@ -98,15 +106,14 @@ const ChattingScreen = () => {
                     const responseData = response.data.data;
 
                     // Extract chatRoomType
-                    chatRoomTypeRef.current = responseData.type;
+                    setChatRoomType(responseData.type);
 
                     // Extract other member info
                     const otherMember = responseData.members.find((member: any) => member.memberId !== currentUserId);
                     if (otherMember) {
                         otherIdRef.current = otherMember.memberId;
-                        otherUsernameRef.current = otherMember.username;
+                        otherUsernameRef.current = chatRoomType==='FRIEND'? otherMember.username : `익명${otherMember.memberId}`;
                     }
-
                     // Extract messages
                     const fetchedMessages = response.data.data.list.map((msg: any) => ({
                         ...msg,
@@ -121,8 +128,8 @@ const ChattingScreen = () => {
                 }
             };
 
-            fetchMessages();
-            setupWebSocket();
+            fetchMessages(); // 첫 입장시 메세지 로드
+            setupWebSocket(); // 소켓통신 열기
 
             return () => {
                 const leaveTimestamp = new Date().toISOString();
@@ -133,7 +140,7 @@ const ChattingScreen = () => {
     );
 
     const sendMessage = () => {
-        if (chatRoomTypeRef.current === 'WAITING'){
+        if (chatRoomType=== 'WAITING'){
             return;
         }
         const messageObject = {
@@ -171,7 +178,7 @@ const ChattingScreen = () => {
                 title={otherUsernameRef.current}
                 onBackPress={()=>navigation.navigate("채팅 목록")} //채팅 목록으로 돌아가기
                 onBtnPress={()=>sendFriendRequest(chatRoomId, otherIdRef.current)} //친구요청 보내기
-                showBtn={chatRoomTypeRef.current!=='FRIEND'} //친구상태 아닐때만 노출
+                showBtn={chatRoomType!=='FRIEND'} //친구상태 아닐때만 노출
                 onMenuPress={toggleModal}
                 useNav={true}
                 useMenu={true}
@@ -192,27 +199,29 @@ const ChattingScreen = () => {
                             status={msg.status}
                             chatRoomId={chatRoomId}
                             otherId={otherIdRef.current}
-                            chatRoomType={chatRoomTypeRef.current}
+                            chatRoomType={chatRoomType}
                         />
                     ))}
                 </ScrollView>
-                <View style={styles.inputContainer}>
+                <View style={chatRoomType !== 'WAITING' ? styles.inputContainer : styles.disabledInput}>
                     <TextInput
                         style={styles.input}
                         value={messageContent}
                         onChangeText={setMessageContent}
-                        placeholder="Type a message"
+                        placeholder={chatRoomType === 'WAITING' ? '5분이 지났습니다.\n' +
+                            '대화를 이어가려면 친구요청을 보내보세요.' : ''}
                         multiline
                         textBreakStrategy="highQuality"
-                        editable={chatRoomTypeRef.current !== 'WAITING'}
+                        editable={chatRoomType !== 'WAITING'}
                     />
-                    <ImageTextButton
-                        onPress={sendMessage}
-                        iconSource={require('../../assets/Icons/sendMsgIcon.png')}
-                        disabled={chatRoomTypeRef.current==='WAITING' || messageContent===''}
-                        imageStyle={{height:15, width:15}}
-                        containerStyle={{paddingRight:15}}
-                    />
+                    {chatRoomType!=='WAITING' && (
+                        <ImageTextButton
+                            onPress={sendMessage}
+                            iconSource={require('../../assets/Icons/sendMsgIcon.png')}
+                            disabled={chatRoomType==='WAITING' || messageContent===''}
+                            imageStyle={{height:15, width:15}}
+                            containerStyle={{paddingRight:15}}
+                    />)}
                 </View>
                 <MenuModal
                     isVisible = {isModalVisible}
@@ -297,6 +306,13 @@ const styles = StyleSheet.create({
         width: 30,
         height: 30,
         resizeMode: 'contain',
+    },
+    disabledInput: {
+        flex: 1,
+        padding: 10,
+        marginLeft: 10,
+        backgroundColor: '#f0f0f0', // greyed-out background color
+        color: '#a9a9a9', // greyed-out text color
     },
 });
 
