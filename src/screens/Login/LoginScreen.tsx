@@ -17,6 +17,8 @@ import requestPermissions from "../../utils/requestPermissions";
 import { PERMISSIONS } from "react-native-permissions";
 import messaging from '@react-native-firebase/messaging';
 import uuid from 'react-native-uuid'
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['new NativeEventEmitter']); 
 
 const LoginScreen: React.FC = () => {
   const setLocation = useSetRecoilState(locationState);

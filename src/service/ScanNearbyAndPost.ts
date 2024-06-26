@@ -2,12 +2,11 @@ import { EmitterSubscription, NativeEventEmitter, NativeModules } from 'react-na
 import BLEAdvertiser from 'react-native-ble-advertiser-advanced';
 import { axiosPost } from '../axios/axios.method';
 import Config from 'react-native-config';
-import { getAsyncObject, getAsyncString, setAsyncObject, setAsyncString } from '../utils/asyncStorage';
+import { getAsyncObject, getAsyncString, setAsyncObject } from '../utils/asyncStorage';
 import { SendMsgRequest } from '../interfaces';
 
 const APPLE_ID = 0x4c;
 const MANUF_DATA = [1, 0];
-const DelayedCntTime = 3 * 60 * 60 * 1000;
 const DelayedMSGTime = 60;
 
 BLEAdvertiser.setCompanyId(APPLE_ID);
@@ -39,7 +38,7 @@ export const addDevice = (_uuid: string, _date: number) => {
       sendRelationCnt(_uuid);
       sendMsg(_uuid);
     } else {
-      const checkDelayedCntTime = new Date().getTime() - DelayedCntTime;
+      const checkDelayedCntTime = new Date().getTime() - DelayedMSGTime;
       console.log(`Updated device: ${_uuid}`); 
       if (lastMeetTime < checkDelayedCntTime) {
         setAsyncObject<number>(`${_uuid}`, _date);

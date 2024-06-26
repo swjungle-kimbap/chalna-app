@@ -78,7 +78,7 @@ const MessageBox: React.FC = ()  => {
           ...prevNearInfo,
           isNearby: false
         }));
-      }, 1000);
+      }, 2000);
     }
   };
   

@@ -37,7 +37,6 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
   useEffect(() => {
     const startPolling = () => {
       intervalId.current = BackgroundTimer.setInterval(async () => {
-        console.log('Im polling');
         try {
           const response = await axiosGet<AlarmListResponse>(
             Config.GET_MSG_LIST_URL); // Adjust as necessary
@@ -49,7 +48,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
         } catch (error) {
           console.error('Error fetching alarm data:', error);
         }
-      }, 3000); // 3초마다 데이터 가져오기
+      }, 10000); 
     };
 
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
@@ -81,10 +80,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
         intervalId.current = null;
       }
     }
-
   }, [isFocused]);
-
-
 
   const removeAlarmItem = (notificationId:number, DeleteAll = false) => {
     if (DeleteAll) {

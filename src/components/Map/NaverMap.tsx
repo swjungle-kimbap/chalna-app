@@ -1,8 +1,8 @@
-import { NaverMapView, NaverMapMarkerOverlay, NaverMapCircleOverlay } from "@mj-studio/react-native-naver-map";
+import { NaverMapView, NaverMapMarkerOverlay, NaverMapCircleOverlay, NaverMapViewRef } from "@mj-studio/react-native-naver-map";
 import { isNearbyState, locationState, showMsgBoxState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useState, useEffect, useRef } from "react";
-import { TestResponse, Position, LocationData } from '../../interfaces';
+import { TestResponse, Position, LocationData, AxiosResponse } from '../../interfaces';
 import Geolocation from "react-native-geolocation-service";
 import { axiosPost } from "../../axios/axios.method";
 import Config from 'react-native-config';
@@ -17,6 +17,7 @@ import { IsNearbyState } from "../../recoil/atomtypes";
 export const NaverMap: React.FC = ({}) => {
   const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
   const [nearbyInfo, setNearbyInfo] = useRecoilState<IsNearbyState>(isNearbyState);
+  const mapViewRef = useRef<NaverMapViewRef>(null); 
   const [fetchedData, setfetchedData] = useState<TestResponse>([]);
   const [granted, setGranted] = useState<boolean>(false);
   const currentLocation = useRecoilValue<Position>(locationState);
@@ -41,6 +42,10 @@ export const NaverMap: React.FC = ({}) => {
   }
 
   useEffect(() => {
+    if (mapViewRef.current) {
+      mapViewRef.current.setLocationTrackingMode("Face"); 
+    }
+
     let watchId:number;
     requestPermissionAndBluetooth().then(() => {
       if (granted) {
@@ -76,6 +81,38 @@ export const NaverMap: React.FC = ({}) => {
     // fetchData();
   }, [currentLocation])
 
+  const localChatTapHandler = (name:string, description:string, chatRoomId:number) => {
+    () => Alert.alert(name, description, 
+      [
+        {
+          text: '채팅 참가',
+          onPress: async () => {
+            try {
+              const response = await axiosPost<AxiosResponse<string>>(Config.JOIN_LOCAL_CHAT_URL + chatRoomId, "장소 채팅 참여");
+              if (response.data.code === "200") {
+                navigate("로그인 성공", {
+                  screen: "채팅목록",
+                  params: {
+                    screen: "채팅",
+                    params: { chatRoomId } // 필요시 채팅방 ID를 전달합니다.
+                  }
+                })
+              } else {
+                console.error("장소 채팅 참여 실패:", response.data.message);
+              }
+            } catch (e) {
+              console.error("장소 채팅 참여 중 오류 발생:", e);
+            };
+          },
+          style: 'default'
+        },
+      ],
+      {
+        cancelable: true,
+      },
+    )
+  };
+
 
   return (
   <NaverMapView 
@@ -87,7 +124,9 @@ export const NaverMap: React.FC = ({}) => {
     onTapMap={()=>{
       if (showMsgBox)
         setShowMsgBox(false)
-    }}>
+    }}
+    ref={mapViewRef}
+    >
       <NaverMapMarkerOverlay
         latitude={currentLocation.latitude}
         longitude={currentLocation.longitude}
@@ -99,6 +138,14 @@ export const NaverMap: React.FC = ({}) => {
         image={{symbol:(nearbyInfo.isNearby ? "green" : "red") }}
         width={20}
         height={30}
+      />
+      <NaverMapMarkerOverlay
+        latitude={currentLocation.latitude+0.0001}
+        longitude={currentLocation.longitude+0.0001}
+        onTap={localChatTapHandler("1","1",1)}
+        image={require('../../assets/Icons/LocalchatIcon.png')}
+        width={40}
+        height={40}
       />
       <NaverMapCircleOverlay
         latitude={currentLocation.latitude}
