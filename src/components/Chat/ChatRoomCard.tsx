@@ -33,7 +33,7 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ lastMsg, lastUpdate, userna
                 />
                 <View style={styles.content}>
                     <View style={styles.header}>
-                        <Text style={[styles.usernames, chatRoomType === 'FRIEND' && styles.friendUsername]}>{usernames}</Text>
+                        <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}>{usernames}</Text>
                         {unReadMsg ? (
                             <View style={styles.unreadBadge}>
                                 <Text style={styles.unreadText}>{unReadMsg}</Text>
@@ -49,7 +49,8 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ lastMsg, lastUpdate, userna
             </View>
         </TouchableOpacity>
     );
-};
+}
+
 
 const styles = StyleSheet.create({
     card: {
@@ -65,13 +66,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     matchCard: {
-        // borderColor: '#e0f7fa', // Example color for MATCH type
+        borderColor: '#ffffff', // Example color for MATCH type
     },
     friendCard: {
         backgroundColor:'#ffffff'
     },
     waitCard: {
-        backgroundColor:'#fefefe'
+        backgroundColor:'#ececec'
     },
     header: {
         flexDirection: 'row',
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
         marginBottom: 5,
         flex: 1, // Ensure the username takes up available space
     },
-    friendUsername: {
+    matchUsername: {
         color: 'green',
     },
     lastMsg: {
@@ -110,7 +111,7 @@ const styles = StyleSheet.create({
         color: '#999',
     },
     unreadBadge: {
-        backgroundColor: 'red',
+        backgroundColor: 'green',
         borderRadius: 10,
         paddingHorizontal: 8,
         paddingVertical: 2,
@@ -123,8 +124,8 @@ const styles = StyleSheet.create({
         marginTop:3,
         marginRight:5,
         marginLeft:5,
-        width: 40,
-        height: 40,
+        width: 45,
+        height: 45,
     },
 });
 
