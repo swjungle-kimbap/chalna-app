@@ -13,13 +13,7 @@ export default function App() {
       const { screen, screenId } = event;
       if (screen === "채팅") {
         console.log('Joo Received screen value in App:', screen, screenId);
-        navigate("로그인 성공", {
-          screen: "채팅목록",
-          params: {
-            screen: "채팅",
-            params: { chatRoomId: screenId } // 필요시 채팅방 ID를 전달합니다.
-          }
-        });
+        navigate("채팅", { chatRoomId: screenId });
       } else {
         console.log('Screen value is null or undefined');
         navigate("로그인 성공", {

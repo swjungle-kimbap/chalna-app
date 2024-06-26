@@ -3,14 +3,14 @@ import BottomTabs from '../navigation/BottomTabs';
 import { NavigationContainer } from '@react-navigation/native';
 import LoginScreen from './Login/LoginScreen';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
-import { linking } from '../service/handleFCM';
+import ChattingScreen from './Chatting/ChattingScreen';
 
 const MainScreen : React.FC = () => {
   const LogInStack = createBottomTabNavigator();
   return (
     <NavigationContainer ref={navigationRef} onReady={()=> {
       isReadyRef.current = true; 
-    }} linking = {linking}>
+    }}>
       <LogInStack.Navigator
         initialRouteName='로그인'
         screenOptions={{
@@ -20,6 +20,8 @@ const MainScreen : React.FC = () => {
       > 
         <LogInStack.Screen name="로그인" component={LoginScreen}/>
         <LogInStack.Screen name="로그인 성공" component={BottomTabs}/>
+        <LogInStack.Screen name='채팅' component={ChattingScreen} options={{headerShown: false }}/>
+        
       </LogInStack.Navigator>
     </NavigationContainer>
   );

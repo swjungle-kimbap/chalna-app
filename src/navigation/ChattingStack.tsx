@@ -28,7 +28,6 @@ const ChattingStackScreen = ({ navigation, route }) => {
     return (
         <ChattingStack.Navigator initialRouteName="채팅 목록">
             <ChattingStack.Screen name='채팅 목록' component={ChattingListScreen} options={{headerShown: false }}/>
-            <ChattingStack.Screen name='채팅' component={ChattingScreen} options={{headerShown: false }}/>
         </ChattingStack.Navigator>
     );
 }

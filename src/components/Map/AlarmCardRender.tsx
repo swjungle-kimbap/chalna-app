@@ -2,10 +2,10 @@ import { AlarmItem, MatchAcceptResponse } from '../../interfaces';
 import Button from '../common/Button'
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import FontTheme from '../../styles/FontTheme';
-import { navigate } from '../../navigation/RootNavigation';
 import { axiosPost, axiosPut } from '../../axios/axios.method';
 import Config from 'react-native-config';
 import { AxiosResponse } from 'axios';
+import { navigate } from '../../navigation/RootNavigation';
 
 export interface AlaramItemProps{
   item: AlarmItem;
@@ -21,13 +21,7 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
     removeAlarmItem(notificationId);
     const matchAcceptResponse = await axiosPost<AxiosResponse<MatchAcceptResponse>>
                               (Config.ACCEPT_MSG_URL + notificationId.toString(), "인연 수락");
-    navigate("로그인 성공", {
-      screen: "채팅목록",
-      params: {
-        screen: "채팅",
-        params: { chatRoomId: matchAcceptResponse.data.data.chatRoomId } // 필요시 채팅방 ID를 전달합니다.
-      }
-    });
+    navigate("채팅", { chatRoomId: matchAcceptResponse.data.data.chatRoomId });
   }
 
   const handleDeleteButton = async (notificationId:number) => {
