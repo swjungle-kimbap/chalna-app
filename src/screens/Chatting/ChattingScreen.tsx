@@ -15,6 +15,7 @@ import 'text-encoding-polyfill';
 import CustomHeader from "../../components/common/CustomHeader";
 import MenuModal from "../../components/common/MenuModal";
 import ImageTextButton from "../../components/common/Button";
+import { navigate } from '../../navigation/RootNavigation';
 import {SafeAreaView} from "react-native-safe-area-context";
 import { Keyboard } from 'react-native';
 
@@ -225,11 +226,16 @@ const ChattingScreen = () => {
 
     return (
         <SWRConfig value={{}}>
-
-
                 <CustomHeader
                     title={username}
-                    onBackPress={()=>navigation.navigate("채팅 목록")} //채팅 목록으로 돌아가기
+                    onBackPress={()=>{
+                    navigate("로그인 성공", {
+                        screen: "채팅목록",
+                        params: {
+                          screen: "채팅 목록",
+                        }
+                      });
+                }} //채팅 목록으로 돌아가기
                     onBtnPress={()=>sendFriendRequest(chatRoomId, otherIdRef.current)} //친구요청 보내기
                     showBtn={chatRoomType!=='FRIEND'} //친구상태 아닐때만 노출
                     onMenuPress={toggleModal}

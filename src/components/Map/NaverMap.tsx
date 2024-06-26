@@ -91,13 +91,7 @@ export const NaverMap: React.FC = ({}) => {
             // try {
             //   const response = await axiosPost<AxiosResponse<string>>(Config.JOIN_LOCAL_CHAT_URL + chatRoomId, "장소 채팅 참여");
             //   if (response.data.code === "200") {
-            //     navigate("로그인 성공", {
-            //       screen: "채팅목록",
-            //       params: {
-            //         screen: "채팅",
-            //         params: { chatRoomId } // 필요시 채팅방 ID를 전달합니다.
-            //       }
-            //     })
+            //     navigate("채팅", { chatRoomId: response.data.data.chatRoomId });
             //   } else {
             //     console.error("장소 채팅 참여 실패:", response.data.message);
             //   }

@@ -43,14 +43,7 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
             console.log(response.data);
             if (response.data && response.data.data && response.data.data.chatRoomId) {
                 const { chatRoomId } = response.data.data;
-
-                navigation.navigate("로그인 성공", {
-                    screen: "채팅목록",
-                    params: {
-                      screen: "채팅",
-                      params: { chatRoomId: chatRoomId } // 필요시 채팅방 ID를 전달
-                    }
-                  });
+                navigation.navigate("채팅", { chatRoomId: chatRoomId });
             } else {
                 Alert.alert('Error', 'chatroomId를 찾을 수 없습니다.');
             }

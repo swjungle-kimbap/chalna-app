@@ -40,7 +40,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
     if (response) {
       const fetchedData = response.data; // Adjust as necessary
       setAlarms(fetchedData.data);
-      setAlarmCnt(fetchedData.data.length);
+      setAlarmCnt(fetchedData.data?.length);
     }
   }
 
