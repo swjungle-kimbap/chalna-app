@@ -86,7 +86,6 @@ export const NaverMap: React.FC = ({}) => {
     latitude : currentLocation.latitude,
     longitude : currentLocation.longitude,
     zoom:18}}
-    mapPadding={{ bottom: 20 }}
     onTapMap={()=>{
       if (showMsgBox)
         setShowMsgBox(false)

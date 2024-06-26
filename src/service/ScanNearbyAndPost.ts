@@ -68,8 +68,6 @@ const ScanNearbyAndPost = async (
 ): Promise<EmitterSubscription> => {
   const { BLEAdvertiser } = NativeModules;
   const eventEmitter = new NativeEventEmitter(BLEAdvertiser);
-  console.log("NativeModules:", NativeModules.BLEAdvertiser);
-  console.log("eventEmitter:", eventEmitter.addListener);
   const onDeviceFound = eventEmitter.addListener('onDeviceFound', (event) => {
     if (event.serviceUuids) {
       for (let i = 0; i < event.serviceUuids.length; i++) {

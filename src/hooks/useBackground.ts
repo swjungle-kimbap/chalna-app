@@ -21,7 +21,7 @@ const useBackground = () => {
         const checkIsScanning = async () => {
           const isScaaningString = await getAsyncString('isScanning');
           if (isScaaningString === 'true') {
-            await ScanNearbyStop();
+            //await ScanNearbyStop();
             console.log('Scanning is continued in background!');
             await startBackgroundService(); 
           }

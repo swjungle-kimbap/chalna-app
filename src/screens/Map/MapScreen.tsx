@@ -2,7 +2,6 @@ import { NaverMap } from "../../components/Map/NaverMap";
 import AlarmButton from "../../components/Map/AlarmButton";
 import ScanButtons from "../../components/Map/ScanButtons";
 
-
 interface MapPrams {
   route: {
     params?: {

@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   msgcontainer: {
     position: 'absolute',
     width: '95%',
-    bottom: 65, 
+    bottom: 10, 
     right: 5,
     zIndex: 2,
   },
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '75%',
     position: 'absolute',
-    bottom: 65, 
+    bottom: 10, 
     right: 10,
     zIndex: 2,
     borderTopWidth: 2,

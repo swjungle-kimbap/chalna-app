@@ -123,7 +123,7 @@ const ScanButtons = () => {
         setIsScanning(false);
       } 
     } else {
-      await stopScan();
+      //await stopScan();
       if (isSendingMsg) {
         await setAsyncString('isSendingMsg', 'false');
         setIsSendingMsg(false);   

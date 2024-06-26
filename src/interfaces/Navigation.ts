@@ -6,3 +6,5 @@ export type RootStackParamList = {
   '로그인 성공': undefined;
   'Details': { itemId: number; otherParam: string };
 };
+
+
