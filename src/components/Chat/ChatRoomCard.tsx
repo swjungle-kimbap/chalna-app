@@ -87,6 +87,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         marginBottom: 5,
+        color: '#5A5A5A',
         flex: 1, // Ensure the username takes up available space
     },
     matchUsername: {

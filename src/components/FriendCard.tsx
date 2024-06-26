@@ -35,13 +35,13 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
 
     const handleChat = async () => {
         try {
-    
+
             const response = await axiosGet<ApiResponse>(`${Config.GET_FRIEND_LIST_URL}/${user.id}`);
 
             console.log(response.data);
             if (response.data && response.data.data && response.data.data.chatRoomId) {
                 const { chatRoomId } = response.data.data;
-    
+
                 navigation.navigate("로그인 성공", {
                     screen: "채팅목록",
                     params: {
@@ -114,6 +114,7 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 18,
         fontWeight: 'bold',
+        color: '#5A5A5A',
         marginBottom: 5,
     },
     statusMessage: {
