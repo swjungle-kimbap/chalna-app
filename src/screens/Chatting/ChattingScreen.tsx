@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, TextInput, Button as RNButton, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, AppState, AppStateStatus, Alert, Image } from 'react-native';
+import { View, Text, TextInput, Button as RNButton, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, AppState, AppStateStatus, Alert, Image, KeyboardAvoidingView } from 'react-native';
 import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRecoilValue } from "recoil";
 import { userInfoState } from "../../recoil/atoms";
@@ -15,6 +15,8 @@ import 'text-encoding-polyfill';
 import CustomHeader from "../../components/common/CustomHeader";
 import MenuModal from "../../components/common/MenuModal";
 import ImageTextButton from "../../components/common/Button";
+import {SafeAreaView} from "react-native-safe-area-context";
+import { Keyboard } from 'react-native';
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -38,9 +40,6 @@ const ChattingScreen = () => {
     const friendNameRef = useRef<string>('');
     const anonNameRef = useRef<string>('');
     const chatRoomTypeRef = useRef<string>('');
-
-    // auto scroll
-    const scrollViewRef = useRef<ScrollView>(null);
 
     const setupWebSocket = async () => {
         try {
@@ -88,6 +87,9 @@ const ChattingScreen = () => {
         }
     };
 
+    // auto scroll
+    const scrollViewRef = useRef<ScrollView>(null);
+
     // Get out of screen -> disconnect
     useEffect(() => {
         const handleAppStateChange = (nextAppState: AppStateStatus) => {
@@ -103,6 +105,33 @@ const ChattingScreen = () => {
             subscription.remove();
         };
     }, []);
+
+    // keyboard aware scroll
+    useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener(
+            'keyboardDidShow',
+            (e) => handleKeyboardDidShow(e)
+        );
+        const keyboardDidHideListener = Keyboard.addListener(
+            'keyboardDidHide',
+            handleKeyboardDidHide
+        );
+
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        };
+    }, []);
+
+    const handleKeyboardDidShow = (e) => {
+        const keyboardHeight = e.endCoordinates.height;
+        scrollViewRef.current.scrollToEnd({ animated: true });
+        // Optionally use keyboardHeight to adjust scroll position
+    };
+
+    const handleKeyboardDidHide = () => {
+        scrollViewRef.current.scrollToEnd({ animated: true });
+    };
 
     // Leaving TimeStamp: SWR Config 제외하고 테스트 / 여기서 focus effect로 감싸는 의미가..?
     useFocusEffect(
@@ -196,63 +225,66 @@ const ChattingScreen = () => {
 
     return (
         <SWRConfig value={{}}>
-            <CustomHeader
-                title={username}
-                onBackPress={()=>navigation.navigate("채팅 목록")} //채팅 목록으로 돌아가기
-                onBtnPress={()=>sendFriendRequest(chatRoomId, otherIdRef.current)} //친구요청 보내기
-                showBtn={chatRoomType!=='FRIEND'} //친구상태 아닐때만 노출
-                onMenuPress={toggleModal}
-                useNav={true}
-                useMenu={true}
-            />
-            <View style={styles.container}>
-                <ScrollView
-                    contentContainerStyle={styles.scrollView}
-                    ref={scrollViewRef}
-                    onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })} // Auto-scroll to the bottom on content change
-                >
-                    {messages.map((msg, index) => (
-                        <MessageBubble
-                            key={index}
-                            message={msg.content}
-                            datetime={msg.createdAt}
-                            isSelf={msg.isSelf}
-                            type={msg.type}
-                            status={msg.status}
-                            chatRoomId={chatRoomId}
-                            otherId={otherIdRef.current}
-                            chatRoomType={chatRoomType}
-                        />
-                    ))}
-                </ScrollView>
-                <View style={chatRoomType !== 'WAITING' ? styles.inputContainer : styles.disabledInput}>
-                    <TextInput
-                        style={styles.input}
-                        value={messageContent}
-                        onChangeText={setMessageContent}
-                        placeholder={chatRoomType === 'WAITING' ? '5분이 지났습니다.\n' +
-                            '대화를 이어가려면 친구요청을 보내보세요.' : ''}
-                        multiline
-                        textBreakStrategy="highQuality"
-                        editable={chatRoomType !== 'WAITING'}
-                    />
-                    {chatRoomType!=='WAITING' && (
-                        <ImageTextButton
-                            onPress={sendMessage}
-                            iconSource={require('../../assets/Icons/sendMsgIcon.png')}
-                            disabled={chatRoomType==='WAITING' || messageContent===''}
-                            imageStyle={{height:15, width:15}}
-                            containerStyle={{paddingRight:15}}
-                    />)}
-                </View>
-                <MenuModal
-                    isVisible = {isModalVisible}
-                    onClose={toggleModal}
-                    menu1={'채팅방 나가기'}
-                    onMenu1={()=>deleteChat(navigation, chatRoomId)}
-                    />
 
-            </View>
+
+                <CustomHeader
+                    title={username}
+                    onBackPress={()=>navigation.navigate("채팅 목록")} //채팅 목록으로 돌아가기
+                    onBtnPress={()=>sendFriendRequest(chatRoomId, otherIdRef.current)} //친구요청 보내기
+                    showBtn={chatRoomType!=='FRIEND'} //친구상태 아닐때만 노출
+                    onMenuPress={toggleModal}
+                    useNav={true}
+                    useMenu={true}
+                />
+
+                    <View style={styles.container}>
+                        <ScrollView
+                            contentContainerStyle={styles.scrollView}
+                            ref={scrollViewRef}
+                            onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })} // Auto-scroll to the bottom on content change
+                        >
+                            {messages.map((msg, index) => (
+                                <MessageBubble
+                                    key={index}
+                                    message={msg.content}
+                                    datetime={msg.createdAt}
+                                    isSelf={msg.isSelf}
+                                    type={msg.type}
+                                    status={msg.status}
+                                    chatRoomId={chatRoomId}
+                                    otherId={otherIdRef.current}
+                                    chatRoomType={chatRoomType}
+                                />
+                            ))}
+                        </ScrollView>
+                        <View style={chatRoomType !== 'WAITING' ? styles.inputContainer : styles.disabledInput}>
+                            <TextInput
+                                style={styles.input}
+                                value={messageContent}
+                                onChangeText={setMessageContent}
+                                placeholder={chatRoomType === 'WAITING' ? '5분이 지났습니다.\n' +
+                                    '대화를 이어가려면 친구요청을 보내보세요.' : ''}
+                                multiline
+                                textBreakStrategy="highQuality"
+                                editable={chatRoomType !== 'WAITING'}
+                            />
+                            {chatRoomType!=='WAITING' && (
+                                <ImageTextButton
+                                    onPress={sendMessage}
+                                    iconSource={require('../../assets/Icons/sendMsgIcon.png')}
+                                    disabled={chatRoomType==='WAITING' || messageContent===''}
+                                    imageStyle={{height:15, width:15}}
+                                    containerStyle={{paddingRight:15}}
+                            />)}
+                        </View>
+                        <MenuModal
+                            isVisible = {isModalVisible}
+                            onClose={toggleModal}
+                            menu1={'채팅방 나가기'}
+                            onMenu1={()=>deleteChat(navigation, chatRoomId)}
+                            />
+
+                    </View>
         </SWRConfig>
     );
 };
@@ -282,7 +314,8 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         padding: 10,
-        marginLeft: 10
+        marginLeft: 10,
+        color: '#A5A5A5', // color 추가
     },
     status: {
         marginTop: 20,
