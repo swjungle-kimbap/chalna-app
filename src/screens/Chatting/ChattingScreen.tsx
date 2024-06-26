@@ -30,10 +30,11 @@ const ChattingScreen = () => {
     const [messages, setMessages] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-    const [chatRoomType, setChatRoomType] = useState<string>('');
+    // const [chatRoomType, setChatRoomType] = useState<string>('');
+    const [username, setUsername] = useState<string>('');
 
     const otherIdRef = useRef<number | null>(null);
-    const otherUsernameRef = useRef<string>('');
+    const chatRoomTypeRef = useRef<string>('');
 
     // auto scroll
     const scrollViewRef = useRef<ScrollView>(null);
@@ -54,14 +55,19 @@ const ChattingScreen = () => {
                         scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
 
                         // 상태메세지 바꾸기
-                        if (parsedMessage.type==='FRIEND_REQUEST' && parsedMessage.content==='친구가 되었습니다! 대화를 이어가보세요.'){
-                            setChatRoomType('FRIEND')
+                        if (parsedMessage.type==='FRIEND_REQUEST' && parsedMessage.content==='친구가 되었습니다!\n' +
+                            '대화를 이어가보세요.'){
+                            // setChatRoomType('FRIEND');
+                            chatRoomTypeRef.current='FRIEND';
+                            console.log("친구가 되었습니다");
                         }
 
                     } else {
                         //여기에 상태 메세지 받아서 처리하는 로직 추가
                         if (parsedMessage.content==='5분이 지났습니다' && parsedMessage.senderId===0 ){
-                            setChatRoomType('WAITING')
+                            // setChatRoomType('WAITING');
+                            chatRoomTypeRef.current='WAITING';
+                            console.log("5분이 지나서 채팅 기능이 비활성화되었습니다.");
                         }
                     }
                 } catch (error) {
@@ -106,13 +112,16 @@ const ChattingScreen = () => {
                     const responseData = response.data.data;
 
                     // Extract chatRoomType
-                    setChatRoomType(responseData.type);
+                    // setChatRoomType(responseData.type);
+                    chatRoomTypeRef.current=responseData.type;
+                    console.log('set chatroomto: ',responseData.type);
 
                     // Extract other member info
                     const otherMember = responseData.members.find((member: any) => member.memberId !== currentUserId);
                     if (otherMember) {
                         otherIdRef.current = otherMember.memberId;
-                        otherUsernameRef.current = chatRoomType==='FRIEND'? otherMember.username : `익명${otherMember.memberId}`;
+                        setUsername(chatRoomTypeRef.current==='FRIEND'? otherMember.username : `익명${otherMember.memberId}`);
+                        console.log(chatRoomTypeRef.current, ' : ', username)
                     }
                     // Extract messages
                     const fetchedMessages = response.data.data.list.map((msg: any) => ({
@@ -140,7 +149,7 @@ const ChattingScreen = () => {
     );
 
     const sendMessage = () => {
-        if (chatRoomType=== 'WAITING'){
+        if (chatRoomTypeRef.current=== 'WAITING'){
             return;
         }
         const messageObject = {
@@ -175,10 +184,10 @@ const ChattingScreen = () => {
     return (
         <SWRConfig value={{}}>
             <CustomHeader
-                title={otherUsernameRef.current}
+                title={username}
                 onBackPress={()=>navigation.navigate("채팅 목록")} //채팅 목록으로 돌아가기
                 onBtnPress={()=>sendFriendRequest(chatRoomId, otherIdRef.current)} //친구요청 보내기
-                showBtn={chatRoomType!=='FRIEND'} //친구상태 아닐때만 노출
+                showBtn={chatRoomTypeRef.current!=='FRIEND'} //친구상태 아닐때만 노출
                 onMenuPress={toggleModal}
                 useNav={true}
                 useMenu={true}
@@ -199,26 +208,26 @@ const ChattingScreen = () => {
                             status={msg.status}
                             chatRoomId={chatRoomId}
                             otherId={otherIdRef.current}
-                            chatRoomType={chatRoomType}
+                            chatRoomType={chatRoomTypeRef.current}
                         />
                     ))}
                 </ScrollView>
-                <View style={chatRoomType !== 'WAITING' ? styles.inputContainer : styles.disabledInput}>
+                <View style={chatRoomTypeRef.current !== 'WAITING' ? styles.inputContainer : styles.disabledInput}>
                     <TextInput
                         style={styles.input}
                         value={messageContent}
                         onChangeText={setMessageContent}
-                        placeholder={chatRoomType === 'WAITING' ? '5분이 지났습니다.\n' +
+                        placeholder={chatRoomTypeRef.current === 'WAITING' ? '5분이 지났습니다.\n' +
                             '대화를 이어가려면 친구요청을 보내보세요.' : ''}
                         multiline
                         textBreakStrategy="highQuality"
-                        editable={chatRoomType !== 'WAITING'}
+                        editable={chatRoomTypeRef.current !== 'WAITING'}
                     />
-                    {chatRoomType!=='WAITING' && (
+                    {chatRoomTypeRef.current!=='WAITING' && (
                         <ImageTextButton
                             onPress={sendMessage}
                             iconSource={require('../../assets/Icons/sendMsgIcon.png')}
-                            disabled={chatRoomType==='WAITING' || messageContent===''}
+                            disabled={chatRoomTypeRef.current==='WAITING' || messageContent===''}
                             imageStyle={{height:15, width:15}}
                             containerStyle={{paddingRight:15}}
                     />)}

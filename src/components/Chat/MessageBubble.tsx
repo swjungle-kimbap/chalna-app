@@ -39,7 +39,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
                             // 친구수락 채팅메세지 보내기
                             const messageObject = {
                                 type: 'FRIEND_REQUEST',
-                                content: "친구가 되었습니다! 대화를 이어가보세요.",
+                                content: "친구가 되었습니다!\n" +
+                                    "대화를 이어가보세요.",
                             };
 
                             const messageJson = JSON.stringify(messageObject);
