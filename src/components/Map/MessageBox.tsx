@@ -59,11 +59,34 @@ const MessageBox: React.FC = ()  => {
     }
   }, []);
 
+  let timeoutId: NodeJS.Timeout | null = null;
+
   const handleSetIsNearby = () => {
-    const currentTime = new Date().getTime(); 
-    if (nearInfo.lastMeetTime + 3000 < currentTime)
-      setNearInfo({isNearby: true, lastMeetTime: currentTime});
-  }
+    const currentTime = new Date().getTime();
+  
+    if (nearInfo.lastMeetTime + 3000 < currentTime) {
+      setNearInfo({ isNearby: true, lastMeetTime: currentTime });
+  
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+  
+      timeoutId = setTimeout(() => {
+        setNearInfo(prevNearInfo => ({
+          ...prevNearInfo,
+          isNearby: false
+        }));
+      }, 1000);
+    }
+  };
+  
+  useEffect(() => {
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, []);
 
   const startScan = async () => {
     if (!isScanning) {
@@ -128,7 +151,7 @@ const MessageBox: React.FC = ()  => {
   const handleSendingMessage = async () => {
     await handleCheckPermission()
     const checkValid = await checkvalidInput();
-    if (!isScanning || checkValid)
+    if (!isScanning && checkValid)
       await startScan();
     else if (isScanning)
       await stopScan();

@@ -74,10 +74,8 @@ export const NaverMap: React.FC = ({}) => {
       } 
     };
     // fetchData();
-    const currentTime = new Date().getTime(); 
-    if (nearbyInfo.lastMeetTime + 3000 < currentTime)
-      setNearbyInfo({isNearby: false, lastMeetTime:currentTime});
   }, [currentLocation])
+
 
   return (
   <NaverMapView 
