@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useRef } from 'react';
+import React, { useState, useEffect,useRef, useCallback } from 'react';
 import styled from "styled-components/native";
 import Text from "../../components/common/Text";
 import Button from '../../components/common/Button'
@@ -10,6 +10,7 @@ import Config from "react-native-config";
 import { ActivityIndicator } from "react-native";
 import axios, { AxiosInstance } from "axios";
 import { axiosGet } from "../../axios/axios.method";
+import { useFocusEffect } from '@react-navigation/native';
 interface ApiResponse {
   status: number;
   message: string;
@@ -43,9 +44,45 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
+    // useEffect(() => {
+    //     const fetchFriends = async () => {
+    //         try {
+    //             console.log("Fetching friends data...");
+    //             const response = await axiosGet<ApiResponse>(Config.GET_FRIEND_LIST_URL);
+          
+    //             console.log(response.data)
+    //             if (response.data && response.data.data && Array.isArray(response.data.data)) {
+    //                 setFriendsData(response.data.data);
+    //                 setFilteredData(response.data.data);
+    //             } else {
+    //                 console.error('응답 구조 이상:', response.data);
+    //                 setError('Unexpected response structure');
+    //             }
+    //         } catch (error) {
+    //             if (axios.isAxiosError(error)) {
+    //                 console.error('Axios error', error.message);
+    //                 setError(error.message);
+    //             } else {
+    //                 console.error('Error friends data:', error);
+    //                 setError('Unexpected error occurred');
+    //             }
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     };
+
+
+    //     fetchFriends();
+    // }, []);
+
+
+
+
+    useFocusEffect(
+        useCallback(() => {
         const fetchFriends = async () => {
             try {
+<<<<<<< Updated upstream
 
                 const response = await axiosGet<ApiResponse>(Config.GET_FRIEND_LIST_URL);
 
@@ -57,22 +94,34 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                     console.error('Unexpected response structure:', response.data);
                     setError('Unexpected response structure');
                 }
+=======
+            console.log("Fetching friends data...");
+            const response = await axiosGet<ApiResponse>(Config.GET_FRIEND_LIST_URL);
+            console.log("Response received:", response.data);
+            if (response.data && response.data.data && Array.isArray(response.data.data)) {
+                setFriendsData(response.data.data);
+                setFilteredData(response.data.data);
+            } else {
+                console.error('Unexpected response structure:', response.data);
+                setError('Unexpected response structure');
+            }
+>>>>>>> Stashed changes
             } catch (error) {
-                if (axios.isAxiosError(error)) {
-                    console.error('Axios error', error.message);
-                    setError(error.message);
-                } else {
-                    console.error('Error friends data:', error);
-                    setError('Unexpected error occurred');
-                }
+            if (axios.isAxiosError(error)) {
+                console.error('Axios error', error.message);
+                setError(error.message);
+            } else {
+                console.error('Error friends data:', error);
+                setError('Unexpected error occurred');
+            }
             } finally {
-                setLoading(false);
+            setLoading(false);
             }
         };
 
-
         fetchFriends();
-    }, []);
+        }, [])
+    );
 
 
     const handleCardPress = (cardId: number) => {
