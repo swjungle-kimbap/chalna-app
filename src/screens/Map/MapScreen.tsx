@@ -1,6 +1,6 @@
 import { NaverMap } from "../../components/Map/NaverMap";
 import AlarmButton from "../../components/Map/AlarmButton";
-import ScanButtons from "../../components/Map/ScanButtons";
+import MessageBox from "../../components/Map/MessageBox";
 
 interface MapPrams {
   route: {
@@ -16,7 +16,7 @@ const MapScreen: React.FC<MapPrams> = ({ route }) => {
     <>
       <AlarmButton notificationId={notificationId} />
       <NaverMap />
-      <ScanButtons/>
+      <MessageBox/>
     </>
   );
 }

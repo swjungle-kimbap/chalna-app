@@ -7,19 +7,32 @@ import { getAsyncString, setAsyncString } from "../../utils/asyncStorage";
 import useBackgroundSave from '../../hooks/useChangeBackgroundSave';
 import { useRecoilState } from 'recoil';
 import { showMsgBoxState } from '../../recoil/atoms';
+import ScanNearbyAndPost, { ScanNearbyStop } from '../../service/ScanNearbyAndPost';
+import { getKeychain } from '../../utils/keychain';
+import { EmitterSubscription } from 'react-native';
+import showPermissionAlert from '../../utils/showPermissionAlert';
+import requestPermissions from '../../utils/requestPermissions';
+import requestBluetooth from '../../utils/requestBluetooth';
+import { PERMISSIONS } from 'react-native-permissions';
+import { isNearbyState } from "../../recoil/atoms";
 
 const tags = ['상담', '질문', '대화', '만남'];
 
-type MessageBoxProps = {
-  isSendingMsg: boolean;
-  handleSendingMessage: () => void; 
-};
+const requiredPermissions = [
+  PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+  PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
+  PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
+  PERMISSIONS.ANDROID.BLUETOOTH_ADVERTISE];
 
-const MessageBox: React.FC<MessageBoxProps> = ({isSendingMsg, handleSendingMessage})  => {
+const MessageBox: React.FC = ()  => {
   const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
   const [msgText, setMsgText] = useState('안녕하세요!');
   const [selectedTag, setSelectedTag] = useState<string>(''); 
+  const [nearInfo, setNearInfo] = useRecoilState(isNearbyState);
+  const [isScanning, setIsScanning] = useState(false);
+  const onDeviceFoundRef = useRef<EmitterSubscription | null>(null);
   const msgTextRef = useRef(msgText);
+  const uuidRef = useRef<string>('');
 
   useEffect(() => {
     const fetchSavedData = async () => {
@@ -27,10 +40,72 @@ const MessageBox: React.FC<MessageBoxProps> = ({isSendingMsg, handleSendingMessa
       setMsgText(savedmsgText);
       const savedTag = await getAsyncString('tag')
       setSelectedTag(savedTag);
+
+      const uuid = await getKeychain('deviceUUID');
+      if (uuid)
+        uuidRef.current = uuid;
+
+      const savedIsScanning = await getAsyncString('isScanning');
+      if (savedIsScanning === 'true'){
+        setIsScanning(true);
+      }
     };
     fetchSavedData();
+    return () => {
+      if (onDeviceFoundRef.current){
+        onDeviceFoundRef.current.remove();
+        onDeviceFoundRef.current = null;
+      }
+    }
   }, []);
-  
+
+  const handleSetIsNearby = () => {
+    const currentTime = new Date().getTime(); 
+    if (nearInfo.lastMeetTime + 3000 < currentTime)
+      setNearInfo({isNearby: true, lastMeetTime: currentTime});
+  }
+
+  const startScan = async () => {
+    if (!isScanning) {
+      if (onDeviceFoundRef.current){
+        onDeviceFoundRef.current.remove();
+        onDeviceFoundRef.current = null;
+      }
+      const listener = await ScanNearbyAndPost(uuidRef.current, handleSetIsNearby);
+      onDeviceFoundRef.current = listener;
+      await setAsyncString('isScanning', 'true');
+      setIsScanning(true);
+    }
+  };
+
+  const stopScan = async () => {
+    if (isScanning) {
+      ScanNearbyStop();
+      if (onDeviceFoundRef.current){
+        onDeviceFoundRef.current.remove();
+        onDeviceFoundRef.current = null;
+      }
+      await setAsyncString('isScanning', 'false');
+      setIsScanning(false);
+    }
+  };
+
+  const handleCheckPermission = async (): Promise<boolean> => {
+    const granted = await requestPermissions(requiredPermissions);
+    const checkNotBluetooth = await requestBluetooth();
+    if (!granted || !checkNotBluetooth) {
+      await showPermissionAlert();
+      const granted = await requestPermissions(requiredPermissions);
+      if (granted && checkNotBluetooth) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return true; 
+    }
+  };
+
   const handleTagPress = async (tag: string) => {
     setSelectedTag(prevTag => {
       if (prevTag === tag)
@@ -39,15 +114,26 @@ const MessageBox: React.FC<MessageBoxProps> = ({isSendingMsg, handleSendingMessa
       return tag 
     }); 
   };
+
   const checkvalidInput = () => {
-    if (!isSendingMsg && msgTextRef.current.length < 5) {
+    if (!isScanning && msgTextRef.current.length < 5) {
       Alert.alert('내용을 더 채워 주세요', '5글자 이상 입력해 주세요!');
       return false;
     } else {
       setAsyncString('msgText', msgText);
       return true;
     }
-  }
+  };
+
+  const handleSendingMessage = async () => {
+    await handleCheckPermission()
+    const checkValid = await checkvalidInput();
+    if (!isScanning || checkValid)
+      await startScan();
+    else if (isScanning)
+      await stopScan();
+  };
+
   useEffect(()=> {
     setAsyncString('msgText', msgText);
   }, [showMsgBox])
@@ -57,7 +143,7 @@ const MessageBox: React.FC<MessageBoxProps> = ({isSendingMsg, handleSendingMessa
     <>
       {showMsgBox ? (
           <View style={styles.msgcontainer} >
-            <RoundBox width='95%' style={[styles.msgBox, {borderColor : isSendingMsg ? '#14F12A': '#979797'}]}>
+            <RoundBox width='95%' style={[styles.msgBox, {borderColor : isScanning ? '#14F12A': '#979797'}]}>
               <View style={styles.titleContainer}>
                 <Text variant='title' style={styles.title}>메세지</Text>
                   {tags.map((tag) => (
@@ -69,15 +155,12 @@ const MessageBox: React.FC<MessageBoxProps> = ({isSendingMsg, handleSendingMessa
               <TextInput value={msgText} style={[styles.textInput, { color: '#333' }]}
                   onChange={(event) => {setMsgText(event.nativeEvent.text);}}
                   />
-              <Button title={isSendingMsg ? '멈추기' : '보내기'} variant='main' 
-              onPress={() =>{
-                const checkValid = checkvalidInput();
-                if (isSendingMsg || checkValid)
-                  handleSendingMessage();}}/>
+              <Button title={isScanning ? '멈추기' : '보내기'} variant='main' 
+                onPress={handleSendingMessage}/>
             </RoundBox>
           </View>
       ) : (
-        <RoundBox width='95%' style={[styles.buttonContainer, {borderColor : isSendingMsg ? '#14F12A': '#979797'}]}>
+        <RoundBox width='95%' style={[styles.buttonContainer, {borderColor : isScanning ? '#14F12A': '#979797'}]}>
           <Button title='인연 보내기' onPress={() => setShowMsgBox(true)}/>
         </RoundBox>
       )}

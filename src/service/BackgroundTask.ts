@@ -1,5 +1,5 @@
 import BackgroundService from 'react-native-background-actions';
-import ScanNearbyAndPost, { addDeviceBackground } from './ScanNearbyAndPost'
+import ScanNearbyAndPost from './ScanNearbyAndPost'
 import { getKeychain } from '../utils/keychain';
 import { EmitterSubscription } from 'react-native';
 
@@ -14,7 +14,7 @@ const backgroundBLE = async (args:any) => {
     }
 
     while(!onDeviceFoundListener) {
-      onDeviceFoundListener = await ScanNearbyAndPost(uuid, addDeviceBackground);
+      onDeviceFoundListener = await ScanNearbyAndPost(uuid);
     }
   });
 };
