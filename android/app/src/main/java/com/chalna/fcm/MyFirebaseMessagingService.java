@@ -88,14 +88,16 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-        if (fcmType.equals("match")) {
-            intent.putExtra("screen", "지도");
-            intent.putExtra("screenId", screenId);
-            Log.d(TAG, "screen: " + "지도" + "/ screenId: " + screenId);
-        } else if (fcmType.equals("chat")) {
-            intent.putExtra("screen", "채팅");
-            intent.putExtra("screenId", screenId);
-            Log.d(TAG, "screen: " + "채팅" + "/ screenId: " + screenId);
+        if (fcmType != null) {
+            if (fcmType.equals("match")) {
+                intent.putExtra("screen", "지도");
+                intent.putExtra("screenId", screenId);
+                Log.d(TAG, "screen: " + "지도" + "/ screenId: " + screenId);
+            } else {
+                intent.putExtra("screen", "채팅");
+                intent.putExtra("screenId", screenId);
+                Log.d(TAG, "screen: " + "채팅" + "/ screenId: " + screenId);
+            }
         }
 
         // 데이터 전달
@@ -105,7 +107,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         // 고유한 PendingIntent 생성
         int requestCode = new Random().nextInt();
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, requestCode, intent, PendingIntent.FLAG_ONE_SHOT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, requestCode, intent, PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder notificationBuilder =
             new NotificationCompat.Builder(this, CHANNEL_ID)
