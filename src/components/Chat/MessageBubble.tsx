@@ -18,7 +18,6 @@ interface MessageBubbleProps {
 const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf, type, status, otherId,chatRoomId, chatRoomType  }) => {
     const date = new Date(datetime);
     const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
     const [isDisabled, setIsDisabled] = useState(chatRoomType==='FRIEND');
 
     const handleAccept = async ({otherId: number }) => {
@@ -91,22 +90,96 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
         );
     };
 
+//     return (
+//         <View style={[
+//             styles.container,
+//             isSelf ? styles.selfContainer : styles.otherContainer,
+//             (type === 'FRIEND_REQUEST' && message!=='친구 요청을 보냈습니다.') && styles.centerContainer
+//         ]}>
+//             <View style={styles.messageContent}>
+//                 <Text style={styles.messageText}>{message}</Text>
+//                 <Text style={styles.datetime}>{formattedTime}</Text>
+//             </View>
+//             {type === 'FRIEND_REQUEST' && !isSelf && message==='친구 요청을 보냈습니다.' &&(
+//                 <View style={styles.buttonContainer}>
+//                     <ImageTextButton title='수락' onPress={handleAccept} disabled={isDisabled} />
+//                     <ImageTextButton title='거절' onPress={handleReject} disabled={isDisabled} />
+//                 </View>
+//             )}
+//         </View>
+//     );
+// };
+//
+// const styles = StyleSheet.create({
+//     container: {
+//         maxWidth: '80%',
+//         padding: 10,
+//         marginBottom: 10,
+//         borderRadius: 8,
+//         borderWidth: 1,
+//         borderColor: '#ccc',
+//         alignSelf: 'flex-start',
+//     },
+//     selfContainer: {
+//         alignSelf: 'flex-end',
+//         backgroundColor: '#DCF8C6',
+//     },
+//     otherContainer: {
+//         alignSelf: 'flex-start',
+//         backgroundColor: '#FFFFFF',
+//     },
+//     centerContainer:{
+//         alignSelf: 'center',
+//         alignItems:'center',
+//         backgroundColor:'transparent',
+//         borderWidth: 0,
+//     },
+//     messageContent: {
+//         marginBottom: 5,
+//     },
+//     messageText: {
+//         fontSize: 16,
+//         color: '#333333',
+//     },
+//     datetime: {
+//         fontSize: 12,
+//         color: '#666',
+//         alignSelf: 'flex-end',
+//     },
+//     buttonContainer: {
+//         flexDirection: 'row',
+//         justifyContent: 'space-between',
+//         marginTop: 5,
+//         marginHorizontal:15,
+//     },
+// });
+//
+// export default MessageBubble;
+
     return (
-        <View style={[
-            styles.container,
+        <View style={[styles.container,
             isSelf ? styles.selfContainer : styles.otherContainer,
-            (type === 'FRIEND_REQUEST' && message!=='친구 요청을 보냈습니다.') && styles.centerContainer
-        ]}>
-            <View style={styles.messageContent}>
+            (type === 'FRIEND_REQUEST' && message!=='친구 요청을 보냈습니다.') && styles.centerContainer]}>
+            <View style={[styles.messageContent,
+                isSelf ? styles.myMessageBubbleColor : styles.friendMessageBubbleColor,
+                (type === 'FRIEND_REQUEST' && message!=='친구 요청을 보냈습니다.') && styles.centerMsg
+            ]}>
                 <Text style={styles.messageText}>{message}</Text>
-                <Text style={styles.datetime}>{formattedTime}</Text>
+                {type === 'FRIEND_REQUEST' && !isSelf && message === '친구 요청을 보냈습니다.' && (
+                    <View style={styles.buttonContainer}>
+                        <ImageTextButton title='수락' onPress={() => handleAccept(otherId)} disabled={isDisabled} />
+                        <ImageTextButton title='거절' onPress={handleReject} disabled={isDisabled} />
+                    </View>
+                )}
             </View>
-            {type === 'FRIEND_REQUEST' && !isSelf && message==='친구 요청을 보냈습니다.' &&(
-                <View style={styles.buttonContainer}>
-                    <ImageTextButton title='수락' onPress={handleAccept} disabled={isDisabled} />
-                    <ImageTextButton title='거절' onPress={handleReject} disabled={isDisabled} />
-                </View>
+            {isSelf ? (
+                <View style={styles.tailRight} />
+            ) : (
+                <View style={styles.tailLeft} />
             )}
+            <Text style={[styles.datetime,
+                (type === 'FRIEND_REQUEST' && message !== '친구 요청을 보냈습니다.')?
+                    styles.timeMiddle : styles.timeRight]}>{formattedTime}</Text>
         </View>
     );
 };
@@ -114,20 +187,54 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
 const styles = StyleSheet.create({
     container: {
         maxWidth: '80%',
-        padding: 10,
-        marginBottom: 10,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#ccc',
+        marginVertical: 5,
         alignSelf: 'flex-start',
     },
     selfContainer: {
         alignSelf: 'flex-end',
-        backgroundColor: '#DCF8C6',
     },
     otherContainer: {
         alignSelf: 'flex-start',
+    },
+    messageContent: {
+        paddingVertical: 10,
+        paddingHorizontal:15,
+        borderRadius: 20,
+        shadowColor: '#000',        // Color of the shadow
+        shadowOffset: { width: 0, height: 4 },  // Direction and distance of the shadow
+        shadowOpacity: 0.25,        // Opacity of the shadow
+        shadowRadius: 5,
+    },
+    friendMessageBubbleColor: {
         backgroundColor: '#FFFFFF',
+    },
+    myMessageBubbleColor:{
+        // backgroundColor: '#DFEBEB',
+        // backgroundColor: '#D5E3E8',
+        backgroundColor: '#E4F1EE',
+    },
+    messageText: {
+        fontSize: 16,
+        color: '#333',
+    },
+    datetime: {
+        fontSize: 12,
+        color: '#888888',
+    },
+    timeRight: {
+        marginTop:5,
+        alignSelf: 'flex-end',
+        marginRight: 10,
+    },
+    timeMiddle: {
+        alignSelf: 'center',
+        marginTop: -10,
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 10,
+        marginHorizontal:10,
     },
     centerContainer:{
         alignSelf: 'center',
@@ -135,23 +242,32 @@ const styles = StyleSheet.create({
         backgroundColor:'transparent',
         borderWidth: 0,
     },
-    messageContent: {
-        marginBottom: 5,
+    centerMsg:{
+        backgroundColor: 'transparent'
     },
-    messageText: {
-        fontSize: 16,
-        color: '#333333',
+    tailRight: {
+        position: 'absolute',
+        right: -6,
+        top: '50%',
+        borderTopWidth: 10,
+        borderBottomWidth: 10,
+        borderLeftWidth: 6,
+        borderTopColor: 'transparent',
+        borderBottomColor: 'transparent',
+        borderLeftColor: '#DCF8C6',
+        marginTop: -10,
     },
-    datetime: {
-        fontSize: 12,
-        color: '#666',
-        alignSelf: 'flex-end',
-    },
-    buttonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 5,
-        marginHorizontal:15,
+    tailLeft: {
+        position: 'absolute',
+        left: -6,
+        top: '50%',
+        borderTopWidth: 10,
+        borderBottomWidth: 10,
+        borderRightWidth: 6,
+        borderTopColor: 'transparent',
+        borderBottomColor: 'transparent',
+        borderRightColor: '#FFFFFF',
+        marginTop: -10,
     },
 });
 
