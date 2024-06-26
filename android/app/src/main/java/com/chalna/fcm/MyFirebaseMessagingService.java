@@ -55,7 +55,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         /* chatFCM */
         String senderName = null;
         String chatRoomId = null;
-        String messageType = null;
+        String chatRoomType = null;
 
         String fcmType = null;
         String screenId = null;
@@ -68,10 +68,19 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 screenId = additionalData.getString("notificationId");
             }
             else if (fcmType.equals("chat")) {
-                senderName = additionalData.getString("senderName");
-                screenId = additionalData.getString("chatRoomId");
-                messageType = additionalData.getString("messageType");
-                title = "Message from " + senderName;
+                chatRoomType = additionalData.getString("chatRoomType");
+                if (chatRoomType != null) {
+                    senderName = additionalData.getString("senderName");
+                    screenId = additionalData.getString("chatRoomId");
+                    if (chatRoomType.equals("1")) {
+                        title = "Message from " + senderName;
+                    } else {
+                        title = "Message from " + "익명" + senderId;
+                    }
+                } else {
+                    title = "Message from " + senderName;
+                }
+
             }
         } catch(JSONException e) {
             e.printStackTrace();
