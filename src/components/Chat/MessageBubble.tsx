@@ -48,9 +48,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
 
                             // Add additional logic here if needed, e.g., updating the message status
                         } catch (error) {
-                            // console.log(response)
-                            // console.error('Failed to accept friend request:', error);
-                            Alert.alert('Error', error);
+                            const errorMessage = error.response?.data?.message || error.message || '친구 요청을 수락할 수 없습니다.';
+                            Alert.alert('Error', errorMessage);
                         }
                     }
                 }
@@ -82,9 +81,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
                             WebSocketManager.sendMessage(chatRoomId, messageJson);
 
                         } catch (error) {
-                            // console.error('Failed to reject friend request:', error);
-                            // 리턴코드에 따라 수정
-                            Alert.alert('전송 실패', error);
+                            const errorMessage = error.response?.data?.message || error.message || '친구 요청을 거절할 수 없습니다.';
+                            Alert.alert('전송 실패', errorMessage);
                         }
                     }
                 }

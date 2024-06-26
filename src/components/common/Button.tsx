@@ -44,7 +44,7 @@ const ImageTextButton: React.FC<ImageTextButtonProps> = ({
   };
 
   return (
-    <TouchableOpacity onPress={onPress} style={containerStyle} {...rest}>
+    <TouchableOpacity onPress={onPress} style={containerStyle} disabled={disabled} {...rest}>
       {renderContent()}
     </TouchableOpacity>
   );
