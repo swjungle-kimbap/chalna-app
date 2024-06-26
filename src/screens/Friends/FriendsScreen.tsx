@@ -76,25 +76,11 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     // }, []);
 
 
-
-
     useFocusEffect(
         useCallback(() => {
         const fetchFriends = async () => {
             try {
-<<<<<<< Updated upstream
 
-                const response = await axiosGet<ApiResponse>(Config.GET_FRIEND_LIST_URL);
-
-                console.log(response.data)
-                if (response.data && response.data.data && Array.isArray(response.data.data)) {
-                    setFriendsData(response.data.data);
-                    setFilteredData(response.data.data);
-                } else {
-                    console.error('Unexpected response structure:', response.data);
-                    setError('Unexpected response structure');
-                }
-=======
             console.log("Fetching friends data...");
             const response = await axiosGet<ApiResponse>(Config.GET_FRIEND_LIST_URL);
             console.log("Response received:", response.data);
@@ -105,7 +91,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                 console.error('Unexpected response structure:', response.data);
                 setError('Unexpected response structure');
             }
->>>>>>> Stashed changes
+
             } catch (error) {
             if (axios.isAxiosError(error)) {
                 console.error('Axios error', error.message);
@@ -178,8 +164,8 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
 
     return (
         <FriendsStyle>
-
-            {/*<Button title="차단친구 목록" onPress={() => navigation.navigate('차단친구 목록')} />*/}
+            <Text>친구목록 페이지 입니다.</Text>
+            <Button title="차단친구 목록" onPress={() => navigation.navigate('차단친구 목록')} />
             <View style={styles.searchContainer}>
                 <TextInput
                     placeholder="친구 검색"
@@ -192,7 +178,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                 </TouchableOpacity>
             </View>
             {filteredData.length === 0 ? (
-                <Text style={{marginTop:30, marginBottom: 30}}>새로운 인연을 만나보세요.</Text>
+                <Text>해당 친구가 존재하지 않습니다.</Text>
             ) : (
                 <FlatList
                 data={filteredData}
@@ -200,7 +186,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                 keyExtractor={(item) => item.id.toString()}
                 />
       )}
-
+        
         </FriendsStyle>
     );
 };
@@ -212,14 +198,13 @@ const FriendsStyle = styled.View`
 
 const styles = StyleSheet.create({
     searchContainer: {
-        marginTop: 20,
         flexDirection: 'row',
         alignItems: 'center',
         borderColor: '#CCC',
         borderWidth: 1,
-        borderRadius: 10,
+        borderRadius: 5,
         paddingHorizontal: 10,
-        paddingVertical: 2,
+        paddingVertical: 10,
         width: '90%',
         alignSelf: 'center',
     },
