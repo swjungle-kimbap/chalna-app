@@ -2,17 +2,14 @@ import React, { useState, useEffect,useRef } from 'react';
 import styled from "styled-components/native";
 import Text from "../../components/common/Text";
 import Button from '../../components/common/Button'
-import RoundBox  from "../../components/common/RoundBox";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../interfaces";
-import {View, FlatList, Image, TextInput, StyleSheet} from "react-native";
+import {View, FlatList, Image, TextInput, StyleSheet ,TouchableOpacity} from "react-native";
 import FriendCard from "../../components/FriendCard";
 import Config from "react-native-config";
 import { ActivityIndicator } from "react-native";
 import axios, { AxiosInstance } from "axios";
-import { getKeychain, setKeychain } from "../../utils/keychain";
 import { axiosGet } from "../../axios/axios.method";
-
 interface ApiResponse {
   status: number;
   message: string;
@@ -42,6 +39,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [friendsData, setFriendsData] = useState<Friend[]>([]);
+    const [filteredData, setFilteredData] = useState<Friend[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -49,11 +47,12 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
         const fetchFriends = async () => {
             try {
              
-                const response = await axiosGet<ApiResponse>('https://chalna.shop/api/v1/friend');
+                const response = await axiosGet<ApiResponse>(Config.GET_FRIEND_LIST_URL);
           
                 console.log(response.data)
                 if (response.data && response.data.data && Array.isArray(response.data.data)) {
                     setFriendsData(response.data.data);
+                    setFilteredData(response.data.data);
                 } else {
                     console.error('Unexpected response structure:', response.data);
                     setError('Unexpected response structure');
@@ -84,13 +83,25 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
         }
     }
 
-    const  handleSearch = (query: string)=>{
+    const handleSearch = (query: string) => {
         setSearchQuery(query);
-    }
+        if (query === '') {
+          setFilteredData(friendsData);
+        }
+      }
 
-    const filteredData = friendsData.filter(user =>
-        user.username.includes(searchQuery) || user.message.includes(searchQuery)
+    const handleSearchButtonPress = () => {
+    const trimmedQuery = searchQuery.replace(/\s+/g, ''); // 공백 제거
+    if (trimmedQuery === '') {
+        setFilteredData(friendsData);
+        return;
+    }
+    const filtered = friendsData.filter(user =>
+        (user.username && user.username.includes(trimmedQuery)) ||
+        (user.message && user.message.includes(trimmedQuery))
     );
+    setFilteredData(filtered);
+    };
 
     const renderFriendCard = ({item}: {item: Friend}) => (
         <FriendCard
@@ -116,24 +127,31 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
         );
     }
 
-
     return (
         <FriendsStyle>
             <Text>친구목록 페이지 입니다.</Text>
             <Button title="차단친구 목록" onPress={() => navigation.navigate('차단친구 목록')} />
             <View style={styles.searchContainer}>
-                <Image source={require('../../assets/Icons/SearchIcon.png')} style={styles.searchIcon} />
                 <TextInput
                     placeholder="친구 검색"
                     value={searchQuery}
                     onChangeText={handleSearch}
+                    style={styles.searchInput}
                 />
+            <TouchableOpacity onPress={handleSearchButtonPress}>
+                <Image source={require('../../assets/Icons/SearchIcon.png')} style={styles.searchIcon} />
+                </TouchableOpacity>
             </View>
-            <FlatList
+            {filteredData.length === 0 ? (
+                <Text>해당 친구가 존재하지 않습니다.</Text>
+            ) : (
+                <FlatList
                 data={filteredData}
                 renderItem={renderFriendCard}
-                keyExtractor={(item) => item.username}
-            />
+                keyExtractor={(item) => item.id.toString()}
+                />
+      )}
+        
         </FriendsStyle>
     );
 };
