@@ -36,6 +36,7 @@ const ChattingScreen = () => {
 
 
     const otherIdRef = useRef<number | null>(null);
+    const friendNameRef = useRef<string>('');
     // const chatRoomTypeRef = useRef<string>('');
 
     // auto scroll
@@ -60,7 +61,7 @@ const ChattingScreen = () => {
                             console.log("친구 맺기 성공!!!")
                             //타입 & 대화명 변경
                             setChatRoomType('FRIEND');
-                            setUsername(chatRoomType==='FRIEND'? otherMember.username : `익명${otherMember.memberId}`);
+                            setUsername(friendNameRef.current);
                             console.log("친구 맺기 성공! 채팅룸 타입: ",chatRoomType);
                             // chatRoomTypeRef.current='FRIEND';
                             // console.log("친구가 되었습니다");
@@ -128,6 +129,7 @@ const ChattingScreen = () => {
                     const otherMember = responseData.members.find((member: any) => member.memberId !== currentUserId);
                     if (otherMember) {
                         otherIdRef.current = otherMember.memberId;
+                        friendNameRef.current = otherMember.username;
                         setUsername(chatRoomType==='FRIEND'? otherMember.username : `익명${otherMember.memberId}`);
                         console.log('채팅방 타입: 유저네임',chatRoomType, ' : ', username)
                     }
