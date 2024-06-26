@@ -1,60 +1,67 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Button, Alert } from 'react-native';
 import axiosInstance from '../../axios/axios.instance'; // Adjust the path as necessary
+import ImageTextButton from "../common/Button";
 
 interface MessageBubbleProps {
     message: string;
     datetime: string;
     isSelf: boolean;
     type?: string;
-    status: boolean;
+    status?: boolean;
+    otherId: number;
+    chatRoomId:string;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf, type, status }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf, type, status, otherId,chatRoomId  }) => {
     const date = new Date(datetime);
     const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     const [isDisabled, setIsDisabled] = useState(false);
 
-    const handleAccept = async () => {
+    const handleAccept = async ({otherId: number }) => {
         Alert.alert(
-            'Confirmation',
-            'Are you sure you want to accept the friend request?',
+            '친구 요청 수락',
+            '친구 요청을 수락하시겠습니까?',
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: '취소', style: 'cancel' },
                 {
-                    text: 'OK', onPress: async () => {
-                        try {
-                            // await axiosInstance.post(`/api/v1/relation/accept/${uuid}`); //get uuid and myUserId from somewhere
-                            Alert.alert('Success', 'Friend request accepted!');
+                    text: '수락', onPress: async () => {
+                        // try {
+                            const response = await axiosInstance.patch(`https://chalna.shop/api/v1/relation/accept/${chatRoomId}`);
+                            console.log(response)
+
+                            Alert.alert('친구 맺기 성공', '친구가 되었습니다!');
                             setIsDisabled(true);
                             // Add additional logic here if needed, e.g., updating the message status
-                        } catch (error) {
-                            console.error('Failed to accept friend request:', error);
+                        // } catch (error) {
+                            console.log(response)
+                            // console.error('Failed to accept friend request:', error);
                             Alert.alert('Error', 'Failed to accept friend request.');
-                        }
+                        // }
                     }
                 }
             ]
         );
-    };
+    }
 
     const handleReject = async () => {
         Alert.alert(
-            'Confirmation',
-            'Are you sure you want to reject the friend request?',
+            '친구 요청 거절',
+            '친구 요청을 거절하시겠습니까?',
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: '취소', style: 'cancel' },
                 {
-                    text: 'OK', onPress: async () => {
+                    text: '거절', onPress: async () => {
                         try {
-                            // await axiosInstance.post(`/api/v1/relation/reject/${uuid}`);
-                            Alert.alert('Success', 'Friend request rejected!');
+                            await axiosInstance.patch(`https://chalna.shop/api/v1/relation/reject/${otherId}`);
+                            Alert.alert('친구 요청 거절 성공', '친구 요청을 거절했습니다.');
                             setIsDisabled(true);
                             // Add additional logic here if needed, e.g., removing the message
                         } catch (error) {
-                            console.error('Failed to reject friend request:', error);
-                            Alert.alert('Error', 'Failed to reject friend request.');
+                            // console.error('Failed to reject friend request:', error);
+                            // 리턴코드에 따라 수정
+                            Alert.alert('전송 실패', 'Failed to reject friend request.');
                         }
                     }
                 }
@@ -68,10 +75,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
                 <Text style={styles.messageText}>{message}</Text>
                 <Text style={styles.datetime}>{formattedTime}</Text>
             </View>
-            {type === 'friendRequest' && !isSelf && (
+            {type === 'FRIEND_REQUEST' && !isSelf && (
                 <View style={styles.buttonContainer}>
-                    <Button title='수락' onPress={handleAccept} disabled={isDisabled} />
-                    <Button title='거절' onPress={handleReject} disabled={isDisabled} />
+                    <ImageTextButton title='수락' onPress={handleAccept} disabled={isDisabled} />
+                    <ImageTextButton title='거절' onPress={handleReject} disabled={isDisabled} />
                 </View>
             )}
         </View>
@@ -108,7 +115,9 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         marginTop: 5,
+        marginHorizontal:15,
     },
 });
 

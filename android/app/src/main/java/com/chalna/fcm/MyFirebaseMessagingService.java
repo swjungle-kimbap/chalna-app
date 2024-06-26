@@ -34,7 +34,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         // 메시지 수신 처리
         if (remoteMessage.getNotification() != null) {
             Log.d(TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());
-            sendNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(), remoteMessage.getData(), null);
+            sendNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(), remoteMessage.getData(), null, null);
         } else if (remoteMessage.getData().size() > 0) {
             Log.d(TAG, "Data Message: " + remoteMessage.getData());
             handleDataMessage(remoteMessage.getData());
@@ -57,15 +57,19 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String chatRoomId = null;
         String messageType = null;
 
+        String fcmType = null;
+        String screenId = null;
+
         try {
             JSONObject additionalData = new JSONObject(additionalDataString);
-            String fcmType = additionalData.getString("fcmType");
+            fcmType = additionalData.getString("fcmType");
             if (fcmType.equals("match")) {
                 title = "인연으로부터 메시지가 도착했습니다";
+                screenId = additionalData.getString("notificationId");
             }
             else if (fcmType.equals("chat")) {
                 senderName = additionalData.getString("senderName");
-                chatRoomId = additionalData.getString("chatRoomId");
+                screenId = additionalData.getString("chatRoomId");
                 messageType = additionalData.getString("messageType");
                 title = "Message from " + senderName;
             }
@@ -75,18 +79,23 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         String messageBody = message;
 
-        sendNotification(title, messageBody, data, chatRoomId);
+        sendNotification(title, messageBody, data, fcmType, screenId);
     }
 
-    private void sendNotification(String title, String messageBody, Map<String, String> data, String chatRoomId) {
+    private void sendNotification(String title, String messageBody, Map<String, String> data, String fcmType, String screenId) {
         createNotificationChannel();
 
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-        if (chatRoomId == null) {
-            intent.putExtra("screen", "채팅목록");
-            Log.d(TAG, "screen: " + "채팅목록");
+        if (fcmType.equals("match")) {
+            intent.putExtra("screen", "지도");
+            intent.putExtra("screenId", screenId);
+            Log.d(TAG, "screen: " + "지도" + "/ screenId: " + screenId);
+        } else if (fcmType.equals("chat")) {
+            intent.putExtra("screen", "채팅");
+            intent.putExtra("screenId", screenId);
+            Log.d(TAG, "screen: " + "채팅" + "/ screenId: " + screenId);
         }
 
         // 데이터 전달

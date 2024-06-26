@@ -3,6 +3,11 @@ import { View, FlatList, StyleSheet, ActivityIndicator, Text, RefreshControl, Ap
 import ChatRoomCard from '../../components/Chat/ChatRoomCard';
 import { axiosGet } from "../../axios/axios.method";
 import { useFocusEffect } from '@react-navigation/native';
+import CustomHeader from "../../components/common/CustomHeader";
+import {sendFriendRequest} from "../../service/Chatting/chattingScreenAPI";
+import {useRecoilValue} from "recoil";
+import {LoginResponse} from "../../interfaces";
+import {userInfoState} from "../../recoil/atoms";
 
 interface ChatRoomMember {
     memberId: number;
@@ -10,12 +15,11 @@ interface ChatRoomMember {
 }
 
 interface RecentMessage {
-    id: number;
-    type: string;
-    content: string;
-    senderId: number;
-    status: boolean;
-    createdAt: string;
+    id: number | null;
+    type: string | null;
+    content: string | null;
+    senderId: number | null;
+    createdAt: string | null;
 }
 
 interface ChatRoom {
@@ -23,10 +27,11 @@ interface ChatRoom {
     type: string;
     memberCount: number;
     members: ChatRoomMember[];
-    recentMessage: RecentMessage;
+    recentMessage?: RecentMessage;
+    unreadMessageCount?: number;
     createdAt: string;
-    updatedAt: string;
-    removedAt: string | null;
+    updatedAt?: string;
+    removedAt?: string | null;
 }
 
 const ChattingListScreen = ({ navigation }) => {
@@ -34,6 +39,9 @@ const ChattingListScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [appState, setAppState] = useState(AppState.currentState);
+
+    const userInfo = useRecoilValue<LoginResponse>(userInfoState);
+    const currentUserId = userInfo.id;
 
     const fetchChatRooms = async () => {
         try {
@@ -50,19 +58,6 @@ const ChattingListScreen = ({ navigation }) => {
         }
     };
 
-    useEffect(() => {
-        const handleAppStateChange = (nextAppState: AppStateStatus) => {
-            console.log('AppState changed to', nextAppState);
-            // Your logic here
-        };
-
-        const subscription = AppState.addEventListener('change', handleAppStateChange);
-
-        // Clean up the subscription on unmount
-        return () => {
-            subscription.remove();
-        };
-    }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -91,22 +86,31 @@ const ChattingListScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
+            <CustomHeader
+                title={"채팅 목록"}
+                useMenu={false}
+                useNav={false}
+            />
             <FlatList
                 data={chatRooms}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => {
-                    //console.log('Rendering item:', item);
-                    const usernames = item.members.map(member => member.username).join(', ');
+                    console.log('Rendering item:', item);
+                    const usernames = item.members
+                        .filter(member => member.memberId !== currentUserId)
+                        .map(member => member.username)
+                        .join(', ');
+
                     return (
                         <ChatRoomCard
-                            members={item.members}
                             usernames={usernames}
-                            lastMsg={item.recentMessage}
-                            lastUpdate={item.updatedAt}
+                            lastMsg={item.recentMessage === null ? "" : item.recentMessage.content}
+                            lastUpdate={item.recentMessage ===null? "" : item.recentMessage.createdAt}
                             navigation={navigation}
                             chatRoomType={item.type}
                             chatRoomId={item.id}
                             numMember={item.memberCount}
+                            unReadMsg={item.unreadMessageCount}
                         />
                     );
                 }}
@@ -129,7 +133,6 @@ const ChattingListScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 10,
         backgroundColor: '#f5f5f5',
     },
     loadingContainer: {

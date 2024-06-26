@@ -55,7 +55,7 @@ const BottomTabs = () => {
 
 const styles = StyleSheet.create({
   tabContainer: {
-      position: 'absolute',
+      position: 'static',
       left: '2.5%',
       bottom: 10,
       width: '95%',
