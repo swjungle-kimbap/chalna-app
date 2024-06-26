@@ -36,7 +36,7 @@ export const addDevice = (_uuid: string, _date: number) => {
       sendMsg(_uuid);
     } else {
       console.log(`Updated device: ${_uuid}`); 
-      if (new Date(lastMeetTime).getTime() < currentTime + DelayedMSGTime) {
+      if (new Date(lastMeetTime).getTime() > currentTime + DelayedMSGTime) {
         setAsyncObject<number>(`${_uuid}`, currentTime);
         sendRelationCnt(_uuid);
         sendMsg(_uuid);
