@@ -7,7 +7,7 @@ import { SendMsgRequest } from '../interfaces';
 
 const APPLE_ID = 0x4c;
 const MANUF_DATA = [1, 0];
-const DelayedMSGTime = 60000;
+const DelayedMSGTime = 100000;
 
 BLEAdvertiser.setCompanyId(APPLE_ID);
 
@@ -35,7 +35,8 @@ export const addDevice = (_uuid: string, _date: number) => {
       sendMsg(_uuid);
     } else {
       console.log(`Updated device: ${_uuid}`); 
-      if (new Date(lastMeetTime).getTime() > currentTime + DelayedMSGTime) {
+      if (new Date(lastMeetTime).getTime() + DelayedMSGTime < currentTime) {
+        console.log(`Sending msg: ${_uuid}`); 
         setAsyncObject<number>(`${_uuid}`, currentTime);
         sendRelationCnt(_uuid);
         sendMsg(_uuid);

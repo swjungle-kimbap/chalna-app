@@ -82,27 +82,28 @@ export const NaverMap: React.FC = ({}) => {
   }, [currentLocation])
 
   const localChatTapHandler = (name:string, description:string, chatRoomId:number) => {
-    () => Alert.alert(name, description, 
+    Alert.alert(name, description, 
       [
         {
           text: '채팅 참가',
           onPress: async () => {
-            try {
-              const response = await axiosPost<AxiosResponse<string>>(Config.JOIN_LOCAL_CHAT_URL + chatRoomId, "장소 채팅 참여");
-              if (response.data.code === "200") {
-                navigate("로그인 성공", {
-                  screen: "채팅목록",
-                  params: {
-                    screen: "채팅",
-                    params: { chatRoomId } // 필요시 채팅방 ID를 전달합니다.
-                  }
-                })
-              } else {
-                console.error("장소 채팅 참여 실패:", response.data.message);
-              }
-            } catch (e) {
-              console.error("장소 채팅 참여 중 오류 발생:", e);
-            };
+            alert("아직 미구현입니다!")
+            // try {
+            //   const response = await axiosPost<AxiosResponse<string>>(Config.JOIN_LOCAL_CHAT_URL + chatRoomId, "장소 채팅 참여");
+            //   if (response.data.code === "200") {
+            //     navigate("로그인 성공", {
+            //       screen: "채팅목록",
+            //       params: {
+            //         screen: "채팅",
+            //         params: { chatRoomId } // 필요시 채팅방 ID를 전달합니다.
+            //       }
+            //     })
+            //   } else {
+            //     console.error("장소 채팅 참여 실패:", response.data.message);
+            //   }
+            // } catch (e) {
+            //   console.error("장소 채팅 참여 중 오류 발생:", e);
+            // };
           },
           style: 'default'
         },
@@ -142,7 +143,7 @@ export const NaverMap: React.FC = ({}) => {
       <NaverMapMarkerOverlay
         latitude={currentLocation.latitude+0.0001}
         longitude={currentLocation.longitude+0.0001}
-        onTap={localChatTapHandler("1","1",1)}
+        onTap={() => localChatTapHandler("질분방","무엇이든지 물어보세요~", 1)}
         image={require('../../assets/Icons/LocalchatIcon.png')}
         width={40}
         height={40}

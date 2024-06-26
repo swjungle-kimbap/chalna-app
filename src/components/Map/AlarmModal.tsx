@@ -34,21 +34,25 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
     }, [])
   );
 
+  const fetchAlarms = async () => {
+    const response = await axiosGet<AlarmListResponse>(
+      Config.GET_MSG_LIST_URL); // Adjust as necessary
+    if (response) {
+      const fetchedData = response.data; // Adjust as necessary
+      setAlarms(fetchedData.data);
+      setAlarmCnt(fetchedData.data.length);
+    }
+  }
+
   useEffect(() => {
     const startPolling = () => {
       intervalId.current = BackgroundTimer.setInterval(async () => {
         try {
-          const response = await axiosGet<AlarmListResponse>(
-            Config.GET_MSG_LIST_URL); // Adjust as necessary
-          if (response) {
-            const fetchedData = response.data; // Adjust as necessary
-            setAlarms(fetchedData.data);
-            setAlarmCnt(fetchedData.data.length);
-          }
+          fetchAlarms();
         } catch (error) {
           console.error('Error fetching alarm data:', error);
         }
-      }, 10000); 
+      }, 3000); 
     };
 
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
@@ -63,6 +67,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
       }
     };
 
+    fetchAlarms();
     if (isFocused) {
       startPolling();
       const subscription = AppState.addEventListener('change', handleAppStateChange);
@@ -94,8 +99,8 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
   }
 
   const handleAllDeleteAlarm = async () => {
-    await axiosPut(Config.DELETE_ALL_MSG_URL, "인연 알림 모두 지우기");
     removeAlarmItem(0, true);
+    await axiosPut(Config.DELETE_ALL_MSG_URL, "인연 알림 모두 지우기");
   }
 
   const renderAlarmCard = ({ item }: { item: AlarmItem }) => (

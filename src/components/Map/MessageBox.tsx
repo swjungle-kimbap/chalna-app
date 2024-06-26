@@ -66,7 +66,7 @@ const MessageBox: React.FC = ()  => {
   const handleSetIsNearby = () => {
     const currentTime = new Date().getTime();
   
-    if (nearInfo.lastMeetTime + 3000 < currentTime) {
+    if (nearInfo.lastMeetTime + 5000 < currentTime) {
       setNearInfo({ isNearby: true, lastMeetTime: currentTime });
   
       if (timeoutId) {
@@ -78,7 +78,7 @@ const MessageBox: React.FC = ()  => {
           ...prevNearInfo,
           isNearby: false
         }));
-      }, 2000);
+      }, 5000);
     }
   };
   

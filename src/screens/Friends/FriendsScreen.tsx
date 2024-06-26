@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useRef, useCallback } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import styled from "styled-components/native";
 import Text from "../../components/common/Text";
 import Button from '../../components/common/Button'
@@ -10,7 +10,8 @@ import Config from "react-native-config";
 import { ActivityIndicator } from "react-native";
 import axios, { AxiosInstance } from "axios";
 import { axiosGet } from "../../axios/axios.method";
-import { useFocusEffect } from '@react-navigation/native';
+import { useRecoilState } from 'recoil';
+import { FriendsListState } from '../../recoil/atoms';
 interface ApiResponse {
   status: number;
   message: string;
@@ -38,76 +39,41 @@ type FriendsScreenProps = {
 
 const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
+    const [filteredFriendsList, setFilteredFriendsList] = useRecoilState<Friend[]>(FriendsListState);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [friendsData, setFriendsData] = useState<Friend[]>([]);
-    const [filteredData, setFilteredData] = useState<Friend[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    // useEffect(() => {
-    //     const fetchFriends = async () => {
-    //         try {
-    //             console.log("Fetching friends data...");
-    //             const response = await axiosGet<ApiResponse>(Config.GET_FRIEND_LIST_URL);
-          
-    //             console.log(response.data)
-    //             if (response.data && response.data.data && Array.isArray(response.data.data)) {
-    //                 setFriendsData(response.data.data);
-    //                 setFilteredData(response.data.data);
-    //             } else {
-    //                 console.error('응답 구조 이상:', response.data);
-    //                 setError('Unexpected response structure');
-    //             }
-    //         } catch (error) {
-    //             if (axios.isAxiosError(error)) {
-    //                 console.error('Axios error', error.message);
-    //                 setError(error.message);
-    //             } else {
-    //                 console.error('Error friends data:', error);
-    //                 setError('Unexpected error occurred');
-    //             }
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
-
-
-    //     fetchFriends();
-    // }, []);
-
-
-    useFocusEffect(
-        useCallback(() => {
+    useEffect(() => {
         const fetchFriends = async () => {
             try {
-
-            console.log("Fetching friends data...");
-            const response = await axiosGet<ApiResponse>(Config.GET_FRIEND_LIST_URL);
-            console.log("Response received:", response.data);
-            if (response.data && response.data.data && Array.isArray(response.data.data)) {
-                setFriendsData(response.data.data);
-                setFilteredData(response.data.data);
-            } else {
-                console.error('Unexpected response structure:', response.data);
-                setError('Unexpected response structure');
-            }
-
+             
+                const response = await axiosGet<ApiResponse>(Config.GET_FRIEND_LIST_URL);
+          
+                console.log(response.data)
+                if (response.data && response.data.data && Array.isArray(response.data.data)) {
+                    setFriendsData(response.data.data);
+                    setFilteredFriendsList(response.data.data);
+                } else {
+                    console.error('Unexpected response structure:', response.data);
+                    setError('Unexpected response structure');
+                }
             } catch (error) {
-            if (axios.isAxiosError(error)) {
-                console.error('Axios error', error.message);
-                setError(error.message);
-            } else {
-                console.error('Error friends data:', error);
-                setError('Unexpected error occurred');
-            }
+                if (axios.isAxiosError(error)) {
+                    console.error('Axios error', error.message);
+                    setError(error.message);
+                } else {
+                    console.error('Error friends data:', error);
+                    setError('Unexpected error occurred');
+                }
             } finally {
-            setLoading(false);
+                setLoading(false);
             }
         };
 
         fetchFriends();
-        }, [])
-    );
+    }, []);
 
 
     const handleCardPress = (cardId: number) => {
@@ -121,21 +87,23 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     const handleSearch = (query: string) => {
         setSearchQuery(query);
         if (query === '') {
-          setFilteredData(friendsData);
+            setFilteredFriendsList(friendsData);
         }
       }
 
     const handleSearchButtonPress = () => {
-    const trimmedQuery = searchQuery.replace(/\s+/g, ''); // 공백 제거
-    if (trimmedQuery === '') {
-        setFilteredData(friendsData);
-        return;
-    }
-    const filtered = friendsData.filter(user =>
-        (user.username && user.username.includes(trimmedQuery)) ||
-        (user.message && user.message.includes(trimmedQuery))
-    );
-    setFilteredData(filtered);
+        const trimmedQuery = searchQuery.replace(/\s+/g, ''); // 공백 제거
+        if (trimmedQuery === '') {
+            setFilteredFriendsList(friendsData);
+            return;
+        }
+
+        const filtered = friendsData.filter(user =>
+            (user.username && user.username.includes(trimmedQuery)) ||
+            (user.message && user.message.includes(trimmedQuery))
+        );
+
+        setFilteredFriendsList(filtered);
     };
 
     const renderFriendCard = ({item}: {item: Friend}) => (
@@ -177,11 +145,11 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                 <Image source={require('../../assets/Icons/SearchIcon.png')} style={styles.searchIcon} />
                 </TouchableOpacity>
             </View>
-            {filteredData.length === 0 ? (
+            {filteredFriendsList.length === 0 ? (
                 <Text>해당 친구가 존재하지 않습니다.</Text>
             ) : (
                 <FlatList
-                data={filteredData}
+                data={filteredFriendsList}
                 renderItem={renderFriendCard}
                 keyExtractor={(item) => item.id.toString()}
                 />
