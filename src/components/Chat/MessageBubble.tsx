@@ -131,6 +131,8 @@ const styles = StyleSheet.create({
     },
     centerContainer:{
         alignSelf: 'center',
+        alignItems:'center',
+        backgroundColor:'transparent',
         borderWidth: 0,
     },
     messageContent: {
@@ -138,11 +140,12 @@ const styles = StyleSheet.create({
     },
     messageText: {
         fontSize: 16,
-        color: 'black',
+        color: '#333333',
     },
     datetime: {
         fontSize: 12,
         color: '#666',
+        alignSelf: 'flex-end',
     },
     buttonContainer: {
         flexDirection: 'row',
