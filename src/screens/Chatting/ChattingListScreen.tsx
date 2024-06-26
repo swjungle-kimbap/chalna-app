@@ -121,7 +121,7 @@ const ChattingListScreen = ({ navigation }) => {
                 }
                 ListEmptyComponent={() => (
                     <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>No chat rooms available</Text>
+                        <Text style={styles.emptyText}>새로운 인연과 대화를 시작해보세요</Text>
                     </View>
                 )}
             />
@@ -145,6 +145,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     emptyText: {
+        marginTop:30,
         fontSize: 18,
         color: '#999',
     },

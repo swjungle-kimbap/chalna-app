@@ -32,6 +32,8 @@ const ChattingScreen = () => {
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [chatRoomType, setChatRoomType] = useState<string>('');
     const [username, setUsername] = useState<string>('');
+    const anonName = '';
+    const friendName = '';
 
     const otherIdRef = useRef<number | null>(null);
     // const chatRoomTypeRef = useRef<string>('');
@@ -65,7 +67,10 @@ const ChattingScreen = () => {
 
                     } else {
                         //여기에 상태 메세지 받아서 처리하는 로직 추가
+
+
                         if (parsedMessage.content==='5분이 지났습니다' && parsedMessage.senderId===0 ){
+
                             setChatRoomType('WAITING');
                             console.log("5분지남! 채팅기능 비활성화: ",chatRoomType);
                             // chatRoomTypeRef.current='WAITING';
@@ -121,7 +126,9 @@ const ChattingScreen = () => {
                     const otherMember = responseData.members.find((member: any) => member.memberId !== currentUserId);
                     if (otherMember) {
                         otherIdRef.current = otherMember.memberId;
-                        setUsername(chatRoomType==='FRIEND'? otherMember.username : `익명${otherMember.memberId}`);
+                        anonName =  `익명${otherMember.memberId}`;
+                        friendName = otherMember.username;
+
                         console.log('채팅방 타입: 유저네임',chatRoomType, ' : ', username)
                     }
                     // Extract messages

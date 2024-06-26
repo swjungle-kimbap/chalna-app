@@ -143,7 +143,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                 </TouchableOpacity>
             </View>
             {filteredData.length === 0 ? (
-                <Text>해당 친구가 존재하지 않습니다.</Text>
+                <Text style={{marginTop:30, marginBottom: 30}}>새로운 인연을 만나보세요.</Text>
             ) : (
                 <FlatList
                 data={filteredData}
