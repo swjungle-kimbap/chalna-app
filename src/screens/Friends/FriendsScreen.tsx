@@ -46,9 +46,9 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     useEffect(() => {
         const fetchFriends = async () => {
             try {
-             
+
                 const response = await axiosGet<ApiResponse>(Config.GET_FRIEND_LIST_URL);
-          
+
                 console.log(response.data)
                 if (response.data && response.data.data && Array.isArray(response.data.data)) {
                     setFriendsData(response.data.data);
@@ -129,8 +129,8 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
 
     return (
         <FriendsStyle>
-            <Text>친구목록 페이지 입니다.</Text>
-            <Button title="차단친구 목록" onPress={() => navigation.navigate('차단친구 목록')} />
+
+            {/*<Button title="차단친구 목록" onPress={() => navigation.navigate('차단친구 목록')} />*/}
             <View style={styles.searchContainer}>
                 <TextInput
                     placeholder="친구 검색"
@@ -151,7 +151,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                 keyExtractor={(item) => item.id.toString()}
                 />
       )}
-        
+
         </FriendsStyle>
     );
 };
@@ -163,13 +163,14 @@ const FriendsStyle = styled.View`
 
 const styles = StyleSheet.create({
     searchContainer: {
+        marginTop: 20,
         flexDirection: 'row',
         alignItems: 'center',
         borderColor: '#CCC',
         borderWidth: 1,
-        borderRadius: 5,
+        borderRadius: 10,
         paddingHorizontal: 10,
-        paddingVertical: 10,
+        paddingVertical: 2,
         width: '90%',
         alignSelf: 'center',
     },
