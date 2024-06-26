@@ -5,8 +5,10 @@ import RoundBox from './common/RoundBox';
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../interfaces";
 import Button from './common/Button';
-import { axiosGet } from "../axios/axios.method";
+import { axiosGet, axiosPost } from "../axios/axios.method";
 import Config from 'react-native-config';
+import { useRecoilState } from 'recoil';
+import { FriendsListState } from '../recoil/atoms';
 interface FriendCardProps {
     user: User;
     isExpanded: boolean;
@@ -27,7 +29,7 @@ interface ApiResponse {
   }
 
 const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, navigation}) => {
-    // const [expanded, setExpanded] = useState(false);
+    const [friendsList, setFriendsList] = useRecoilState(FriendsListState);
 
     const handlePress = () => {
         onExpand();
@@ -58,6 +60,12 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
         }
     };
 
+    const handleBlockFriend = (id) => {
+        const filteredFriendsList = friendsList.filter(item => item.id !== id)
+        setFriendsList(filteredFriendsList);
+        axiosPost(Config.DELETE_FRIEND_URL+id, "친구 삭제");
+    }
+
     return (
         <TouchableOpacity onPress={handlePress}>
             <RoundBox style={styles.container}>
@@ -73,6 +81,7 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
                         {/* <Text style={styles.additionalInfo}>Additional information about {user.username}</Text> */}
                         <View style={styles.btnContainer}>
                             <Button title="대화하기" onPress={handleChat}  />
+                            <Button title="차단하기" onPress={()=> {handleBlockFriend(user.id)}} />
                         </View>
                     </View>
                 )}
@@ -108,8 +117,10 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     btnContainer:{
+        flexDirection: 'row',
+        justifyContent: 'space-evenly',
         alignItems: 'flex-end',
-        marginRight: 30
+        paddingLeft: 90,
     },
     name: {
         fontSize: 18,

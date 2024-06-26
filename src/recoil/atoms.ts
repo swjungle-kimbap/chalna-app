@@ -2,6 +2,7 @@ import { atom } from "recoil";
 import { LoginResponse, Position } from "../interfaces";
 import { IsNearbyState } from "./atomtypes";
 import { EmitterSubscription } from 'react-native';
+import { Friend } from "../screens/Friends/FriendsScreen";
 
 export const locationState = atom<Position>({
   key: 'location',
@@ -45,4 +46,9 @@ export const isNearbyState = atom<IsNearbyState>({
     isNearby: false,
     lastMeetTime: 0
   }
+})
+
+export const FriendsListState = atom<Friend[]>({
+  key: 'FriendsList',
+  default: []
 })
