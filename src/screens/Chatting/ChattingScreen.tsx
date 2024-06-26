@@ -10,7 +10,7 @@ import axiosInstance from '../../axios/axios.instance'; // Adjust the path as ne
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
 import Modal from 'react-native-modal';
 import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
-import { sendFriendRequest, deleteChat } from "../../service/Chatting/chattingScreenAPI";
+import { sendFriendRequest, deleteChat } from "../../service/Chatting/chattingAPI";
 import 'text-encoding-polyfill';
 import CustomHeader from "../../components/common/CustomHeader";
 import MenuModal from "../../components/common/MenuModal";
@@ -30,14 +30,55 @@ const ChattingScreen = () => {
     const [messages, setMessages] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+    const [chatRoomType, setChatRoomType] = useState<string>('');
+    const [username, setUsername] = useState<string>('');
 
-    // chat room info
-    const chatRoomTypeRef = useRef<string>('');
     const otherIdRef = useRef<number | null>(null);
-    const otherUsernameRef = useRef<string>('');
+    // const chatRoomTypeRef = useRef<string>('');
 
     // auto scroll
     const scrollViewRef = useRef<ScrollView>(null);
+
+    const setupWebSocket = async () => {
+        try {
+            const accessToken = await getKeychain('accessToken');
+
+            WebSocketManager.connect(chatRoomId, accessToken, (message: IMessage) => {
+                console.log('Received message: ' + message.body);
+                try {
+                    const parsedMessage = JSON.parse(message.body);
+                    if ((parsedMessage.type === 'CHAT'||parsedMessage.type==='FRIEND_REQUEST' )
+                        && parsedMessage.content && parsedMessage.senderId !== 0)
+                    {
+                        parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
+                        setMessages((prevMessages) => [...prevMessages, parsedMessage]);
+                        scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
+
+                        // 상태메세지 바꾸기
+                        if (parsedMessage.type==='FRIEND_REQUEST' && parsedMessage.content==='친구가 되었습니다!\n' +
+                            '대화를 이어가보세요.'){
+                            setChatRoomType('FRIEND');
+                            console.log("친구 맺기 성공! 채팅룸 타입: ",chatRoomType);
+                            // chatRoomTypeRef.current='FRIEND';
+                            // console.log("친구가 되었습니다");
+                        }
+
+                    } else {
+                        //여기에 상태 메세지 받아서 처리하는 로직 추가
+                        if (parsedMessage.content==='5분이 지났습니다' && parsedMessage.senderId===0 ){
+                            setChatRoomType('WAITING');
+                            console.log("5분지남! 채팅기능 비활성화: ",chatRoomType);
+                            // chatRoomTypeRef.current='WAITING';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to parse received message:', error);
+                }
+            });
+        } catch (error) {
+            console.error('Failed to set up WebSocket:', error);
+        }
+    };
 
     // Get out of screen -> disconnect
     useEffect(() => {
@@ -45,6 +86,8 @@ const ChattingScreen = () => {
             if (nextAppState === 'background' || nextAppState === 'inactive') {
                 WebSocketManager.disconnect();
                 // 여기서 timestamp 저장해야할듯
+            } else {
+                setupWebSocket();
             }
         };
         const subscription = AppState.addEventListener('change', handleAppStateChange);
@@ -69,15 +112,17 @@ const ChattingScreen = () => {
                     const responseData = response.data.data;
 
                     // Extract chatRoomType
-                    chatRoomTypeRef.current = responseData.type;
+                    setChatRoomType(responseData.type);
+                    // chatRoomTypeRef.current=responseData.type;
+                    console.log('set chatroomto: ',responseData.type);
 
                     // Extract other member info
                     const otherMember = responseData.members.find((member: any) => member.memberId !== currentUserId);
                     if (otherMember) {
                         otherIdRef.current = otherMember.memberId;
-                        otherUsernameRef.current = otherMember.username;
+                        setUsername(chatRoomType==='FRIEND'? otherMember.username : `익명${otherMember.memberId}`);
+                        console.log('채팅방 타입: 유저네임',chatRoomType, ' : ', username)
                     }
-
                     // Extract messages
                     const fetchedMessages = response.data.data.list.map((msg: any) => ({
                         ...msg,
@@ -92,34 +137,8 @@ const ChattingScreen = () => {
                 }
             };
 
-            fetchMessages();
-
-            const setupWebSocket = async () => {
-                try {
-                    const accessToken = await getKeychain('accessToken');
-
-                    WebSocketManager.connect(chatRoomId, accessToken, (message: IMessage) => {
-                        try {
-                            const parsedMessage = JSON.parse(message.body);
-                            if ((parsedMessage.type === 'CHAT'||parsedMessage.type==='FRIEND_REQUEST' )
-                                && parsedMessage.content && parsedMessage.senderId !== 0)
-                            {
-                                parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
-                                setMessages((prevMessages) => [...prevMessages, parsedMessage]);
-                                scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
-                            } else {
-                                //여기에 상태 메세지 받아서 처리하는 로직 추가
-                            }
-                        } catch (error) {
-                            console.error('Failed to parse received message:', error);
-                        }
-                    });
-                } catch (error) {
-                    console.error('Failed to set up WebSocket:', error);
-                }
-            };
-
-            setupWebSocket();
+            fetchMessages(); // 첫 입장시 메세지 로드
+            setupWebSocket(); // 소켓통신 열기
 
             return () => {
                 const leaveTimestamp = new Date().toISOString();
@@ -129,7 +148,7 @@ const ChattingScreen = () => {
     );
 
     const sendMessage = () => {
-        if (chatRoomTypeRef.current === 'WAITING'){
+        if (chatRoomType=== 'WAITING'){
             return;
         }
         const messageObject = {
@@ -163,10 +182,10 @@ const ChattingScreen = () => {
     return (
         <SWRConfig value={{}}>
             <CustomHeader
-                title={otherUsernameRef.current}
-                onBackPress={()=>navigation.goBack()} //뒤로가기
+                title={username}
+                onBackPress={()=>navigation.navigate("채팅 목록")} //채팅 목록으로 돌아가기
                 onBtnPress={()=>sendFriendRequest(chatRoomId, otherIdRef.current)} //친구요청 보내기
-                showBtn={chatRoomTypeRef.current!=='FRIEND'} //친구상태 아닐때만 노출
+                showBtn={chatRoomType!=='FRIEND'} //친구상태 아닐때만 노출
                 onMenuPress={toggleModal}
                 useNav={true}
                 useMenu={true}
@@ -187,26 +206,29 @@ const ChattingScreen = () => {
                             status={msg.status}
                             chatRoomId={chatRoomId}
                             otherId={otherIdRef.current}
+                            chatRoomType={chatRoomType}
                         />
                     ))}
                 </ScrollView>
-                <View style={styles.inputContainer}>
+                <View style={chatRoomType !== 'WAITING' ? styles.inputContainer : styles.disabledInput}>
                     <TextInput
                         style={styles.input}
                         value={messageContent}
                         onChangeText={setMessageContent}
-                        placeholder="Type a message"
+                        placeholder={chatRoomType === 'WAITING' ? '5분이 지났습니다.\n' +
+                            '대화를 이어가려면 친구요청을 보내보세요.' : ''}
                         multiline
                         textBreakStrategy="highQuality"
-                        editable={chatRoomTypeRef.current !== 'WAITING'}
+                        editable={chatRoomType !== 'WAITING'}
                     />
-                    <ImageTextButton
-                        onPress={sendMessage}
-                        iconSource={require('../../assets/Icons/sendMsgIcon.png')}
-                        disabled={chatRoomTypeRef.current==='WAITING' || messageContent===''}
-                        imageStyle={{height:15, width:15}}
-                        containerStyle={{paddingRight:15}}
-                    />
+                    {chatRoomType!=='WAITING' && (
+                        <ImageTextButton
+                            onPress={sendMessage}
+                            iconSource={require('../../assets/Icons/sendMsgIcon.png')}
+                            disabled={chatRoomType==='WAITING' || messageContent===''}
+                            imageStyle={{height:15, width:15}}
+                            containerStyle={{paddingRight:15}}
+                    />)}
                 </View>
                 <MenuModal
                     isVisible = {isModalVisible}
@@ -227,14 +249,16 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flexGrow: 1,
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         alignItems: 'center',
+        paddingTop: 10,
     },
     inputContainer: {
+        verticalAlign: 'top',
         backgroundColor: 'white',
         borderColor: "#ececec",
         flexDirection: 'row',
-        borderRadius: 25,
+        borderRadius: 20,
         borderWidth:0.8,
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -289,6 +313,13 @@ const styles = StyleSheet.create({
         width: 30,
         height: 30,
         resizeMode: 'contain',
+    },
+    disabledInput: {
+        flex: 1,
+        padding: 10,
+        marginLeft: 10,
+        backgroundColor: '#f0f0f0', // greyed-out background color
+        color: '#a9a9a9', // greyed-out text color
     },
 });
 
