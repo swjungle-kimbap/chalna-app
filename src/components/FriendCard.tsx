@@ -5,10 +5,8 @@ import RoundBox from './common/RoundBox';
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../interfaces";
 import Button from './common/Button';
-import axios from 'axios';
-import { getKeychain, setKeychain } from "../utils/keychain";
 import { axiosGet } from "../axios/axios.method";
-
+import Config from 'react-native-config';
 interface FriendCardProps {
     user: User;
     isExpanded: boolean;
@@ -38,12 +36,19 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
     const handleChat = async () => {
         try {
     
-            const response = await axiosGet<ApiResponse>(`https://chalna.shop/api/v1/friend/${user.id}`);
+            const response = await axiosGet<ApiResponse>(`${Config.GET_FRIEND_LIST_URL}/${user.id}`);
 
             console.log(response.data);
             if (response.data && response.data.data && response.data.data.chatRoomId) {
                 const { chatRoomId } = response.data.data;
-                navigation.navigate('채팅',  { chatRoomId: chatRoomId });
+    
+                navigation.navigate("로그인 성공", {
+                    screen: "채팅목록",
+                    params: {
+                      screen: "채팅",
+                      params: { chatRoomId: chatRoomId } // 필요시 채팅방 ID를 전달
+                    }
+                  });
             } else {
                 Alert.alert('Error', 'chatroomId를 찾을 수 없습니다.');
             }
