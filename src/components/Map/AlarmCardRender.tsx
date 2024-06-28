@@ -6,6 +6,7 @@ import { axiosPost, axiosPut } from '../../axios/axios.method';
 import Config from 'react-native-config';
 import { AxiosResponse } from 'axios';
 import { navigate } from '../../navigation/RootNavigation';
+import {urls} from "../../axios/config";
 
 export interface AlaramItemProps{
   item: AlarmItem;
@@ -14,20 +15,20 @@ export interface AlaramItemProps{
   removeAlarmItem: (notificationId: number, DeleteAll?:boolean) =>void;
 }
 
-const AlarmCardRender: React.FC<AlaramItemProps> = 
+const AlarmCardRender: React.FC<AlaramItemProps> =
   ({ item, expandedCardId, handleCardPress, removeAlarmItem }) => {
-  
+
   const handleAcceptButton = async (notificationId:number) => {
     removeAlarmItem(notificationId);
     const matchAcceptResponse = await axiosPost<AxiosResponse<MatchAcceptResponse>>
-                              (Config.ACCEPT_MSG_URL + notificationId.toString(), "인연 수락");
+                              (urls.ACCEPT_MSG_URL + notificationId.toString(), "인연 수락");
     navigate("채팅", { chatRoomId: matchAcceptResponse.data.data.chatRoomId });
   }
 
   const handleDeleteButton = async (notificationId:number) => {
-    await axiosPut(Config.DELETE_MSG_URL + notificationId.toString(), "인연 알림 지우기");
+    await axiosPut(urls.DELETE_MSG_URL + notificationId.toString(), "인연 알림 지우기");
     removeAlarmItem(notificationId);
-  } 
+  }
 
   return (
   <TouchableOpacity onPress={() => handleCardPress(item.notificationId)}>
@@ -35,7 +36,7 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
       <Text style={styles.alarmCnt}>{`${item.overlapCount}번 스쳐간 인연입니다.`}</Text>
       {expandedCardId === item.notificationId ? (
         <>
-          <Text 
+          <Text
             numberOfLines={5}
             ellipsizeMode="tail"
             style={styles.alarmContent}
@@ -43,14 +44,14 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
             {item.message}
           </Text>
           <View style={styles.btnContainer}>
-            <Button style={{flex:1}} variant="sub" title="대화하기" 
+            <Button style={{flex:1}} variant="sub" title="대화하기"
               onPress={async () => {handleAcceptButton(item.notificationId)}} />
-            <Button style={{flex:1}} variant="sub" title="지우기" 
+            <Button style={{flex:1}} variant="sub" title="지우기"
               onPress={async () => {handleDeleteButton(item.notificationId)}} />
           </View>
         </>
       ) : (
-        <Text 
+        <Text
           numberOfLines={1}
           ellipsizeMode="tail"
           style={styles.alarmContent}
@@ -80,8 +81,8 @@ const styles = StyleSheet.create({
   },
   alarmContent: {
     fontSize: 14,
-    textAlign: 'left',  
-    width: '100%', 
+    textAlign: 'left',
+    width: '100%',
     fontFamily: FontTheme.fonts.main,
     color: '#060606',
   },

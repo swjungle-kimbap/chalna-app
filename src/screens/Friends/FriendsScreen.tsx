@@ -12,6 +12,7 @@ import axios, { AxiosInstance } from "axios";
 import { axiosGet } from "../../axios/axios.method";
 import { useFocusEffect } from '@react-navigation/native';
 import ImageTextButton from "../../components/common/Button";
+import {urls} from "../../axios/config";
 
 interface ApiResponse {
   status: number;
@@ -50,7 +51,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     //     const fetchFriends = async () => {
     //         try {
     //             console.log("Fetching friends data...");
-    //             const response = await axiosGet<ApiResponse>(Config.GET_FRIEND_LIST_URL);
+    //             const response = await axiosGet<ApiResponse>(urls.GET_FRIEND_LIST_URL);
 
     //             console.log(response.data)
     //             if (response.data && response.data.data && Array.isArray(response.data.data)) {
@@ -84,7 +85,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
             try {
 
             console.log("Fetching friends data...");
-            const response = await axiosGet<ApiResponse>(Config.GET_FRIEND_LIST_URL);
+            const response = await axiosGet<ApiResponse>(urls.GET_FRIEND_LIST_URL);
             console.log("Response received:", response.data);
             if (response.data && response.data.data && Array.isArray(response.data.data)) {
                 setFriendsData(response.data.data);

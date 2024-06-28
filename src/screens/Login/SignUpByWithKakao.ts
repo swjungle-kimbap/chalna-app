@@ -5,10 +5,11 @@ import { AxiosResponse, LoginResponse, SignUpResponse } from '../../interfaces';
 import { SignUpRequest } from '../../interfaces/axiosRequest.type';
 import { logIn } from './logIn';
 import { setKeychain } from '../../utils/keychain';
+import {urls} from "../../axios/config";
 
 export const SignUpByWithKakao = async (deviceId:string, fcmToken:string) :Promise<LoginResponse | null>=> {
   try {
-    const kakaoLoginResponse = await KakaoLogin.login(); 
+    const kakaoLoginResponse = await KakaoLogin.login();
     const kakaoUserProfile = await KakaoLogin.getProfile();
     const signUpRequestBody: SignUpRequest = {
       accessToken: kakaoLoginResponse.accessToken,
@@ -17,7 +18,7 @@ export const SignUpByWithKakao = async (deviceId:string, fcmToken:string) :Promi
       kakaoId: kakaoUserProfile.id,
     }
     const singUpResponse = await axiosPost<AxiosResponse<SignUpResponse>>(
-      Config.SIGNUP_URL, "회원 가입 요청", signUpRequestBody);
+      urls.SIGNUP_URL, "회원 가입 요청", signUpRequestBody);
     await setKeychain('loginToken', singUpResponse.data.data.loginToken);
     await KakaoLogin.logout();
     return logIn(singUpResponse.data.data.loginToken, deviceId, fcmToken);

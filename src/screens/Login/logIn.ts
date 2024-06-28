@@ -4,6 +4,7 @@ import { axiosPost } from "../../axios/axios.method";
 import { AxiosResponse } from "axios";
 import { LoginResponse } from "../../interfaces";
 import { getKeychain } from "../../utils/keychain";
+import {urls} from "../../axios/config";
 
 export const logIn = async (loginToken: string, deviceId:string, fcmToken:string) : Promise<LoginResponse | null>=> {
   try {
@@ -13,8 +14,9 @@ export const logIn = async (loginToken: string, deviceId:string, fcmToken:string
     const accessToken = await getKeychain('accessToken');;
     if (accessToken)
       console.log("accessToken :", accessToken);
+
     const loginResponse = await axiosPost<AxiosResponse<LoginResponse>>(
-      Config.LOGIN_URL, "로그인 요청", loginRequestBody);
+      urls.LOGIN_URL, "로그인 요청", loginRequestBody);
     return loginResponse?.data?.data;
   } catch (error) {
     console.error("login fail", error);

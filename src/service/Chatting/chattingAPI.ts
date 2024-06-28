@@ -1,7 +1,8 @@
-import axiosInstance from '../../axios/axios.instance'; // Adjust the path as necessary
+import {axiosDelete, axiosPatch} from '../../axios/axios.method'; // Adjust the path as necessary
 import {Alert} from "react-native";
 import WebSocketManager from "../../utils/WebSocketManager";
 import axios from "axios";
+import {urls} from "../../axios/config";
 
 
 export const sendFriendRequest = async (chatRoomId:string, otherId: number) => {
@@ -17,8 +18,8 @@ export const sendFriendRequest = async (chatRoomId:string, otherId: number) => {
                 text: "보내기",
                 onPress: async () => {
                     try {
-                        await axiosInstance.patch(
-                            `https://chalna.shop/api/v1/relation/request/${chatRoomId}`
+                        await axiosPatch(
+                             urls.SEND_FRIEND_REQUEST_URL+`/${chatRoomId}`
                         );
 
                         // 친구요청 채팅메세지 보내기
@@ -55,8 +56,8 @@ export const deleteChat = async (navigation: any, chatRoomId:string) => {
                 text: "나가기",
                 onPress: async () => {
                     try {
-                        await axiosInstance.delete(
-                            `https://chalna.shop/api/v1/chatRoom/leave/${chatRoomId}`
+                        await axiosDelete(
+                            urls.CHATROOM_LEAVE_URL+`/${chatRoomId}`
                         );
                         Alert.alert("채팅방 삭제 완료", "채팅 목록 화면으로 돌아갑니다.");
                         navigation.navigate('채팅 목록');
