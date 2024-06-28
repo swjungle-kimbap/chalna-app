@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Button, Alert } from 'react-native';
-import axiosInstance from '../../axios/axios.instance'; // Adjust the path as necessary
+import { axiosPatch } from '../../axios/axios.method'; // Adjust the path as necessary
 import ImageTextButton from "../common/Button";
 import WebSocketManager from "../../utils/WebSocketManager";
+import {urls} from "../../axios/config";
 
 interface MessageBubbleProps {
     message: string;
@@ -29,7 +30,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
                 {
                     text: '수락', onPress: async () => {
                         try {
-                            const response = await axiosInstance.patch(`https://chalna.shop/api/v1/relation/accept/${chatRoomId}`);
+                            const response = await axiosPatch(
+                                urls.ACCEPT_FRIEND_REQUEST_URL+`/${chatRoomId}`);
                             console.log(response)
 
                             Alert.alert('친구 맺기 성공', '친구가 되었습니다!');
@@ -66,7 +68,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
                 {
                     text: '거절', onPress: async () => {
                         try {
-                            await axiosInstance.patch(`https://chalna.shop/api/v1/relation/reject/${otherId}`);
+                            await axiosPatch( urls.REJECT_FRIEND_REQUEST_URL+`/${otherId}`);
                             Alert.alert('친구 요청 거절 성공', '친구 요청을 거절했습니다.');
                             setIsDisabled(true);
 
@@ -90,71 +92,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
         );
     };
 
-//     return (
-//         <View style={[
-//             styles.container,
-//             isSelf ? styles.selfContainer : styles.otherContainer,
-//             (type === 'FRIEND_REQUEST' && message!=='친구 요청을 보냈습니다.') && styles.centerContainer
-//         ]}>
-//             <View style={styles.messageContent}>
-//                 <Text style={styles.messageText}>{message}</Text>
-//                 <Text style={styles.datetime}>{formattedTime}</Text>
-//             </View>
-//             {type === 'FRIEND_REQUEST' && !isSelf && message==='친구 요청을 보냈습니다.' &&(
-//                 <View style={styles.buttonContainer}>
-//                     <ImageTextButton title='수락' onPress={handleAccept} disabled={isDisabled} />
-//                     <ImageTextButton title='거절' onPress={handleReject} disabled={isDisabled} />
-//                 </View>
-//             )}
-//         </View>
-//     );
-// };
-//
-// const styles = StyleSheet.create({
-//     container: {
-//         maxWidth: '80%',
-//         padding: 10,
-//         marginBottom: 10,
-//         borderRadius: 8,
-//         borderWidth: 1,
-//         borderColor: '#ccc',
-//         alignSelf: 'flex-start',
-//     },
-//     selfContainer: {
-//         alignSelf: 'flex-end',
-//         backgroundColor: '#DCF8C6',
-//     },
-//     otherContainer: {
-//         alignSelf: 'flex-start',
-//         backgroundColor: '#FFFFFF',
-//     },
-//     centerContainer:{
-//         alignSelf: 'center',
-//         alignItems:'center',
-//         backgroundColor:'transparent',
-//         borderWidth: 0,
-//     },
-//     messageContent: {
-//         marginBottom: 5,
-//     },
-//     messageText: {
-//         fontSize: 16,
-//         color: '#333333',
-//     },
-//     datetime: {
-//         fontSize: 12,
-//         color: '#666',
-//         alignSelf: 'flex-end',
-//     },
-//     buttonContainer: {
-//         flexDirection: 'row',
-//         justifyContent: 'space-between',
-//         marginTop: 5,
-//         marginHorizontal:15,
-//     },
-// });
-//
-// export default MessageBubble;
 
     return (
         <View style={[styles.container,

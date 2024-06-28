@@ -6,7 +6,7 @@ import { userInfoState } from "../../recoil/atoms";
 import { LoginResponse } from "../../interfaces";
 import { getKeychain } from "../../utils/keychain";
 import { SWRConfig } from 'swr';
-import axiosInstance from '../../axios/axios.instance'; // Adjust the path as necessary
+import {axiosGet} from '../../axios/axios.method'; // Adjust the path as necessary
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
 import Modal from 'react-native-modal';
 import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
@@ -18,6 +18,7 @@ import ImageTextButton from "../../components/common/Button";
 import { navigate } from '../../navigation/RootNavigation';
 import {SafeAreaView} from "react-native-safe-area-context";
 import { Keyboard } from 'react-native';
+import {urls} from "../../axios/config";
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -26,8 +27,7 @@ const ChattingScreen = () => {
     const { chatRoomId } = route.params;
     const navigation = useNavigation();
 
-    const userInfo = useRecoilValue<LoginResponse>(userInfoState);
-    const currentUserId = userInfo.id;
+    const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
 
     const [messageContent, setMessageContent] = useState<string>('');
     const [messages, setMessages] = useState<any[]>([]);
@@ -144,8 +144,8 @@ const ChattingScreen = () => {
             const fetchMessages = async () => {
                 try {
                     setLoading(true);
-                    const response = await axiosInstance.get(
-                        `https://chalna.shop/api/v1/chatRoom/message/${chatRoomId}?lastLeaveAt=2024-06-23T10:32:40` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
+                    const response = await axiosGet(
+                        urls.CHATROOM_LIST_URL+`/${chatRoomId}?lastLeaveAt=2024-06-23T10:32:40` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
                     );
 
                     const responseData = response.data.data;
@@ -211,6 +211,17 @@ const ChattingScreen = () => {
         setIsModalVisible(!isModalVisible);
     };
 
+    // 채팅방 나가기
+    const handleMenu1Action = () => {
+        try{
+
+        } catch (error){
+            console.error("Failed to delete chat", error);
+        }
+        toggleModal();
+        deleteChat(navigation, chatRoomId);
+    };
+
 
     if (loading) {
         return (
@@ -228,14 +239,7 @@ const ChattingScreen = () => {
         <SWRConfig value={{}}>
                 <CustomHeader
                     title={username}
-                    onBackPress={()=>{
-                    navigate("로그인 성공", {
-                        screen: "채팅목록",
-                        params: {
-                          screen: "채팅 목록",
-                        }
-                      });
-                }} //채팅 목록으로 돌아가기
+                    onBackPress={()=> navigation.navigate("채팅 목록")}
                     onBtnPress={()=>sendFriendRequest(chatRoomId, otherIdRef.current)} //친구요청 보내기
                     showBtn={chatRoomType!=='FRIEND'} //친구상태 아닐때만 노출
                     onMenuPress={toggleModal}
@@ -288,7 +292,7 @@ const ChattingScreen = () => {
                             isVisible = {isModalVisible}
                             onClose={toggleModal}
                             menu1={'채팅방 나가기'}
-                            onMenu1={()=>deleteChat(navigation, chatRoomId)}
+                            onMenu1={handleMenu1Action}
                             />
 
                     </View>

@@ -8,6 +8,8 @@ import {useRecoilValue} from "recoil";
 import {LoginResponse} from "../../interfaces";
 import {userInfoState} from "../../recoil/atoms";
 import {SafeAreaView} from "react-native-safe-area-context";
+import Config from "react-native-config";
+import {urls} from "../../axios/config";
 
 interface ChatRoomMember {
     memberId: number;
@@ -40,14 +42,13 @@ const ChattingListScreen = ({ navigation }) => {
     const [refreshing, setRefreshing] = useState(false);
     const [appState, setAppState] = useState(AppState.currentState);
 
-    const userInfo = useRecoilValue<LoginResponse>(userInfoState);
-    const currentUserId = userInfo.id;
+    const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
 
     const fetchChatRooms = async () => {
         try {
             const response = await axiosGet<{ data: { list: ChatRoom[] } }>(
-                'https://chalna.shop/api/v1/chatRoom',
-                'Failed to fetch chat rooms',
+                urls.CHATROOM_LIST_URL,
+
             );
             // console.log('API Response:', response);
             setChatRooms(response.data.data.list);

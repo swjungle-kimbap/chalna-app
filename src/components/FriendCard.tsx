@@ -9,6 +9,7 @@ import { axiosGet, axiosPost } from "../axios/axios.method";
 import Config from 'react-native-config';
 import { useRecoilState } from 'recoil';
 import { FriendsListState } from '../recoil/atoms';
+import {urls} from "../axios/config";
 interface FriendCardProps {
     user: User;
     isExpanded: boolean;
@@ -38,7 +39,7 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
     const handleChat = async () => {
         try {
 
-            const response = await axiosGet<ApiResponse>(`${Config.GET_FRIEND_LIST_URL}/${user.id}`);
+            const response = await axiosGet<ApiResponse>(`${urls.GET_FRIEND_LIST_URL}/${user.id}`);
 
             console.log(response.data);
             if (response.data && response.data.data && response.data.data.chatRoomId) {
@@ -56,7 +57,7 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
     const handleBlockFriend = (id) => {
         const filteredFriendsList = friendsList.filter(item => item.id !== id)
         setFriendsList(filteredFriendsList);
-        axiosPost(Config.DELETE_FRIEND_URL+id, "친구 삭제");
+        axiosPost(urls.DELETE_FRIEND_URL+id, "친구 삭제");
     }
 
     return (

@@ -4,6 +4,7 @@ import { axiosPost } from '../axios/axios.method';
 import Config from 'react-native-config';
 import { getAsyncObject, getAsyncString, setAsyncObject } from '../utils/asyncStorage';
 import { SendMsgRequest } from '../interfaces';
+import {urls} from "../axios/config";
 
 const APPLE_ID = 0x4c;
 const MANUF_DATA = [1, 0];
@@ -14,7 +15,7 @@ BLEAdvertiser.setCompanyId(APPLE_ID);
 const sendMsg = async ( _uuid:string) => {
   const savedMsgText = await getAsyncString('msgText');
   const savedTag = await getAsyncString('tag');
-  await axiosPost(Config.SEND_MSG_URL, "인연 보내기", {
+  await axiosPost(urls.SEND_MSG_URL, "인연 보내기", {
     receiverDeviceId: _uuid,
     message: savedMsgText,
     interestTag:[savedTag]
@@ -22,7 +23,7 @@ const sendMsg = async ( _uuid:string) => {
 }
 
 const sendRelationCnt = async (_uuid:string) => {
-  await axiosPost(Config.SET_RELATION_CNT_URL + _uuid, "만난 횟수 증가")
+  await axiosPost(urls.SET_RELATION_CNT_URL + _uuid, "만난 횟수 증가")
 }
 
 const addDevice = async (_uuid: string, _date: number) => {
@@ -36,9 +37,9 @@ const addDevice = async (_uuid: string, _date: number) => {
         sendMsg(_uuid)
       ])
     } else {
-      console.log(`Updated device: ${_uuid}`); 
+      console.log(`Updated device: ${_uuid}`);
       if (new Date(lastMeetTime).getTime() + DelayedMSGTime < currentTime) {
-        console.log(`Sending msg: ${_uuid}`); 
+        console.log(`Sending msg: ${_uuid}`);
         Promise.all([
           setAsyncObject<number>(`${_uuid}`, currentTime),
           sendRelationCnt(_uuid),

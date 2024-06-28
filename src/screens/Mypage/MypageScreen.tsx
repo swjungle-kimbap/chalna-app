@@ -10,6 +10,7 @@ import { AxiosResponse, LogoutResponse } from "../../interfaces";
 import { axiosPost } from "../../axios/axios.method";
 import { navigate } from "../../navigation/RootNavigation";
 import { deleteKeychain } from "../../utils/keychain";
+import {urls} from "../../axios/config";
 
 type MypageScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, '앱 설정'>
@@ -17,7 +18,7 @@ type MypageScreenProps = {
 
 const MypageScreen: React.FC<MypageScreenProps> = ({navigation}) => {
   return (
-    <MypageStyle> 
+    <MypageStyle>
       <Text>마이페이지 입니다</Text>
       <Button title="설정 페이지" onPress={()=>navigation.navigate('앱 설정')}/>
       <RoundBox color="#FFFFFF">
@@ -31,11 +32,11 @@ const MypageScreen: React.FC<MypageScreenProps> = ({navigation}) => {
                 text: '나가기',
                 onPress: async () => {
                   try {
-                    await axiosPost<AxiosResponse<LogoutResponse>>(Config.LOGOUT_URL);
+                    await axiosPost<AxiosResponse<LogoutResponse>>(urls.LOGOUT_URL);
                     deleteKeychain("loginToken");
                     deleteKeychain("accessToken");
                     deleteKeychain("refreshToken");
-                    navigate("로그인")                    
+                    navigate("로그인")
                   } catch (e) {
                     console.error("로그 아웃 중 오류 발생:", e);
                   };
