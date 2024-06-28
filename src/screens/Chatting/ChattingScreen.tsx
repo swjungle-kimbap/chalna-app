@@ -18,6 +18,7 @@ import ImageTextButton from "../../components/common/Button";
 import { navigate } from '../../navigation/RootNavigation';
 import {SafeAreaView} from "react-native-safe-area-context";
 import { Keyboard } from 'react-native';
+import useBackToScreen from '../../hooks/useBackToScreen';
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -41,6 +42,8 @@ const ChattingScreen = () => {
     const friendNameRef = useRef<string>('');
     const anonNameRef = useRef<string>('');
     const chatRoomTypeRef = useRef<string>('');
+
+    useBackToScreen("로그인 성공", {screen: "채팅목록", params: { screen: "채팅 목록",}});
 
     const setupWebSocket = async () => {
         try {

@@ -12,7 +12,7 @@ import Button from "../../components/common/Button";
 import { SignUpByWithKakao } from "./SignUpByWithKakao";
 import { navigate } from "../../navigation/RootNavigation";
 import { logIn } from "./logIn";
-import { deleteKeychain, getKeychain, setKeychain } from "../../utils/keychain";
+import {  getKeychain, setKeychain } from "../../utils/keychain";
 import requestPermissions from "../../utils/requestPermissions";
 import { PERMISSIONS } from "react-native-permissions";
 import messaging from '@react-native-firebase/messaging';
@@ -80,11 +80,11 @@ const LoginScreen: React.FC = () => {
         const lastLocation: Position | null = await getAsyncObject<Position>('lastLocation');
         if (lastLocation) setLocation(lastLocation);
 
-        Promise.all([
-          initializeFCMToken(),
-          initializeDeviceUUID(),
-          getLoginToken()
-        ])
+        
+        await initializeFCMToken();
+        await initializeDeviceUUID();
+        await getLoginToken();
+        
         if (loginTokenRef.current && deviceUUIDRef.current && fcmTokenRef.current) {
           const loginResponse = await logIn(loginTokenRef.current, deviceUUIDRef.current, fcmTokenRef.current);
           if (loginResponse) {
