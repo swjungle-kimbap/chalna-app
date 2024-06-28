@@ -145,7 +145,7 @@ const ChattingScreen = () => {
                 try {
                     setLoading(true);
                     const response = await axiosGet(
-                        urls.CHATROOM_LIST_URL+`/${chatRoomId}?lastLeaveAt=2024-06-23T10:32:40` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
+                        urls.CHATROOM_MSG_URL+`/${chatRoomId}/?lastLeaveAt=2024-06-23T10:32:40` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
                     );
 
                     const responseData = response.data.data;

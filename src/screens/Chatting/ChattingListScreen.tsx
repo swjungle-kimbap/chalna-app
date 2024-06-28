@@ -45,10 +45,10 @@ const ChattingListScreen = ({ navigation }) => {
     const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
 
     const fetchChatRooms = async () => {
+        console.log('url: ', urls.CHATROOM_LIST_URL);
         try {
             const response = await axiosGet<{ data: { list: ChatRoom[] } }>(
                 urls.CHATROOM_LIST_URL,
-
             );
             // console.log('API Response:', response);
             setChatRooms(response.data.data.list);
