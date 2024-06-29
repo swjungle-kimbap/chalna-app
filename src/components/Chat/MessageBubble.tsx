@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Button, Alert } from 'react-native';
-import { axiosPatch } from '../../axios/axios.method'; // Adjust the path as necessary
 import ImageTextButton from "../common/Button";
 import WebSocketManager from "../../utils/WebSocketManager";
-import {urls} from "../../axios/config";
+import {acceptFriendRequest, rejectFriendRequest} from "../../service/FriendRelationService";
 
 interface MessageBubbleProps {
     message: string;
@@ -21,77 +20,19 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
     const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const [isDisabled, setIsDisabled] = useState(chatRoomType==='FRIEND');
 
-    const handleAccept = async ({otherId: number }) => {
-        Alert.alert(
-            '친구 요청 수락',
-            '친구 요청을 수락하시겠습니까?',
-            [
-                { text: '취소', style: 'cancel' },
-                {
-                    text: '수락', onPress: async () => {
-                        try {
-                            const response = await axiosPatch(
-                                urls.ACCEPT_FRIEND_REQUEST_URL+`/${chatRoomId}`);
-                            console.log(response)
-
-                            Alert.alert('친구 맺기 성공', '친구가 되었습니다!');
-                            setIsDisabled(true);
-
-                            // 친구수락 채팅메세지 보내기
-                            const messageObject = {
-                                type: 'FRIEND_REQUEST',
-                                content: "친구가 되었습니다!\n" +
-                                    "대화를 이어가보세요.",
-                            };
-
-                            const messageJson = JSON.stringify(messageObject);
-                            console.log('Sending message: ' + messageJson);
-                            WebSocketManager.sendMessage(chatRoomId, messageJson);
-
-                            // Add additional logic here if needed, e.g., updating the message status
-                        } catch (error) {
-                            const errorMessage = error.response?.data?.message || error.message || '친구 요청을 수락할 수 없습니다.';
-                            Alert.alert('Error', errorMessage);
-                        }
-                    }
-                }
-            ]
-        );
+    const handleAccept = async ({chatRoomId: string}) => {
+        const response = await acceptFriendRequest(chatRoomId); // 성공시 true, 실패시 false 반환
+        if(response) // 성공시 채팅방에 친구 성공 메세지 전송
+            WebSocketManager.sendMessage(chatRoomId, "친구가 되었습니다!\n"+"대화를 이어가보세요.",'FRIEND_REQUEST');
+        setIsDisabled(response); // 수락/거절 버튼 비활성화
     }
 
-    const handleReject = async () => {
-        Alert.alert(
-            '친구 요청 거절',
-            '친구 요청을 거절하시겠습니까?',
-            [
-                { text: '취소', style: 'cancel' },
-                {
-                    text: '거절', onPress: async () => {
-                        try {
-                            await axiosPatch( urls.REJECT_FRIEND_REQUEST_URL+`/${otherId}`);
-                            Alert.alert('친구 요청 거절 성공', '친구 요청을 거절했습니다.');
-                            setIsDisabled(true);
-
-                            // 친구수락 채팅메세지 보내기
-                            const messageObject = {
-                                type: 'FRIEND_REQUEST',
-                                content: "인연이 스쳐갔습니다.",
-                            };
-
-                            const messageJson = JSON.stringify(messageObject);
-                            console.log('Sending message: ' + messageJson);
-                            WebSocketManager.sendMessage(chatRoomId, messageJson);
-
-                        } catch (error) {
-                            const errorMessage = error.response?.data?.message || error.message || '친구 요청을 거절할 수 없습니다.';
-                            Alert.alert('전송 실패', errorMessage);
-                        }
-                    }
-                }
-            ]
-        );
-    };
-
+    const handleReject = async ({ otherId: string }) => {
+        const response = await rejectFriendRequest(otherId.toString()); // 성공시 true, 실패시 false 반환
+        if(response) // 성공시 채팅방에 거절 메세지 전송
+            WebSocketManager.sendMessage(chatRoomId, "인연이 스쳐갔습니다.",'FRIEND_REQUEST');
+        setIsDisabled(response); // 수락/거절 버튼 비활성화
+    }
 
     return (
         <View style={[styles.container,
@@ -104,8 +45,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf
                 <Text style={styles.messageText}>{message}</Text>
                 {type === 'FRIEND_REQUEST' && !isSelf && message === '친구 요청을 보냈습니다.' && (
                     <View style={styles.buttonContainer}>
-                        <ImageTextButton title='수락' onPress={() => handleAccept(otherId)} disabled={isDisabled} />
-                        <ImageTextButton title='거절' onPress={handleReject} disabled={isDisabled} />
+                        <ImageTextButton title='수락' onPress={() => handleAccept(chatRoomId)} disabled={isDisabled} />
+                        <ImageTextButton title='거절' onPress={handleReject(otherId.toString())} disabled={isDisabled} />
                     </View>
                 )}
             </View>

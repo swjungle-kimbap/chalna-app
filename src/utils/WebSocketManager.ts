@@ -1,6 +1,12 @@
 import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
+interface sendMessageProps {
+    chatRoomId: string,
+    message: string,
+    type?: string
+}
+
 class WebSocketManager {
     private client: Client | null = null;
     private connected: boolean = false;
@@ -19,7 +25,7 @@ class WebSocketManager {
             debug: (str) => {
                 console.log(str);
             },
-            reconnectDelay: 5000,
+            reconnectDelay: 1000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
             webSocketFactory: () => {
@@ -56,11 +62,22 @@ class WebSocketManager {
         }
     }
 
-    sendMessage(chatRoomId: string, message: string) {
-        if (this.client) {
-            this.client.publish({ destination: `/app/chat/${chatRoomId}/sendMessage`, body: message });
-        }
+    parseMsgToSend = <sendMessageProps>(message, type) =>{
+        const messageObject = {
+            type: type? type:'CHAT', //type null일경우 CHAT으로 기본 설정
+            content: message,
+        };
+        const messageJson = JSON.stringify(messageObject);
+        console.log('Sending Message: '+ messageJson);
+        return messageJson
     }
+
+    sendMessage = <sendMessageProps>(chatRoomId, message, type) => {
+        const messageBody = this.parseMsgToSend(message, type);
+        if (this.client) {
+            this.client.publish({ destination: `/app/chat/${chatRoomId}/sendMessage`, body: messageBody });
+        }
+    };
 
     isConnected() {
         return this.connected;
