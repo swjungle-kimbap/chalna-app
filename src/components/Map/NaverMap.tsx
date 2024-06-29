@@ -58,7 +58,7 @@ export const NaverMap: React.FC = ({}) => {
     }
   }, [granted]);
 
-  useChangeBackgroundSave<Position>('lastLocation', locationRef, currentLocation);
+  useChangeBackgroundSave<Position>('lastLocation', currentLocation);
   
   useEffect(() => {
     const fetchData = async () => {

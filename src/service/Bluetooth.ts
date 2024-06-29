@@ -14,7 +14,7 @@ const sendRelationCnt = async (_uuid:string) => {
   await axiosPost(Config.SET_RELATION_CNT_URL + _uuid, "만난 횟수 증가")
 }
 
-const addDevice = async (_uuid: string, _date: number) => {
+export const addDevice = async (_uuid: string, _date: number) => {
   const currentTime = new Date(_date).getTime();
   getAsyncObject<number>(`${_uuid}`).then((lastMeetTime) => {
     if (!lastMeetTime) {
@@ -36,7 +36,7 @@ const addDevice = async (_uuid: string, _date: number) => {
 };
 
 
-const ScanNearbyAndPost = async (
+const ScanNearbyAndPost = (
   uuid:string,
   sendNearby?: Function
 ) => {

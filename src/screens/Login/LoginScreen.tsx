@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import useBackground from "../../hooks/useBackground";
 import { endBackgroundService } from "../../service/Background";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { locationState, userInfoState } from "../../recoil/atoms";
+import { DeviceUUIDState, locationState, userInfoState } from "../../recoil/atoms";
 import { getAsyncObject } from "../../utils/asyncStorage";
 import { Position } from "../../interfaces";
 import RoundBox from "../../components/common/RoundBox";
@@ -24,6 +24,7 @@ const LoginScreen: React.FC = () => {
   const [userInfo, setUserInfo] = useRecoilState(userInfoState);
   const [isLoading, setIsLoading] = useState(true);
   const fcmTokenRef = useRef<string>("");
+  const setDeviceUUID = useSetRecoilState<string>(DeviceUUIDState);
   const deviceUUIDRef = useRef<string>("");
   const loginTokenRef = useRef<string>("");
 
@@ -65,6 +66,7 @@ const LoginScreen: React.FC = () => {
           deviceUUIDRef.current = UUID;
           console.log("DeviceUUID:", UUID);
         }
+        setDeviceUUID(deviceUUIDRef.current);
       } catch (error) {
         console.error('Error fetching or setting device UUID:', error);
       }
@@ -79,7 +81,6 @@ const LoginScreen: React.FC = () => {
         const lastLocation: Position | null = await getAsyncObject<Position>('lastLocation');
         if (lastLocation) setLocation(lastLocation);
 
-        
         await initializeFCMToken();
         await initializeDeviceUUID();
         await getLoginToken();
