@@ -52,6 +52,7 @@ const MessageBox: React.FC = ()  => {
         await ScanNearbyAndPost(uuidRef.current, handleSetIsNearby);
       }
     };
+
     fetchSavedData();
     return () => {
       if (onDeviceFoundRef.current){
@@ -119,7 +120,7 @@ const MessageBox: React.FC = ()  => {
     const granted = await requestPermissions(requiredPermissions);
     const checkNotBluetooth = await requestBluetooth();
     if (!granted || !checkNotBluetooth) {
-      await showPermissionAlert();
+      await showPermissionAlert("블루투스와 위치");
       const granted = await requestPermissions(requiredPermissions);
       if (granted && checkNotBluetooth) {
         return true;
