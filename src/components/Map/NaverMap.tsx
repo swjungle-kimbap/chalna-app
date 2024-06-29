@@ -2,7 +2,7 @@ import { NaverMapView, NaverMapMarkerOverlay, NaverMapCircleOverlay, NaverMapVie
 import { isNearbyState, locationState, showMsgBoxState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useState, useEffect, useRef } from "react";
-import { TestResponse, Position, LocationData, AxiosResponse } from '../../interfaces';
+import { Position, LocationData, AxiosResponse } from '../../interfaces';
 import Geolocation from "react-native-geolocation-service";
 import { axiosPost } from "../../axios/axios.method";
 import Config from 'react-native-config';
@@ -14,17 +14,37 @@ import { PERMISSIONS } from "react-native-permissions";
 import { navigate } from "../../navigation/RootNavigation";
 import { IsNearbyState } from "../../recoil/atomtypes";
 import {urls} from "../../axios/config";
+import { joinLocalChat } from "../../service/LocalChat";
 
 export const NaverMap: React.FC = ({}) => {
   const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
   const [nearbyInfo, setNearbyInfo] = useRecoilState<IsNearbyState>(isNearbyState);
   const mapViewRef = useRef<NaverMapViewRef>(null);
-  const [fetchedData, setfetchedData] = useState<TestResponse>([]);
+  const [fetchedData, setfetchedData] = useState([]);
   const [granted, setGranted] = useState<boolean>(false);
   const currentLocation = useRecoilValue<Position>(locationState);
   const locationRef = useRef(currentLocation);
-
+  const watchIdRef = useRef(0);
   const startWatchingPosition = useStartWatchingPosition();
+  useChangeBackgroundSave<Position>('lastLocation', locationRef, currentLocation);
+
+  useEffect(() => {
+    if (mapViewRef.current) {
+      mapViewRef.current.setLocationTrackingMode("Face"); 
+    }
+
+    requestPermissionAndBluetooth().then(() => {
+      if (granted) {
+        watchIdRef.current = startWatchingPosition();
+      }
+    });
+
+    return () => {
+      if (watchIdRef.current)
+        Geolocation.clearWatch(watchIdRef.current);
+    }
+  }, [granted]);
+
   const requestPermissionAndBluetooth = async () => {
     try {
       if (Platform.OS === 'android') {
@@ -58,8 +78,7 @@ export const NaverMap: React.FC = ({}) => {
         Geolocation.clearWatch(watchId);
     }
   }, [granted]);
-
-  useChangeBackgroundSave<Position>('lastLocation', locationRef, currentLocation);
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,26 +108,20 @@ export const NaverMap: React.FC = ({}) => {
           text: '채팅 참가',
           onPress: async () => {
             alert("아직 미구현입니다!")
-            // try {
-            //   const response = await axiosPost<AxiosResponse<string>>(urls.JOIN_LOCAL_CHAT_URL + chatRoomId, "장소 채팅 참여");
-            //   if (response.data.code === "200") {
-            //     navigate("채팅", { chatRoomId: response.data.data.chatRoomId });
-            //   } else {
-            //     console.error("장소 채팅 참여 실패:", response.data.message);
-            //   }
-            // } catch (e) {
-            //   console.error("장소 채팅 참여 중 오류 발생:", e);
-            // };
+            // joinLocalChat(chatRoomId);
           },
           style: 'default'
         },
       ],
-      {
-        cancelable: true,
-      },
+      { cancelable: true }
     )
   };
 
+  const makeLocalChat = () => {
+    axiosPost(urls.SET_LOCAL_CHAT_URL, "장소채팅 만들기", {
+    
+    })
+  }
 
   return (
   <NaverMapView

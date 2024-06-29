@@ -15,6 +15,7 @@ BLEAdvertiser.setCompanyId(APPLE_ID);
 const sendMsg = async ( _uuid:string) => {
   const savedMsgText = await getAsyncString('msgText');
   const savedTag = await getAsyncString('tag');
+  console.log(urls.SEND_MSG_URL);
   await axiosPost(urls.SEND_MSG_URL, "인연 보내기", {
     receiverDeviceId: _uuid,
     message: savedMsgText,
@@ -23,6 +24,7 @@ const sendMsg = async ( _uuid:string) => {
 }
 
 const sendRelationCnt = async (_uuid:string) => {
+  console.log(urls.SET_RELATION_CNT_URL + _uuid);
   await axiosPost(urls.SET_RELATION_CNT_URL + _uuid, "만난 횟수 증가")
 }
 
@@ -57,6 +59,7 @@ const ScanNearbyAndPost = async (
 ): Promise<EmitterSubscription> => {
   const { BLEAdvertiser } = NativeModules;
   const eventEmitter = new NativeEventEmitter(BLEAdvertiser);
+  eventEmitter.removeAllListeners('onDeviceFound');
   const onDeviceFound = eventEmitter.addListener('onDeviceFound', async (event) => {
     if (event.serviceUuids) {
       for (let i = 0; i < event.serviceUuids.length; i++) {

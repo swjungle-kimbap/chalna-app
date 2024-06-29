@@ -54,3 +54,34 @@ export interface MatchAcceptResponse {
 export interface MatchDeleteResponse {
   message: string
 }
+
+export interface GetLocalChatResponse {
+  code: string,
+  data: LocalChat[],
+  message: string
+}
+
+export interface LocalChat extends Location{
+  id: number,
+  name: string,
+  description: string,
+  chatRoomId: number,
+}
+
+export interface SetLocalChatResponse {
+  code: string,
+  data: LocalChat,
+  message: string
+}
+
+export interface DeleteLocalChatResponse {
+  code: string,
+  data: LocalChat,
+  message: string
+}
+
+export interface JoinLocalChatResponse {
+  code: string,
+  data: LocalChat,
+  message: string
+}
