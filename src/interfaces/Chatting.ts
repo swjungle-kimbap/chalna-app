@@ -6,10 +6,18 @@ export type ChatMessage = {
     type: string;
     content: string;
     senderId: number;
+    status: boolean;
     createdAt: string;
 }
 
-export type chatRoomMember = Pick<User, "id"|"username">;
+export type directedChatMessage = ChatMessage & {
+    isSelf: boolean
+}
+
+export type chatRoomMember = {
+    memberId:number,
+    username:string
+}
 
 export type chatroomInfoAndMsg= {
     id: number,

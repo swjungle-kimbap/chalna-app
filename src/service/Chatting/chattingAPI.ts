@@ -17,8 +17,6 @@ export const fetchChatRoomList=async():Promise<ChatRoom[]|any>=>{
     }
 }
 
-
-
 // export const viewChatRoomList => {}
 export const fetchChatRoomContent =
     async(
@@ -26,27 +24,13 @@ export const fetchChatRoomContent =
     ):Promise<chatroomInfoAndMsg|any> => {
     try{
         // get response
-        const response = await axiosInstance.get(
-            urls.CHATROOM_MSG_URL+`/${chatRoomId}/?lastLeaveAt=${lastLeaveAt}` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
+        console.log('url fetchChatRoomcontent: ', urls.CHATROOM_MSG_URL+`/${chatRoomId}?lastLeaveAt=${lastLeaveAt}` );
+        const response = await axiosGet(
+            urls.CHATROOM_MSG_URL+`/${chatRoomId}?lastLeaveAt=${lastLeaveAt}` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
         );
-        const responseData = response.data.data;
-        // chatRoomType
-        const chatRoomType = responseData.type;
-        // 사용자명
-        const usernames = responseData.members
-            .filter((member: any) => member.memberId !== currentUserId)
-            .map((member: any) => chatRoomType === 'FRIEND' ? member.username : `익명${member.memberId}`);
-        // 메세지 목록
-        const fetchedMessages = responseData.list.map((msg: any) => ({
-            ...msg,
-            isSelf: msg.senderId === currentUserId,
-        }));
+        console.log(response.data.data);
 
-        return {
-            chatRoomType,
-            usernames,
-            messages: fetchedMessages
-        };
+        return response.data.data;
     } catch (error){
         console.log("채팅방 불러오기에 실패했습니다.");
     }
@@ -65,11 +49,12 @@ export const deleteChat = async (navigation: any, chatRoomId:string):Promise<boo
                                 );
                                 Alert.alert("채팅방 삭제 완료", "채팅 목록 화면으로 돌아갑니다.");
                                 navigation.navigate('채팅 목록');
-                                return true
+                                return true;
                             } catch (error) {
                                 const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
                                 Alert.alert("Error", errorMessage);
-                            }   return false
+                                return false;
+                            }
                         }}]
     );
 };

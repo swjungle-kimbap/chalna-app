@@ -16,6 +16,7 @@ import MenuModal from "../../components/common/MenuModal";
 import ImageTextButton from "../../components/common/Button";
 import { navigate } from '../../navigation/RootNavigation';
 import { Keyboard } from 'react-native';
+import {chatRoomMember, ChatMessage, directedChatMessage} from "../../interfaces/Chatting";
 
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
@@ -35,7 +36,7 @@ const ChattingScreen = () => {
     // 메세지 입력창
     const [messageContent, setMessageContent] = useState<string>('');
     // 화면에 띄우는 메세지들
-    const [messages, setMessages] = useState<any[]>([]);
+    const [messages, setMessages] = useState<directedChatMessage[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [chatRoomType, setChatRoomType] = useState<string>('');
@@ -149,17 +150,30 @@ const ChattingScreen = () => {
                 try {
                     setLoading(true);
                     // lastLeaveAt 형태확인/Null일때 createdAt으로 대체하는 로직 추가
-                    const response = await fetchChatRoomContent(chatRoomId, '2024-06-23T10:32:40', currentUserId);
+                    const responseData = await fetchChatRoomContent(chatRoomId, '2024-06-23T10:32:40', currentUserId);
                     // 채팅방 타입, 유저네임, 받은 메세지 리턴받아서 화면에 렌더링
-                    if (response){
-                        setChatRoomType(response.chatRoomType);
-                        setUsername(response.username);
-                        setMessages(response.fetchedMessages);
+                    if (responseData){
+                        console.log('chatRoomType: ', responseData.type);
+                        const usernames = responseData.members
+                            .filter((member: chatRoomMember) => member.memberId !== currentUserId)
+                            .map((member: chatRoomMember) => responseData.type === 'FRIEND' ? member.username : `익명${member.memberId}`);
+                        console.log('username: ',usernames);
+                        // 메세지 목록
+                        const fetchedMessages: directedChatMessage[] = (responseData.list || []).map((msg: ChatMessage) => ({
+                            ...msg,
+                            isSelf: msg.senderId === currentUserId,
+                        }));
+                        console.log("응답 메세지 목록: ", responseData.list);
+                        console.log("fetched msg: ", fetchedMessages);
+
+                        setChatRoomType(responseData.type);
+                        setUsername(usernames);
+                        setMessages(fetchedMessages);
                     } else {
                         console.log("no data to load");
                     }
 
-                    setupWebSocket(); // 소켓통신 열기
+
 
 
                 } catch (error) {
@@ -170,6 +184,7 @@ const ChattingScreen = () => {
             };
 
             fetchMessages(); // 첫 입장시 메세지 로드 & 로두 후 소켓통신 열기
+            setupWebSocket(); // 소켓통신 열기
 
             return () => {
                 const leaveTimestamp = new Date().toISOString();
@@ -196,14 +211,15 @@ const ChattingScreen = () => {
 
     // 채팅방 나가기
     const handleMenu1Action = () => {
-        const response= deleteChat(navigation, chatRoomId);
-        if (response)
-            toggleModal();
+
+            const response = deleteChat(navigation, chatRoomId);
+            if (response)
+                toggleModal();
     };
 
     const sendOneOnOneFriendRequest = () => {
         // 친구 요청 전송
-        const response = sendFriendRequest(chatRoomId, otherIdRef.current.toString());
+        const response = sendFriendRequest(chatRoomId, otherIdRef.current);
         if (response){ // 성공시 친구요청 채팅메세지 보내기
             WebSocketManager.sendMessage(chatRoomId, "친구 요청을 보냈습니다.",'FRIEND_REQUEST');
         }
@@ -247,7 +263,7 @@ const ChattingScreen = () => {
                             ref={scrollViewRef}
                             onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })} // Auto-scroll to the bottom on content change
                         >
-                            {messages.map((msg, index) => (
+                            {Array.isArray(messages) && messages.map((msg, index) => (
                                 <MessageBubble
                                     key={index}
                                     message={msg.content}
@@ -258,6 +274,8 @@ const ChattingScreen = () => {
                                     chatRoomId={chatRoomId}
                                     otherId={otherIdRef.current}
                                     chatRoomType={chatRoomType}
+                                    username={"익명12"}
+                                    profilePicture={"https://oceancolor.gsfc.nasa.gov/gallery/feature/images/LC08_L1TP_174029-031_20201230_20201230_01_RT.EasternBlackSea.crop.small.jpg"}
                                 />
                             ))}
                         </ScrollView>
