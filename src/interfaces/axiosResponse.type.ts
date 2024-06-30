@@ -1,3 +1,5 @@
+import { Position } from "./Location";
+
 export interface AxiosResponse<T> {
   data: T;
   status: number; 
@@ -61,7 +63,7 @@ export interface GetLocalChatResponse {
   message: string
 }
 
-export interface LocalChat extends Location{
+export interface LocalChat extends Position{
   id: number,
   name: string,
   description: string,

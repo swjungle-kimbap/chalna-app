@@ -5,8 +5,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../interfaces/Navigation";
 import RoundBox from "../../components/common/RoundBox";
 import { Alert } from "react-native";
-import Config from "react-native-config";
-import { AxiosResponse, LogoutResponse } from "../../interfaces";
+import { LogoutResponse } from "../../interfaces";
 import { axiosPost } from "../../axios/axios.method";
 import { navigate } from "../../navigation/RootNavigation";
 import { deleteKeychain } from "../../utils/keychain";
@@ -32,7 +31,7 @@ const MypageScreen: React.FC<MypageScreenProps> = ({navigation}) => {
                 text: '나가기',
                 onPress: async () => {
                   try {
-                    await axiosPost<AxiosResponse<LogoutResponse>>(urls.LOGOUT_URL);
+                    await axiosPost<LogoutResponse>(urls.LOGOUT_URL);
                     deleteKeychain("loginToken");
                     deleteKeychain("accessToken");
                     deleteKeychain("refreshToken");

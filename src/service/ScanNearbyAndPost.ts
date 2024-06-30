@@ -1,7 +1,6 @@
 import { EmitterSubscription, NativeEventEmitter, NativeModules } from 'react-native';
 import BLEAdvertiser from 'react-native-ble-advertiser';
 import { axiosPost } from '../axios/axios.method';
-import Config from 'react-native-config';
 import { getAsyncObject, getAsyncString, setAsyncObject } from '../utils/asyncStorage';
 import { SendMsgRequest } from '../interfaces';
 import {urls} from "../axios/config";

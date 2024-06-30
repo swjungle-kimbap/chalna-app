@@ -8,7 +8,6 @@ import {useRecoilValue} from "recoil";
 import {LoginResponse} from "../../interfaces";
 import {userInfoState} from "../../recoil/atoms";
 import {SafeAreaView} from "react-native-safe-area-context";
-import Config from "react-native-config";
 import {urls} from "../../axios/config";
 
 interface ChatRoomMember {
