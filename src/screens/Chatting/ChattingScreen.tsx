@@ -196,12 +196,9 @@ const ChattingScreen = () => {
 
     // 채팅방 나가기
     const handleMenu1Action = () => {
-        try{
-            deleteChat(navigation, chatRoomId);
-        } catch {
-            console.log("채팅방 나가기 실패")
-        }
-        toggleModal();
+        const response= deleteChat(navigation, chatRoomId);
+        if (response)
+            toggleModal();
     };
 
     const sendOneOnOneFriendRequest = () => {

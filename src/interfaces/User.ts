@@ -5,6 +5,3 @@ export type User = {
     message:string,
 
 };
-
-
-
