@@ -17,6 +17,7 @@ import ImageTextButton from "../../components/common/Button";
 import { navigate } from '../../navigation/RootNavigation';
 import { Keyboard } from 'react-native';
 import {chatRoomMember, ChatMessage, directedChatMessage} from "../../interfaces/Chatting";
+import {formatDateToKoreanTime} from "../../service/Chatting/DateHelpers"
 
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
@@ -42,7 +43,7 @@ const ChattingScreen = () => {
     const [chatRoomType, setChatRoomType] = useState<string>('');
     const [username, setUsername] = useState<string>('');
 
-    const otherIdRef = useRef<number | null>(null);
+    const otherIdRef = useRef< number | null>(null);
     const friendNameRef = useRef<string>('');
     const anonNameRef = useRef<string>('');
     const chatRoomTypeRef = useRef<string>('');
@@ -162,6 +163,7 @@ const ChattingScreen = () => {
                         const fetchedMessages: directedChatMessage[] = (responseData.list || []).map((msg: ChatMessage) => ({
                             ...msg,
                             isSelf: msg.senderId === currentUserId,
+                            formatedTime: formatDateToKoreanTime(msg.createdAt)
                         }));
                         console.log("응답 메세지 목록: ", responseData.list);
                         console.log("fetched msg: ", fetchedMessages);
@@ -213,14 +215,14 @@ const ChattingScreen = () => {
     const handleMenu1Action = () => {
 
             const response = deleteChat(navigation, chatRoomId);
-            if (response)
+            if (response===true)
                 toggleModal();
     };
 
     const sendOneOnOneFriendRequest = () => {
         // 친구 요청 전송
-        const response = sendFriendRequest(chatRoomId, otherIdRef.current);
-        if (response){ // 성공시 친구요청 채팅메세지 보내기
+        const response = sendFriendRequest(Number(chatRoomId), otherIdRef.current);
+        if (response===true){ // 성공시 친구요청 채팅메세지 보내기
             WebSocketManager.sendMessage(chatRoomId, "친구 요청을 보냈습니다.",'FRIEND_REQUEST');
         }
     }
@@ -263,21 +265,27 @@ const ChattingScreen = () => {
                             ref={scrollViewRef}
                             onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })} // Auto-scroll to the bottom on content change
                         >
-                            {Array.isArray(messages) && messages.map((msg, index) => (
-                                <MessageBubble
-                                    key={index}
-                                    message={msg.content}
-                                    datetime={msg.createdAt}
-                                    isSelf={msg.isSelf}
-                                    type={msg.type}
-                                    status={msg.status}
-                                    chatRoomId={chatRoomId}
-                                    otherId={otherIdRef.current}
-                                    chatRoomType={chatRoomType}
-                                    username={"익명12"}
-                                    profilePicture={"https://oceancolor.gsfc.nasa.gov/gallery/feature/images/LC08_L1TP_174029-031_20201230_20201230_01_RT.EasternBlackSea.crop.small.jpg"}
-                                />
-                            ))}
+                            {Array.isArray(messages) && messages.map((msg, index) => {
+                                const showProfile = index === 0 || messages[index - 1].senderId !== msg.senderId;
+                                const showTime = index === 0 || messages[index - 1].formatedTime !== msg.formatedTime;
+
+                                return (
+                                    <MessageBubble
+                                        key={index}
+                                        message={msg.content}
+                                        datetime={msg.formatedTime}
+                                        isSelf={msg.isSelf}
+                                        type={msg.type}
+                                        status={msg.status}
+                                        chatRoomId={Number(chatRoomId)}
+                                        otherId={otherIdRef.current}
+                                        chatRoomType={chatRoomType}
+                                        profilePicture={msg.isSelf ? '' : 'https://img.freepik.com/premium-photo/full-frame-shot-rippled-water_1048944-5521428.jpg?size=626&ext=jpg&ga=GA1.1.2034235092.1718206967&semt=ais_user'}
+                                        username={msg.isSelf ? '' : '익명12'}
+                                        showProfileTime={showProfile || showTime}
+                                    />
+                                );
+                            })}
                         </ScrollView>
                         <View style={chatRoomType !== 'WAITING' ? styles.inputContainer : styles.disabledInputContainer}>
                             <TextInput

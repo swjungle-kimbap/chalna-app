@@ -1,5 +1,6 @@
 import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import Config from "react-native-config";
 
 interface sendMessageProps {
     chatRoomId: string,
@@ -17,7 +18,7 @@ class WebSocketManager {
         }
 
         this.client = new Client({
-            brokerURL: 'wss://chalna.shop/ws',
+            brokerURL: Config.BROKER_URL,
             connectHeaders: {
                 chatRoomId,
                 Authorization: `Bearer ${token}`,
@@ -30,14 +31,14 @@ class WebSocketManager {
             heartbeatOutgoing: 4000,
             webSocketFactory: () => {
                 console.log('Creating SockJS instance');
-                return new SockJS('https://chalna.shop/ws');
+                return new SockJS(Config.BROKER_URL);
             },
         });
 
         this.client.onConnect = () => {
             console.log('Connected');
             this.connected = true;
-            this.client?.subscribe(`/topic/${chatRoomId}`, onMessage);
+            this.client?.subscribe(`/api/chat/${chatRoomId}`, onMessage);
         };
 
         this.client.onStompError = (frame) => {
@@ -75,7 +76,7 @@ class WebSocketManager {
     sendMessage = <sendMessageProps>(chatRoomId, message, type) => {
         const messageBody = this.parseMsgToSend(message, type);
         if (this.client) {
-            this.client.publish({ destination: `/app/chat/${chatRoomId}/sendMessage`, body: messageBody });
+            this.client.publish({ destination: `/api/send/chat/${chatRoomId}/sendMessage`, body: messageBody });
         }
     };
 

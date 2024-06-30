@@ -11,7 +11,8 @@ export type ChatMessage = {
 }
 
 export type directedChatMessage = ChatMessage & {
-    isSelf: boolean
+    isSelf: boolean;
+    formatedTime: string;
 }
 
 export type chatRoomMember = {
