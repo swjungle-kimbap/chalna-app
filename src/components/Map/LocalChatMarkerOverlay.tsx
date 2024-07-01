@@ -24,9 +24,7 @@ const LocalChatMarkerOverlay = () => {
   const [locationUpdate, setLocationUpdate] = useState(currentLocation);
   const updatedLocationRef = useRef(currentLocation);
 
-  useChangeBackgroundSave<Position>('lastLocation', locationRef, currentLocation);
-
-  
+  useChangeBackgroundSave<Position>('lastLocation', currentLocation);
   
   useEffect(() => {
     const MovedDistance = calDistance(beforeLocationRef.current, currentLocation);
@@ -39,7 +37,6 @@ const LocalChatMarkerOverlay = () => {
     if (MovedUpdatedDistance > 0.01) {
       updatedLocationRef.current = currentLocation;
       setLocationUpdate(currentLocation);
-      const updatedJoinedLoaclChatList = local
     }
   }, [currentLocation]);
 
