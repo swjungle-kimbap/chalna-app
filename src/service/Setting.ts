@@ -3,7 +3,7 @@ import { axiosPost } from "../axios/axios.method";
 import { deleteKeychain } from "../utils/keychain";
 import { navigate } from "../navigation/RootNavigation";
 import { urls } from "../axios/config";
-import { LogoutResponse } from "../../interfaces";
+import { LogoutResponse } from "../interfaces";
 
 export const logoutAlert = () => {
   Alert.alert("로그아웃", "로그아웃 하시겠습니까?",

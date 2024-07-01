@@ -1,6 +1,6 @@
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../interfaces/Navigation";
-import { StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import InlineButton from "../../components/Mypage/InlineButton";
 import UserCard from "../../components/Mypage/UserCard";
 import { logoutAlert } from "../../service/Setting";
@@ -17,12 +17,16 @@ const MypageScreen: React.FC<MypageScreenProps> = ({navigation}) => {
       <View style={styles.mypage}>
         <UserCard />
         <InlineButton onPressfunc={() => navigation.navigate('앱 설정')} 
-          imgSource={require(MoveButtonUrl)}>앱 설정</InlineButton>
-        <InlineButton onPressfunc={logoutAlert}>로그 아웃</InlineButton>
-        <InlineButton onPressfunc={()=>{}} textstyle={{color:"#979797"}}>계정 탈퇴</InlineButton> 
+          text="앱 설정" textstyle={styles.textPos}>
+          <View style={styles.imagePos} >
+            <Image source={require(MoveButtonUrl)} />
+          </View>
+        </InlineButton>
+        <InlineButton onPressfunc={logoutAlert} textstyle={styles.textPos} text="로그 아웃"/>
+        <InlineButton onPressfunc={()=>{}} textstyle={{paddingTop:2, color:"#979797"}} text="계정 탈퇴"/>
       </View>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -33,6 +37,13 @@ const styles = StyleSheet.create({
   background: {
     backgroundColor: "#fff",
     flex: 1,
+  },
+  imagePos: {
+    paddingTop:5,
+    paddingRight:17
+  },
+  textPos: {
+    paddingTop:2,
   },
 });
 export default MypageScreen;
