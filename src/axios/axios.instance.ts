@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosError, AxiosInstance } from "axios";
 import { getKeychain, setKeychain } from "../utils/keychain";
 import { navigate } from "../navigation/RootNavigation";
 import Config from "react-native-config";
@@ -42,18 +42,12 @@ instance.interceptors.response.use(
 
     return response
   },
-  async (error:any) => {
+  async (error:AxiosError) => {
     // TODO refresh token logic
-    if (error?.code === "403") {
-      try {
-        const refreshToken = await getKeychain('refreshToken');
-        if (!refreshToken) {
-          Alert.alert('로그인 만료', '재로그인이 필요합니다.');
-          navigate('로그인');
-    }
-      } catch (error) {
-        console.error("refresh 재발급 실패", error)
-      }
+    console.log(error.code);
+    if (error.response?.status === 403) {
+      Alert.alert('잘못된 접근 입니다.', '재로그인이 필요합니다.');
+      navigate('로그인');
     }
     return Promise.reject(error);
   }

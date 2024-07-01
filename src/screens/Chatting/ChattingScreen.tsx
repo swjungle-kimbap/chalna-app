@@ -16,9 +16,9 @@ import MenuModal from "../../components/common/MenuModal";
 import ImageTextButton from "../../components/common/Button";
 import { navigate } from '../../navigation/RootNavigation';
 import { Keyboard } from 'react-native';
+import useBackToScreen from '../../hooks/useBackToScreen';
 import {chatRoomMember, ChatMessage, directedChatMessage} from "../../interfaces/Chatting";
 import {formatDateToKoreanTime} from "../../service/Chatting/DateHelpers"
-
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -47,6 +47,9 @@ const ChattingScreen = () => {
     const friendNameRef = useRef<string>('');
     const anonNameRef = useRef<string>('');
     const chatRoomTypeRef = useRef<string>('');
+
+    useBackToScreen("로그인 성공", {screen: "채팅목록", params: { screen: "채팅 목록",}});
+
 
     // 채팅방 연결하고 실시간으로 메세지 보내고 받기
     const setupWebSocket = async () => {

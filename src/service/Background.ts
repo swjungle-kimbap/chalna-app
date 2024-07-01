@@ -1,21 +1,11 @@
 import BackgroundService from 'react-native-background-actions';
-import ScanNearbyAndPost from './ScanNearbyAndPost'
+import ScanNearbyAndPost from './Bluetooth'
 import { getKeychain } from '../utils/keychain';
-import { EmitterSubscription } from 'react-native';
-
-let onDeviceFoundListener: EmitterSubscription | null = null;
 
 const backgroundBLE = async (args:any) => {
   const { uuid } = args;
   await new Promise(async () => {
-    if (onDeviceFoundListener) {
-      onDeviceFoundListener.remove();
-      onDeviceFoundListener = null;
-    }
-
-    while(!onDeviceFoundListener) {
-      onDeviceFoundListener = await ScanNearbyAndPost(uuid);
-    }
+    await ScanNearbyAndPost(uuid);
   });
 };
 

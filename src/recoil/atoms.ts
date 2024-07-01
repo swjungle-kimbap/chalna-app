@@ -52,3 +52,8 @@ export const FriendsListState = atom<Friend[]>({
   key: 'FriendsList',
   default: []
 })
+
+export const DeviceUUIDState = atom<string>({
+  key: 'DeviceUUID',
+  default: ''
+})
