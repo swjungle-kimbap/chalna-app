@@ -23,7 +23,7 @@ export interface GetLocalChatRequest extends Position {
   distance : number,
 }
 
-export interface SetLocalChatReqest extends Position{
+export interface SetLocalChatRequest extends Position{
   name: string,
   description: string,
 }

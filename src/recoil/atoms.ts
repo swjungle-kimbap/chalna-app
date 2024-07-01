@@ -52,3 +52,8 @@ export const FriendsListState = atom<Friend[]>({
   key: 'FriendsList',
   default: []
 })
+
+export const JoinedLocalChatListState = atom({
+  key: 'JoinedLocalChatList',
+  default: []
+})

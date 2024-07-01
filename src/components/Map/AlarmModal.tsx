@@ -1,5 +1,4 @@
 import { axiosGet, axiosPut } from '../../axios/axios.method';
-import Config from 'react-native-config';
 import { AlarmItem, AlarmListResponse } from '../../interfaces';
 import AlarmCardRender from './AlarmCardRender';
 import { FlatList, Modal, StyleSheet, TouchableWithoutFeedback, View, AppState, AppStateStatus }from 'react-native';
