@@ -6,10 +6,10 @@ import {chatroomInfoAndMsg} from "../../interfaces/Chatting";
 import axiosInstance from "../../axios/axios.instance";
 import {ChatRoom} from "../../interfaces/Chatting";
 
-export const fetchChatRoomList=async():Promise<ChatRoom[]|any>=>{
+export const fetchChatRoomList=async(lastLeaveAt: string):Promise<ChatRoom[]|any>=>{
     try {
         const response = await axiosGet<{ data: { list: ChatRoom[] } }>(
-            urls.CHATROOM_LIST_URL,
+            urls.CHATROOM_LIST_URL+`?lastLeaveAt=${lastLeaveAt}`,
         );
         return response.data.data.list
     } catch (error) {

@@ -20,7 +20,7 @@ const ChattingListScreen = ({ navigation }) => {
     const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
 
     const fetchChatRooms = async () => {
-        const response = await fetchChatRoomList()
+        const response = await fetchChatRoomList('2024-06-23T10:32:40')
         if (response)
             setChatRooms(response);
         setLoading(false);

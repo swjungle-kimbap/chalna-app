@@ -82,11 +82,17 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                     </AnnouncementMessageBubble>
                 ) : (
                     <MessageContainer isSelf={isSelf} hasNewline={hasNewline} showProfileTime={showProfileTime}>
-                        {isSelf && showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
+                        {isSelf && (<DateReadStatusContainer>
+                                <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt}</ReadStatus>
+                                {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
+                        </DateReadStatusContainer>)}
                         <MessageBubbleContent isSelf={isSelf} hasNewline={hasNewline}>
                             <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
                         </MessageBubbleContent>
-                        {!isSelf && showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
+                        {!isSelf && (<DateReadStatusContainer>
+                            <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt}</ReadStatus>
+                            {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
+                        </DateReadStatusContainer>)}
                     </MessageContainer>
                 )}
             </BubbleContainer>
@@ -156,7 +162,7 @@ const MessageBubbleContent = styled.View<{ isSelf: boolean; hasNewline: boolean 
     border-radius: 10px;
     background-color: ${({ isSelf }) => (isSelf ? '#E4F1EE' : '#FFFFFF')};
     flex-shrink: 1;
-    max-width: ${({ hasNewline }) => (hasNewline ? '100%' : 'auto')};
+    max-width: 78%;
 `;
 
 const AnnouncementMessageBubble = styled.View`
@@ -180,6 +186,14 @@ const DateTime = styled(Text)<{ isSelf: boolean }>`
     padding-left: 8px;
 `;
 
+const ReadStatus = styled(Text)<{ isSelf: boolean }>`
+    font-size: 10px;
+    color: #00ff00;
+    margin-right: ${({ isSelf }) => (isSelf ? '8px' : '0')};
+    align-self: flex-start;
+    flex-shrink: 0;
+    padding-left: 8px;
+`;
 
 
 
