@@ -18,7 +18,7 @@ const useChangeBackgroundSave = <T>(key: string, saveData:T) => {
     return () => {
       subscription.remove();
     };
-  }, []);
+  }, [saveData]);
 };
 
 export default useChangeBackgroundSave;

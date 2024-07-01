@@ -1,14 +1,13 @@
 import  { useState, useEffect, useRef } from 'react';
 import RoundBox from '../common/RoundBox';
 import Button from '../common/Button';
-import { StyleSheet, TextInput, View, Alert, NativeModules, NativeEventEmitter } from 'react-native';
+import { StyleSheet, TextInput, View, Alert, NativeModules, NativeEventEmitter, Animated } from 'react-native';
 import Text from '../common/Text';
-import { getAsyncObject, getAsyncString, setAsyncString } from "../../utils/asyncStorage";
+import { getAsyncObject } from "../../utils/asyncStorage";
 import useBackgroundSave from '../../hooks/useChangeBackgroundSave';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { DeviceUUIDState, showMsgBoxState } from '../../recoil/atoms';
 import ScanNearbyAndPost, { addDevice, ScanNearbyStop } from '../../service/Bluetooth';
-import { getKeychain } from '../../utils/keychain';
 import showPermissionAlert from '../../utils/showPermissionAlert';
 import requestPermissions from '../../utils/requestPermissions';
 import requestBluetooth from '../../utils/requestBluetooth';
@@ -18,7 +17,6 @@ import { SendMsgRequest } from '../../interfaces';
 import { axiosPost } from '../../axios/axios.method';
 import Config from 'react-native-config';
 import BleButton from './BleButton';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface SavedMessageData {
   msgText: string,
@@ -54,21 +52,28 @@ const MessageBox: React.FC = ()  => {
   const deviceUUID = useRecoilValue(DeviceUUIDState);
   const msgTextRef = useRef(msgText);
   const blockedTimeRef = useRef<number>(0);
-  
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+  const sendCountsRef = useRef(0);
+
   useEffect(() => {
     const fetchSavedData = async () => {
       const savedData = await getAsyncObject<SavedMessageData>("savedMessageData");
-      setMsgText(savedData.msgText);
+      console.log("savedData :",savedData);
+      if (savedData.msgText)
+        setMsgText(savedData.msgText);
       setSelectedTag(savedData.selectedTag);
       if (savedData.isScanning){
         setIsScanning(true);
-        ScanNearbyAndPost(deviceUUID);
+        ScanNearbyAndPost(deviceUUID, handleSetIsNearby);
       }
 
       if (savedData.isBlocked){
-        setIsBlocked(true);
         const restBlockedTime = sendDelyaedTime - (Date.now() - savedData.blockedTime);
-        setTimeout(() => setIsBlocked(false), restBlockedTime)
+        if (restBlockedTime) {
+          setIsBlocked(true);
+          setTimeout(() => setIsBlocked(false), restBlockedTime);
+        } 
       }
     };
     fetchSavedData();
@@ -83,7 +88,6 @@ const MessageBox: React.FC = ()  => {
   const handleSetIsNearby = (uuid:string, isBlocked = false) => {
     console.log('uuidSet', uuidSet);
     const currentTime = new Date().getTime();
-    uuidTime[uuid] = currentTime;
     
     if (nearInfo.lastMeetTime + scanDelayedTime - 1000 < currentTime) {
       setNearInfo({isNearby: true, lastMeetTime: currentTime});
@@ -100,9 +104,7 @@ const MessageBox: React.FC = ()  => {
     }
 
     if (isBlocked) {
-      console.log('clear after blocked', isBlocked);
       if (uuidSet.size > 0) {
-        console.log('clearing');
         uuidSet.clear();
         uuidTime.clear();
         for (const timeoutId of Object.values(uuidTimeoutID)) {
@@ -113,20 +115,22 @@ const MessageBox: React.FC = ()  => {
       return;
     }
 
+    // 마지막 1초 남았을 때만 update
     if (!uuidSet.has(uuid)) {
-      console.log("add")
       uuidSet.add(uuid);
-      uuidTime[uuid] = currentTime;
-    } else if (uuidTime[uuid] + scanDelayedTime - 1000 < currentTime) {
+    } else if (uuidTime[uuid] + scanDelayedTime - 1000 > currentTime){
+      console.log('ignored');
+      return;
+    } else {
+      console.log('updated');
       if (uuidTimeoutID[uuid]) {
-        console.log("clear")
         clearTimeout(uuidTimeoutID[uuid]);
       }
-      console.log("set")
-      uuidTimeoutID[uuid] = setTimeout(() => {
-        uuidSet.delete(uuid)
-      }, scanDelayedTime)
     }
+    uuidTime[uuid] = currentTime;
+    uuidTimeoutID[uuid] = setTimeout(() => {
+      uuidSet.delete(uuid)
+    }, scanDelayedTime)
   };
 
   useEffect(() => {
@@ -189,7 +193,6 @@ const MessageBox: React.FC = ()  => {
   };
   
   const sendMsg = async ( _uuid:string) => {
-    console.log("msg send!")
     await axiosPost(Config.SEND_MSG_URL, "인연 보내기", {
       receiverDeviceId: _uuid,
       message: msgText,
@@ -217,17 +220,20 @@ const MessageBox: React.FC = ()  => {
     } else if (!nearInfo.isNearby || !uuidSet) {
       Alert.alert('주위 인연이 없습니다.', '새로운 인연을 만나기 전까지 기다려주세요!');
     } else {
+      sendCountsRef.current = uuidSet.size;
       uuidSet.forEach((uuid:string) => {
         sendMsg(uuid);
       })
-      console.log("blocked");
       setIsBlocked(true);
       blockedTimeRef.current = Date.now();
       setTimeout(() => {
         setIsBlocked(false);
       }, sendDelyaedTime);
+      fadeInAndMoveUp();
+      setShowMsgBox(false);
     }
   }
+
 
   const handleTagPress = (tag: string) => {
     setSelectedTag(prevTag => {
@@ -253,20 +259,67 @@ const MessageBox: React.FC = ()  => {
     isBlocked,
     blockedTime : blockedTimeRef.current
   });
+
+  const fadeInAndMoveUp = () => {
+    fadeAnim.setValue(0);
+    translateY.setValue(0);
+
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: -50,
+        duration: 1000,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      fadeOutAndMoveUp();
+    });
+  };
+
+  const fadeOutAndMoveUp = () => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 3000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: -100,
+        duration: 3000,
+        useNativeDriver: true,
+      })
+    ]).start();
+  };
+
   return (
     <>
       <BleButton bleON = {isScanning} bleHanddler = {handleBLEButton}/>
+      <Animated.View
+        style={[
+          styles.msgcontainer,
+          { 
+            opacity: fadeAnim,
+            transform: [{ translateY: translateY }],
+          }
+        ]}
+      >
+        <Text variant='sub'>{sendCountsRef.current}명에게 인연 메세지를 보냈습니다.</Text>
+      </Animated.View>
       {showMsgBox ? (
           <View style={styles.msgcontainer} >
             <RoundBox width='95%' 
               style={[styles.msgBox, {borderColor : nearInfo.isNearby && !isBlocked && isScanning ? '#14F12A': '#979797'}]}>
               <View style={styles.titleContainer}>
                 <Text variant='title' style={styles.title}>메세지</Text>
-                  {tags.map((tag) => (
-                    <Button titleStyle={[styles.tagText, selectedTag === tag && styles.selectedTag]} 
-                      variant='sub' title={`#${tag}`}  onPress={() => handleTagPress(tag)} 
-                      key={tag} activeOpacity={0.6} />
-                  ))}
+                {tags.map((tag) => (
+                  <Button titleStyle={[styles.tagText, selectedTag === tag && styles.selectedTag]} 
+                    variant='sub' title={`#${tag}`}  onPress={() => handleTagPress(tag)} 
+                    key={tag} activeOpacity={0.6} />
+                ))}
               </View>
               <TextInput value={msgText} style={[styles.textInput, { color: '#333' }]}
                   onChange={(event) => {setMsgText(event.nativeEvent.text);}}
@@ -292,21 +345,12 @@ const styles = StyleSheet.create({
   selectedTag: {
     color: '#000', 
   },
-  closebutton: {
-    width:15,
-    height:15,
-  },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between', // 요소 간격 최대화
     width: '100%', // 컨테이너 너비를 꽉 채움
     marginBottom: 10,
-  },
-  sendButtonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around', 
-    width: '100%', 
   },
   msgcontainer: {
     position: 'absolute',
@@ -340,20 +384,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     marginBottom: 10,
-  },
-  tagContainer: { 
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between', 
-    width: '100%', 
-    marginBottom: 10,
-  },
-  MsgContainer: {
-    width: '95%',
-    position: 'absolute',
-    bottom: 65, 
-    right: 5,
-    zIndex: 2,
   },
   buttonContainer: {
     width: '75%',
