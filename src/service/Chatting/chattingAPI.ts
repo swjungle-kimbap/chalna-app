@@ -1,72 +1,60 @@
-import {axiosDelete, axiosPatch} from '../../axios/axios.method'; // Adjust the path as necessary
+import {axiosDelete, axiosGet} from '../../axios/axios.method'; // Adjust the path as necessary
+import Config from 'react-native-config';
 import {Alert} from "react-native";
-import WebSocketManager from "../../utils/WebSocketManager";
-import axios from "axios";
 import {urls} from "../../axios/config";
+import {chatroomInfoAndMsg} from "../../interfaces/Chatting";
+import axiosInstance from "../../axios/axios.instance";
+import {ChatRoom} from "../../interfaces/Chatting";
 
+export const fetchChatRoomList=async():Promise<ChatRoom[]|any>=>{
+    try {
+        const response = await axiosGet<{ data: { list: ChatRoom[] } }>(
+            urls.CHATROOM_LIST_URL,
+        );
+        return response.data.data.list
+    } catch (error) {
+        console.error(error);
+    }
+}
 
-export const sendFriendRequest = async (chatRoomId:string, otherId: number) => {
-    Alert.alert(
-        "친구 요청",
-        "친구 요청을 보내시겠습니까?",
-        [
-            {
-                text: "취소",
-                style: "cancel"
-            },
-            {
-                text: "보내기",
-                onPress: async () => {
-                    try {
-                        await axiosPatch(
-                             urls.SEND_FRIEND_REQUEST_URL+`/${chatRoomId}`
-                        );
+// export const viewChatRoomList => {}
+export const fetchChatRoomContent =
+    async(
+        chatRoomId: string, lastLeaveAt: string, currentUserId: number
+    ):Promise<chatroomInfoAndMsg|any> => {
+    try{
+        // get response
+        console.log('url fetchChatRoomcontent: ', urls.CHATROOM_MSG_URL+`/${chatRoomId}?lastLeaveAt=${lastLeaveAt}` );
+        const response = await axiosGet(
+            urls.CHATROOM_MSG_URL+`/${chatRoomId}?lastLeaveAt=${lastLeaveAt}` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
+        );
+        console.log(response.data.data);
 
-                        // 친구요청 채팅메세지 보내기
-                        const messageObject = {
-                            type: 'FRIEND_REQUEST',
-                            content: "친구 요청을 보냈습니다.",
-                        };
+        return response.data.data;
+    } catch (error){
+        console.log("채팅방 불러오기에 실패했습니다.");
+    }
+}
 
-                        const messageJson = JSON.stringify(messageObject);
-                        console.log('Sending message: ' + messageJson);
-                        WebSocketManager.sendMessage(chatRoomId, messageJson);
-
-                    } catch (error) {
-                        const errorMessage = error.response?.data?.message || error.message || '친구 요청 전송이 실패했습니다.';
-                        Alert.alert("Error", errorMessage);
-                    }
-                }
-            }
-        ]
-    );
-};
-
-
-export const deleteChat = async (navigation: any, chatRoomId:string) => {
+export const deleteChat = async (navigation: any, chatRoomId:string):Promise<boolean|any> => {
     Alert.alert(
         "채팅방 나가기",
-        "정말 나가시겠습니까?",
-        [
-            {
-                text: "취소",
-                style: "cancel"
-            },
-            {
-                text: "나가기",
-                onPress: async () => {
-                    try {
-                        await axiosDelete(
-                            urls.CHATROOM_LEAVE_URL+`/${chatRoomId}`
-                        );
-                        Alert.alert("채팅방 삭제 완료", "채팅 목록 화면으로 돌아갑니다.");
-                        navigation.navigate('채팅 목록');
-                    } catch (error) {
-                        const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
-                        Alert.alert("Error", errorMessage);
-                    }
-                }
-            }
-        ]
+        "나간 채팅방으로는 재진입이 불가능합니다. 정말 나가시겠습니까?",
+        [   { text: "취소", style: "cancel" },
+                    { text: "나가기",
+                        onPress: async () => {
+                            try {
+                                await axiosDelete(
+                                    urls.CHATROOM_LEAVE_URL+`/${chatRoomId}`
+                                );
+                                Alert.alert("채팅방 삭제 완료", "채팅 목록 화면으로 돌아갑니다.");
+                                navigation.navigate('채팅 목록');
+                                return true;
+                            } catch (error) {
+                                const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
+                                Alert.alert("Error", errorMessage);
+                                return false;
+                            }
+                        }}]
     );
 };

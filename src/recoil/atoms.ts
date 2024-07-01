@@ -57,3 +57,8 @@ export const JoinedLocalChatListState = atom({
   key: 'JoinedLocalChatList',
   default: []
 })
+
+export const DeviceUUIDState = atom<string>({
+  key: 'DeviceUUID',
+  default: ''
+})

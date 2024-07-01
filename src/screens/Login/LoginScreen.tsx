@@ -2,17 +2,16 @@ import Text from "../../components/common/Text";
 import { ActivityIndicator, Alert, Image, StyleSheet, View } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import useBackground from "../../hooks/useBackground";
-import { endBackgroundService } from "../../service/BackgroundTask";
+import { endBackgroundService } from "../../service/Background";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { locationState, userInfoState } from "../../recoil/atoms";
+import { DeviceUUIDState, locationState, userInfoState } from "../../recoil/atoms";
 import { getAsyncObject } from "../../utils/asyncStorage";
 import { Position } from "../../interfaces";
 import RoundBox from "../../components/common/RoundBox";
 import Button from "../../components/common/Button";
-import { SignUpByWithKakao } from "./SignUpByWithKakao";
+import { SignUpByWithKakao, logIn } from "../../service/kakaoLoginSignup";
 import { navigate } from "../../navigation/RootNavigation";
-import { logIn } from "./logIn";
-import { deleteKeychain, getKeychain, setKeychain } from "../../utils/keychain";
+import {  getKeychain, setKeychain } from "../../utils/keychain";
 import requestPermissions from "../../utils/requestPermissions";
 import { PERMISSIONS } from "react-native-permissions";
 import messaging from '@react-native-firebase/messaging';
@@ -25,6 +24,7 @@ const LoginScreen: React.FC = () => {
   const [userInfo, setUserInfo] = useRecoilState(userInfoState);
   const [isLoading, setIsLoading] = useState(true);
   const fcmTokenRef = useRef<string>("");
+  const setDeviceUUID = useSetRecoilState<string>(DeviceUUIDState);
   const deviceUUIDRef = useRef<string>("");
   const loginTokenRef = useRef<string>("");
 
@@ -66,6 +66,7 @@ const LoginScreen: React.FC = () => {
           deviceUUIDRef.current = UUID;
           console.log("DeviceUUID:", UUID);
         }
+        setDeviceUUID(deviceUUIDRef.current);
       } catch (error) {
         console.error('Error fetching or setting device UUID:', error);
       }
@@ -80,11 +81,10 @@ const LoginScreen: React.FC = () => {
         const lastLocation: Position | null = await getAsyncObject<Position>('lastLocation');
         if (lastLocation) setLocation(lastLocation);
 
-        Promise.all([
-          initializeFCMToken(),
-          initializeDeviceUUID(),
-          getLoginToken()
-        ])
+        await initializeFCMToken();
+        await initializeDeviceUUID();
+        await getLoginToken();
+        
         if (loginTokenRef.current && deviceUUIDRef.current && fcmTokenRef.current) {
           const loginResponse = await logIn(loginTokenRef.current, deviceUUIDRef.current, fcmTokenRef.current);
           if (loginResponse) {

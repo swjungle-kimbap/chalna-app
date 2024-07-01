@@ -1,211 +1,216 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Button, Alert } from 'react-native';
-import { axiosPatch } from '../../axios/axios.method'; // Adjust the path as necessary
+import { View, Image, Modal, TouchableOpacity } from 'react-native';
+import styled from 'styled-components/native';
 import ImageTextButton from "../common/Button";
 import WebSocketManager from "../../utils/WebSocketManager";
-import {urls} from "../../axios/config";
+import { acceptFriendRequest, rejectFriendRequest } from "../../service/FriendRelationService";
+import Text from '../common/Text';
 
 interface MessageBubbleProps {
     message: string;
     datetime: string;
     isSelf: boolean;
     type?: string;
-    status?: boolean;
+    status?: boolean; //unread count 로 바꿔야할듯
     otherId: number;
-    chatRoomId:string;
-    chatRoomType:string;
+    chatRoomId: number;
+    chatRoomType: string;
+    profilePicture?: string;
+    username?: string;
+    showProfileTime?: boolean;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, datetime, isSelf, type, status, otherId,chatRoomId, chatRoomType  }) => {
-    const date = new Date(datetime);
-    const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const [isDisabled, setIsDisabled] = useState(chatRoomType==='FRIEND');
+const MessageBubble: React.FC<MessageBubbleProps> = ({
+                                                         message, datetime, isSelf, type, status,
+                                                         otherId, chatRoomId, chatRoomType,
+                                                         profilePicture, username, showProfileTime
+                                                     }) => {
+    // const date = new Date(datetime);
+    // const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const formattedTime = datetime;
+    const [isDisabled, setIsDisabled] = useState(chatRoomType === 'FRIEND');
+    const [modalVisible, setModalVisible] = useState(false);
 
-    const handleAccept = async ({otherId: number }) => {
-        Alert.alert(
-            '친구 요청 수락',
-            '친구 요청을 수락하시겠습니까?',
-            [
-                { text: '취소', style: 'cancel' },
-                {
-                    text: '수락', onPress: async () => {
-                        try {
-                            const response = await axiosPatch(
-                                urls.ACCEPT_FRIEND_REQUEST_URL+`/${chatRoomId}`);
-                            console.log(response)
-
-                            Alert.alert('친구 맺기 성공', '친구가 되었습니다!');
-                            setIsDisabled(true);
-
-                            // 친구수락 채팅메세지 보내기
-                            const messageObject = {
-                                type: 'FRIEND_REQUEST',
-                                content: "친구가 되었습니다!\n" +
-                                    "대화를 이어가보세요.",
-                            };
-
-                            const messageJson = JSON.stringify(messageObject);
-                            console.log('Sending message: ' + messageJson);
-                            WebSocketManager.sendMessage(chatRoomId, messageJson);
-
-                            // Add additional logic here if needed, e.g., updating the message status
-                        } catch (error) {
-                            const errorMessage = error.response?.data?.message || error.message || '친구 요청을 수락할 수 없습니다.';
-                            Alert.alert('Error', errorMessage);
-                        }
-                    }
-                }
-            ]
-        );
-    }
-
-    const handleReject = async () => {
-        Alert.alert(
-            '친구 요청 거절',
-            '친구 요청을 거절하시겠습니까?',
-            [
-                { text: '취소', style: 'cancel' },
-                {
-                    text: '거절', onPress: async () => {
-                        try {
-                            await axiosPatch( urls.REJECT_FRIEND_REQUEST_URL+`/${otherId}`);
-                            Alert.alert('친구 요청 거절 성공', '친구 요청을 거절했습니다.');
-                            setIsDisabled(true);
-
-                            // 친구수락 채팅메세지 보내기
-                            const messageObject = {
-                                type: 'FRIEND_REQUEST',
-                                content: "인연이 스쳐갔습니다.",
-                            };
-
-                            const messageJson = JSON.stringify(messageObject);
-                            console.log('Sending message: ' + messageJson);
-                            WebSocketManager.sendMessage(chatRoomId, messageJson);
-
-                        } catch (error) {
-                            const errorMessage = error.response?.data?.message || error.message || '친구 요청을 거절할 수 없습니다.';
-                            Alert.alert('전송 실패', errorMessage);
-                        }
-                    }
-                }
-            ]
-        );
+    const handleAccept = async () => {
+        const response = await acceptFriendRequest(chatRoomId);
+        if (response === true) {
+            WebSocketManager.sendMessage(chatRoomId, "친구가 되었습니다!\n대화를 이어가보세요.", 'FRIEND_REQUEST');
+            setIsDisabled(true);
+        }
     };
 
+    const handleReject = async () => {
+        const response = await rejectFriendRequest(otherId);
+        if (response === true) {
+            WebSocketManager.sendMessage(chatRoomId, "인연이 스쳐갔습니다.", 'FRIEND_REQUEST');
+            setIsDisabled(true);
+        }
+    };
+
+    const openUserInfoModal = () => {
+        setModalVisible(true);
+    };
+
+    const closeUserInfoModal = () => {
+        setModalVisible(false);
+    };
+
+    const hasNewline = message.includes('\n');
 
     return (
-        <View style={[styles.container,
-            isSelf ? styles.selfContainer : styles.otherContainer,
-            (type === 'FRIEND_REQUEST' && message!=='친구 요청을 보냈습니다.') && styles.centerContainer]}>
-            <View style={[styles.messageContent,
-                isSelf ? styles.myMessageBubbleColor : styles.friendMessageBubbleColor,
-                (type === 'FRIEND_REQUEST' && message!=='친구 요청을 보냈습니다.') && styles.centerMsg
-            ]}>
-                <Text style={styles.messageText}>{message}</Text>
-                {type === 'FRIEND_REQUEST' && !isSelf && message === '친구 요청을 보냈습니다.' && (
-                    <View style={styles.buttonContainer}>
-                        <ImageTextButton title='수락' onPress={() => handleAccept(otherId)} disabled={isDisabled} />
-                        <ImageTextButton title='거절' onPress={handleReject} disabled={isDisabled} />
-                    </View>
-                )}
-            </View>
-            {isSelf ? (
-                <View style={styles.tailRight} />
-            ) : (
-                <View style={styles.tailLeft} />
+        <Container isSelf={isSelf} notChat={type!=='CHAT'}>
+            {!isSelf && showProfileTime && type==='CHAT' && (
+                <TouchableOpacity onPress={openUserInfoModal}>
+                    <ProfilePicture source={{ uri: profilePicture || 'https://www.refugee-action.org.uk/wp-content/uploads/2016/10/anonymous-user.png' }} />
+                </TouchableOpacity>
             )}
-            <Text style={[styles.datetime,
-                (type === 'FRIEND_REQUEST' && message !== '친구 요청을 보냈습니다.')?
-                    styles.timeMiddle : styles.timeRight]}>{formattedTime}</Text>
-        </View>
+            <BubbleContainer isSelf={isSelf} notChat={type!=='CHAT'}>
+                {!isSelf && showProfileTime && username && type==='CHAT' && <Username variant="subBold">{username}</Username>}
+                {type === 'FRIEND_REQUEST' ? (
+                    <AnnouncementMessageBubble>
+                        <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
+                        {!isSelf && message === '친구 요청을 보냈습니다.' && (
+                            <ButtonContainer>
+                                <ImageTextButton title='수락' onPress={handleAccept} disabled={isDisabled} />
+                                <ImageTextButton title='거절' onPress={handleReject} disabled={isDisabled} />
+                            </ButtonContainer>
+                        )}
+                    </AnnouncementMessageBubble>
+                ) : (
+                    <MessageContainer isSelf={isSelf} hasNewline={hasNewline} showProfileTime={showProfileTime}>
+                        {isSelf && showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
+                        <MessageBubbleContent isSelf={isSelf} hasNewline={hasNewline}>
+                            <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
+                        </MessageBubbleContent>
+                        {!isSelf && showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
+                    </MessageContainer>
+                )}
+            </BubbleContainer>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={closeUserInfoModal}
+            >
+                <ModalContainer>
+                    <ModalContent>
+                        <ImageTextButton title={"닫기"} onPress={closeUserInfoModal} style={{alignSelf:'flex-end'}}/>
+                        <ProfilePicture modal source={{uri:
+                                    profilePicture ||
+                                    'https://www.refugee-action.org.uk/wp-content/uploads/2016/10/anonymous-user.png' }}
+                        />
+                        <NameBtnContainer>
+                            <Text variant="subtitle" >{username}</Text>
+                            <ImageTextButton
+                                style={{marginTop: 1, marginLeft:5}}
+                                iconSource={require('../../assets/Icons/AddFriendCircle.png')}
+                                imageStyle={{height:25, width: 25}}
+                            />
+                        </NameBtnContainer>
+                        <Text variant={"sub"} style={{size: 12, marginBottom: 10}} >{"스쳐간 횟수 or 상태메세지 표기"}</Text>
+
+                    </ModalContent>
+                </ModalContainer>
+            </Modal>
+        </Container>
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        maxWidth: '80%',
-        marginVertical: 5,
-        alignSelf: 'flex-start',
-    },
-    selfContainer: {
-        alignSelf: 'flex-end',
-    },
-    otherContainer: {
-        alignSelf: 'flex-start',
-    },
-    messageContent: {
-        paddingVertical: 10,
-        paddingHorizontal:15,
-        borderRadius: 20,
-        shadowColor: '#000',        // Color of the shadow
-        shadowOffset: { width: 0, height: 4 },  // Direction and distance of the shadow
-        shadowOpacity: 0.25,        // Opacity of the shadow
-        shadowRadius: 5,
-    },
-    friendMessageBubbleColor: {
-        backgroundColor: '#FFFFFF',
-    },
-    myMessageBubbleColor:{
-        // backgroundColor: '#DFEBEB',
-        // backgroundColor: '#D5E3E8',
-        backgroundColor: '#E4F1EE',
-    },
-    messageText: {
-        fontSize: 16,
-        color: '#333',
-    },
-    datetime: {
-        fontSize: 12,
-        color: '#888888',
-    },
-    timeRight: {
-        marginTop:5,
-        alignSelf: 'flex-end',
-        marginRight: 10,
-    },
-    timeMiddle: {
-        alignSelf: 'center',
-        marginTop: -10,
-    },
-    buttonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 10,
-        marginHorizontal:10,
-    },
-    centerContainer:{
-        alignSelf: 'center',
-        alignItems:'center',
-        backgroundColor:'transparent',
-        borderWidth: 0,
-    },
-    centerMsg:{
-        backgroundColor: 'transparent'
-    },
-    tailRight: {
-        position: 'absolute',
-        right: -6,
-        top: '50%',
-        borderTopWidth: 10,
-        borderBottomWidth: 10,
-        borderLeftWidth: 6,
-        borderTopColor: 'transparent',
-        borderBottomColor: 'transparent',
-        borderLeftColor: '#DCF8C6',
-        marginTop: -10,
-    },
-    tailLeft: {
-        position: 'absolute',
-        left: -6,
-        top: '50%',
-        borderTopWidth: 10,
-        borderBottomWidth: 10,
-        borderRightWidth: 6,
-        borderTopColor: 'transparent',
-        borderBottomColor: 'transparent',
-        borderRightColor: '#FFFFFF',
-        marginTop: -10,
-    },
-});
+const Container = styled.View<{ isSelf: boolean , notChat: boolean}>`
+    max-width: 80%;
+    align-self: ${({ notChat, isSelf }) => (notChat? 'center': isSelf ? 'flex-end' : 'flex-start')};
+    flex-direction: ${({ isSelf }) => (isSelf ? 'row-reverse' : 'row')};
+    margin-top: ${({notChat})=>(notChat? 15: 5)};
+    margin-bottom: ${({notChat})=>(notChat? 15: 5)};
+`;
+
+const ProfilePicture = styled.Image<{ modal?: boolean }>`
+    width: ${({ modal }) => (modal ? '100px' : '40px')};
+    height: ${({ modal }) => (modal ? '100px' : '40px')};
+    border-radius: ${({ modal }) => (modal ? '50px' : '20px')};
+    margin-right: ${({ modal }) => (modal ? '0' : '10px')};
+    margin-left: ${({ modal }) => (modal ? '0' : '2px')};
+    margin-top: ${({ modal }) => (modal ? '0' : '5px')};
+`;
+
+const BubbleContainer = styled.View<{ isSelf: boolean , notChat: boolean}>`
+    flex: 1;
+    align-items: ${({ isSelf, notChat }) => (notChat? 'center': isSelf ? 'flex-end' : 'flex-start')};
+`;
+
+const MessageContainer = styled.View<{ isSelf: boolean; hasNewline: boolean; showProfileTime: boolean }>`
+    flex-direction: row;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    max-width: ${({ hasNewline }) => (hasNewline ? '80%' : 'auto')};
+    justify-content: ${({ isSelf }) => (isSelf ? 'flex-end' : 'flex-start')};
+    margin-left: ${({ isSelf, showProfileTime }) => (!isSelf && !showProfileTime ? '52px' : '0px')}; 
+`; //bottom margin-left : profile pic length
+
+const MessageBubbleContent = styled.View<{ isSelf: boolean; hasNewline: boolean }>`
+    padding: 8px 15px;
+    border-radius: 10px;
+    background-color: ${({ isSelf }) => (isSelf ? '#E4F1EE' : '#FFFFFF')};
+    flex-shrink: 1;
+    max-width: ${({ hasNewline }) => (hasNewline ? '100%' : 'auto')};
+`;
+
+const AnnouncementMessageBubble = styled.View`
+    padding: 10px 15px;
+    border-radius: 20px;
+    background-color: #C6DBDA;
+`;
+
+
+
+const Username = styled(Text)`
+    margin-bottom: 5px;
+    margin-top: 2px;
+`;
+
+const DateTime = styled(Text)<{ isSelf: boolean }>`
+    font-size: 10px;
+    color: #888888;
+    margin-top: 5px;
+    margin-right: ${({ isSelf }) => (isSelf ? '8px' : '0')};
+    align-self: flex-end;
+    flex-shrink: 0;
+    padding-left: 8px;
+`;
+
+const ButtonContainer = styled.View`
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+`;
+
+const ModalContainer = styled.View`
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+`;
+
+const NameBtnContainer =styled.View`
+    margin-top: 10px;
+    margin-bottom: 5px;
+    flex-direction: row;
+    
+`;
+
+const ModalContent = styled.View`
+    width: 80%;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    align-items: center;
+`;
+
+const CloseModalButton = styled(Text)`
+    font-size: 16px;
+    color: #5A5A5A;
+`;
 
 export default MessageBubble;
