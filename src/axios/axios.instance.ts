@@ -44,8 +44,11 @@ instance.interceptors.response.use(
     return response
   },
   async (error:AxiosError) => {
-    handleErrors(error);
-    return Promise.reject(error);
+    const success = handleErrors(error);
+    if (!success)
+      return Promise.reject(error);
+    else 
+      return Promise.resolve();
   }
 )
 

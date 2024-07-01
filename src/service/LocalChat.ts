@@ -32,10 +32,8 @@ export const makeLocalChat = async (name, description, currentLocation) => {
       latitude: currentLocation.latitude,
       longitude: currentLocation.longitude
     } as SetLocalChatRequest);
-
-    if (!response.data.data) {
-      Alert.alert("채팅방 생성 불가", "근처에 다른 로컬 채팅방이 있어 만들 수 없습니다. 위치를 이동해 주세요!");
-    } else {
+    
+    if (response){
       Alert.alert("채팅방 생성 완료!", "주위의 사람들과 대화를 나눠보세요!");
     }
     return true;

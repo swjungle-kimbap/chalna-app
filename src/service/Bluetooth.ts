@@ -18,13 +18,11 @@ export const addDevice = async (_uuid: string, _date: number) => {
   const currentTime = new Date(_date).getTime();
   getAsyncObject<number>(`${_uuid}`).then((lastMeetTime) => {
     if (!lastMeetTime) {
-      console.log(`Added device: ${_uuid}`);
       Promise.all([
         setAsyncObject<number>(`${_uuid}`, currentTime),
         sendRelationCnt(_uuid),
       ])
     } else {
-      console.log(`Updated device: ${_uuid}`); 
       if (new Date(lastMeetTime).getTime() + DelayedTime < currentTime) {
         Promise.all([
           setAsyncObject<number>(`${_uuid}`, currentTime),
