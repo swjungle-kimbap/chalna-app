@@ -5,11 +5,12 @@ import AlarmCardRender from './AlarmCardRender';
 import { FlatList, Modal, StyleSheet, TouchableWithoutFeedback, View, AppState, AppStateStatus }from 'react-native';
 import { useCallback, useState, useEffect, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/core';
-import { useIsFocused } from '@react-navigation/native'; 
+import { useIsFocused } from '@react-navigation/native';
 import Button from '../common/Button';
 import { useRecoilState } from 'recoil';
 import { AlarmCountState } from '../../recoil/atoms';
 import BackgroundTimer from 'react-native-background-timer';
+import {urls} from "../../axios/config";
 
 export interface AlarmModalProps{
   closeModal: () => void,
@@ -36,7 +37,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
 
   const fetchAlarms = async () => {
     const response = await axiosGet<AlarmListResponse>(
-      Config.GET_MSG_LIST_URL); // Adjust as necessary
+      urls.GET_MSG_LIST_URL); // Adjust as necessary
     if (response) {
       const fetchedData = response.data; // Adjust as necessary
       setAlarms(fetchedData.data);
@@ -52,7 +53,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
         } catch (error) {
           console.error('Error fetching alarm data:', error);
         }
-      }, 3000); 
+      }, 3000);
     };
 
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
@@ -63,7 +64,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
           intervalId.current = null;
         }
       } if (nextAppState === 'active') {
-        startPolling();  
+        startPolling();
       }
     };
 
@@ -100,7 +101,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
 
   const handleAllDeleteAlarm = async () => {
     removeAlarmItem(0, true);
-    await axiosPut(Config.DELETE_ALL_MSG_URL, "인연 알림 모두 지우기");
+    await axiosPut(urls.DELETE_ALL_MSG_URL, "인연 알림 모두 지우기");
   }
 
   const renderAlarmCard = ({ item }: { item: AlarmItem }) => (

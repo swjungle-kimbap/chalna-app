@@ -1,38 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, Text, RefreshControl, AppState, AppStateStatus } from 'react-native';
 import ChatRoomCard from '../../components/Chat/ChatRoomCard';
-import { axiosGet } from "../../axios/axios.method";
 import { useFocusEffect } from '@react-navigation/native';
 import CustomHeader from "../../components/common/CustomHeader";
 import {useRecoilValue} from "recoil";
 import {LoginResponse} from "../../interfaces";
 import {userInfoState} from "../../recoil/atoms";
 import {SafeAreaView} from "react-native-safe-area-context";
+import {ChatRoom} from "../../interfaces/Chatting";
+import {fetchChatRoomList} from "../../service/Chatting/chattingAPI";
 
-interface ChatRoomMember {
-    memberId: number;
-    username: string;
-}
-
-interface RecentMessage {
-    id: number | null;
-    type: string | null;
-    content: string | null;
-    senderId: number | null;
-    createdAt: string | null;
-}
-
-interface ChatRoom {
-    id: number;
-    type: string;
-    memberCount: number;
-    members: ChatRoomMember[];
-    recentMessage?: RecentMessage;
-    unreadMessageCount?: number;
-    createdAt: string;
-    updatedAt?: string;
-    removedAt?: string | null;
-}
 
 const ChattingListScreen = ({ navigation }) => {
     const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
@@ -40,22 +17,13 @@ const ChattingListScreen = ({ navigation }) => {
     const [refreshing, setRefreshing] = useState(false);
     const [appState, setAppState] = useState(AppState.currentState);
 
-    const userInfo = useRecoilValue<LoginResponse>(userInfoState);
-    const currentUserId = userInfo.id;
+    const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
 
     const fetchChatRooms = async () => {
-        try {
-            const response = await axiosGet<{ data: { list: ChatRoom[] } }>(
-                'https://chalna.shop/api/v1/chatRoom',
-                'Failed to fetch chat rooms',
-            );
-            // console.log('API Response:', response);
-            setChatRooms(response.data.data.list);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+        const response = await fetchChatRoomList()
+        if (response)
+            setChatRooms(response);
+        setLoading(false);
     };
 
 

@@ -1,5 +1,12 @@
 import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import Config from "react-native-config";
+
+interface sendMessageProps {
+    chatRoomId: string,
+    message: string,
+    type?: string
+}
 
 class WebSocketManager {
     private client: Client | null = null;
@@ -11,7 +18,7 @@ class WebSocketManager {
         }
 
         this.client = new Client({
-            brokerURL: 'wss://chalna.shop/ws',
+            brokerURL: Config.BROKER_URL,
             connectHeaders: {
                 chatRoomId,
                 Authorization: `Bearer ${token}`,
@@ -19,19 +26,19 @@ class WebSocketManager {
             debug: (str) => {
                 console.log(str);
             },
-            reconnectDelay: 5000,
+            reconnectDelay: 2000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
             webSocketFactory: () => {
                 console.log('Creating SockJS instance');
-                return new SockJS('https://chalna.shop/ws');
+                return new SockJS(Config.BROKER_URL);
             },
         });
 
         this.client.onConnect = () => {
             console.log('Connected');
             this.connected = true;
-            this.client?.subscribe(`/topic/${chatRoomId}`, onMessage);
+            this.client?.subscribe(`/api/chat/${chatRoomId}`, onMessage);
         };
 
         this.client.onStompError = (frame) => {
@@ -56,11 +63,22 @@ class WebSocketManager {
         }
     }
 
-    sendMessage(chatRoomId: string, message: string) {
-        if (this.client) {
-            this.client.publish({ destination: `/app/chat/${chatRoomId}/sendMessage`, body: message });
-        }
+    parseMsgToSend = <sendMessageProps>(message, type) =>{
+        const messageObject = {
+            type: type? type:'CHAT', //type null일경우 CHAT으로 기본 설정
+            content: message,
+        };
+        const messageJson = JSON.stringify(messageObject);
+        console.log('Sending Message: '+ messageJson);
+        return messageJson
     }
+
+    sendMessage = <sendMessageProps>(chatRoomId, message, type) => {
+        const messageBody = this.parseMsgToSend(message, type);
+        if (this.client) {
+            this.client.publish({ destination: `/api/send/chat/${chatRoomId}/sendMessage`, body: messageBody });
+        }
+    };
 
     isConnected() {
         return this.connected;

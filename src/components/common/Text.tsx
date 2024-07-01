@@ -7,6 +7,13 @@ const TitleText = styled.Text`
   color: #060606;
 `;
 
+const SubTitleText = styled.Text`
+  font-family: ${(props) => props.theme.fonts.title};
+  font-size: 20px;
+  color: #060606;
+`;
+
+
 const MainText = styled.Text`
   font-family: ${(props) => props.theme.fonts.main};
   font-size: 15px;
@@ -19,11 +26,17 @@ const SubText = styled.Text`
   color: #979797;
 `;
 
+const SubTextBold = styled.Text`
+  font-family: ${(props) => props.theme.fonts.title};
+  font-size: 12px;
+  color: #3A3B3C;
+`;
+
 type TextProps = {
   children: React.ReactNode;
-  variant?: "title" | "main" | "sub";
+  variant?: "title" | "subtitle" | "main" | "sub" | "subBold";
   style?: object;
-  numberOfLines?: any;
+  numberOfLines?: number;
 };
 
 const Text: React.FC<TextProps> = ({ children, numberOfLines, variant="main", ...rest}) => {
@@ -33,22 +46,27 @@ const Text: React.FC<TextProps> = ({ children, numberOfLines, variant="main", ..
     case "title":
       TextComponent = TitleText;
       break;
+    case "subtitle":
+      TextComponent = SubTitleText;
+      break;
     case "main":
       TextComponent = MainText;
       break;
     case "sub":
       TextComponent = SubText;
       break;
+    case "subBold":
+      TextComponent = SubTextBold;
+      break;
+
     default:
       TextComponent = MainText;
   }
 
   return (
-    <TextWrapper>
       <TextComponent {...rest}>
         {children}
       </TextComponent>
-    </TextWrapper>
   );
 };
 

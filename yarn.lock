@@ -3720,6 +3720,7 @@ __metadata:
     react-native-config: ^1.5.2
     react-native-geolocation-service: ^5.3.1
     react-native-gifted-chat: ^2.4.0
+    react-native-image-picker: ^7.1.2
     react-native-keychain: ^8.2.0
     react-native-modal: ^13.0.1
     react-native-paper: ^5.12.3
@@ -9310,6 +9311,16 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 6573584ac5f010e86b8e4b4253e6fb0a133578eda5856e7d247511642091af123728f76526b11ec5f5f47287f94e653dd9b7582a2e3f8ce5817d52aa7c9d5689
+  languageName: node
+  linkType: hard
+
+"react-native-image-picker@npm:^7.1.2":
+  version: 7.1.2
+  resolution: "react-native-image-picker@npm:7.1.2"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: af52328b7cb06c28549442f0d923cfa92dde8d5a968a642336df4c882f81adbf0e5e606a14de27f96883a76fa1e03230061c4080011c9107942edebc8e09c478
   languageName: node
   linkType: hard
 

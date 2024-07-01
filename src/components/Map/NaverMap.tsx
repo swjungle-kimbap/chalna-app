@@ -13,11 +13,12 @@ import { useStartWatchingPosition } from "../../hooks/useStartWatchingPosition";
 import { PERMISSIONS } from "react-native-permissions";
 import { navigate } from "../../navigation/RootNavigation";
 import { IsNearbyState } from "../../recoil/atomtypes";
+import {urls} from "../../axios/config";
 
 export const NaverMap: React.FC = ({}) => {
   const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
   const [nearbyInfo, setNearbyInfo] = useRecoilState<IsNearbyState>(isNearbyState);
-  const mapViewRef = useRef<NaverMapViewRef>(null); 
+  const mapViewRef = useRef<NaverMapViewRef>(null);
   const [fetchedData, setfetchedData] = useState<TestResponse>([]);
   const [granted, setGranted] = useState<boolean>(false);
   const currentLocation = useRecoilValue<Position>(locationState);
@@ -34,7 +35,7 @@ export const NaverMap: React.FC = ({}) => {
           setGranted(false);
         }
       }
-      else 
+      else
         console.log('Not supported OS');
     } catch (err) {
       console.warn(err);
@@ -43,7 +44,7 @@ export const NaverMap: React.FC = ({}) => {
 
   useEffect(() => {
     if (mapViewRef.current) {
-      mapViewRef.current.setLocationTrackingMode("Face"); 
+      mapViewRef.current.setLocationTrackingMode("Face");
     }
 
     let watchId:number;
@@ -64,7 +65,7 @@ export const NaverMap: React.FC = ({}) => {
     const fetchData = async () => {
       try {
         if (currentLocation) {
-          axiosPost(Config.SET_CUR_POS_URL, "위치 정보 전달", {
+          axiosPost(urls.SET_CUR_POS_URL, "위치 정보 전달", {
             latitude: currentLocation.latitude,
             longitude: currentLocation.longitude,
             distance: 200,
@@ -76,20 +77,20 @@ export const NaverMap: React.FC = ({}) => {
         }
       } catch (error) {
         console.error('Error fetching data:', error);
-      } 
+      }
     };
     // fetchData();
   }, [currentLocation])
 
   const localChatTapHandler = (name:string, description:string, chatRoomId:number) => {
-    Alert.alert(name, description, 
+    Alert.alert(name, description,
       [
         {
           text: '채팅 참가',
           onPress: async () => {
             alert("아직 미구현입니다!")
             // try {
-            //   const response = await axiosPost<AxiosResponse<string>>(Config.JOIN_LOCAL_CHAT_URL + chatRoomId, "장소 채팅 참여");
+            //   const response = await axiosPost<AxiosResponse<string>>(urls.JOIN_LOCAL_CHAT_URL + chatRoomId, "장소 채팅 참여");
             //   if (response.data.code === "200") {
             //     navigate("채팅", { chatRoomId: response.data.data.chatRoomId });
             //   } else {
@@ -110,7 +111,7 @@ export const NaverMap: React.FC = ({}) => {
 
 
   return (
-  <NaverMapView 
+  <NaverMapView
   style={{flex: 1, zIndex:1}}
   initialCamera={{
     latitude : currentLocation.latitude,
@@ -147,7 +148,7 @@ export const NaverMap: React.FC = ({}) => {
         longitude={currentLocation.longitude}
         radius={9}
         color={nearbyInfo.isNearby ? '#3EB29780': '#D7351150'}
-      /> 
-  </NaverMapView> 
+      />
+  </NaverMapView>
 );
 }

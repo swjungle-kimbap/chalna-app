@@ -1,50 +1,57 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, TextInput, Button as RNButton, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, AppState, AppStateStatus, Alert, Image, KeyboardAvoidingView } from 'react-native';
+import { View, TextInput, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, AppState, AppStateStatus, Alert, Image, KeyboardAvoidingView } from 'react-native';
 import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRecoilValue } from "recoil";
 import { userInfoState } from "../../recoil/atoms";
 import { LoginResponse } from "../../interfaces";
 import { getKeychain } from "../../utils/keychain";
 import { SWRConfig } from 'swr';
-import axiosInstance from '../../axios/axios.instance'; // Adjust the path as necessary
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
-import Modal from 'react-native-modal';
 import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
-import { sendFriendRequest, deleteChat } from "../../service/Chatting/chattingAPI";
+import {deleteChat, fetchChatRoomContent} from "../../service/Chatting/chattingAPI";
+import { sendFriendRequest } from "../../service/FriendRelationService";
 import 'text-encoding-polyfill';
 import CustomHeader from "../../components/common/CustomHeader";
 import MenuModal from "../../components/common/MenuModal";
 import ImageTextButton from "../../components/common/Button";
 import { navigate } from '../../navigation/RootNavigation';
-import {SafeAreaView} from "react-native-safe-area-context";
 import { Keyboard } from 'react-native';
 import useBackToScreen from '../../hooks/useBackToScreen';
+import {chatRoomMember, ChatMessage, directedChatMessage} from "../../interfaces/Chatting";
+import {formatDateToKoreanTime} from "../../service/Chatting/DateHelpers"
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
+
+// lastLeaveAt timestamp 저장: 소켓통신 끊을 때
+// 첫 입장시 값이 없으면 createdAt으로 대체
+// 소켓통신 끊어졌을동안에 온 메세지: 화면 로딩시 저장? or 올때마다 저장? batch로 저장하면 그렇게 큰 부하가 있을까?
+
 
 const ChattingScreen = () => {
     const route = useRoute<ChattingScreenRouteProp>();
     const { chatRoomId } = route.params;
     const navigation = useNavigation();
 
-    const userInfo = useRecoilValue<LoginResponse>(userInfoState);
-    const currentUserId = userInfo.id;
-
+    // MyId 저장해둔 것 가져오기
+    const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
+    // 메세지 입력창
     const [messageContent, setMessageContent] = useState<string>('');
-    const [messages, setMessages] = useState<any[]>([]);
+    // 화면에 띄우는 메세지들
+    const [messages, setMessages] = useState<directedChatMessage[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [chatRoomType, setChatRoomType] = useState<string>('');
     const [username, setUsername] = useState<string>('');
 
-
-    const otherIdRef = useRef<number | null>(null);
+    const otherIdRef = useRef< number | null>(null);
     const friendNameRef = useRef<string>('');
     const anonNameRef = useRef<string>('');
     const chatRoomTypeRef = useRef<string>('');
 
     useBackToScreen("로그인 성공", {screen: "채팅목록", params: { screen: "채팅 목록",}});
 
+
+    // 채팅방 연결하고 실시간으로 메세지 보내고 받기
     const setupWebSocket = async () => {
         try {
             const accessToken = await getKeychain('accessToken');
@@ -58,7 +65,7 @@ const ChattingScreen = () => {
                     {
                         parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
 
-                        // 채팅방 타입 변경
+                        // 친구요청 수락시 채팅방 타입 변경
                         if (parsedMessage.type==='FRIEND_REQUEST' && parsedMessage.content==='친구가 되었습니다!\n' +
                             '대화를 이어가보세요.'){
                             console.log("친구 맺기 성공!!!")
@@ -67,22 +74,21 @@ const ChattingScreen = () => {
                             setUsername(friendNameRef.current);
                             console.log("친구 맺기 성공! 채팅룸 타입: ",chatRoomType);
                             // chatRoomTypeRef.current='FRIEND';
-                            // console.log("친구가 되었습니다");
                         }
-                        // 화면에 표기
+                        // 수신 메세지 화면에 표기
                         setMessages((prevMessages) => [...prevMessages, parsedMessage]);
                         scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
-
-                    } else {
-                        //여기에 상태 메세지 받아서 처리하는 로직 추가
+                    } else {  //채팅방에 표시안하는 메세지 여기서 처리
+                        // TIMEOUT 메세지 오면 채팅방 타입 변경
                         // 이미 친구가 된 상태에서 5분이 지나면 상태변경 하지않음
                         if (parsedMessage.type==='TIMEOUT' && parsedMessage.senderId===0 && chatRoomType!=='FRIEND' ){
                             setChatRoomType('WAITING');
                             console.log("5분지남! 채팅기능 비활성화 & 채팅룸타입 변경: ",chatRoomType);
                             // chatRoomTypeRef.current='WAITING';
                         }
+                        // type==='USER_ENTER' 메세지 관련 상태로직 필요시 추가 -> senderId 확인 필요 0인지 userId인지
                     }
-                } catch (error) {
+                } catch (error) { //양식과 다른 메세지 형태를 받는 경우
                     console.error('Failed to parse received message:', error);
                 }
             });
@@ -91,26 +97,10 @@ const ChattingScreen = () => {
         }
     };
 
-    // auto scroll
+    // auto scroll. 1) 새로운 메세지 받은 경우 2) 키보드 상태에 따라 스크롤 아래로
     const scrollViewRef = useRef<ScrollView>(null);
 
-    // Get out of screen -> disconnect
-    useEffect(() => {
-        const handleAppStateChange = (nextAppState: AppStateStatus) => {
-            if (nextAppState === 'background' || nextAppState === 'inactive') {
-                WebSocketManager.disconnect();
-                // 여기서 timestamp 저장해야할듯
-            } else {
-                setupWebSocket();
-            }
-        };
-        const subscription = AppState.addEventListener('change', handleAppStateChange);
-        return () => {
-            subscription.remove();
-        };
-    }, []);
-
-    // keyboard aware scroll
+    // 키보드 상태 변화감지 -> 스크롤 맨아래로 이동
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener(
             'keyboardDidShow',
@@ -127,17 +117,33 @@ const ChattingScreen = () => {
         };
     }, []);
 
+    // 키보드 나왔을 때 액션
     const handleKeyboardDidShow = (e) => {
         const keyboardHeight = e.endCoordinates.height;
         scrollViewRef.current.scrollToEnd({ animated: true });
-        // Optionally use keyboardHeight to adjust scroll position
     };
-
+    // 키보드 들어갔을 때 액션
     const handleKeyboardDidHide = () => {
         scrollViewRef.current.scrollToEnd({ animated: true });
     };
 
-    // Leaving TimeStamp: SWR Config 제외하고 테스트 / 여기서 focus effect로 감싸는 의미가..?
+    // Get out of screen -> disconnect
+    useEffect(() => {
+        const handleAppStateChange = (nextAppState: AppStateStatus) => {
+            if (nextAppState === 'background' || nextAppState === 'inactive') {
+                WebSocketManager.disconnect();
+                // 여기서 timestamp 저장
+            } else {
+                setupWebSocket();
+            }
+        };
+        const subscription = AppState.addEventListener('change', handleAppStateChange);
+        return () => {
+            subscription.remove();
+        };
+    }, []);
+
+
     useFocusEffect(
         useCallback(() => {
             const currentTimestamp = new Date().toISOString().slice(0, 19);
@@ -147,43 +153,42 @@ const ChattingScreen = () => {
             const fetchMessages = async () => {
                 try {
                     setLoading(true);
-                    const response = await axiosInstance.get(
-                        `https://chalna.shop/api/v1/chatRoom/message/${chatRoomId}?lastLeaveAt=2024-06-23T10:32:40` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
-                    );
+                    // lastLeaveAt 형태확인/Null일때 createdAt으로 대체하는 로직 추가
+                    const responseData = await fetchChatRoomContent(chatRoomId, '2024-06-23T10:32:40', currentUserId);
+                    // 채팅방 타입, 유저네임, 받은 메세지 리턴받아서 화면에 렌더링
+                    if (responseData){
+                        console.log('chatRoomType: ', responseData.type);
+                        const usernames = responseData.members
+                            .filter((member: chatRoomMember) => member.memberId !== currentUserId)
+                            .map((member: chatRoomMember) => responseData.type === 'FRIEND' ? member.username : `익명${member.memberId}`);
+                        console.log('username: ',usernames);
+                        // 메세지 목록
+                        const fetchedMessages: directedChatMessage[] = (responseData.list || []).map((msg: ChatMessage) => ({
+                            ...msg,
+                            isSelf: msg.senderId === currentUserId,
+                            formatedTime: formatDateToKoreanTime(msg.createdAt)
+                        }));
+                        console.log("응답 메세지 목록: ", responseData.list);
+                        console.log("fetched msg: ", fetchedMessages);
 
-                    const responseData = response.data.data;
-
-                    // Extract chatRoomType
-                    setChatRoomType(responseData.type);
-                    chatRoomTypeRef.current=responseData.type;
-                    console.log('set chatroomto: ',responseData.type);
-
-                    // Extract other member info
-                    const otherMember = responseData.members.find((member: any) => member.memberId !== currentUserId);
-                    if (otherMember) {
-                        otherIdRef.current = otherMember.memberId;
-                        friendNameRef.current = otherMember.username;
-                        anonNameRef.current = `익명${otherMember.memberId}`;
-                        console.log( 'friendName', friendNameRef.current);
-                        setUsername(chatRoomTypeRef.current==='FRIEND'? friendNameRef.current : anonNameRef.current  );
-                        console.log('채팅방 타입: 유저네임',chatRoomType, ' : ', username)
-
+                        setChatRoomType(responseData.type);
+                        setUsername(usernames);
+                        setMessages(fetchedMessages);
+                    } else {
+                        console.log("no data to load");
                     }
-                    // Extract messages
-                    const fetchedMessages = response.data.data.list.map((msg: any) => ({
-                        ...msg,
-                        isSelf: msg.senderId === currentUserId,
 
-                    }));
-                    setMessages(fetchedMessages);
+
+
+
                 } catch (error) {
-                    console.error('Failed to fetch messages:', error);
+                    console.error('채팅방 메세지 목록조회 실패:', error);
                 } finally {
                     setLoading(false);
                 }
             };
 
-            fetchMessages(); // 첫 입장시 메세지 로드
+            fetchMessages(); // 첫 입장시 메세지 로드 & 로두 후 소켓통신 열기
             setupWebSocket(); // 소켓통신 열기
 
             return () => {
@@ -194,26 +199,36 @@ const ChattingScreen = () => {
         }, [chatRoomId, currentUserId])
     );
 
+    // 일반 메세지 전송
     const sendMessage = () => {
-        if (chatRoomType=== 'WAITING'){
+        if (chatRoomType=== 'WAITING'){ //WAITING 상태 통신 로직 개선 필요
             return;
         }
-        const messageObject = {
-            type: 'CHAT',
-            content: messageContent,
-        };
-        const messageJson = JSON.stringify(messageObject);
-        console.log('Sending message: ' + messageJson);
-        WebSocketManager.sendMessage(chatRoomId, messageJson);
+        WebSocketManager.sendMessage(chatRoomId, messageContent, 'CHAT');
         // setMessages((prevMessages) => [...prevMessages, { ...messageObject, isSelf: true, createdAt: new Date().toISOString() }]);
-        setMessageContent('');
-        scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
+        setMessageContent(''); //  입력창 초기화
+        // scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
     };
 
     const toggleModal = () => {
         setIsModalVisible(!isModalVisible);
     };
 
+    // 채팅방 나가기
+    const handleMenu1Action = () => {
+
+            const response = deleteChat(navigation, chatRoomId);
+            if (response===true)
+                toggleModal();
+    };
+
+    const sendOneOnOneFriendRequest = () => {
+        // 친구 요청 전송
+        const response = sendFriendRequest(Number(chatRoomId), otherIdRef.current);
+        if (response===true){ // 성공시 친구요청 채팅메세지 보내기
+            WebSocketManager.sendMessage(chatRoomId, "친구 요청을 보냈습니다.",'FRIEND_REQUEST');
+        }
+    }
 
     if (loading) {
         return (
@@ -232,14 +247,15 @@ const ChattingScreen = () => {
                 <CustomHeader
                     title={username}
                     onBackPress={()=>{
-                    navigate("로그인 성공", {
-                        screen: "채팅목록",
-                        params: {
-                          screen: "채팅 목록",
-                        }
-                      });
-                }} //채팅 목록으로 돌아가기
-                    onBtnPress={()=>sendFriendRequest(chatRoomId, otherIdRef.current)} //친구요청 보내기
+                        navigate("로그인 성공", {
+                            screen: "채팅목록",
+                            params: {
+                                screen: "채팅 목록",
+                            }
+                        });
+                        navigation.navigate("채팅 목록");
+                    }}
+                    onBtnPress={()=>sendOneOnOneFriendRequest()} //친구요청 보내기(API+메세지 전송)
                     showBtn={chatRoomType!=='FRIEND'} //친구상태 아닐때만 노출
                     onMenuPress={toggleModal}
                     useNav={true}
@@ -252,19 +268,27 @@ const ChattingScreen = () => {
                             ref={scrollViewRef}
                             onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })} // Auto-scroll to the bottom on content change
                         >
-                            {messages.map((msg, index) => (
-                                <MessageBubble
-                                    key={index}
-                                    message={msg.content}
-                                    datetime={msg.createdAt}
-                                    isSelf={msg.isSelf}
-                                    type={msg.type}
-                                    status={msg.status}
-                                    chatRoomId={chatRoomId}
-                                    otherId={otherIdRef.current}
-                                    chatRoomType={chatRoomType}
-                                />
-                            ))}
+                            {Array.isArray(messages) && messages.map((msg, index) => {
+                                const showProfile = index === 0 || messages[index - 1].senderId !== msg.senderId;
+                                const showTime = index === 0 || messages[index - 1].formatedTime !== msg.formatedTime;
+
+                                return (
+                                    <MessageBubble
+                                        key={index}
+                                        message={msg.content}
+                                        datetime={msg.formatedTime}
+                                        isSelf={msg.isSelf}
+                                        type={msg.type}
+                                        status={msg.status}
+                                        chatRoomId={Number(chatRoomId)}
+                                        otherId={otherIdRef.current}
+                                        chatRoomType={chatRoomType}
+                                        profilePicture={msg.isSelf ? '' : 'https://img.freepik.com/premium-photo/full-frame-shot-rippled-water_1048944-5521428.jpg?size=626&ext=jpg&ga=GA1.1.2034235092.1718206967&semt=ais_user'}
+                                        username={msg.isSelf ? '' : '익명12'}
+                                        showProfileTime={showProfile || showTime}
+                                    />
+                                );
+                            })}
                         </ScrollView>
                         <View style={chatRoomType !== 'WAITING' ? styles.inputContainer : styles.disabledInputContainer}>
                             <TextInput
@@ -291,7 +315,7 @@ const ChattingScreen = () => {
                             isVisible = {isModalVisible}
                             onClose={toggleModal}
                             menu1={'채팅방 나가기'}
-                            onMenu1={()=>deleteChat(navigation, chatRoomId)}
+                            onMenu1={handleMenu1Action}
                             />
 
                     </View>
