@@ -1,13 +1,14 @@
-import { useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { AppState, AppStateStatus } from "react-native";
 import { startBackgroundService, endBackgroundService } from "../service/Background";
-import { getAsyncString } from "../utils/asyncStorage";
+import { setAsyncObject } from "../utils/asyncStorage";
+import { SavedMessageData } from "../interfaces";
 
-const useBackground = () => {
+const useBackground = (saveData: SavedMessageData) => {
   const appState = useRef(AppState.currentState);
 
-  useEffect(() => {
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+  const handleAppStateChange = useCallback(
+    (nextAppState: AppStateStatus) => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
         console.log('App has come to the foreground!');
         const endService = async () => {
@@ -17,8 +18,9 @@ const useBackground = () => {
       } else if (nextAppState === 'background') {
         console.log('App has gone to the background!');
         const checkIsScanning = async () => {
-          const isScaaningString = await getAsyncString('isScanning');
-          if (isScaaningString === 'true') {
+          console.log(saveData, "in useBackground");
+          await setAsyncObject<SavedMessageData>("savedMessageData", saveData);
+          if (saveData.isScanning) {
             console.log('Scanning is continued in background!');
             await startBackgroundService(); 
           }
@@ -26,14 +28,16 @@ const useBackground = () => {
         checkIsScanning();
       }
       appState.current = nextAppState;
-    };
+    },
+    [saveData]
+  );
 
+  useEffect(() => {
     const subscription = AppState.addEventListener('change', handleAppStateChange);
     return () => {
       subscription.remove();
     };
-  }, []);
-
+  }, [handleAppStateChange])
 }
 
 export default useBackground;

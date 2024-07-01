@@ -1,7 +1,6 @@
 import Text from "../../components/common/Text";
 import { ActivityIndicator, Alert, Image, StyleSheet, View } from "react-native";
 import { useEffect, useRef, useState } from "react";
-import useBackground from "../../hooks/useBackground";
 import { endBackgroundService } from "../../service/Background";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { DeviceUUIDState, locationState, userInfoState } from "../../recoil/atoms";
@@ -27,8 +26,6 @@ const LoginScreen: React.FC = () => {
   const setDeviceUUID = useSetRecoilState<string>(DeviceUUIDState);
   const deviceUUIDRef = useRef<string>("");
   const loginTokenRef = useRef<string>("");
-
-  useBackground();
 
   useEffect(() => {
     endBackgroundService();
