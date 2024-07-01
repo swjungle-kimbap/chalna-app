@@ -19,7 +19,7 @@ import { Keyboard } from 'react-native';
 import {chatRoomMember, ChatMessage, directedChatMessage} from "../../interfaces/Chatting";
 import {formatDateToKoreanTime} from "../../service/Chatting/DateHelpers"
 import Text from '../../components/common/Text';
-import Realm from "../../realm/realmSchemas";
+import Realm from "../../localstorage/realmSchemas";
 
 
 

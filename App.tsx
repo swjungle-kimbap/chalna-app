@@ -5,6 +5,8 @@ import { RecoilRoot } from 'recoil';
 import React, { useEffect } from 'react';
 import { DeviceEventEmitter } from 'react-native';
 import { navigate } from './src/navigation/RootNavigation';
+import {RealmProvider} from "@realm/react";
+import {ChatRoom, ChatRoomMember, ChatMessage} from "./src/localstorage/models/ChatRoomSchema";
 
 export default function App() {
   useEffect(() => {
@@ -18,7 +20,7 @@ export default function App() {
         console.log('Screen value is null or undefined');
         navigate("로그인 성공", {
           screen: "지도",
-          params: { NotificationId: screenId } 
+          params: { NotificationId: screenId }
           }
         )};
       })
@@ -30,10 +32,12 @@ export default function App() {
   }, []);
 
   return (
-    <ThemeProvider theme={FontTheme}>
-      <RecoilRoot>
-        <MainScreen />
-      </RecoilRoot>
-    </ThemeProvider>
+    <RealmProvider schema={[ChatRoom, ChatRoomMember, ChatMessage]}>
+      <ThemeProvider theme={FontTheme}>
+        <RecoilRoot>
+          <MainScreen />
+        </RecoilRoot>
+      </ThemeProvider>
+    </RealmProvider>
   );
 }
