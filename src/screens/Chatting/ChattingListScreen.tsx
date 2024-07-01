@@ -1,5 +1,5 @@
 import React, {useState, useCallback, useEffect, useRef} from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator, Text, RefreshControl, AppState, AppStateStatus } from 'react-native';
+import { View, FlatList, StyleSheet, ActivityIndicator, Text, SafeAreaView, AppState, AppStateStatus } from 'react-native';
 import ChatRoomCard from '../../components/Chat/ChatRoomCard';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import CustomHeader from "../../components/common/CustomHeader";
