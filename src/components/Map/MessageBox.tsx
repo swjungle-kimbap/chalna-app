@@ -87,7 +87,6 @@ const MessageBox: React.FC = ()  => {
   }, []);
 
   const handleSetIsNearby = (uuid:string, isBlocked = false) => {
-    console.log('uuidSet', uuidSet);
     const currentTime = new Date().getTime();
     
     if (nearInfo.lastMeetTime + scanDelayedTime - 1000 < currentTime) {
@@ -120,10 +119,8 @@ const MessageBox: React.FC = ()  => {
     if (!uuidSet.has(uuid)) {
       uuidSet.add(uuid);
     } else if (uuidTime[uuid] + scanDelayedTime - 1000 > currentTime){
-      console.log('ignored');
       return;
     } else {
-      console.log('updated');
       if (uuidTimeoutID[uuid]) {
         clearTimeout(uuidTimeoutID[uuid]);
       }
