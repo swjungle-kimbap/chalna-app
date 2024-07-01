@@ -1,4 +1,3 @@
-import Config from "react-native-config";
 import { LoginRequest  } from "../interfaces";
 import { axiosPost } from "../axios/axios.method";
 import { AxiosResponse } from "axios";
@@ -7,6 +6,7 @@ import { getKeychain, setKeychain } from "../utils/keychain";
 import  * as KakaoLogin from '@react-native-seoul/kakao-login';
 import { SignUpResponse } from '../interfaces';
 import { SignUpRequest } from '../interfaces/axiosRequest.type';
+import { urls } from "../axios/config";
 
 export const logIn = async (loginToken: string, deviceId:string, fcmToken:string) : Promise<LoginResponse | null>=> {
   try {
@@ -17,7 +17,7 @@ export const logIn = async (loginToken: string, deviceId:string, fcmToken:string
     if (accessToken)
       console.log("accessToken :", accessToken);
     const loginResponse = await axiosPost<AxiosResponse<LoginResponse>>(
-      Config.LOGIN_URL, "로그인 요청", loginRequestBody);
+      urls.LOGIN_URL, "로그인 요청", loginRequestBody);
     return loginResponse?.data?.data;
   } catch (error) {
     console.error("login fail", error);
@@ -36,7 +36,7 @@ export const SignUpByWithKakao = async (deviceId:string, fcmToken:string) :Promi
       kakaoId: kakaoUserProfile.id,
     }
     const singUpResponse = await axiosPost<AxiosResponse<SignUpResponse>>(
-      Config.SIGNUP_URL, "회원 가입 요청", signUpRequestBody);
+      urls.SIGNUP_URL, "회원 가입 요청", signUpRequestBody);
     await setKeychain('loginToken', singUpResponse.data.data.loginToken);
     await KakaoLogin.logout();
     return logIn(singUpResponse.data.data.loginToken, deviceId, fcmToken);

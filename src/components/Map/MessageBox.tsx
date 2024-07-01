@@ -15,8 +15,8 @@ import { PERMISSIONS } from 'react-native-permissions';
 import { isNearbyState } from "../../recoil/atoms";
 import { SendMsgRequest } from '../../interfaces';
 import { axiosPost } from '../../axios/axios.method';
-import Config from 'react-native-config';
 import BleButton from './BleButton';
+import { urls } from '../../axios/config';
 
 interface SavedMessageData {
   msgText: string,
@@ -76,6 +76,7 @@ const MessageBox: React.FC = ()  => {
         } 
       }
     };
+
     fetchSavedData();
 
     return () => {
@@ -167,7 +168,7 @@ const MessageBox: React.FC = ()  => {
     const granted = await requestPermissions(requiredPermissions);
     const checkNotBluetooth = await requestBluetooth();
     if (!granted || !checkNotBluetooth) {
-      await showPermissionAlert();
+      await showPermissionAlert("블루투스와 위치");
       const granted = await requestPermissions(requiredPermissions);
       if (granted && checkNotBluetooth) {
         return true;
@@ -193,7 +194,7 @@ const MessageBox: React.FC = ()  => {
   };
   
   const sendMsg = async ( _uuid:string) => {
-    await axiosPost(Config.SEND_MSG_URL, "인연 보내기", {
+    await axiosPost(urls.SEND_MSG_URL, "인연 보내기", {
       receiverDeviceId: _uuid,
       message: msgText,
       interestTag:[selectedTag]

@@ -3,8 +3,6 @@ import Button from '../common/Button'
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import FontTheme from '../../styles/FontTheme';
 import { axiosPost, axiosPut } from '../../axios/axios.method';
-import Config from 'react-native-config';
-import { AxiosResponse } from 'axios';
 import { navigate } from '../../navigation/RootNavigation';
 import {urls} from "../../axios/config";
 
@@ -20,9 +18,9 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
 
   const handleAcceptButton = async (notificationId:number) => {
     removeAlarmItem(notificationId);
-    const matchAcceptResponse = await axiosPost<AxiosResponse<MatchAcceptResponse>>
+    const matchAcceptResponse = await axiosPost<MatchAcceptResponse>
                               (urls.ACCEPT_MSG_URL + notificationId.toString(), "인연 수락");
-    navigate("채팅", { chatRoomId: matchAcceptResponse.data.data.chatRoomId });
+    navigate("채팅", { chatRoomId: matchAcceptResponse.data.chatRoomId });
   }
 
   const handleDeleteButton = async (notificationId:number) => {

@@ -14,4 +14,3 @@ export interface AccuracyTestResult {
   distance: number;
 }
 
-export interface TestResponse extends Array<AccuracyTestResult> {}
