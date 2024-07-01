@@ -5,8 +5,6 @@ import { RecoilRoot } from 'recoil';
 import React, { useEffect } from 'react';
 import { DeviceEventEmitter } from 'react-native';
 import { navigate } from './src/navigation/RootNavigation';
-import {RealmProvider} from "@realm/react";
-import {ChatRoom, ChatRoomMember, ChatMessage} from "./src/localstorage/models/ChatRoomSchema";
 
 export default function App() {
   useEffect(() => {
@@ -32,12 +30,10 @@ export default function App() {
   }, []);
 
   return (
-    <RealmProvider schema={[ChatRoom, ChatRoomMember, ChatMessage]}>
       <ThemeProvider theme={FontTheme}>
         <RecoilRoot>
           <MainScreen />
         </RecoilRoot>
       </ThemeProvider>
-    </RealmProvider>
   );
 }

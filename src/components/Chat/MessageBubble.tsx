@@ -190,7 +190,7 @@ const ReadStatus = styled(Text)<{ isSelf: boolean }>`
     font-size: 10px;
     color: #00ff00;
     margin-right: ${({ isSelf }) => (isSelf ? '8px' : '0')};
-    align-self: flex-start;
+    align-self: ${({ isSelf }) => (isSelf ? 'flex-end' : 'flex-start')};
     flex-shrink: 0;
     padding-left: 8px;
 `;
