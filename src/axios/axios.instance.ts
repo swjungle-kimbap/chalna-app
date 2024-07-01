@@ -4,6 +4,7 @@ import { navigate } from "../navigation/RootNavigation";
 import Config from "react-native-config";
 import {urls} from "./config";
 import { Alert } from "react-native";
+import handleErrors from "./handleErrors";
 
 const instance: AxiosInstance = axios.create({
   baseURL: Config.BASE_URL+Config.API_BASE_URL,
@@ -43,12 +44,7 @@ instance.interceptors.response.use(
     return response
   },
   async (error:AxiosError) => {
-    // TODO refresh token logic
-    console.log(error.code);
-    if (error.response?.status === 403) {
-      Alert.alert('잘못된 접근 입니다.', '재로그인이 필요합니다.');
-      navigate('로그인');
-    }
+    handleErrors(error);
     return Promise.reject(error);
   }
 )

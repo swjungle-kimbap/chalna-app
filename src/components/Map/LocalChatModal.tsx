@@ -2,8 +2,8 @@ import { Alert, Modal, StyleSheet, TextInput, TouchableWithoutFeedback, View, }f
 import { useState } from 'react';
 import Button from '../common/Button';
 import Text from '../common/Text';
-import { useRecoilValue } from 'recoil';
-import { locationState } from '../../recoil/atoms';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { getLocalChatRefreshState, locationState } from '../../recoil/atoms';
 import { makeLocalChat } from '../../service/LocalChat';
 
 export interface LocalChatModalProps{
@@ -15,6 +15,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const currentLocation = useRecoilValue(locationState);
+  const [postSuccess, setPostSuccess] = useRecoilState(getLocalChatRefreshState);
 
   return (
     <Modal
@@ -54,7 +55,10 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
                 <Button
                   title="이곳에 만들기"
                   onPress={() => {const success = makeLocalChat(name, description, currentLocation)
-                     if (success) closeModal();
+                     if (success) {
+                      setPostSuccess(!postSuccess);
+                      closeModal();
+                     }
                   }}
                   style={{paddingVertical:3}}
                 />

@@ -1,7 +1,6 @@
 import { atom } from "recoil";
 import { LoginResponse, Position } from "../interfaces";
 import { IsNearbyState } from "./atomtypes";
-import { EmitterSubscription } from 'react-native';
 import { Friend } from "../screens/Friends/FriendsScreen";
 
 export const locationState = atom<Position>({
@@ -25,12 +24,6 @@ export const userInfoState = atom<LoginResponse>({
 export const AlarmCountState = atom<number>({
   key: 'AlaramCount',
   default: 0
-  }
-)
-
-export const onDeviceFoundState = atom<EmitterSubscription | null>({
-  key: 'onDeviceFound',
-  default: null
   }
 )
 
@@ -61,4 +54,9 @@ export const JoinedLocalChatListState = atom({
 export const DeviceUUIDState = atom<string>({
   key: 'DeviceUUID',
   default: ''
+})
+
+export const getLocalChatRefreshState = atom<boolean>({
+  key: 'getLocalChatRefresh',
+  default: false,
 })

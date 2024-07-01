@@ -25,13 +25,6 @@ export const joinLocalChat = async (chatRoomId) => {
 
 export const makeLocalChat = async (name, description, currentLocation) => {
   if (name.length && description.length) {
-    console.log(urls.SET_LOCAL_CHAT_URL);
-    console.log( {
-      name,
-      description,
-      latitude: currentLocation.latitude,
-      longitude: currentLocation.longitude
-    });
     const response = await axiosPost<SetLocalChatResponse>(
       urls.SET_LOCAL_CHAT_URL, "장소 채팅 만들기", {
       name,

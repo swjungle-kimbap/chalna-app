@@ -8,7 +8,7 @@ import { AxiosRequestConfig } from "axios";
 import { calDistance } from "../../utils/calDistance";
 import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
 import { Position } from '../../interfaces';
-import { JoinedLocalChatListState, locationState } from "../../recoil/atoms";
+import { getLocalChatRefreshState, JoinedLocalChatListState, locationState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useFocusEffect } from "@react-navigation/core";
 
@@ -23,6 +23,7 @@ const LocalChatMarkerOverlay = () => {
   const beforeLocationRef = useRef(currentLocation);
   const [locationUpdate, setLocationUpdate] = useState(currentLocation);
   const updatedLocationRef = useRef(currentLocation);
+  const getRefresh = useRecoilValue(getLocalChatRefreshState);
 
   useChangeBackgroundSave<Position>('lastLocation', currentLocation);
   
@@ -50,9 +51,7 @@ const LocalChatMarkerOverlay = () => {
         }
       } as AxiosRequestConfig;
       const response = await axiosGet<GetLocalChatResponse>(
-        urls.GET_LOCAL_CHAT_URL, "주변 장소 채팅 조회", localChatReqeustBody
-      );
-      console.log(response.data.data);
+        urls.GET_LOCAL_CHAT_URL, "주변 장소 채팅 조회", localChatReqeustBody, false);
       if (response.data.data)
         setLocalChatList(response.data.data);
     }
@@ -60,7 +59,7 @@ const LocalChatMarkerOverlay = () => {
 
   useEffect(() => {
     fetchLocalChatList();
-  }, [locationMoved])
+  }, [locationMoved, getRefresh])
 
   useFocusEffect(
     useCallback(() => {
@@ -96,7 +95,7 @@ const LocalChatMarkerOverlay = () => {
             longitude={item.longitude}
             onTap={() => localChatTapHandler(item.name, item.description, item.chatRoomId, true)}
             image={require('../../assets/Icons/LocalChatIcon.png')}
-            tintColor='teal'
+            tintColor='lightgreen'
             width={40}
             height={40}
           />

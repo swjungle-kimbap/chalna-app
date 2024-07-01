@@ -9,8 +9,9 @@ const LocalChatButton = () => {
   const [showLocalChatModal, setShowLocalChatModal] = useState<boolean>(false);
 
   const openModal = () => {
-    handleCheckPermission();
-    setShowLocalChatModal(true);
+    const success = handleCheckPermission();
+    if (success)
+      setShowLocalChatModal(true);
   };
 
   const closeModal = () => {
