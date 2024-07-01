@@ -1,6 +1,3 @@
-import {User} from "./User";
-
-
 export type ChatMessage = {
     id: number;
     type: string;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity , Alert} from 'react-native';
-import { User } from '../interfaces/User';
+import { User } from '../interfaces/savedData';
 import RoundBox from './common/RoundBox';
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../interfaces";

@@ -1,7 +1,7 @@
-import  { useState, useEffect, useRef } from 'react';
+import  { useState, useEffect, useRef, useCallback } from 'react';
 import RoundBox from '../common/RoundBox';
 import Button from '../common/Button';
-import { StyleSheet, TextInput, View, Alert, NativeModules, NativeEventEmitter, Animated } from 'react-native';
+import { StyleSheet, TextInput, View, Alert, NativeModules, NativeEventEmitter, Animated, AppStateStatus, AppState } from 'react-native';
 import Text from '../common/Text';
 import { getAsyncObject } from "../../utils/asyncStorage";
 import useBackgroundSave from '../../hooks/useChangeBackgroundSave';
@@ -13,18 +13,12 @@ import requestPermissions from '../../utils/requestPermissions';
 import requestBluetooth from '../../utils/requestBluetooth';
 import { PERMISSIONS } from 'react-native-permissions';
 import { isNearbyState } from "../../recoil/atoms";
-import { SendMsgRequest } from '../../interfaces';
+import { SavedMessageData, SendMsgRequest } from '../../interfaces';
 import { axiosPost } from '../../axios/axios.method';
 import BleButton from './BleButton';
 import { urls } from '../../axios/config';
-
-interface SavedMessageData {
-  msgText: string,
-  selectedTag: string,
-  isScanning: boolean,
-  isBlocked: boolean,
-  blockedTime: number,
-}
+import useBackground from '../../hooks/useBackground';
+import { useFocusEffect } from '@react-navigation/core';
 
 const tags = ['상담', '질문', '대화', '만남'];
 
@@ -56,35 +50,43 @@ const MessageBox: React.FC = ()  => {
   const translateY = useRef(new Animated.Value(0)).current;
   const sendCountsRef = useRef(0);
 
-  useEffect(() => {
-    const fetchSavedData = async () => {
-      const savedData = await getAsyncObject<SavedMessageData>("savedMessageData");
-      console.log("savedData :",savedData);
-      if (savedData.msgText)
-        setMsgText(savedData.msgText);
-      setSelectedTag(savedData.selectedTag);
-      if (savedData.isScanning){
-        setIsScanning(true);
-        ScanNearbyAndPost(deviceUUID, handleSetIsNearby);
+  const fetchSavedData = async () => {
+    const savedData = await getAsyncObject<SavedMessageData>("savedMessageData");
+    console.log(savedData, "in messagebox");
+    if (savedData?.msgText) setMsgText(savedData.msgText);
+    if (savedData?.selectedTag) setSelectedTag(savedData.selectedTag);
+    if (savedData?.isScanning) {
+      setIsScanning(true);
+      ScanNearbyAndPost(deviceUUID, handleSetIsNearby);
+    }
+    if (savedData?.isBlocked) {
+      const restBlockedTime = sendDelyaedTime - (Date.now() - savedData.blockedTime);
+      if (restBlockedTime > 0) {
+        setIsBlocked(true);
+        timeoutIdRef.current = setTimeout(() => setIsBlocked(false), restBlockedTime);
       }
+    }
+  };
+  
+  useEffect(()=> {
+    fetchSavedData();
+  }, []);
 
-      if (savedData.isBlocked){
-        const restBlockedTime = sendDelyaedTime - (Date.now() - savedData.blockedTime);
-        if (restBlockedTime) {
-          setIsBlocked(true);
-          setTimeout(() => setIsBlocked(false), restBlockedTime);
-        } 
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active') {
+        fetchSavedData();
       }
     };
 
-    fetchSavedData();
-
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
     return () => {
+      subscription.remove();
       if (timeoutIdRef.current) {
         clearTimeout(timeoutIdRef.current);
       }
     };
-  }, []);
+  }, [fetchSavedData]);
 
   const handleSetIsNearby = (uuid:string, isBlocked = false) => {
     const currentTime = new Date().getTime();
@@ -250,7 +252,7 @@ const MessageBox: React.FC = ()  => {
     }
   };
 
-  useBackgroundSave<SavedMessageData>('savedMessageData', {
+  useBackground({
     msgText,
     selectedTag,
     isScanning,
