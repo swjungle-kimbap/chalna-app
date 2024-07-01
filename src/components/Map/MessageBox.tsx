@@ -13,18 +13,11 @@ import requestPermissions from '../../utils/requestPermissions';
 import requestBluetooth from '../../utils/requestBluetooth';
 import { PERMISSIONS } from 'react-native-permissions';
 import { isNearbyState } from "../../recoil/atoms";
-import { SendMsgRequest } from '../../interfaces';
+import { SavedMessageData, SendMsgRequest } from '../../interfaces';
 import { axiosPost } from '../../axios/axios.method';
 import BleButton from './BleButton';
 import { urls } from '../../axios/config';
-
-interface SavedMessageData {
-  msgText: string,
-  selectedTag: string,
-  isScanning: boolean,
-  isBlocked: boolean,
-  blockedTime: number,
-}
+import useBackground from '../../hooks/useBackground';
 
 const tags = ['상담', '질문', '대화', '만남'];
 
@@ -59,11 +52,11 @@ const MessageBox: React.FC = ()  => {
   useEffect(() => {
     const fetchSavedData = async () => {
       const savedData = await getAsyncObject<SavedMessageData>("savedMessageData");
-      console.log("savedData :",savedData);
-      if (savedData.msgText)
+      console.log(savedData, "in messagebox");
+      if (savedData?.msgText)
         setMsgText(savedData.msgText);
       setSelectedTag(savedData.selectedTag);
-      if (savedData.isScanning){
+      if (savedData?.isScanning){
         setIsScanning(true);
         ScanNearbyAndPost(deviceUUID, handleSetIsNearby);
       }
@@ -250,7 +243,7 @@ const MessageBox: React.FC = ()  => {
     }
   };
 
-  useBackgroundSave<SavedMessageData>('savedMessageData', {
+  useBackground({
     msgText,
     selectedTag,
     isScanning,
