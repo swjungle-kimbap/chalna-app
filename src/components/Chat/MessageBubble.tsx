@@ -3,7 +3,7 @@ import { View, Image, Modal, TouchableOpacity } from 'react-native';
 import styled from 'styled-components/native';
 import ImageTextButton from "../common/Button";
 import WebSocketManager from "../../utils/WebSocketManager";
-import { acceptFriendRequest, rejectFriendRequest } from "../../service/FriendRelationService";
+import {acceptFriendRequest, rejectFriendRequest, sendFriendRequest} from "../../service/FriendRelationService";
 import Text from '../common/Text';
 
 interface MessageBubbleProps {
@@ -44,6 +44,14 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         if (response === true) {
             WebSocketManager.sendMessage(String(chatRoomId), "인연이 스쳐갔습니다.", 'FRIEND_REQUEST');
             setIsDisabled(true);
+        }
+    };
+
+    const handleSend = async () =>{
+        const response = await sendFriendRequest(chatRoomId, otherId);
+        if (response === true) {
+            WebSocketManager.sendMessage(String(chatRoomId), "인연이 스쳐갔습니다.", 'FRIEND_REQUEST');
+            // 친구추가 버튼 없애기 버튼 or 요청중 상태 나타내는 것 추가
         }
     };
 
@@ -130,8 +138,8 @@ const Container = styled.View<{ isSelf: boolean , notChat: boolean}>`
     max-width: 80%;
     align-self: ${({ notChat, isSelf }) => (notChat? 'center': isSelf ? 'flex-end' : 'flex-start')};
     flex-direction: ${({ isSelf }) => (isSelf ? 'row-reverse' : 'row')};
-    margin-top: ${({notChat})=>(notChat? 15: 5)};
-    margin-bottom: ${({notChat})=>(notChat? 15: 5)};
+    margin-top: ${({notChat})=>(notChat? '15px': '5px')};
+    margin-bottom: ${({notChat})=>(notChat? '15px': '5px')};
 `;
 
 const ProfilePicture = styled.Image<{ modal?: boolean }>`

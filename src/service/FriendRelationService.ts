@@ -2,7 +2,7 @@ import {axiosPatch} from '../axios/axios.method'; // Adjust the path as necessar
 import {Alert} from "react-native";
 import {urls} from "../axios/config";
 
-export const sendFriendRequest = async (chatRoomId:number, otherId:number) => {
+export const sendFriendRequest = async (chatRoomId:number, otherId:number):Promise<boolean|any> => {
     Alert.alert(
         "친구 요청",
         "친구 요청을 보내시겠습니까?",
