@@ -4,6 +4,7 @@ import Text from './Text';
 
 interface HeaderProps {
     title: string;
+    subtitle?: string;
     onBackPress?: () => void;
     onMenuPress?: () => void;
     onBtnPress?:()=>void;
@@ -12,8 +13,7 @@ interface HeaderProps {
     showBtn?:boolean; // Btn이 필요한 조건 받는 상태값
 }
 
-
-const CustomHeader: React.FC<HeaderProps> = ({ title, onBackPress, onMenuPress, onBtnPress, showBtn, useNav, useMenu }) => {
+const CustomHeader: React.FC<HeaderProps> = ({ title, subtitle, onBackPress, onMenuPress, onBtnPress, showBtn, useNav, useMenu }) => {
     return (
         <View style={styles.headerContainer}>
             {onBtnPress!==null && useNav && (
@@ -21,8 +21,9 @@ const CustomHeader: React.FC<HeaderProps> = ({ title, onBackPress, onMenuPress, 
                     <Image source={require('../../assets/Icons/goBackIcon.png')} style={styles.icon} />
                 </TouchableOpacity>)
             }
-            <View style={styles.title}>
-                <Text variant='title' children={title} />
+            <View style={styles.titleContainer}>
+                <Text variant='titleSmall' children={title} />
+                {subtitle && <Text variant='subtitle'>{subtitle}</Text>}
             </View>
             <View style={styles.rightIcons}>
                 {onBtnPress!==null && showBtn && (
@@ -63,9 +64,11 @@ const styles = StyleSheet.create({
         height: 24,
         resizeMode: 'contain',
     },
-    title: {
+    titleContainer: {
         alignItems: 'center',
         paddingLeft: 20,
+        paddingRight: 20,
+        flexDirection: "column",
     },
     rightIcons: {
         flexDirection: 'row',

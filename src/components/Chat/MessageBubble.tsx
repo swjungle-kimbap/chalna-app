@@ -11,7 +11,7 @@ interface MessageBubbleProps {
     datetime: string;
     isSelf: boolean;
     type?: string;
-    status?: boolean; //unread count 로 바꿔야할듯
+    unreadCnt?: number; //unread count 로 바꿔야할듯
     otherId: number;
     chatRoomId: number;
     chatRoomType: string;
@@ -21,7 +21,7 @@ interface MessageBubbleProps {
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({
-                                                         message, datetime, isSelf, type, status,
+                                                         message, datetime, isSelf, type, unreadCnt,
                                                          otherId, chatRoomId, chatRoomType,
                                                          profilePicture, username, showProfileTime
                                                      }) => {
@@ -34,7 +34,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     const handleAccept = async () => {
         const response = await acceptFriendRequest(chatRoomId);
         if (response === true) {
-            WebSocketManager.sendMessage(chatRoomId, "친구가 되었습니다!\n대화를 이어가보세요.", 'FRIEND_REQUEST');
+            WebSocketManager.sendMessage(String(chatRoomId), "친구가 되었습니다!\n대화를 이어가보세요.", 'FRIEND_REQUEST');
             setIsDisabled(true);
         }
     };
@@ -42,7 +42,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     const handleReject = async () => {
         const response = await rejectFriendRequest(otherId);
         if (response === true) {
-            WebSocketManager.sendMessage(chatRoomId, "인연이 스쳐갔습니다.", 'FRIEND_REQUEST');
+            WebSocketManager.sendMessage(String(chatRoomId), "인연이 스쳐갔습니다.", 'FRIEND_REQUEST');
             setIsDisabled(true);
         }
     };
@@ -75,6 +75,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                                 <ImageTextButton title='거절' onPress={handleReject} disabled={isDisabled} />
                             </ButtonContainer>
                         )}
+                    </AnnouncementMessageBubble>
+                ) : type==='TIMEOUT'? (
+                    <AnnouncementMessageBubble style={{backgroundColor: '#c0c0c0'}}>
+                        <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
                     </AnnouncementMessageBubble>
                 ) : (
                     <MessageContainer isSelf={isSelf} hasNewline={hasNewline} showProfileTime={showProfileTime}>
@@ -161,8 +165,6 @@ const AnnouncementMessageBubble = styled.View`
     background-color: #C6DBDA;
 `;
 
-
-
 const Username = styled(Text)`
     margin-bottom: 5px;
     margin-top: 2px;
@@ -176,6 +178,14 @@ const DateTime = styled(Text)<{ isSelf: boolean }>`
     align-self: flex-end;
     flex-shrink: 0;
     padding-left: 8px;
+`;
+
+
+
+
+const DateReadStatusContainer = styled.View`
+    flex-direction: column;
+    justify-content: space-between;
 `;
 
 const ButtonContainer = styled.View`

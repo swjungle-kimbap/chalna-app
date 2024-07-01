@@ -18,7 +18,7 @@ import { navigate } from '../../navigation/RootNavigation';
 import { Keyboard } from 'react-native';
 import {chatRoomMember, ChatMessage, directedChatMessage} from "../../interfaces/Chatting";
 import {formatDateToKoreanTime} from "../../service/Chatting/DateHelpers"
-
+import Text from '../../components/common/Text';
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -80,6 +80,8 @@ const ChattingScreen = () => {
                         // 이미 친구가 된 상태에서 5분이 지나면 상태변경 하지않음
                         if (parsedMessage.type==='TIMEOUT' && parsedMessage.senderId===0 && chatRoomType!=='FRIEND' ){
                             setChatRoomType('WAITING');
+                            setMessages((prevMessages) => [...prevMessages, parsedMessage]);
+                            scrollViewRef.current?.scrollToEnd({ animated: true });
                             console.log("5분지남! 채팅기능 비활성화 & 채팅룸타입 변경: ",chatRoomType);
                             // chatRoomTypeRef.current='WAITING';
                         }
@@ -237,7 +239,7 @@ const ChattingScreen = () => {
 
 
     // 연결상태 표기 나중에 추가
-    //    <Text style={styles.status}> Status: {WebSocketManager.isConnected() ? 'Connected' : 'Not Connected'} </Text>
+
 
     return (
         <SWRConfig value={{}}>
@@ -257,8 +259,9 @@ const ChattingScreen = () => {
                     onMenuPress={toggleModal}
                     useNav={true}
                     useMenu={true}
-                />
 
+                />
+                <Text>Status: {WebSocketManager.isConnected() ? 'Connected' : 'Not Connected'} </Text>
                     <View style={styles.container}>
                         <ScrollView
                             contentContainerStyle={styles.scrollView}
