@@ -6,7 +6,6 @@ import CustomHeader from "../../components/common/CustomHeader";
 import {useRecoilValue} from "recoil";
 import {LoginResponse} from "../../interfaces";
 import {userInfoState} from "../../recoil/atoms";
-import {SafeAreaView} from "react-native-safe-area-context";
 import {ChatRoom} from "../../interfaces/Chatting";
 import {fetchChatRoomList} from "../../service/Chatting/chattingAPI";
 import BackgroundTimer from 'react-native-background-timer';
