@@ -236,17 +236,21 @@ const ChattingScreen = () => {
 
     // 채팅방 나가기
     const handleMenu1Action = () => {
+        try{
+            deleteChat(navigation, chatRoomId);
+            toggleModal();
+        } catch (error){
 
-            const response = deleteChat(navigation, chatRoomId);
-            if (response===true)
-                toggleModal();
+        }
     };
 
     const sendOneOnOneFriendRequest = () => {
         // 친구 요청 전송
-        const response = sendFriendRequest(Number(chatRoomId), otherIdRef.current);
-        if (response===true){ // 성공시 친구요청 채팅메세지 보내기
-            WebSocketManager.sendMessage(chatRoomId, "친구 요청을 보냈습니다.",'FRIEND_REQUEST');
+        try{
+            sendFriendRequest(Number(chatRoomId), otherIdRef.current);
+            WebSocketManager.sendMessage(chatRoomId, "친구 요청을 보냈습니다.", 'FRIEND_REQUEST');
+        } catch (error){
+
         }
     }
 
