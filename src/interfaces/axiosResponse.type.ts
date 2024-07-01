@@ -1,3 +1,5 @@
+import { Position } from "./Location";
+
 export interface AxiosResponse<T> {
   data: T;
   status: number; 
@@ -52,5 +54,36 @@ export interface MatchAcceptResponse {
 }
 
 export interface MatchDeleteResponse {
+  message: string
+}
+
+export interface GetLocalChatResponse {
+  code: string,
+  data: LocalChat[],
+  message: string
+}
+
+export interface LocalChat extends Position{
+  id: number,
+  name: string,
+  description: string,
+  chatRoomId: number,
+}
+
+export interface SetLocalChatResponse {
+  code: string,
+  data: LocalChat,
+  message: string
+}
+
+export interface DeleteLocalChatResponse {
+  code: string,
+  data: LocalChat,
+  message: string
+}
+
+export interface JoinLocalChatResponse {
+  code: string,
+  data: LocalChat,
   message: string
 }

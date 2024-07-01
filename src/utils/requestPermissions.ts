@@ -4,8 +4,7 @@ import { requestMultiple, checkMultiple, RESULTS, Permission } from 'react-nativ
 const requestPermissions = async (requiredPermissions:Permission[]): Promise<boolean> => {
   if (Platform.OS === 'android') {
     try {
-      await requestMultiple(requiredPermissions);
-      const allPermissionsGranted = await checkMultiple(requiredPermissions);
+      const allPermissionsGranted = await requestMultiple(requiredPermissions);
       console.log(allPermissionsGranted);
 
       const allGranted = Object.values(allPermissionsGranted).every(

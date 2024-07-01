@@ -7,13 +7,14 @@ export const axiosGet = async<T>(
   url:string | undefined,
   logMsg?: string,
   config?:AxiosRequestConfig,
+  logging = true,
 ): Promise<AxiosResponse<T>> => {
   if (!url)
     throw new Error('URL is undefined');
 
   try {
     const response = await instance.get<T>(url, config);
-    if (logMsg)
+    if (logging)
       console.log('Get Success:', logMsg);
     return response;
   } catch (error) {

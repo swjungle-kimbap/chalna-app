@@ -1,5 +1,4 @@
 import { axiosGet, axiosPut } from '../../axios/axios.method';
-import Config from 'react-native-config';
 import { AlarmItem, AlarmListResponse } from '../../interfaces';
 import AlarmCardRender from './AlarmCardRender';
 import { FlatList, Modal, StyleSheet, TouchableWithoutFeedback, View, AppState, AppStateStatus }from 'react-native';
@@ -37,7 +36,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
 
   const fetchAlarms = async () => {
     const response = await axiosGet<AlarmListResponse>(
-      urls.GET_MSG_LIST_URL); // Adjust as necessary
+      urls.GET_MSG_LIST_URL, "알림 조회", null, false); // Adjust as necessary
     if (response) {
       const fetchedData = response.data; // Adjust as necessary
       setAlarms(fetchedData.data);

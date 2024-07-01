@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"
 import { AppState, AppStateStatus } from "react-native";
-import { startBackgroundService, endBackgroundService } from "../service/BackgroundTask";
+import { startBackgroundService, endBackgroundService } from "../service/Background";
 import { getAsyncString } from "../utils/asyncStorage";
 
 const useBackground = () => {
@@ -19,7 +19,6 @@ const useBackground = () => {
         const checkIsScanning = async () => {
           const isScaaningString = await getAsyncString('isScanning');
           if (isScaaningString === 'true') {
-            //await ScanNearbyStop();
             console.log('Scanning is continued in background!');
             await startBackgroundService(); 
           }

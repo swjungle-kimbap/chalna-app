@@ -47,5 +47,8 @@ export const urls = {
 
     SET_CUR_POS_URL: getFullUrl(Config.SET_CUR_POS_PATH),
 
-
+    GET_LOCAL_CHAT_URL: getFullUrl(Config.LOCAL_CHAT_PATH),
+    SET_LOCAL_CHAT_URL: getFullUrl(Config.LOCAL_CHAT_PATH),
+    DELETE_LOCAL_CHAT_URL: getFullUrl(Config.LOCAL_CHAT_SET_PATH),
+    JOIN_LOCAL_CHAT_URL: getFullUrl(Config.LOCAL_CHAT_SET_PATH),
 };
