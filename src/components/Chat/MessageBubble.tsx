@@ -130,8 +130,8 @@ const Container = styled.View<{ isSelf: boolean , notChat: boolean}>`
     max-width: 80%;
     align-self: ${({ notChat, isSelf }) => (notChat? 'center': isSelf ? 'flex-end' : 'flex-start')};
     flex-direction: ${({ isSelf }) => (isSelf ? 'row-reverse' : 'row')};
-    margin-top: ${({notChat})=>(notChat? 15: 5)};
-    margin-bottom: ${({notChat})=>(notChat? 15: 5)};
+    margin-top: ${({notChat})=>(notChat? '15px': '5px')};
+    margin-bottom: ${({notChat})=>(notChat? '15px': '5px')};
 `;
 
 const ProfilePicture = styled.Image<{ modal?: boolean }>`

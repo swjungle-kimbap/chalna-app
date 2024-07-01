@@ -20,7 +20,6 @@ import useBackToScreen from '../../hooks/useBackToScreen';
 import {chatRoomMember, ChatMessage, directedChatMessage} from "../../interfaces/Chatting";
 import {formatDateToKoreanTime} from "../../service/Chatting/DateHelpers"
 import Text from '../../components/common/Text';
-import Realm from "../../localstorage/realmSchemas";
 
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
@@ -48,8 +47,6 @@ const ChattingScreen = () => {
 
     const otherIdRef = useRef< number | null>(null);
     const friendNameRef = useRef<string>('');
-    const anonNameRef = useRef<string>('');
-    const chatRoomTypeRef = useRef<string>('');
 
     useBackToScreen("로그인 성공", {screen: "채팅목록", params: { screen: "채팅 목록",}});
 
@@ -67,21 +64,6 @@ const ChattingScreen = () => {
                         && parsedMessage.content && parsedMessage.senderId !== 0)
                     {
                         parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
-
-                        // // Store chat messages in realm
-                        // // Store message in Realm
-                        // Realm.write(() => {
-                        //     const chatRoom = Realm.objectForPrimaryKey('ChatRoom', chatRoomId);
-                        //     if (chatRoom) {
-                        //         chatRoom.messages.push({
-                        //             msgId: parsedMessage.id.toString(),
-                        //             senderId: parsedMessage.senderId.toString(),
-                        //             content: parsedMessage.content,
-                        //             msgType: parsedMessage.type,
-                        //             createdAt: new Date(parsedMessage.createdAt),
-                        //         });
-                        //     }
-                        // });
 
                         // 친구요청 수락시 채팅방 타입 변경
                         if (parsedMessage.type==='FRIEND_REQUEST' && parsedMessage.content==='친구가 되었습니다!\n' +
@@ -197,9 +179,6 @@ const ChattingScreen = () => {
                     } else {
                         console.log("no data to load");
                     }
-
-
-
 
                 } catch (error) {
                     console.error('채팅방 메세지 목록조회 실패:', error);
