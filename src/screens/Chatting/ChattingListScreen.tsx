@@ -1,12 +1,11 @@
 import React, { useState, useCallback } from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator, Text, RefreshControl, AppState, AppStateStatus } from 'react-native';
+import { View, FlatList, StyleSheet, ActivityIndicator, Text, RefreshControl, AppState, SafeAreaView} from 'react-native';
 import ChatRoomCard from '../../components/Chat/ChatRoomCard';
 import { useFocusEffect } from '@react-navigation/native';
 import CustomHeader from "../../components/common/CustomHeader";
 import {useRecoilValue} from "recoil";
 import {LoginResponse} from "../../interfaces";
 import {userInfoState} from "../../recoil/atoms";
-import {SafeAreaView} from "react-native-safe-area-context";
 import {ChatRoom} from "../../interfaces/Chatting";
 import {fetchChatRoomList} from "../../service/Chatting/chattingAPI";
 
