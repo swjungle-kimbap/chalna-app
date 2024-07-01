@@ -1,7 +1,7 @@
 import { NativeEventEmitter, NativeModules } from 'react-native';
 import BLEAdvertiser from 'react-native-ble-advertiser';
 import { axiosPost } from '../axios/axios.method';
-import { getAsyncObject, getAsyncString, setAsyncObject } from '../utils/asyncStorage';
+import { getAsyncObject, setAsyncObject } from '../utils/asyncStorage';
 import {urls} from "../axios/config";
 
 const APPLE_ID = 0x4c;
@@ -11,7 +11,7 @@ const DelayedTime = 2 * 60 * 60 * 1000;
 BLEAdvertiser.setCompanyId(APPLE_ID);
 
 const sendRelationCnt = async (_uuid:string) => {
-  await axiosPost(urls.SET_RELATION_CNT_URL + _uuid, "만난 횟수 증가")
+  await axiosPost(urls.SET_RELATION_CNT_URL + '/' + _uuid, "만난 횟수 증가")
 }
 
 export const addDevice = async (_uuid: string, _date: number) => {
