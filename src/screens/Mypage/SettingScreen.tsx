@@ -3,16 +3,15 @@ import { RootStackParamList } from "../../interfaces/Navigation";
 import InlineButton from "../../components/Mypage/InlineButton";
 import Toggle from "../../components/common/Toggle";
 import { Image, StyleSheet, View } from "react-native";
-import { useState } from "react";
+
 
 type SettingScreenProps = {
-  navigation: StackNavigationProp<RootStackParamList, '키워드 알림 설정'>
+  navigation: StackNavigationProp<RootStackParamList, '키워드 알림 설정' | '방해금지 시간 설정'>
 };
 
 const MoveButtonUrl ='../../assets/buttons/MoveButton.png'
 
 const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
-  const [isKeyword, setIsKeyword] = useState<boolean>(false);
 
   return (
     <View style={styles.background}>
@@ -42,8 +41,11 @@ const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
             <Toggle value={false} toggleHandler={()=>{}} /> 
           </InlineButton>
         </View>
-        <InlineButton text="방해금지 시간대 설정" textstyle={{paddingTop: 10}} horizon='none'>
-          <Toggle value={false} toggleHandler={()=>{}} /> 
+        <InlineButton text="방해금지 시간 설정" textstyle={{paddingTop: 10}} horizon='none'
+          onPressfunc={()=>navigation.navigate('방해금지 시간 설정')}>
+          <View style={styles.imagePos} >
+            <Image source={require(MoveButtonUrl)} />
+          </View>
         </InlineButton>
       </View>
     </View>
@@ -53,6 +55,7 @@ const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
 const styles = StyleSheet.create({
   mypage: {
     width: "90%",
+    height: "90%",
     alignSelf: 'center', 
     paddingTop: 20,
   },
@@ -61,7 +64,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   imagePos: {
-    paddingTop:8,
+    paddingTop:10,
     paddingRight:17
   },
   inlineButtons: {
