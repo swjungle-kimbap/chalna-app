@@ -1,41 +1,91 @@
-import {AppRegistry} from 'react-native';
+import { AppRegistry } from 'react-native';
 import App from './App';
-import {name as appName} from './app.json';
+import { name as appName } from './app.json';
 import messaging from '@react-native-firebase/messaging';
+import PushNotification from 'react-native-push-notification';
+import { Platform } from 'react-native';
 
-// 백그라운드 핸들러 (iOS 및 Android)
+// 메시지 핸들러
 messaging().setBackgroundMessageHandler(async remoteMessage => {
   console.log('Message handled in the background!', remoteMessage);
-
-  // iOS: 백그라운드에서 알림 표시
-  if (Platform.OS === 'ios') {
-    // 필요한 알림 로직 추가 (예: notifee 라이브러리 사용)
-    throw error('Not Implemented');
-  }
-
-  // Android: 데이터 업데이트 등 필요한 작업 수행
+  handleRemoteMessage(remoteMessage);
 });
 
-// Headless task (Android 전용)
+// 헤드리스 작업 (Android 전용)
 AppRegistry.registerHeadlessTask('RNFirebaseBackgroundMessage', () => {
-  return (remoteMessage) => {
+  return async (remoteMessage) => {
     console.log('Headless task executed!', remoteMessage);
-    // 데이터 업데이트 등 필요한 작업 수행
+    handleRemoteMessage(remoteMessage);
   };
 });
 
-// Ios Headless task : Notification Service Extension 를 사용
-// Notification Service Extension은 Xcode를 사용하여 Swift 또는 Objective-C로 개발해야 됨...
+// 공통 알림 생성 함수
+const createNotification = (data) => {
+  const additionalData = data.additionalData ? JSON.parse(data.additionalData) : {};
+  const title = additionalData.fcmType === 'match' ? "인연으로부터 메시지가 도착했습니다." : `Message from ${data.senderId || 'Unknown'}`;
+  const body = data.message || "No message content";
 
-// 백그라운드 에서 실행 되는경우 isHeadless 값은 ios에서 항상 true 로 rendering을 방지함
-function HeadlessCheck({ isHeadless }) {
-  if (isHeadless) {
-    // App has been launched in the background by iOS, ignore
-    return null;
+  return { title, body, isMatch: additionalData.fcmType === 'match' };
+};
+
+// 백그라운드 FCM 처리 함수
+const handleRemoteMessage = (remoteMessage) => {
+  console.log('Received remote message', remoteMessage);
+  const { title, body, isMatch } = createNotification(remoteMessage.data);
+
+  showLocalNotification(title, body, isMatch);
+};
+
+// 로컬 알림 표시 함수
+const showLocalNotification = (title, body, isMatch) => {
+  let notificationOptions = {
+    title: title,
+    message: body,
+    playSound: true,
+    soundName: 'default',
+    importance: 'high',
+  };
+
+  if (isMatch) {
+    notificationOptions = {
+      ...notificationOptions,
+      actions: [
+        {
+          id: 'accept',
+          title: '수락',
+        },
+        {
+          id: 'reject',
+          title: '거절',
+        }
+      ],
+    };
   }
 
-  // Render the app component on foreground launch
-  return <App />;
-}
+  PushNotification.localNotification(notificationOptions);
+};
 
-AppRegistry.registerComponent(appName, () => HeadlessCheck);
+// PushNotification configuration
+PushNotification.configure({
+  onNotification: function (notification) {
+    console.log('LOCAL NOTIFICATION ==>', notification);
+
+    // 안전하게 notification 객체 속성에 접근
+    const { title, body, isMatch } = createNotification(notification.data || {});
+
+    showLocalNotification(title, body, isMatch);
+
+    // 알림 액션 처리
+    if (notification.action === 'accept') {
+      console.log('수락 버튼 눌림');
+      // 수락 버튼 눌렀을 때의 로직 추가
+    } else if (notification.action === 'reject') {
+      console.log('거절 버튼 눌림');
+      // 거절 버튼 눌렀을 때의 로직 추가
+    }
+  },
+  popInitialNotification: true,
+  requestPermissions: true,
+});
+
+AppRegistry.registerComponent(appName, () => App);
