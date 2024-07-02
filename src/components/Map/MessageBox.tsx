@@ -4,7 +4,6 @@ import Button from '../common/Button';
 import { StyleSheet, TextInput, View, Alert, NativeModules, NativeEventEmitter, Animated, AppStateStatus, AppState } from 'react-native';
 import Text from '../common/Text';
 import { getAsyncObject } from "../../utils/asyncStorage";
-import useBackgroundSave from '../../hooks/useChangeBackgroundSave';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { DeviceUUIDState, showMsgBoxState } from '../../recoil/atoms';
 import ScanNearbyAndPost, { addDevice, ScanNearbyStop } from '../../service/Bluetooth';
@@ -18,9 +17,6 @@ import { axiosPost } from '../../axios/axios.method';
 import BleButton from './BleButton';
 import { urls } from '../../axios/config';
 import useBackground from '../../hooks/useBackground';
-import { useFocusEffect } from '@react-navigation/core';
-
-const tags = ['상담', '질문', '대화', '만남'];
 
 const requiredPermissions = [
   PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
@@ -28,7 +24,7 @@ const requiredPermissions = [
   PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
   PERMISSIONS.ANDROID.BLUETOOTH_ADVERTISE];
 
-const uuidSet = new Set(); 
+const uuidSet = new Set<string>(); 
 const uuidTime = new Map(); 
 const uuidTimeoutID = new Map();  
 
@@ -38,7 +34,6 @@ const sendDelyaedTime = 60 * 1000;
 const MessageBox: React.FC = ()  => {
   const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
   const [msgText, setMsgText] = useState('안녕하세요!');
-  const [selectedTag, setSelectedTag] = useState<string>(''); 
   const [nearInfo, setNearInfo] = useRecoilState(isNearbyState);
   const [isScanning, setIsScanning] = useState(false);
   const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
@@ -54,7 +49,6 @@ const MessageBox: React.FC = ()  => {
     const savedData = await getAsyncObject<SavedMessageData>("savedMessageData");
     console.log(savedData, "in messagebox");
     if (savedData?.msgText) setMsgText(savedData.msgText);
-    if (savedData?.selectedTag) setSelectedTag(savedData.selectedTag);
     if (savedData?.isScanning) {
       setIsScanning(true);
       ScanNearbyAndPost(deviceUUID, handleSetIsNearby);
@@ -192,11 +186,10 @@ const MessageBox: React.FC = ()  => {
     }
   };
   
-  const sendMsg = async ( _uuid:string) => {
+  const sendMsg = async ( uuids:Set<string>) => {
     await axiosPost(urls.SEND_MSG_URL, "인연 보내기", {
-      receiverDeviceId: _uuid,
+      deviceIdList: uuids,
       message: msgText,
-      interestTag:[selectedTag]
     } as SendMsgRequest)
   }  
 
@@ -221,9 +214,8 @@ const MessageBox: React.FC = ()  => {
       Alert.alert('주위 인연이 없습니다.', '새로운 인연을 만나기 전까지 기다려주세요!');
     } else {
       sendCountsRef.current = uuidSet.size;
-      uuidSet.forEach((uuid:string) => {
-        sendMsg(uuid);
-      })
+      sendMsg(uuidSet);
+
       setIsBlocked(true);
       blockedTimeRef.current = Date.now();
       setTimeout(() => {
@@ -233,15 +225,6 @@ const MessageBox: React.FC = ()  => {
       setShowMsgBox(false);
     }
   }
-
-
-  const handleTagPress = (tag: string) => {
-    setSelectedTag(prevTag => {
-      if (prevTag === tag)
-        return '';
-      return tag 
-    }); 
-  };
 
   const checkvalidInput = () => {
     if (!isScanning && msgTextRef.current.length < 5) {
@@ -254,7 +237,6 @@ const MessageBox: React.FC = ()  => {
 
   useBackground({
     msgText,
-    selectedTag,
     isScanning,
     isBlocked,
     blockedTime : blockedTimeRef.current
@@ -336,12 +318,6 @@ const MessageBox: React.FC = ()  => {
 };
 
 const styles = StyleSheet.create({
-  tagText:{
-    paddingTop: 15,
-  },
-  selectedTag: {
-    color: '#000', 
-  },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -353,13 +329,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '95%',
     bottom: 10, 
-    right: 5,
-    zIndex: 2,
-  },
-  tagcontainer: {
-    position: 'absolute',
-    width: '95%',
-    bottom: 280, 
     right: 5,
     zIndex: 2,
   },
