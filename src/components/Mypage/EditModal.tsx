@@ -21,7 +21,7 @@ const EditModal = ({ value, setValue, modalVisible, closeModal, maxLength }) => 
           <View style={styles.inputBoxPos}>
             <TouchableWithoutFeedback>
               <>
-                <Text style={styles.countText}>{`[${inputText ? inputText.length: 0}/${maxLength}]`}</Text>
+                <Text style={styles.Button}>{`[${inputText ? inputText.length: 0}/${maxLength}]`}</Text>
                 <HorizontalLine style={styles.horizon}/>
                 <TextInput
                   style={styles.inputBox}
@@ -34,8 +34,8 @@ const EditModal = ({ value, setValue, modalVisible, closeModal, maxLength }) => 
               </>
             </TouchableWithoutFeedback>
             <View style={styles.buttonContainer}>
-              <Button title="비우기"titleStyle={styles.countText} onPress={() => setInputText("")}/>
-              <Button title="저장" titleStyle={styles.countText} onPress={() => {setValue(inputText); closeModal();} }/>
+              <Button title="비우기"titleStyle={styles.Button} onPress={() => setInputText("")}/>
+              <Button title="저장" titleStyle={styles.Button} onPress={() => {setValue(inputText); closeModal();} }/>
             </View>
           </View>
         </View>
@@ -54,10 +54,10 @@ const styles = StyleSheet.create({
     height: 16,
     color: '#979797',
   },
-  countText:{
+  Button:{
     fontSize: 15,
     color: '#fff',
-    paddingTop: 10,
+    padding: 20,
   },
   horizon: {
     color: '#979797',

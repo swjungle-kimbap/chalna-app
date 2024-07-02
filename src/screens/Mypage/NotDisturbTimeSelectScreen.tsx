@@ -10,6 +10,8 @@ import { isDisturbState } from "../../recoil/atoms";
 import { getAsyncObject, setAsyncObject } from "../../utils/asyncStorage";
 import { SavedDisturbTime } from "../../interfaces";
 import Button from "../../components/common/Button"
+import { axiosPatch } from "../../axios/axios.method";
+import { urls } from "../../axios/config";
 
 const NotDisturbTimeSelectScreen = () => {
   const [isDisturb, setIsDisturb] = useRecoilState<boolean>(isDisturbState);
@@ -39,18 +41,29 @@ const NotDisturbTimeSelectScreen = () => {
     fetchData();
   }, []);
 
+  const handleIsDisturb = (value) => {
+    setIsDisturb(value)
+    axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {isDisturb: value});
+  }
+  const padZero = (num) => {
+    return num < 10 ? `0${num}` : num;
+  };
+  
+
   const handleSaveDisturbTime = () => {
-    setAsyncObject<SavedDisturbTime>("savedDisturbTime", {
-      doNotDisturbStart: `${startDateRef.current.getHours()}:${startDateRef.current.getMinutes()}`, 
-      doNotDisturbEnd: `${endDateRef.current.getHours()}:${endDateRef.current.getMinutes()}`,
-    })
+    const nonDisturbTime = {
+      doNotDisturbStart: `${padZero(startDateRef.current.getHours())}:${padZero(startDateRef.current.getMinutes())}`, 
+      doNotDisturbEnd: `${padZero(endDateRef.current.getHours())}:${padZero(endDateRef.current.getMinutes())}`,
+    };
+    setAsyncObject<SavedDisturbTime>("savedDisturbTime", nonDisturbTime);
+    axiosPatch(urls.DISTURB_ALARM_URL, "방해금지 시간 설정", nonDisturbTime);
   }
   
   return (
     <View style={styles.background}>
       <View style={styles.mypage}>
         <InlineButton text="방해금지 시간 설정" textstyle={{paddingTop: 10}} horizon='bottom'>
-          <Toggle value={isDisturb} toggleHandler={(value)=>setIsDisturb(value)} /> 
+          <Toggle value={isDisturb} toggleHandler={handleIsDisturb} /> 
         </InlineButton>
         {isDisturb && (
           <>

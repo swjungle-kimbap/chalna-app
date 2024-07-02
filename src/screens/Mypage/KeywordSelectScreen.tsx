@@ -13,6 +13,8 @@ import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
 import { isKeywordAlarmState } from "../../recoil/atoms";
 import { useRecoilState } from "recoil";
 import { useFocusEffect } from "@react-navigation/core";
+import { axiosDelete, axiosPatch, axiosPost } from "../../axios/axios.method";
+import { urls } from "../../axios/config";
 
 const KeywordSelectScreen: React.FC = ({}) => {
   const [isKeyword, setIsKeyword] = useRecoilState<boolean>(isKeywordAlarmState);
@@ -44,9 +46,11 @@ const KeywordSelectScreen: React.FC = ({}) => {
   const handleDeleteKeyword = (item) => {
     const filteredKeywordList = keywordList.filter((value) => value !== item); 
     setKeywordList(filteredKeywordList);
+    axiosDelete(`${urls.DELETE_ALL_KEYWORDS_URL}/${item}`, "선호 키워드 삭제")
   }
 
   const handleAllDeleteKeyword = () => {
+    axiosDelete(urls.DELETE_ALL_KEYWORDS_URL, "선호 키워드 전체 삭제")
     setKeywordList([]);
   }
 
@@ -61,6 +65,7 @@ const KeywordSelectScreen: React.FC = ({}) => {
       return;
     }
 
+    axiosPost(urls.ADD_KEYWORD_URL, "선호 키워드 추가", {interestKeyword: keyword});
     setKeywordList([...keywordList, keyword]);
     setKeyword(""); 
   }
@@ -71,12 +76,17 @@ const KeywordSelectScreen: React.FC = ({}) => {
     }
   }, [isKeyword]); 
 
+  const handleIsKeywordAlarm = (value) => {
+    setIsKeyword(value)
+    axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {isKeywordAlarm: value});
+  }
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.background}>
         <View style={styles.mypage}>
           <InlineButton text="키워드 알림 설정" textstyle={{ paddingTop: 10 }} horizon="bottom">
-            <Toggle value={isKeyword} toggleHandler={(value) => setIsKeyword(value)} />
+            <Toggle value={isKeyword} toggleHandler={handleIsKeywordAlarm} />
           </InlineButton>
           {isKeyword && (
             <>

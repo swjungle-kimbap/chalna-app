@@ -18,7 +18,7 @@ export const axiosGet = async<T>(
       console.log('Get Success:', logMsg);
     return response;
   } catch (error) {
-    console.error('Get fail:', logMsg, error);
+    console.error('Get fail:', logMsg, "error api url: ", error.config.url, " error data : ", error.response.data);
     throw error;
   }
 }
@@ -38,7 +38,7 @@ export const axiosPost = async<T>(
       console.log('Post Success:', logMsg);
     return response;
   } catch (error) {
-    console.error('Post fail:', logMsg, error)
+    console.error('Post fail:', logMsg, "error api url: ", error.config.url, " error data : ", error.response.data)
     throw error;
   }
 }
@@ -58,7 +58,7 @@ export const axiosPatch = async<T>(
       console.log('Patch Success:', logMsg);
     return response;
   } catch (error) {
-    console.error('Patch fail:', logMsg, error);
+    console.error('Patch fail:', logMsg, "error api url: ", error.config.url, " error data : ", error.response.data);
     throw error;
   }
 }
@@ -78,7 +78,7 @@ export const axiosPut = async<T>(
       console.log('Put Success:', logMsg);
     return response;
   } catch (error) {
-    console.error('Put fail:', logMsg, error);
+    console.error('Put fail:', logMsg, "error api url: ", error.config.url, " error data : ", error.response.data);
     throw error;
   }
 }
@@ -98,7 +98,7 @@ export const axiosDelete = async<T>(
       console.log('Delete Success:', logMsg);
     return response;
   } catch (error) {
-    console.error('Delete fail:', logMsg, error);
+    console.error('Delete fail:', logMsg, "error api url: ", error.config.url, " error data : ", error.response.data);
     throw error;
   }
 }
