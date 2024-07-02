@@ -3,7 +3,7 @@ const theme = {
     default: 'SpoqaHanSansNeo-Medium',
     title: 'SpoqaHanSansNeo-Bold',
     main: 'SpoqaHanSansNeo-Medium',
-    sub: 'SpoqaHanSansNeo-regular',
+    sub: 'SpoqaHanSansNeo-Regular',
     light: 'SpoqaHanSansNeo-Light'
   }
 }
