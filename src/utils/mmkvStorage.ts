@@ -2,7 +2,7 @@ import {MMKV} from "react-native-mmkv";
 
 const mmkvStorage = new MMKV({id:'mmkvStorage'});
 
-export const setMMKVString = async (key: string, value: string) => {
+export const setMMKVString =  (key: string, value: string) => {
     try {
         mmkvStorage.set(key, value);
         console.log(`${key} stored ${value} in MMKV`);
@@ -11,7 +11,7 @@ export const setMMKVString = async (key: string, value: string) => {
     }
 };
 
-export const setMMKVObject = async <T>(key: string, value: T) => {
+export const setMMKVObject = <T>(key: string, value: T) => {
     try {
         const jsonValue = JSON.stringify(value);
         mmkvStorage.set(key, jsonValue);
@@ -21,22 +21,22 @@ export const setMMKVObject = async <T>(key: string, value: T) => {
     }
 };
 
-export const getMMKVString = async (key: string): Promise<string> => {
+export const getMMKVString = (key: string):string|null => {
     try {
         const value = mmkvStorage.getString(key);
         if (value === null) {
             console.log(`${key} is not stored in MMKV`);
-            return '';
+            return null;
         }
         console.log(`Using stored ${key} : ${value} in MMKV`);
         return value;
     } catch (e) {
         console.log(`Error retrieving ${key} key: `, e);
-        return '';
+        return null;
     }
 };
 
-export const getMMKVObject = async <T>(key: string): Promise<T | null> => {
+export const getMMKVObject = <T>(key: string): T | null => {
     try {
         const jsonValue = mmkvStorage.getString(key);
         if (jsonValue != null) {
@@ -51,7 +51,7 @@ export const getMMKVObject = async <T>(key: string): Promise<T | null> => {
     }
 };
 
-export const removeMMKVItem = async (key: string) => {
+export const removeMMKVItem = (key: string) => {
     try {
         mmkvStorage.delete(key);
         console.log(`Removed ${key} completely in MMKV`);

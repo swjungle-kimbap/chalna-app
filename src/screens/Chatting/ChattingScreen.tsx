@@ -4,7 +4,7 @@ import { View, TextInput, ScrollView, StyleSheet, ActivityIndicator, Keyboard, A
 import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRecoilValue } from "recoil";
 import { userInfoState } from "../../recoil/atoms";
-import { LoginResponse } from "../../interfaces";
+import {LoginResponse, User} from "../../interfaces";
 import { getKeychain } from "../../utils/keychain";
 import { SWRConfig } from 'swr';
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
@@ -20,6 +20,8 @@ import { chatRoomMember, ChatMessage, directedChatMessage } from "../../interfac
 import { formatDateToKoreanTime } from "../../service/Chatting/DateHelpers";
 import Text from '../../components/common/Text';
 import {saveChatMessages, getChatMessages, removeChatMessages, removeChatRoom} from '../../localstorage/mmkvStorage';
+import {getMMKVString, setMMKVString, getMMKVObject, setMMKVObject, removeMMKVItem} from "../../utils/mmkvStorage";
+import {IMessage} from "@stomp/stompjs";
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -194,10 +196,12 @@ const ChattingScreen = () => {
         );
     }
 
+
     return (
         <SWRConfig value={{}}>
             <CustomHeader
                 title={username}
+                subtitle={'경고문구 출력용'}
                 onBackPress={() => {
                     navigate("로그인 성공", {
                         screen: "채팅목록",

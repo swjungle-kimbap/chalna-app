@@ -147,8 +147,8 @@ const Container = styled.View<{ isSelf: boolean , notChat: boolean}>`
 `;
 
 const ProfilePicture = styled.Image<{ modal?: boolean }>`
-    width: ${({ modal }) => (modal ? '100px' : '40px')};
-    height: ${({ modal }) => (modal ? '100px' : '40px')};
+    width: ${({ modal }) => (modal ? '100px' : '34px')};
+    height: ${({ modal }) => (modal ? '100px' : '34px')};
     border-radius: ${({ modal }) => (modal ? '50px' : '20px')};
     margin-right: ${({ modal }) => (modal ? '0' : '10px')};
     margin-left: ${({ modal }) => (modal ? '0' : '2px')};
@@ -164,9 +164,9 @@ const MessageContainer = styled.View<{ isSelf: boolean; hasNewline: boolean; sho
     flex-direction: row;
     align-items: flex-end;
     flex-wrap: wrap;
-    max-width: ${({ hasNewline }) => (hasNewline ? '80%' : 'auto')};
+    max-width: ${({ hasNewline, isSelf }) => (isSelf && hasNewline ? '82%' : !isSelf && hasNewline? '78%' : 'auto')};
     justify-content: ${({ isSelf }) => (isSelf ? 'flex-end' : 'flex-start')};
-    margin-left: ${({ isSelf, showProfileTime }) => (!isSelf && !showProfileTime ? '52px' : '0px')}; 
+    margin-left: ${({ isSelf, showProfileTime }) => (!isSelf && !showProfileTime ? '46px' : '0px')}; 
 `; //bottom margin-left : profile pic length
 
 const MessageBubbleContent = styled.View<{ isSelf: boolean; hasNewline: boolean }>`
@@ -189,18 +189,20 @@ const Username = styled(Text)`
 `;
 
 const DateTime = styled(Text)<{ isSelf: boolean }>`
-    font-size: 10px;
+    font-size: 9px;
     color: #888888;
-    margin-top: 5px;
-    margin-right: ${({ isSelf }) => (isSelf ? '8px' : '0')};
+    margin-right: ${({ isSelf }) => (isSelf ? '6px' : '0')};
     align-self: flex-end;
     flex-shrink: 0;
     padding-left: 8px;
 `;
 
+// #377e22;
+// #20b2aa;
 const ReadStatus = styled(Text)<{ isSelf: boolean }>`
     font-size: 10px;
-    color: #00ff00;
+    color: #20b2aa;
+    margin-bottom: 1px;
     margin-right: ${({ isSelf }) => (isSelf ? '8px' : '0')};
     align-self: ${({ isSelf }) => (isSelf ? 'flex-end' : 'flex-start')};
     flex-shrink: 0;
