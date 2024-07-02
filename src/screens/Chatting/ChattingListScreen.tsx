@@ -1,18 +1,18 @@
-import React, {useState, useCallback, useEffect, useRef} from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, Text, SafeAreaView, AppState, AppStateStatus } from 'react-native';
 import ChatRoomCard from '../../components/Chat/ChatRoomCard';
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import CustomHeader from "../../components/common/CustomHeader";
-import {useRecoilValue} from "recoil";
-import {LoginResponse} from "../../interfaces";
-import {userInfoState} from "../../recoil/atoms";
-import {ChatRoom} from "../../interfaces/Chatting";
-import {fetchChatRoomList} from "../../service/Chatting/chattingAPI";
+import { useRecoilValue } from "recoil";
+import { LoginResponse } from "../../interfaces";
+import { userInfoState } from "../../recoil/atoms";
+import { ChatRoomLocal } from "../../interfaces/Chatting";
+import { fetchChatRoomList } from "../../service/Chatting/chattingAPI";
 import BackgroundTimer from 'react-native-background-timer';
+import { saveChatRoomList, getChatRoomList } from '../../localstorage/mmkvStorage';
 
-
-const ChattingListScreen = ({navigation}) => {
-    const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
+const ChattingListScreen = ({ navigation }) => {
+    const [chatRooms, setChatRooms] = useState<ChatRoomLocal[]>([]);
     const [loading, setLoading] = useState(true);
     const isFocused = useIsFocused();
     const intervalId = useRef<NodeJS.Timeout | null>(null);
@@ -20,37 +20,44 @@ const ChattingListScreen = ({navigation}) => {
     const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
 
     const fetchChatRooms = async () => {
-        const response = await fetchChatRoomList('2024-06-23T10:32:40')
-        if (response)
-            setChatRooms(response);
-        setLoading(false);
+        try {
+            const response = await fetchChatRoomList('2024-06-23T10:32:40');
+            if (response) {
+                setChatRooms(response);
+                saveChatRoomList(response); // Save chat rooms to MMKV
+            }
+        } catch (error){
+            console.error('Error fetching chatroom data:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
         const startPolling = () => {
-            intervalId.current = BackgroundTimer.setInterval(async () => {
-                try {
-                    fetchChatRooms();
-                } catch (error) {
-                    console.error('Error fetching chatroom data:', error);
-                }
+            intervalId.current = BackgroundTimer.setInterval(async () =>{
+                fetchChatRooms();
             }, 4000);
         };
 
         const handleAppStateChange = (nextAppState: AppStateStatus) => {
             if (nextAppState !== 'active') {
-                // 앱이 background 상태로 변경될 때 polling 중지
                 if (intervalId.current !== null) {
                     BackgroundTimer.clearInterval(intervalId.current);
                     intervalId.current = null;
                 }
-            }
-            if (nextAppState === 'active') {
+            } else {
                 startPolling();
             }
         };
 
-        fetchChatRooms();
+        const storedChatRooms = getChatRoomList();
+        if (storedChatRooms) {
+            setChatRooms(storedChatRooms);
+            setLoading(false);
+        } else {
+            fetchChatRooms();
+        }
 
         if (isFocused) {
             startPolling();
@@ -63,7 +70,6 @@ const ChattingListScreen = ({navigation}) => {
                 subscription.remove();
             };
         } else {
-            // 화면 focus를 잃으면 polling 중지
             if (intervalId.current !== null) {
                 BackgroundTimer.clearInterval(intervalId.current);
                 intervalId.current = null;
@@ -71,17 +77,15 @@ const ChattingListScreen = ({navigation}) => {
         }
     }, [isFocused]);
 
-
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#0000ff"/>
+                <ActivityIndicator size="large" color="#0000ff" />
             </View>
         );
     }
 
     return (
-
         <View style={styles.container}>
             <CustomHeader
                 title={"채팅 목록"}
@@ -92,8 +96,7 @@ const ChattingListScreen = ({navigation}) => {
                 <FlatList
                     data={chatRooms}
                     keyExtractor={(item) => item.id.toString()}
-                    renderItem={({item}) => {
-                        console.log('Rendering item:', item);
+                    renderItem={({ item }) => {
                         const usernames = item.members
                             .filter(member => member.memberId !== currentUserId)
                             .map(member => item.type === 'FRIEND' ? member.username : `익명${member.memberId}`)
@@ -102,8 +105,8 @@ const ChattingListScreen = ({navigation}) => {
                         return (
                             <ChatRoomCard
                                 usernames={usernames}
-                                lastMsg={item.recentMessage === null ? "" : item.recentMessage.content}
-                                lastUpdate={item.recentMessage === null ? "" : item.recentMessage.createdAt}
+                                lastMsg={item.recentMessage ? item.recentMessage.content : ""}
+                                lastUpdate={item.recentMessage ? item.recentMessage.createdAt : ""}
                                 navigation={navigation}
                                 chatRoomType={item.type}
                                 chatRoomId={item.id}
@@ -120,7 +123,6 @@ const ChattingListScreen = ({navigation}) => {
                 />
             </SafeAreaView>
         </View>
-
     );
 };
 
@@ -140,7 +142,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     emptyText: {
-        marginTop:30,
+        marginTop: 30,
         fontSize: 18,
         color: '#999',
     },
