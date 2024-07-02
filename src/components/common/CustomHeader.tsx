@@ -22,8 +22,8 @@ const CustomHeader: React.FC<HeaderProps> = ({ title, subtitle, onBackPress, onM
                 </TouchableOpacity>)
             }
             <View style={styles.titleContainer}>
-                <Text variant='titleSmall' children={title} />
-                {subtitle && <Text variant='subtitle'>{subtitle}</Text>}
+                <Text variant='subtitle' children={title} />
+                {subtitle && <Text variant='sub'>{subtitle}</Text>}
             </View>
             <View style={styles.rightIcons}>
                 {onBtnPress!==null && showBtn && (
