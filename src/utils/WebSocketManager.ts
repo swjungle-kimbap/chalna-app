@@ -29,8 +29,8 @@ class WebSocketManager {
                 console.log(str);
             },
             reconnectDelay: 2000,
-            heartbeatIncoming: 4000,
-            heartbeatOutgoing: 4000,
+            heartbeatIncoming: 10000,
+            heartbeatOutgoing: 10000,
             webSocketFactory: () => {
                 console.log('Creating SockJS instance');
                 return new SockJS(Config.SOCKET_URL);

@@ -33,6 +33,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
     const handleAccept = async () => {
         const response = await acceptFriendRequest(chatRoomId);
+        console.log('수락 요청 응답: ',response);
         if (response === true) {
             WebSocketManager.sendMessage(String(chatRoomId), "친구가 되었습니다!\n대화를 이어가보세요.", 'FRIEND_REQUEST');
             setIsDisabled(true);
@@ -41,6 +42,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
     const handleReject = async () => {
         const response = await rejectFriendRequest(otherId);
+        console.log('거절 요청 응답: ',response);
         if (response === true) {
             WebSocketManager.sendMessage(String(chatRoomId), "인연이 스쳐갔습니다.", 'FRIEND_REQUEST');
             setIsDisabled(true);
@@ -49,8 +51,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
     const handleSend = async () =>{
         const response = await sendFriendRequest(chatRoomId, otherId);
+        console.log('친구요청 응답 출력', response);
         if (response === true) {
-            WebSocketManager.sendMessage(String(chatRoomId), "인연이 스쳐갔습니다.", 'FRIEND_REQUEST');
+            WebSocketManager.sendMessage(chatRoomId, "친구 요청을 보냈습니다.", 'FRIEND_REQUEST');
             // 친구추가 버튼 없애기 버튼 or 요청중 상태 나타내는 것 추가
         }
     };
@@ -123,6 +126,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                                 style={{marginTop: 1, marginLeft:5}}
                                 iconSource={require('../../assets/Icons/AddFriendCircle.png')}
                                 imageStyle={{height:25, width: 25}}
+                                onPress={handleSend}
                             />
                         </NameBtnContainer>
                         <Text variant={"sub"} style={{size: 12, marginBottom: 10}} >{"스쳐간 횟수 or 상태메세지 표기"}</Text>

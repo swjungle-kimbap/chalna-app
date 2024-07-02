@@ -2,29 +2,32 @@ import {axiosPatch} from '../axios/axios.method'; // Adjust the path as necessar
 import {Alert} from "react-native";
 import {urls} from "../axios/config";
 
-export const sendFriendRequest = async (chatRoomId:number, otherId:number):Promise<boolean|any> => {
-    Alert.alert(
-        "친구 요청",
-        "친구 요청을 보내시겠습니까?",
-        [   { text: "취소", style: "cancel" },
-                    { text: "보내기", onPress: async () => {
-                        try {
-                            // 친구요청 API 전송
-                            const response = await axiosPatch(
-                                urls.SEND_FRIEND_REQUEST_URL+`/${chatRoomId}`
-                            );
-                            console.log(response)
-                            Alert.alert('친구 요청 성공', '친구 요청을 보냈습니다!');
-                            return true;
-
-                        } catch (error) {
-                            const errorMessage = error.response?.data?.message || error.message || '친구 요청 전송이 실패했습니다.';
-                            Alert.alert("Error", errorMessage);
-                            return false;
-                        }
-                    }}
-                ]
-    );
+export const sendFriendRequest = (chatRoomId: number, otherId: number): Promise<boolean> => {
+    return new Promise((resolve) => {
+        Alert.alert(
+            "친구 요청",
+            "친구 요청을 보내시겠습니까?",
+            [ { text: "취소", style: "cancel", onPress: () => resolve(false) },
+                      { text: "보내기",
+                          onPress: async () => {
+                            try {
+                                // 친구요청 API 전송
+                                const response = await axiosPatch(
+                                    `${urls.SEND_FRIEND_REQUEST_URL}/${chatRoomId}`
+                                );
+                                console.log(response);
+                                Alert.alert('친구 요청 성공', '친구 요청을 보냈습니다!');
+                                resolve(true);
+                            } catch (error) {
+                                const errorMessage = error.response?.data?.message || error.message || '친구 요청 전송이 실패했습니다.';
+                                Alert.alert("Error", errorMessage);
+                                resolve(false);
+                            }
+                    }
+                }
+            ]
+        );
+    });
 };
 
 
