@@ -2,7 +2,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import SettingScreen from "../screens/Mypage/SettingScreen";
 import MypageScreen from "../screens/Mypage/MypageScreen";
 import FontTheme from "../styles/FontTheme"
-import NotDisturbTimeSelectScreen from "../screens/Mypage/NotDistrubTimeSelectScreen";
+import NotDisturbTimeSelectScreen from "../screens/Mypage/NotDisturbTimeSelectScreen";
 import KeywordSelectScreen from "../screens/Mypage/KeywordSelectScreen";
 
 const MypageStack = createNativeStackNavigator();
