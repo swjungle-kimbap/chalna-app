@@ -3,6 +3,7 @@ import { RootStackParamList } from "../../interfaces/Navigation";
 import InlineButton from "../../components/Mypage/InlineButton";
 import Toggle from "../../components/common/Toggle";
 import { Image, StyleSheet, View } from "react-native";
+import { useState } from "react";
 
 type SettingScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, '키워드 알림 설정'>
@@ -11,6 +12,8 @@ type SettingScreenProps = {
 const MoveButtonUrl ='../../assets/buttons/MoveButton.png'
 
 const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
+  const [isKeyword, setIsKeyword] = useState<boolean>(false);
+
   return (
     <View style={styles.background}>
       <View style={styles.mypage}>
@@ -39,7 +42,9 @@ const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
             <Toggle value={false} toggleHandler={()=>{}} /> 
           </InlineButton>
         </View>
-
+        <InlineButton text="방해금지 시간대 설정" textstyle={{paddingTop: 10}} horizon='none'>
+          <Toggle value={false} toggleHandler={()=>{}} /> 
+        </InlineButton>
       </View>
     </View>
   )

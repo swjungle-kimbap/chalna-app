@@ -1,8 +1,7 @@
-import { useEffect } from 'react';
 import { Switch, SwitchProps } from 'react-native';
 
 interface ToggleProps {
-  toggleHandler: () => void;
+  toggleHandler: (value:boolean) => void;
   value: boolean;
 }
 
