@@ -56,7 +56,7 @@ export const NaverMap: React.FC = ({}) => {
         <NaverMapMarkerOverlay
           latitude={currentLocation.latitude}
           longitude={currentLocation.longitude}
-          onTap={() => Alert.alert("Hi", "반갑티비😀")}
+          onTap={() => Alert.alert("반갑티비", "주위의 인연이 존재하면 초록색으로 바뀌어요!")}
           anchor={{ x: 0.5, y: 1 }}
           caption={{
             text: '나',

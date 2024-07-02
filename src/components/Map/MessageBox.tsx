@@ -314,12 +314,9 @@ const MessageBox: React.FC = ()  => {
             <RoundBox width='95%' 
               style={[styles.msgBox, {borderColor : nearInfo.isNearby && !isBlocked && isScanning ? '#14F12A': '#979797'}]}>
               <View style={styles.titleContainer}>
-                <Text variant='title' style={styles.title}>메세지</Text>
-                {tags.map((tag) => (
-                  <Button titleStyle={[styles.tagText, selectedTag === tag && styles.selectedTag]} 
-                    variant='sub' title={`#${tag}`}  onPress={() => handleTagPress(tag)} 
-                    key={tag} activeOpacity={0.6} />
-                ))}
+                <Text variant='title' style={styles.title}>인연 메세지 <Button title='💬' onPress={() => {
+                  Alert.alert("인연 메세지 작성",`${sendDelyaedTime/(60 * 1000)}분에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요! 메세지를 받기 위해 블루투스 버튼을 켜주세요`)}
+                }/> </Text>
               </View>
               <TextInput value={msgText} style={[styles.textInput, { color: '#333' }]}
                   onChange={(event) => {setMsgText(event.nativeEvent.text);}}
