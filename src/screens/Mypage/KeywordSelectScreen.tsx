@@ -1,73 +1,104 @@
 import { useEffect, useState } from "react";
 import InlineButton from "../../components/Mypage/InlineButton";
 import Toggle from "../../components/common/Toggle";
-import { Text, StyleSheet, TextInput, View, Alert, FlatList } from "react-native";
+import { Text, StyleSheet, TextInput, View, Alert, FlatList,
+  Keyboard, TouchableWithoutFeedback 
+ } from "react-native";
 import FontTheme from '../../styles/FontTheme';
 import Button from '../../components/common/Button';
 import RenderKeyword from "../../components/Mypage/RenderKeyword";
-
-const keywords = ["a", "basdfdsafasd", "가가가가가가가가가가"];
+import { getAsyncObject } from "../../utils/asyncStorage";
+import { SavedKeywords } from "../../interfaces";
+import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
+import { isKeywordAlarmState } from "../../recoil/atoms";
+import { useRecoilState } from "recoil";
 
 const KeywordSelectScreen: React.FC = ({}) => {
-  const [isKeyword, setIsKeyword] = useState<boolean>(false);
-  const [keyword, setKeyword] = useState<string>("키워드를 추가해 주세요");
-  const [keywordList, setKeywordList] = useState<Array<string>>([]);
+  const [isKeyword, setIsKeyword] = useRecoilState<boolean>(isKeywordAlarmState);
+  const [keyword, setKeyword] = useState<string>("");
+  const [keywordList, setKeywordList] = useState<string[]>([]);
 
-  useEffect(()=> {
-    
-  })
+  useEffect(() => {
+    const fetchData = async () => {
+      const savedKeywords = await getAsyncObject<SavedKeywords>("savedKeywords");
+
+      if (savedKeywords.interestKeyword) {
+        setKeywordList(savedKeywords.interestKeyword);
+      }
+    }
+    fetchData();
+  }, [])
+
+  useChangeBackgroundSave<SavedKeywords>("savedKeywords", {interestKeyword:keywordList});
 
   const handleDeleteKeyword = (item) => {
-    const filteredKeywordList = keywords.filter((value) => value !== item); 
+    const filteredKeywordList = keywordList.filter((value) => value !== item); 
     setKeywordList(filteredKeywordList);
   }
 
+  const handleAllDeleteKeyword = () => {
+    setKeywordList([]);
+  }
+
   const handleAddKeyword = () => {
-    keywords.push(keyword);
+    if (keywordList.includes(keyword)) {
+      Alert.alert("부적절한 입력", "중복된 값을 넣었습니다.");
+      return;
+    }
+
+    if (keyword.trim() === "" ) {
+      Alert.alert("부적절한 입력", "값을 입력해 주세요.");
+      return;
+    }
+
+    setKeywordList([...keywordList, keyword]);
+    setKeyword(""); 
   }
 
   return (
-    <View style={styles.background}>
-      <View style={styles.mypage}>
-        <InlineButton text="키워드 알림 설정" textstyle={{ paddingTop: 10 }} horizon="bottom">
-          <Toggle value={isKeyword} toggleHandler={(value) => setIsKeyword(value)} />
-        </InlineButton>
-        {isKeyword && (
-          <>
-            <View style={styles.headerText}>
-              <Text style={styles.text}>
-                선호 키워드 추가 [{keywords.length}/20]
-                <Button
-                  title="💬"
-                  onPress={() => {
-                    Alert.alert("선호 키워드 설정", "인연 메세지에서 설정된 키워드가 포함된 알림만 받아요!");
-                  }}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.background}>
+        <View style={styles.mypage}>
+          <InlineButton text="키워드 알림 설정" textstyle={{ paddingTop: 10 }} horizon="bottom">
+            <Toggle value={isKeyword} toggleHandler={(value) => setIsKeyword(value)} />
+          </InlineButton>
+          {isKeyword && (
+            <>
+              <View style={styles.headerText}>
+                <Text style={styles.text}>
+                  선호 키워드 추가 [{keywordList ? keywordList.length: 0}/20]
+                  <Button
+                    title="💬"
+                    onPress={() => {
+                      Alert.alert("선호 키워드 설정", "인연 메세지에서 설정된 키워드가 포함된 알림만 받아요!");
+                    }}
+                  />
+                </Text>
+                <Button title="전체 삭제" titleStyle={styles.alldeleteButton} onPress={handleAllDeleteKeyword}/>
+              </View>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.textInput}
+                  value={keyword}
+                  onChangeText={(value) => setKeyword(value)}
+                  maxLength={15}
                 />
-              </Text>
-              <Button title="전체 삭제" titleStyle={styles.alldeleteButton} />
-            </View>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.textInput}
-                value={keyword}
-                onChangeText={(value) => setKeyword(value)}
-                maxLength={15}
+                <Button iconSource={require('../../assets/buttons/addButton.png')} 
+                  imageStyle={styles.addButton} onPress={handleAddKeyword}/>
+              </View>
+              <FlatList
+                data={keywordList}
+                renderItem={({ item }) => ( 
+                  <RenderKeyword item={item} itemDelete={handleDeleteKeyword} /> 
+                )}
+                keyExtractor={(_, index) => index.toString()}
+                style={{ maxHeight: '75%' }}
               />
-              <Button iconSource={require('../../assets/buttons/addButton.png')} 
-                imageStyle={styles.addButton} onPress={handleAddKeyword}/>
-            </View>
-            <FlatList
-              data={keywords}
-              renderItem={({ item }) => ( 
-                <RenderKeyword item={item} itemDelete={handleDeleteKeyword} /> 
-              )}
-              keyExtractor={(_, index) => index.toString()}
-              style={{ maxHeight: '75%' }}
-            />
-          </>
-        )}
+            </>
+          )}
+        </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -114,6 +145,7 @@ const styles = StyleSheet.create({
   textInput: {
     color: '#333',
     paddingLeft: 10,
+    width:"80%"
   },
   text: {
     fontSize: 15,

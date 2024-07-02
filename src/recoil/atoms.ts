@@ -60,3 +60,13 @@ export const getLocalChatRefreshState = atom<boolean>({
   key: 'getLocalChatRefresh',
   default: false,
 })
+
+export const isKeywordAlarmState = atom<boolean>({
+  key: 'isKeywordAlarm',
+  default: false,
+})
+
+export const isDisturbState = atom<boolean>({
+  key: 'isDisturbState',
+  default: false,
+})
