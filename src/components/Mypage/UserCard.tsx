@@ -6,6 +6,9 @@ import { userInfoState } from "../../recoil/atoms";
 import { useState } from 'react';
 import EditModal from './EditModal';
 import { LoginResponse } from '../../interfaces';
+import { axiosPatch } from '../../axios/axios.method';
+import { urls } from '../../axios/config';
+import { setAsyncObject } from '../../utils/asyncStorage';
 
 const DefaultImgUrl = '../../assets/images/anonymous.png';
 const editButtonUrl ='../../assets/buttons/EditButton.png'
@@ -15,8 +18,18 @@ const UserCard = () => {
   const [showNameEditModal, setShowNameEditModal] = useState<boolean>(false);
   const [showStatusEditModal, setShowStatusEditModal] = useState<boolean>(false);
 
-  const setUsername = (username) => {setUserInfo({...userInfo, username});}
-  const setMessage = (message) => {setUserInfo({...userInfo, message});}
+  const setUsername = (username) => {
+    const newUseInfo = {...userInfo, username};
+    setUserInfo(newUseInfo);
+    axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", newUseInfo);
+    setAsyncObject<LoginResponse>("userInfo", newUseInfo);
+  }
+  const setMessage = async (message) => {
+    const newUseInfo = {...userInfo, message};
+    setUserInfo(newUseInfo);
+    axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", newUseInfo);
+    setAsyncObject<LoginResponse>("userInfo", newUseInfo);
+  }
 
   return (
   <>
