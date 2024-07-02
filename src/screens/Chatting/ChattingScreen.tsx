@@ -223,16 +223,6 @@ const ChattingScreen = () => {
         }
     };
 
-    const sendOneOnOneFriendRequest = () => {
-        // 친구 요청 전송
-        try{
-            sendFriendRequest(Number(chatRoomId), otherIdRef.current);
-            WebSocketManager.sendMessage(chatRoomId, "친구 요청을 보냈습니다.", 'FRIEND_REQUEST');
-        } catch (error){
-
-        }
-    }
-
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -258,8 +248,7 @@ const ChattingScreen = () => {
                         });
                         navigation.navigate("채팅 목록");
                     }}
-                    onBtnPress={()=>sendOneOnOneFriendRequest()} //친구요청 보내기(API+메세지 전송)
-                    showBtn={chatRoomType!=='FRIEND'} //친구상태 아닐때만 노출
+                    showBtn={false} // 버튼 보이지 않기
                     onMenuPress={toggleModal}
                     useNav={true}
                     useMenu={true}
