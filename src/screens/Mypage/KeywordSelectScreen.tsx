@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import InlineButton from "../../components/Mypage/InlineButton";
 import Toggle from "../../components/common/Toggle";
 import { Text, StyleSheet, TextInput, View, Alert, FlatList,
@@ -7,27 +7,37 @@ import { Text, StyleSheet, TextInput, View, Alert, FlatList,
 import FontTheme from '../../styles/FontTheme';
 import Button from '../../components/common/Button';
 import RenderKeyword from "../../components/Mypage/RenderKeyword";
-import { getAsyncObject } from "../../utils/asyncStorage";
+import { getAsyncObject, setAsyncObject } from "../../utils/asyncStorage";
 import { SavedKeywords } from "../../interfaces";
 import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
 import { isKeywordAlarmState } from "../../recoil/atoms";
 import { useRecoilState } from "recoil";
+import { useFocusEffect } from "@react-navigation/core";
 
 const KeywordSelectScreen: React.FC = ({}) => {
   const [isKeyword, setIsKeyword] = useRecoilState<boolean>(isKeywordAlarmState);
   const [keyword, setKeyword] = useState<string>("");
   const [keywordList, setKeywordList] = useState<string[]>([]);
+  const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       const savedKeywords = await getAsyncObject<SavedKeywords>("savedKeywords");
-
+      console.log(savedKeywords);
       if (savedKeywords.interestKeyword) {
         setKeywordList(savedKeywords.interestKeyword);
       }
     }
     fetchData();
   }, [])
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setAsyncObject<SavedKeywords>("savedKeywords", { interestKeyword: keywordList });
+      };
+    }, [keywordList])
+  );
 
   useChangeBackgroundSave<SavedKeywords>("savedKeywords", {interestKeyword:keywordList});
 
@@ -55,6 +65,12 @@ const KeywordSelectScreen: React.FC = ({}) => {
     setKeyword(""); 
   }
 
+  useEffect(() => {
+    if (isKeyword && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isKeyword]); 
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.background}>
@@ -68,7 +84,7 @@ const KeywordSelectScreen: React.FC = ({}) => {
                 <Text style={styles.text}>
                   선호 키워드 추가 [{keywordList ? keywordList.length: 0}/20]
                   <Button
-                    title="💬"
+                    title="  💬"
                     onPress={() => {
                       Alert.alert("선호 키워드 설정", "인연 메세지에서 설정된 키워드가 포함된 알림만 받아요!");
                     }}
@@ -82,6 +98,9 @@ const KeywordSelectScreen: React.FC = ({}) => {
                   value={keyword}
                   onChangeText={(value) => setKeyword(value)}
                   maxLength={15}
+                  ref={inputRef}
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => handleAddKeyword()} 
                 />
                 <Button iconSource={require('../../assets/buttons/addButton.png')} 
                   imageStyle={styles.addButton} onPress={handleAddKeyword}/>

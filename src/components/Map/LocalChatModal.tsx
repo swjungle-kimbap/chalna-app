@@ -1,5 +1,5 @@
 import { Alert, Modal, StyleSheet, TextInput, TouchableWithoutFeedback, View, }from 'react-native';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Button from '../common/Button';
 import Text from '../common/Text';
 import { useRecoilState, useRecoilValue } from 'recoil';
@@ -16,6 +16,8 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
   const [description, setDescription] = useState("");
   const currentLocation = useRecoilValue(locationState);
   const [postSuccess, setPostSuccess] = useRecoilState(getLocalChatRefreshState);
+  const inputRef = useRef<TextInput>(null);
+  const descriptionInputRef = useRef<TextInput>(null);
 
   return (
     <Modal
@@ -23,6 +25,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
       transparent={true}
       visible={modalVisible}
       onRequestClose={closeModal}
+      onShow={() => inputRef.current?.focus()}
     >
       <TouchableWithoutFeedback onPress={closeModal}>
         <View style={styles.modalOverlay}>
@@ -39,7 +42,9 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
                   onChange={(event) => setName(event.nativeEvent.text)}
                   placeholder="제목을 입력해주세요"
                   placeholderTextColor="#888"
-                  
+                  ref={inputRef}
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => descriptionInputRef.current?.focus()} 
                 />
                 <Text style={styles.subText} variant='sub'>내용</Text>
                 <TextInput
@@ -50,7 +55,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
                   onChange={(event) => setDescription(event.nativeEvent.text)}
                   placeholder="내용을 입력해주세요"
                   placeholderTextColor="#888"
-                  
+                  ref={descriptionInputRef}
                 />
                 <Button
                   title="이곳에 만들기"

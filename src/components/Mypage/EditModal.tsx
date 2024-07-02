@@ -1,18 +1,20 @@
 import { Modal, StyleSheet, TextInput, TouchableWithoutFeedback, View } from 'react-native';
 import HorizontalLine from './HorizontalLine';
 import FontTheme from '../../styles/FontTheme';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Text from '../common/Text';
 import Button from "../../components/common/Button";
 
 const EditModal = ({ value, setValue, modalVisible, closeModal, maxLength }) => {
   const [inputText, setInputText] = useState(value);
+  const inputRef = useRef<TextInput>(null);
   return (
     <Modal
       animationType="fade"
       transparent={true}
       visible={modalVisible}
       onRequestClose={closeModal}
+      onShow={()=> inputRef.current?.focus()}
     >
       <TouchableWithoutFeedback onPress={closeModal}>
         <View style={styles.modalOverlay}>
@@ -26,6 +28,7 @@ const EditModal = ({ value, setValue, modalVisible, closeModal, maxLength }) => 
                   value={inputText}
                   onChangeText={setInputText}
                   maxLength={maxLength}
+                  ref={inputRef} 
                 />
                 <HorizontalLine style={styles.horizon}/>
               </>
