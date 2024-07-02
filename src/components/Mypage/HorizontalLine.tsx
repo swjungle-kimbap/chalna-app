@@ -1,9 +1,13 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ViewStyle } from 'react-native';
 
-const HorizontalLine = () => {
+type HorizontalLineProps = {
+  style?:ViewStyle
+}
+
+const HorizontalLine: React.FC<HorizontalLineProps> = ({style}) => {
   return (
-    <View style={styles.horizontalLine} />
+    <View style={[styles.horizontalLine, style]} />
   );
 };
 

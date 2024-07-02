@@ -1,50 +1,65 @@
 import FontTheme from '../../styles/FontTheme';
 import Button from "../../components/common/Button"
 import { StyleSheet, View, Text  } from "react-native";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { userInfoState } from "../../recoil/atoms";
+import { useState } from 'react';
+import EditModal from './EditModal';
+import { LoginResponse } from '../../interfaces';
 
 const DefaultImgUrl = '../../assets/images/anonymous.png';
 const editButtonUrl ='../../assets/buttons/EditButton.png'
 
 const UserCard = () => {
-  const user = useRecoilValue(userInfoState);
+  const [userInfo, setUserInfo] = useRecoilState<LoginResponse>(userInfoState);
+  const [showNameEditModal, setShowNameEditModal] = useState<boolean>(false);
+  const [showStatusEditModal, setShowStatusEditModal] = useState<boolean>(false);
+
+  const setUsername = (username) => {setUserInfo({...userInfo, username});}
+  const setMessage = (message) => {setUserInfo({...userInfo, message});}
 
   return (
+  <>
+    {showNameEditModal && (<EditModal value={userInfo.username} setValue={setUsername} maxLength={10}
+      modalVisible={showNameEditModal}  closeModal={() => setShowNameEditModal(false)}/>)}
+    {showStatusEditModal && (<EditModal value={userInfo.message} setValue={setMessage} maxLength={20}
+      modalVisible={showStatusEditModal} closeModal={() => setShowStatusEditModal(false)}/>)}
     <View style={styles.myProfileContainer}>
-    <View style={styles.headerText}>
-      <Text style={styles.text}>내 프로필</Text>
-    </View>
-    <View style={styles.header}>
-      <Button 
-        iconSource={user.profileImageUrl ? require(DefaultImgUrl) : require(DefaultImgUrl)} 
-        imageStyle={styles.avatar} 
-      />
-      <View>
-        <View style={styles.username}>
-          <Text style={styles.text}>{user.username}</Text>
-          <Button iconSource={require(editButtonUrl)}/>
-        </View>
-        <View style={styles.username}>
-          <Text 
-            style={[
-              styles.statusMessage,
-              { color: user.message ? '#fff' : '#979797' } 
-            ]}
-          >
-            {user.message ? "user.message" : "상태 메세지를 입력해주세요"}
-          </Text>
-          <Button iconSource={require(editButtonUrl)}/>
+      <View style={styles.headerText}>
+        <Text style={styles.text}>내 프로필</Text>
+      </View>
+      <View style={styles.header}>
+        <Button 
+          iconSource={userInfo.profileImageUrl ? require(DefaultImgUrl) : require(DefaultImgUrl)} 
+          imageStyle={styles.avatar} 
+        />
+        <View>
+          <View style={styles.username}>
+            <Text style={styles.text}>{userInfo.username}</Text>
+            <Button iconSource={require(editButtonUrl)} 
+              onPress={() => setShowNameEditModal(true)}/>
+          </View>
+          <View style={styles.username}>
+            <Text 
+              style={[
+                styles.statusMessage,
+              ]}>
+              {userInfo.message ? userInfo.message : "상태 메세지를 입력해주세요"}
+            </Text>
+            <Button iconSource={require(editButtonUrl)} 
+              onPress={() => setShowStatusEditModal(true)}/>
+          </View>
         </View>
       </View>
     </View>
-  </View>
+  </>
   );
 }
 
 const styles = StyleSheet.create({
   username: {
     flexDirection: 'row',
+    width:250,
   },
   headerText: {
     alignItems: "flex-start",
@@ -73,7 +88,7 @@ const styles = StyleSheet.create({
     paddingRight: 7,
   },
   statusMessage: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#979797',
     fontFamily: FontTheme.fonts.sub, 
     paddingRight: 6,

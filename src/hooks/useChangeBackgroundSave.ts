@@ -24,4 +24,5 @@ const useChangeBackgroundSave = <T>(key: string, saveData: T) => {
     };
   }, [handleAppStateChange]);
 };
+
 export default useChangeBackgroundSave;

@@ -1,8 +1,9 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import SettingScreen from "../screens/Mypage/SettingScreen";
 import MypageScreen from "../screens/Mypage/MypageScreen";
-import TagSelectScreen from "../screens/Mypage/KeywordSelectScreen";
 import FontTheme from "../styles/FontTheme"
+import NotDisturbTimeSelectScreen from "../screens/Mypage/NotDisturbTimeSelectScreen";
+import KeywordSelectScreen from "../screens/Mypage/KeywordSelectScreen";
 
 const MypageStack = createNativeStackNavigator();
 
@@ -17,7 +18,8 @@ const MypageStackScreen = () => {
     })}>
       <MypageStack.Screen name='마이 페이지' component={MypageScreen}/>
       <MypageStack.Screen name='앱 설정' component={SettingScreen}/>
-      <MypageStack.Screen name='키워드 알림 설정' component={TagSelectScreen}/>
+      <MypageStack.Screen name='키워드 알림 설정' component={KeywordSelectScreen}/>
+      <MypageStack.Screen name='방해금지 시간 설정' component={NotDisturbTimeSelectScreen}/>
     </MypageStack.Navigator>
   );
 }
