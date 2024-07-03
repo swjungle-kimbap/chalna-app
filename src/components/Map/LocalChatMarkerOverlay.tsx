@@ -6,7 +6,6 @@ import { axiosGet } from "../../axios/axios.method";
 import {urls} from "../../axios/config";
 import { AxiosRequestConfig } from "axios";
 import { calDistance } from "../../utils/calDistance";
-import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
 import { Position } from '../../interfaces';
 import { getLocalChatRefreshState, JoinedLocalChatListState, locationState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
@@ -25,8 +24,6 @@ const LocalChatMarkerOverlay = () => {
   const updatedLocationRef = useRef(currentLocation);
   const getRefresh = useRecoilValue(getLocalChatRefreshState);
 
-  useChangeBackgroundSave<Position>('lastLocation', currentLocation);
-  
   useEffect(() => {
     const MovedDistance = calDistance(beforeLocationRef.current, currentLocation);
     const MovedUpdatedDistance = calDistance(updatedLocationRef.current, currentLocation);

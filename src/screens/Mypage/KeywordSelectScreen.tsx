@@ -7,41 +7,36 @@ import { Text, StyleSheet, TextInput, View, Alert, FlatList,
 import FontTheme from '../../styles/FontTheme';
 import Button from '../../components/common/Button';
 import RenderKeyword from "../../components/Mypage/RenderKeyword";
-import { getAsyncObject, setAsyncObject } from "../../utils/asyncStorage";
 import { SavedKeywords } from "../../interfaces";
 import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
-import { isKeywordAlarmState } from "../../recoil/atoms";
-import { useRecoilState } from "recoil";
 import { useFocusEffect } from "@react-navigation/core";
 import { axiosDelete, axiosPatch, axiosPost } from "../../axios/axios.method";
 import { urls } from "../../axios/config";
+import { getMMKVObject, setMMKVObject, userMMKVStorage } from "../../utils/mmkvStorage";
+import { useMMKVBoolean } from "react-native-mmkv";
 
 const KeywordSelectScreen: React.FC = ({}) => {
-  const [isKeyword, setIsKeyword] = useRecoilState<boolean>(isKeywordAlarmState);
+  let [isKeywordAlarm = false, setIsKeywordAlarm] = useMMKVBoolean('mypage.isKeywordAlarm', userMMKVStorage);
   const [keyword, setKeyword] = useState<string>("");
   const [keywordList, setKeywordList] = useState<string[]>([]);
   const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const savedKeywords = await getAsyncObject<SavedKeywords>("savedKeywords");
-      console.log(savedKeywords);
-      if (savedKeywords.interestKeyword) {
-        setKeywordList(savedKeywords.interestKeyword);
-      }
+    const savedKeywords = getMMKVObject<SavedKeywords>("mypage.savedKeywords");
+    if (savedKeywords && savedKeywords.interestKeyword) {
+      setKeywordList(savedKeywords.interestKeyword);
     }
-    fetchData();
   }, [])
 
   useFocusEffect(
     useCallback(() => {
       return () => {
-        setAsyncObject<SavedKeywords>("savedKeywords", { interestKeyword: keywordList });
+        setMMKVObject<SavedKeywords>("mypage.savedKeywords", { interestKeyword: keywordList });
       };
     }, [keywordList])
   );
 
-  useChangeBackgroundSave<SavedKeywords>("savedKeywords", {interestKeyword:keywordList});
+  useChangeBackgroundSave<SavedKeywords>("mypage.savedKeywords", {interestKeyword:keywordList});
 
   const handleDeleteKeyword = (item) => {
     const filteredKeywordList = keywordList.filter((value) => value !== item); 
@@ -65,19 +60,24 @@ const KeywordSelectScreen: React.FC = ({}) => {
       return;
     }
 
+    if (keywordList && keywordList.length > 20 ) {
+      Alert.alert("허용 갯수 초과", "더 이상 추가할 수 없습니다!");
+      return;
+    }
+
     axiosPost(urls.ADD_KEYWORD_URL, "선호 키워드 추가", {interestKeyword: keyword});
     setKeywordList([...keywordList, keyword]);
     setKeyword(""); 
   }
 
   useEffect(() => {
-    if (isKeyword && inputRef.current) {
+    if (isKeywordAlarm && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [isKeyword]); 
+  }, [isKeywordAlarm]); 
 
   const handleIsKeywordAlarm = (value) => {
-    setIsKeyword(value)
+    setIsKeywordAlarm(value)
     axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {isKeywordAlarm: value});
   }
 
@@ -86,9 +86,9 @@ const KeywordSelectScreen: React.FC = ({}) => {
       <View style={styles.background}>
         <View style={styles.mypage}>
           <InlineButton text="키워드 알림 설정" textstyle={{ paddingTop: 10 }} horizon="bottom">
-            <Toggle value={isKeyword} toggleHandler={handleIsKeywordAlarm} />
+            <Toggle value={isKeywordAlarm} toggleHandler={handleIsKeywordAlarm} />
           </InlineButton>
-          {isKeyword && (
+          {isKeywordAlarm && (
             <>
               <View style={styles.headerText}>
                 <Text style={styles.text}>

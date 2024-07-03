@@ -1,8 +1,8 @@
 import { NativeEventEmitter, NativeModules } from 'react-native';
 import BLEAdvertiser from 'react-native-ble-advertiser';
 import { axiosPost } from '../axios/axios.method';
-import { getAsyncObject, setAsyncObject } from '../utils/asyncStorage';
 import {urls} from "../axios/config";
+import { loginMMKVStorage } from '../utils/mmkvStorage';
 
 const APPLE_ID = 0x4c;
 const MANUF_DATA = [1, 0];
@@ -16,23 +16,15 @@ const sendRelationCnt = async (_uuid:string) => {
 
 export const addDevice = async (_uuid: string, _date: number) => {
   const currentTime = new Date(_date).getTime();
-  getAsyncObject<number>(`${_uuid}`).then((lastMeetTime) => {
-    if (!lastMeetTime) {
-      Promise.all([
-        setAsyncObject<number>(`${_uuid}`, currentTime),
-        sendRelationCnt(_uuid),
-      ])
-    } else {
-      if (new Date(lastMeetTime).getTime() + DelayedTime < currentTime) {
-        Promise.all([
-          setAsyncObject<number>(`${_uuid}`, currentTime),
-          sendRelationCnt(_uuid),
-        ])
-      }
-    }
-  });
-};
-
+  const lastMeetTime = loginMMKVStorage.getNumber(`DeviceUUID.${_uuid}`);
+  if (!lastMeetTime) {
+    loginMMKVStorage.set(`DeviceUUID.${_uuid}`, currentTime);
+    await sendRelationCnt(_uuid);
+  } else if (new Date(lastMeetTime).getTime() + DelayedTime < currentTime) {
+    loginMMKVStorage.set(`DeviceUUID.${_uuid}`, currentTime);
+    await sendRelationCnt(_uuid);
+  }
+}
 
 const ScanNearbyAndPost = (
   uuid:string,

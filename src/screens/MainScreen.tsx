@@ -5,7 +5,6 @@ import LoginScreen from './Login/LoginScreen';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import ChattingScreen from './Chatting/ChattingScreen';
 
-
 const MainScreen : React.FC = () => {
   const LogInStack = createBottomTabNavigator();
 
