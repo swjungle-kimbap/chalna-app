@@ -1,11 +1,9 @@
 import { Alert } from "react-native";
 import { axiosPost } from "../axios/axios.method";
-import { deleteKeychain } from "../utils/keychain";
 import { navigate } from "../navigation/RootNavigation";
 import { urls } from "../axios/config";
 import { LogoutResponse } from "../interfaces";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Keychain from 'react-native-keychain';
+import { loginMMKVStorage, userMMKVStorage } from "../utils/mmkvStorage";
 
 export const logoutAlert = () => {
   Alert.alert("로그아웃", "로그아웃 하시겠습니까?",
@@ -15,9 +13,9 @@ export const logoutAlert = () => {
         onPress: async () => {
           try {
             await axiosPost<LogoutResponse>(urls.LOGOUT_URL);
-            deleteKeychain("loginToken");
-            deleteKeychain("accessToken");
-            deleteKeychain("refreshToken");
+            loginMMKVStorage.delete("loginToken");
+            loginMMKVStorage.delete("accessToken");
+            loginMMKVStorage.delete("refreshToken");
             navigate("로그인")
           } catch (e) {
             console.error("로그 아웃 중 오류 발생:", e);
@@ -38,15 +36,9 @@ export const withdrawlAlert = () => {
       {
         text: '탈퇴',
         onPress: async () => {
-          try {
-            // await axiosPost(urls.WITHDRAWAL_URL, "회원 탈퇴");
-            await AsyncStorage.clear();
-            console.log('AsyncStprage 데이터 전부 삭제 완료');
-            await Keychain.resetGenericPassword();
-            console.log('keychain 데이터 전부 삭제 완료');
-          } catch (e) {
-            console.error('회원 탈퇴시 문제 발생', e);
-          }
+          // await axiosPost(urls.WITHDRAWAL_URL, "회원 탈퇴");
+          userMMKVStorage.clearAll();
+          console.log('user Storage 데이터 전부 삭제 완료');
         },
         style: 'default'
       },

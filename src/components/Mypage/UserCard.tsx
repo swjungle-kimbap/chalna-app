@@ -8,7 +8,7 @@ import EditModal from './EditModal';
 import { LoginResponse } from '../../interfaces';
 import { axiosPatch } from '../../axios/axios.method';
 import { urls } from '../../axios/config';
-import { setAsyncObject } from '../../utils/asyncStorage';
+import { setMMKVObject } from '../../utils/mmkvStorage';
 
 const DefaultImgUrl = '../../assets/images/anonymous.png';
 const editButtonUrl ='../../assets/buttons/EditButton.png'
@@ -22,13 +22,13 @@ const UserCard = () => {
     const newUseInfo = {...userInfo, username};
     setUserInfo(newUseInfo);
     axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", newUseInfo);
-    setAsyncObject<LoginResponse>("userInfo", newUseInfo);
+    setMMKVObject<LoginResponse>("mypage.userInfo", newUseInfo);
   }
   const setMessage = async (message) => {
     const newUseInfo = {...userInfo, message};
     setUserInfo(newUseInfo);
     axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", newUseInfo);
-    setAsyncObject<LoginResponse>("userInfo", newUseInfo);
+    setMMKVObject<LoginResponse>("mypage.userInfo", newUseInfo);
   }
 
   return (

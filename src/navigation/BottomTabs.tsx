@@ -1,14 +1,34 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Image, StyleSheet } from 'react-native';
+import { Image, StyleSheet, ActivityIndicator } from 'react-native';
 import MapScreen from '../screens/Map/MapScreen';
 import FontTheme from "../styles/FontTheme";
 import MypageStackScreen from "./MypageStack";
 import FriendsStackScreen from "./FriendsStack";
 import ChattingStackScreen from "./ChattingStack";
+import { useEffect, useState } from 'react';
+import { useSetRecoilState } from 'recoil';
+import { locationState } from '../recoil/atoms';
+import { getMMKVObject } from '../utils/mmkvStorage';
+import { Position } from '../interfaces';
 
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
+  const setLastLocation = useSetRecoilState(locationState);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const lastLocation = getMMKVObject<Position>('map.lastLocation');
+    if (lastLocation) {
+      setLastLocation(lastLocation);
+    }
+    setIsLoading(false);
+  }, [setLastLocation]);
+
+  if (isLoading) {
+    return <ActivityIndicator size="large" color="#3EB297" />
+
+  }
   return (
       <Tab.Navigator initialRouteName="지도"
         screenOptions={({ route }) => ({

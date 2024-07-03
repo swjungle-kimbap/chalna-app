@@ -1,62 +1,54 @@
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, Text, Alert } from "react-native";
 import FontTheme from '../../styles/FontTheme';
 import InlineButton from "../../components/Mypage/InlineButton";
 import Toggle from "../../components/common/Toggle";
 import { useEffect, useRef, useState } from "react";
 import DatePicker from "react-native-date-picker";
 import HorizontalLine from "../../components/Mypage/HorizontalLine";
-import { useRecoilState} from "recoil";
-import { isDisturbState } from "../../recoil/atoms";
-import { getAsyncObject, setAsyncObject } from "../../utils/asyncStorage";
-import { SavedDisturbTime } from "../../interfaces";
+import { SavedNonDisturbTime } from "../../interfaces";
 import Button from "../../components/common/Button"
 import { axiosPatch } from "../../axios/axios.method";
 import { urls } from "../../axios/config";
+import { getMMKVObject, setMMKVObject, userMMKVStorage } from "../../utils/mmkvStorage";
+import { useMMKVBoolean } from "react-native-mmkv";
 
 const NotDisturbTimeSelectScreen = () => {
-  const [isDisturb, setIsDisturb] = useRecoilState<boolean>(isDisturbState);
-  const startDateRef = useRef(new Date());
-  const endDateRef = useRef(new Date());
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  let [isDisturb = false, setIsDisturb] = useMMKVBoolean('mypage.isDisturb', userMMKVStorage);
+  const currentTime = new Date();
+  const startDateRef = useRef<Date>(currentTime);
+  const endDateRef = useRef<Date>(currentTime);
+  const [startDate, setStartDate] = useState<Date>(currentTime);
+  const [endDate, setEndDate] = useState<Date>(currentTime);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const savedDisturbTime = await getAsyncObject<SavedDisturbTime>("savedDisturbTime");
-      if (savedDisturbTime) {
-        const [startHour, startMinute] = savedDisturbTime.doNotDisturbStart.split(':').map(Number);
-        const [endHour, endMinute] = savedDisturbTime.doNotDisturbEnd.split(':').map(Number);
-
-        const today = new Date();
-        const startDate = new Date(today);
-        startDate.setHours(startHour, startMinute, 0, 0);
-
-        const endDate = new Date(today);
-        endDate.setHours(endHour, endMinute, 0, 0);
-
-        setStartDate(startDate);
-        setEndDate(endDate);
-      }
+    const nonDisturbTime = getMMKVObject<SavedNonDisturbTime>("mypage.nonDisturbTime");
+    if (nonDisturbTime) {
+      setStartDate(new Date(nonDisturbTime.doNotDisturbStart));
+      setEndDate(new Date(nonDisturbTime.doNotDisturbEnd));
     }
-    fetchData();
   }, []);
 
   const handleIsDisturb = (value) => {
     setIsDisturb(value)
     axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {isDisturb: value});
   }
+  
   const padZero = (num) => {
     return num < 10 ? `0${num}` : num;
   };
   
-
   const handleSaveDisturbTime = () => {
+    setMMKVObject<SavedNonDisturbTime>("mypage.nonDisturbTime", {
+      doNotDisturbStart: startDateRef.current.toISOString(), 
+      doNotDisturbEnd: endDateRef.current.toISOString(),
+    });
+
     const nonDisturbTime = {
       doNotDisturbStart: `${padZero(startDateRef.current.getHours())}:${padZero(startDateRef.current.getMinutes())}`, 
       doNotDisturbEnd: `${padZero(endDateRef.current.getHours())}:${padZero(endDateRef.current.getMinutes())}`,
     };
-    setAsyncObject<SavedDisturbTime>("savedDisturbTime", nonDisturbTime);
     axiosPatch(urls.DISTURB_ALARM_URL, "방해금지 시간 설정", nonDisturbTime);
+    Alert.alert("저장 완료", `${nonDisturbTime.doNotDisturbStart} ~ ${nonDisturbTime.doNotDisturbEnd}동안 알림이 오지 않습니다.`)
   }
   
   return (

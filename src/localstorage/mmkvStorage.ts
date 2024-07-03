@@ -1,24 +1,19 @@
-import {MMKV} from "react-native-mmkv";
 import {ChatRoomLocal, ChatMessage, directedChatMessage} from "../interfaces/Chatting";
-
-// create MMKV instance
-export const storage = new MMKV()
-
-
+import { userMMKVStorage } from "../utils/mmkvStorage";
 
 // Save chat room list
 export const saveChatRoomList = (chatRooms: ChatRoomLocal[]) => {
     console.log('setChatRoomList loacl');
     const currentChatRooms = getChatRoomList();
     if (JSON.stringify(currentChatRooms) !== JSON.stringify(chatRooms)) {
-        storage.set('chatRoomList', JSON.stringify(chatRooms));
+        userMMKVStorage.set('chatRoomList', JSON.stringify(chatRooms));
     }
 };
 
 // Retrieve chat room list
 export const getChatRoomList = (): ChatRoomLocal[] | null => {
     console.log('getChatRoomList loacl');
-    const chatRoomListString = storage.getString('chatRoomList');
+    const chatRoomListString = userMMKVStorage.getString('chatRoomList');
     return chatRoomListString ? JSON.parse(chatRoomListString) : null;
 };
 
@@ -44,17 +39,17 @@ export const saveChatMessages = (chatRoomId: string, newMessages: directedChatMe
     console.log('save chat message');
     const existingMessages = getChatMessages(chatRoomId) || [];
     const updatedMessages = [...existingMessages, ...newMessages];
-    storage.set(`chatMessages_${chatRoomId}`, JSON.stringify(updatedMessages));
+    userMMKVStorage.set(`chatMessages_${chatRoomId}`, JSON.stringify(updatedMessages));
 };
 
 // Retrieve chat messages for a specific chat room
 export const getChatMessages = (chatRoomId: string): directedChatMessage[] | null => {
     console.log('get chat message');
-    const messagesString = storage.getString(`chatMessages_${chatRoomId}`);
+    const messagesString = userMMKVStorage.getString(`chatMessages_${chatRoomId}`);
     return messagesString ? JSON.parse(messagesString) : null;
 };
 
 // Remove chat messages for a specific chat room
 export const removeChatMessages = (chatRoomId: string) => {
-    storage.delete(`chatMessages_${chatRoomId}`);
+    userMMKVStorage.delete(`chatMessages_${chatRoomId}`);
 };

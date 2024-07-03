@@ -1,9 +1,8 @@
-import  { useState, useEffect, useRef, useCallback } from 'react';
+import  React, { useState, useEffect, useRef, useCallback } from 'react';
 import RoundBox from '../common/RoundBox';
 import Button from '../common/Button';
 import { StyleSheet, TextInput, View, Alert, NativeModules, NativeEventEmitter, Animated, AppStateStatus, AppState } from 'react-native';
 import Text from '../common/Text';
-import { getAsyncObject } from "../../utils/asyncStorage";
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { DeviceUUIDState, showMsgBoxState } from '../../recoil/atoms';
 import ScanNearbyAndPost, { addDevice, ScanNearbyStop } from '../../service/Bluetooth';
@@ -17,6 +16,7 @@ import { axiosPost } from '../../axios/axios.method';
 import BleButton from './BleButton';
 import { urls } from '../../axios/config';
 import useBackground from '../../hooks/useBackground';
+import { getMMKVObject } from '../../utils/mmkvStorage';
 
 const requiredPermissions = [
   PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
@@ -29,7 +29,7 @@ const uuidTime = new Map();
 const uuidTimeoutID = new Map();  
 
 const scanDelayedTime = 5 * 1000;
-const sendDelyaedTime = 60 * 1000;
+const sendDelayedTime = 60 * 1000;
 
 const MessageBox: React.FC = ()  => {
   const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
@@ -45,8 +45,8 @@ const MessageBox: React.FC = ()  => {
   const translateY = useRef(new Animated.Value(0)).current;
   const sendCountsRef = useRef(0);
 
-  const fetchSavedData = async () => {
-    const savedData = await getAsyncObject<SavedMessageData>("savedMessageData");
+  const fetchSavedData = () => {
+    const savedData = getMMKVObject<SavedMessageData>("map.savedMessageData");
     console.log(savedData, "in messagebox");
     if (savedData?.msgText) setMsgText(savedData.msgText);
     if (savedData?.isScanning) {
@@ -54,11 +54,13 @@ const MessageBox: React.FC = ()  => {
       ScanNearbyAndPost(deviceUUID, handleSetIsNearby);
     }
     if (savedData?.isBlocked) {
-      const restBlockedTime = sendDelyaedTime - (Date.now() - savedData.blockedTime);
+      const restBlockedTime = sendDelayedTime - (Date.now() - savedData.blockedTime);
+      console.log("restBlockedTime", restBlockedTime);
       if (restBlockedTime > 0) {
         setIsBlocked(true);
-        timeoutIdRef.current = setTimeout(() => setIsBlocked(false), restBlockedTime);
-      }
+        setTimeout(() => setIsBlocked(false), restBlockedTime);
+        blockedTimeRef.current = savedData.blockedTime;
+      } 
     }
   };
   
@@ -76,11 +78,8 @@ const MessageBox: React.FC = ()  => {
     const subscription = AppState.addEventListener('change', handleAppStateChange);
     return () => {
       subscription.remove();
-      if (timeoutIdRef.current) {
-        clearTimeout(timeoutIdRef.current);
-      }
     };
-  }, [fetchSavedData]);
+  }, []);
 
   const handleSetIsNearby = (uuid:string, isBlocked = false) => {
     const currentTime = new Date().getTime();
@@ -188,7 +187,7 @@ const MessageBox: React.FC = ()  => {
   
   const sendMsg = async ( uuids:Set<string>) => {
     await axiosPost(urls.SEND_MSG_URL, "인연 보내기", {
-      deviceIdList: uuids,
+      deviceIdList: Array.from(uuids),
       message: msgText,
     } as SendMsgRequest)
   }  
@@ -220,7 +219,7 @@ const MessageBox: React.FC = ()  => {
       blockedTimeRef.current = Date.now();
       setTimeout(() => {
         setIsBlocked(false);
-      }, sendDelyaedTime);
+      }, sendDelayedTime);
       fadeInAndMoveUp();
       setShowMsgBox(false);
     }
@@ -297,7 +296,7 @@ const MessageBox: React.FC = ()  => {
               style={[styles.msgBox, {borderColor : nearInfo.isNearby && !isBlocked && isScanning ? '#14F12A': '#979797'}]}>
               <View style={styles.titleContainer}>
                 <Text variant='title' style={styles.title}>인연 메세지 <Button title='💬' onPress={() => {
-                  Alert.alert("인연 메세지 작성",`${sendDelyaedTime/(60 * 1000)}분에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요! 메세지를 받기 위해 블루투스 버튼을 켜주세요`)}
+                  Alert.alert("인연 메세지 작성",`${sendDelayedTime/(60 * 1000)}분에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요! 메세지를 받기 위해 블루투스 버튼을 켜주세요`)}
                 }/> </Text>
               </View>
               <TextInput value={msgText} style={[styles.textInput, { color: '#333' }]}

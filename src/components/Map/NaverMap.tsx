@@ -12,6 +12,7 @@ import LocalChatButton from "./LocalChatButton";
 import LocalChatMarkerOverlay from "./LocalChatMarkerOverlay";
 import { locationState } from "../../recoil/atoms";
 import { Position } from '../../interfaces';
+import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
 
 export const NaverMap: React.FC = ({}) => {
   const currentLocation = useRecoilValue<Position>(locationState);
@@ -20,7 +21,7 @@ export const NaverMap: React.FC = ({}) => {
   const mapViewRef = useRef<NaverMapViewRef>(null);
   const watchIdRef = useRef(0);
   const startWatchingPosition = useStartWatchingPosition();
-
+  useChangeBackgroundSave<Position>('map.lastLocation', currentLocation);
 
   useEffect(() => {
     if (mapViewRef.current) {
@@ -32,7 +33,6 @@ export const NaverMap: React.FC = ({}) => {
         watchIdRef.current = startWatchingPosition();
       }
     });
-
     return () => {
       if (watchIdRef.current)
         Geolocation.clearWatch(watchIdRef.current);
@@ -43,7 +43,7 @@ export const NaverMap: React.FC = ({}) => {
   <>
     <NaverMapView
     style={{flex: 1, zIndex:1}}
-    initialCamera={{
+    camera={{
       latitude : currentLocation.latitude,
       longitude : currentLocation.longitude,
       zoom:18}}
