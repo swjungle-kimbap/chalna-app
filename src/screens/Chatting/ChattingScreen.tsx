@@ -124,7 +124,7 @@ const ChattingScreen = () => {
 
                     // 채팅방 정보 & 그동안 못받은 메세지 가져오기
                     const currentTimestamp = new Date().toISOString().slice(0, 19);
-                    const responseData = await fetchChatRoomContent(chatRoomId, '2024-06-23T10:32:40', currentUserId);
+                    const responseData = await fetchChatRoomContent(chatRoomId, currentUserId);
                     if (responseData) {
                         const usernames = responseData.members
                             .filter((member: chatRoomMember) => member.memberId !== currentUserId)
