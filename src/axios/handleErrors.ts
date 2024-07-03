@@ -4,6 +4,7 @@ import { navigate } from "../navigation/RootNavigation";
 import { urls } from "./config";
 
 const handleErrors = (error:AxiosError) => {
+  console.log("Bad request Data: ", error.config.data);
   if (error.response?.status === 403) {
     Alert.alert('잘못된 접근 입니다.', '재로그인이 필요합니다.');
     navigate('로그인');
