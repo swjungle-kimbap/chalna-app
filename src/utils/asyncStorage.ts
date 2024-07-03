@@ -59,3 +59,23 @@ export const removeAsyncItem = async (key: string) => {
     console.log(`Error removing ${key} key: `, e);
   }
 }
+
+export const removeOneAsyncItem = async <T extends { id: string }>(key: string, id: string): Promise<void> => {
+  try {
+    const existingObjects = await getAsyncObject<T[]>(key);
+    if (existingObjects === null) {
+      return;
+    }
+
+    const filteredObjects = existingObjects.filter(Object => Object.id !== id);
+    if (filteredObjects.length === 0) {
+      await removeAsyncItem(key);
+    } else {
+      await setAsyncObject(key, filteredObjects);
+    }
+
+    console.log(`Deleted message with id ${id} from ${key}`);
+  } catch (error) {
+    console.error(`Error deleting message with id ${id} from ${key}:`, error);
+  }
+};
