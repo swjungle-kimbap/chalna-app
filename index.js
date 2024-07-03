@@ -1,12 +1,9 @@
 import { AppRegistry } from 'react-native';
 import App from './App';
 import { name as appName } from './app.json';
-import { configurePushNotification, setupMessageHandlers } from './src/service/NotificationHandler';
+import { fcmService } from './src/fcm/FcmService';
 
-// 메시지 핸들러 설정
-setupMessageHandlers();
-
-// PushNotification 설정
-configurePushNotification();
+// FCM 초기화
+fcmService.initialize();
 
 AppRegistry.registerComponent(appName, () => App);
