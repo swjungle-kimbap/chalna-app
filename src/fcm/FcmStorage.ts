@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAsyncObject, removeAsyncItem, removeOneAsyncItem} from '../utils/asyncStorage';
 
 // 간단한 고유 식별자 생성 함수
 const generateUUID = (): string => {
@@ -80,4 +81,17 @@ const storeFCMAsync = async (newFCM: MatchFCM): Promise<void> => {
   } catch (error) {
     console.error('Error storing matchFCMStorage message:', error);
   }
+};
+
+// 수락 or 거절 or 유효시간 10분이 넘은 메시지의 경우 단일 삭제 처리
+const deleteMatchFCMById = async (id: string): Promise<void> => {
+  const matchFCMStorage = "matchFCMStorage";
+  removeOneAsyncItem<MatchFCM>(matchFCMStorage, id);
+};
+
+// 모든 저장된 메시지들을 삭제하는 함수 - 모두 지우기
+export const removeAllMatchFCM = async (): Promise<void> => {
+  const matchFCMStorage = "matchFCMStorage";
+  removeAsyncItem(matchFCMStorage);
+  console.log(`Removed all messages in ${matchFCMStorage}`);
 };
