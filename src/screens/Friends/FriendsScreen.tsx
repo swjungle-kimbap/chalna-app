@@ -38,7 +38,6 @@ type FriendsScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, '차단친구 목록'>
 };
 
-
 const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>('');

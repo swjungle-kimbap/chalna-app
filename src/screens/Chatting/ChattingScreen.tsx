@@ -5,7 +5,6 @@ import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navig
 import { useRecoilValue } from "recoil";
 import { userInfoState } from "../../recoil/atoms";
 import {LoginResponse, User} from "../../interfaces";
-import { getKeychain } from "../../utils/keychain";
 import { SWRConfig } from 'swr';
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
 import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
@@ -19,10 +18,9 @@ import useBackToScreen from '../../hooks/useBackToScreen';
 import { chatRoomMember, ChatMessage, directedChatMessage } from "../../interfaces/Chatting";
 import { formatDateToKoreanTime } from "../../service/Chatting/DateHelpers";
 import Text from '../../components/common/Text';
-import {saveChatMessages, getChatMessages, removeChatMessages, removeChatRoom} from '../../service/Chatting/chatCache';
+import {saveChatMessages, getChatMessages, removeChatMessages, removeChatRoom} from '../../localstorage/mmkvStorage';
+import {getMMKVString, setMMKVString, getMMKVObject, setMMKVObject, removeMMKVItem, loginMMKVStorage} from "../../utils/mmkvStorage";
 import {IMessage} from "@stomp/stompjs";
-import {uploadFile} from "../../service/Chatting/fileService";
-import DocumentPicker from "react-native-document-picker";
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -49,7 +47,7 @@ const ChattingScreen = () => {
     // Set up WebSocket connection and message handling
     const setupWebSocket = async () => {
         try {
-            const accessToken = await getKeychain('accessToken');
+            const accessToken = loginMMKVStorage.getString('accessToken');
             WebSocketManager.connect(chatRoomId, accessToken, (message: IMessage) => {
                 console.log('Received message: ' + message.body);
                 try {
@@ -189,7 +187,6 @@ const ChattingScreen = () => {
         }
     };
 
-
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -197,6 +194,7 @@ const ChattingScreen = () => {
             </View>
         );
     }
+
 
     return (
         <SWRConfig value={{}}>

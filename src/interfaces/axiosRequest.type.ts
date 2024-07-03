@@ -14,7 +14,7 @@ export interface SignUpRequest {
 }
 
 export interface SendMsgRequest {
-  deviceIdList : Set<string>,
+  deviceIdList : string[],
   message: string,
 }
 

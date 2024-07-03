@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef } from "react"
 import { AppState, AppStateStatus } from "react-native";
 import { startBackgroundService, endBackgroundService } from "../service/Background";
-import { setAsyncObject } from "../utils/asyncStorage";
 import { SavedMessageData } from "../interfaces";
+import { setMMKVObject } from "../utils/mmkvStorage";
 
 const useBackground = (saveData: SavedMessageData) => {
   const appState = useRef(AppState.currentState);
@@ -19,7 +19,7 @@ const useBackground = (saveData: SavedMessageData) => {
         console.log('App has gone to the background!');
         const checkIsScanning = async () => {
           console.log(saveData, "in useBackground");
-          await setAsyncObject<SavedMessageData>("savedMessageData", saveData);
+          setMMKVObject<SavedMessageData>("map.savedMessageData", saveData);
           if (saveData.isScanning) {
             console.log('Scanning is continued in background!');
             await startBackgroundService(); 

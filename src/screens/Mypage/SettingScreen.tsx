@@ -3,15 +3,11 @@ import { RootStackParamList } from "../../interfaces/Navigation";
 import InlineButton from "../../components/Mypage/InlineButton";
 import Toggle from "../../components/common/Toggle";
 import { Image, StyleSheet, View } from "react-native";
-import { useCallback, useEffect, useState } from "react";
-import { getAsyncObject, setAsyncObject } from "../../utils/asyncStorage";
-import { SavedMypageData } from "../../interfaces";
-import { useRecoilState } from "recoil";
-import { isDisturbState, isKeywordAlarmState } from "../../recoil/atoms";
-import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
-import { useFocusEffect } from "@react-navigation/core";
+import { useEffect, useState } from "react";
 import { axiosPatch } from "../../axios/axios.method";
 import { urls } from "../../axios/config";
+import { userMMKVStorage } from "../../utils/mmkvStorage";
+import { useMMKVBoolean } from "react-native-mmkv";
 
 type SettingScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, '키워드 알림 설정' | '방해금지 시간 설정'>
@@ -20,52 +16,19 @@ type SettingScreenProps = {
 const MoveButtonUrl ='../../assets/buttons/MoveButton.png'
 
 const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
-  const [isAlarm, setIsAlarm] = useState(true);
-  const [isFriendAlarm, setIsFriendAlarm] = useState(true);
-  const [isMatchAlarm, setIsMatchAlarm] = useState(true);
-  const [isKeywordAlarm, setIsKeywordAlarm] = useRecoilState(isKeywordAlarmState);
-  const [alarmSound, setAlarmSound] = useState(true);
-  const [alarmVibration, setAlarmVibration] = useState(true);
-  const [isDisturb, setIsDisturb] = useRecoilState(isDisturbState);
-  const [isdisable, setIsdisable] = useState(false);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const savedMypageData =  await getAsyncObject<SavedMypageData>("savedMypageData")
-      if (savedMypageData) {
-        if (!savedMypageData.isAlarm) setIsAlarm(false);
-        if (!savedMypageData.isFriendAlarm) setIsFriendAlarm(false);
-        if (!savedMypageData.isMatchAlarm) setIsMatchAlarm(false);
-        if (savedMypageData.isKeywordAlarm) setIsKeywordAlarm(true);
-        if (!savedMypageData.alarmSound) setAlarmSound(false);
-        if (!savedMypageData.alarmVibration) setAlarmVibration(false);
-        if (savedMypageData.isDisturb) setIsDisturb(true);
-      }
-    }
-    fetchData();
-  }, []);
-
-  useChangeBackgroundSave<SavedMypageData>('savedMypageData', {
-    isAlarm, isFriendAlarm, isMatchAlarm, isKeywordAlarm, alarmSound, alarmVibration, isDisturb
-  })
-
+  let [isAlarm = true, setIsAlarm] = useMMKVBoolean('mypage.isAlarm', userMMKVStorage);
+  let [isFriendAlarm = true, setIsFriendAlarm] = useMMKVBoolean('mypage.isFriendAlarm', userMMKVStorage);
+  let [isMatchAlarm = true, setIsMatchAlarm] = useMMKVBoolean('mypage.isMatchAlarm', userMMKVStorage);
+  let [alarmSound = true, setAlarmSound] = useMMKVBoolean('mypage.alarmSound', userMMKVStorage);
+  let [alarmVibration = true, setAlarmVibration] = useMMKVBoolean('mypage.alarmVibration', userMMKVStorage);
+  const [isdisable , setIsdisable] = useState(false);
+  
   useEffect(() => {
     if (isAlarm) 
       setIsdisable(false);
     else 
       setIsdisable(true);
   }, [isAlarm])
-
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        const isAlarmData = {
-          isAlarm, isFriendAlarm, isMatchAlarm, isKeywordAlarm, alarmSound, alarmVibration, isDisturb
-        };
-        setAsyncObject<SavedMypageData>("savedMypageData", isAlarmData);
-      };
-    }, [isAlarm, isFriendAlarm, isMatchAlarm, isKeywordAlarm, alarmSound, alarmVibration, isDisturb])
-  );
 
   const handleIsAlarm = (value) => {
     setIsAlarm(value)
