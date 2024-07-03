@@ -13,8 +13,8 @@ const instance: AxiosInstance = axios.create({
 
 instance.interceptors.request.use(
   async (axiosConfig) => {
-    const refreshToken = loginMMKVStorage.getString('refreshToken');;
-    const accessToken = loginMMKVStorage.getString('accessToken');;
+    const refreshToken = loginMMKVStorage.getString('login.refreshToken');;
+    const accessToken = loginMMKVStorage.getString('login.accessToken');;
     if (!accessToken && axiosConfig.url !== urls.SIGNUP_URL
           && axiosConfig.url !== urls.LOGIN_URL){
       Alert.alert('로그인 필요', '로그인이 필요한 서비스입니다.');
@@ -37,9 +37,9 @@ instance.interceptors.response.use(
     const accessToken = response.headers?.authorization;
     const refreshToken = response.headers?.authorization_refresh;
     if (accessToken)
-      loginMMKVStorage.set('accessToken', accessToken);
+      loginMMKVStorage.set('login.accessToken', accessToken);
     if (refreshToken)
-      loginMMKVStorage.set('refreshToken', refreshToken);
+      loginMMKVStorage.set('login.refreshToken', refreshToken);
 
     return response
   },

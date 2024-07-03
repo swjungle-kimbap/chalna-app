@@ -21,13 +21,13 @@ const UserCard = () => {
   const setUsername = (username) => {
     const newUseInfo = {...userInfo, username};
     setUserInfo(newUseInfo);
-    axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", newUseInfo);
+    axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", {username});
     setMMKVObject<LoginResponse>("mypage.userInfo", newUseInfo);
   }
   const setMessage = async (message) => {
     const newUseInfo = {...userInfo, message};
     setUserInfo(newUseInfo);
-    axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", newUseInfo);
+    axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", {message});
     setMMKVObject<LoginResponse>("mypage.userInfo", newUseInfo);
   }
 

@@ -43,7 +43,7 @@ export const NaverMap: React.FC = ({}) => {
   <>
     <NaverMapView
     style={{flex: 1, zIndex:1}}
-    camera={{
+      initialCamera={{
       latitude : currentLocation.latitude,
       longitude : currentLocation.longitude,
       zoom:18}}
