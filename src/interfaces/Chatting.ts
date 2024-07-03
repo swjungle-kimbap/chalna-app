@@ -1,6 +1,3 @@
-import {User} from "./User";
-
-
 export type ChatMessage = {
     id: number;
     type: string;
@@ -17,7 +14,7 @@ export type directedChatMessage = ChatMessage & {
 
 export type chatRoomMember = {
     memberId:number,
-    username:string
+    username:string,
 }
 
 export type chatroomInfoAndMsg= {
@@ -34,6 +31,28 @@ export type ChatRoom = {
     memberCount: number;
     members: chatRoomMember[];
     recentMessage?: ChatMessage;
+    unreadMessageCount?: number;
+    createdAt: string;
+    updatedAt?: string;
+    removedAt?: string | null;
+}
+
+
+
+export type chatRoomMemberImage = {
+    memberId:number,
+    username:string,
+    profile: string,
+    statusMsg: string,
+}
+
+export type ChatRoomLocal = {
+    id: number;
+    type: string;
+    memberCount: number;
+    members: chatRoomMemberImage[];
+    recentMessage?: ChatMessage;
+    messages?: directedChatMessage[];
     unreadMessageCount?: number;
     createdAt: string;
     updatedAt?: string;

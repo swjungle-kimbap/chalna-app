@@ -1,4 +1,4 @@
-import { Position } from "./Location";
+import { Position } from "./index";
 
 export interface AxiosResponse<T> {
   data: T;

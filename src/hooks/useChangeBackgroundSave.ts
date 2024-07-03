@@ -1,24 +1,28 @@
-import { MutableRefObject, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { AppStateStatus, AppState } from "react-native";
 import { setAsyncString, setAsyncObject } from "../utils/asyncStorage";
 
-const useChangeBackgroundSave = <T>(key: string, saveData:T) => {
-  useEffect(() => {
-    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+const useChangeBackgroundSave = <T>(key: string, saveData: T) => {
+  const handleAppStateChange = useCallback(
+    async (nextAppState: AppStateStatus) => {
       if (nextAppState === 'background') {
+        console.log(saveData, "savedData in saving");
         if (typeof saveData === 'string') {
           await setAsyncString(key, saveData);
         } else {
           await setAsyncObject<T>(key, saveData);
         }
       }
-    };
-    
-    const subscription = AppState.addEventListener(`change`, handleAppStateChange);
+    },
+    [key, saveData]
+  );
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
     return () => {
       subscription.remove();
     };
-  }, [saveData]);
+  }, [handleAppStateChange]);
 };
 
 export default useChangeBackgroundSave;

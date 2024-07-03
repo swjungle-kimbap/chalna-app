@@ -1,4 +1,4 @@
-import { Position } from "./Location";
+import { Position } from "./index";
 
 export interface LoginRequest {
   loginToken: string,
@@ -14,9 +14,8 @@ export interface SignUpRequest {
 }
 
 export interface SendMsgRequest {
-  receiverDeviceId : string,
+  deviceIdList : Set<string>,
   message: string,
-  interestTag: string[],
 }
 
 export interface GetLocalChatRequest extends Position {

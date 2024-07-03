@@ -6,10 +6,10 @@ import {chatroomInfoAndMsg} from "../../interfaces/Chatting";
 import axiosInstance from "../../axios/axios.instance";
 import {ChatRoom} from "../../interfaces/Chatting";
 
-export const fetchChatRoomList=async():Promise<ChatRoom[]|any>=>{
+export const fetchChatRoomList=async(lastLeaveAt: string):Promise<ChatRoom[]|any>=>{
     try {
         const response = await axiosGet<{ data: { list: ChatRoom[] } }>(
-            urls.CHATROOM_LIST_URL,
+            urls.CHATROOM_LIST_URL+`?lastLeaveAt=${lastLeaveAt}`,
         );
         return response.data.data.list
     } catch (error) {
@@ -24,11 +24,12 @@ export const fetchChatRoomContent =
     ):Promise<chatroomInfoAndMsg|any> => {
     try{
         // get response
-        console.log('url fetchChatRoomcontent: ', urls.CHATROOM_MSG_URL+`/${chatRoomId}?lastLeaveAt=${lastLeaveAt}` );
+        // console.log("채팅방 입장시 메세지 목록 조회 api 호출");
+        // console.log('url fetchChatRoomcontent: ', urls.CHATROOM_MSG_URL+`/${chatRoomId}?lastLeaveAt=${lastLeaveAt}` );
         const response = await axiosGet(
             urls.CHATROOM_MSG_URL+`/${chatRoomId}?lastLeaveAt=${lastLeaveAt}` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
         );
-        console.log(response.data.data);
+        // console.log(response.data.data);
 
         return response.data.data;
     } catch (error){

@@ -13,10 +13,12 @@ class WebSocketManager {
     private connected: boolean = false;
 
     connect(chatRoomId: string, token: string, onMessage: (message: IMessage) => void) {
+
         if (this.client) {
             this.client.deactivate();
         }
 
+        // console.log('URL:',Config.BROKER_URL);
         this.client = new Client({
             brokerURL: Config.BROKER_URL,
             connectHeaders: {
@@ -27,18 +29,18 @@ class WebSocketManager {
                 console.log(str);
             },
             reconnectDelay: 2000,
-            heartbeatIncoming: 4000,
-            heartbeatOutgoing: 4000,
+            heartbeatIncoming: 10000,
+            heartbeatOutgoing: 10000,
             webSocketFactory: () => {
                 console.log('Creating SockJS instance');
-                return new SockJS(Config.BROKER_URL);
+                return new SockJS(Config.SOCKET_URL);
             },
         });
 
         this.client.onConnect = () => {
             console.log('Connected');
             this.connected = true;
-            this.client?.subscribe(`/api/chat/${chatRoomId}`, onMessage);
+            this.client?.subscribe(`/api/sub/${chatRoomId}`, onMessage);
         };
 
         this.client.onStompError = (frame) => {

@@ -3,7 +3,7 @@ import { View, Image, Modal, TouchableOpacity } from 'react-native';
 import styled from 'styled-components/native';
 import ImageTextButton from "../common/Button";
 import WebSocketManager from "../../utils/WebSocketManager";
-import { acceptFriendRequest, rejectFriendRequest } from "../../service/FriendRelationService";
+import {acceptFriendRequest, rejectFriendRequest, sendFriendRequest} from "../../service/FriendRelationService";
 import Text from '../common/Text';
 
 interface MessageBubbleProps {
@@ -11,7 +11,7 @@ interface MessageBubbleProps {
     datetime: string;
     isSelf: boolean;
     type?: string;
-    status?: boolean; //unread count 로 바꿔야할듯
+    unreadCnt?: number; //unread count 로 바꿔야할듯
     otherId: number;
     chatRoomId: number;
     chatRoomType: string;
@@ -21,7 +21,7 @@ interface MessageBubbleProps {
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({
-                                                         message, datetime, isSelf, type, status,
+                                                         message, datetime, isSelf, type, unreadCnt,
                                                          otherId, chatRoomId, chatRoomType,
                                                          profilePicture, username, showProfileTime
                                                      }) => {
@@ -33,17 +33,28 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
     const handleAccept = async () => {
         const response = await acceptFriendRequest(chatRoomId);
+        console.log('수락 요청 응답: ',response);
         if (response === true) {
-            WebSocketManager.sendMessage(chatRoomId, "친구가 되었습니다!\n대화를 이어가보세요.", 'FRIEND_REQUEST');
+            WebSocketManager.sendMessage(String(chatRoomId), "친구가 되었습니다!\n대화를 이어가보세요.", 'FRIEND_REQUEST');
             setIsDisabled(true);
         }
     };
 
     const handleReject = async () => {
         const response = await rejectFriendRequest(otherId);
+        console.log('거절 요청 응답: ',response);
         if (response === true) {
-            WebSocketManager.sendMessage(chatRoomId, "인연이 스쳐갔습니다.", 'FRIEND_REQUEST');
+            WebSocketManager.sendMessage(String(chatRoomId), "인연이 스쳐갔습니다.", 'FRIEND_REQUEST');
             setIsDisabled(true);
+        }
+    };
+
+    const handleSend = async () =>{
+        const response = await sendFriendRequest(chatRoomId, otherId);
+        console.log('친구요청 응답 출력', response);
+        if (response === true) {
+            WebSocketManager.sendMessage(chatRoomId, "친구 요청을 보냈습니다.", 'FRIEND_REQUEST');
+            // 친구추가 버튼 없애기 버튼 or 요청중 상태 나타내는 것 추가
         }
     };
 
@@ -76,13 +87,23 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                             </ButtonContainer>
                         )}
                     </AnnouncementMessageBubble>
+                ) : type==='TIMEOUT'? (
+                    <AnnouncementMessageBubble style={{backgroundColor: '#c0c0c0'}}>
+                        <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
+                    </AnnouncementMessageBubble>
                 ) : (
                     <MessageContainer isSelf={isSelf} hasNewline={hasNewline} showProfileTime={showProfileTime}>
-                        {isSelf && showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
+                        {isSelf && (<DateReadStatusContainer>
+                                <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt}</ReadStatus>
+                                {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
+                        </DateReadStatusContainer>)}
                         <MessageBubbleContent isSelf={isSelf} hasNewline={hasNewline}>
                             <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
                         </MessageBubbleContent>
-                        {!isSelf && showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
+                        {!isSelf && (<DateReadStatusContainer>
+                            <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt}</ReadStatus>
+                            {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
+                        </DateReadStatusContainer>)}
                     </MessageContainer>
                 )}
             </BubbleContainer>
@@ -105,6 +126,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                                 style={{marginTop: 1, marginLeft:5}}
                                 iconSource={require('../../assets/Icons/AddFriendCircle.png')}
                                 imageStyle={{height:25, width: 25}}
+                                onPress={handleSend}
                             />
                         </NameBtnContainer>
                         <Text variant={"sub"} style={{size: 12, marginBottom: 10}} >{"스쳐간 횟수 or 상태메세지 표기"}</Text>
@@ -120,13 +142,13 @@ const Container = styled.View<{ isSelf: boolean , notChat: boolean}>`
     max-width: 80%;
     align-self: ${({ notChat, isSelf }) => (notChat? 'center': isSelf ? 'flex-end' : 'flex-start')};
     flex-direction: ${({ isSelf }) => (isSelf ? 'row-reverse' : 'row')};
-    margin-top: ${({notChat})=>(notChat? 15: 5)};
-    margin-bottom: ${({notChat})=>(notChat? 15: 5)};
+    margin-top: ${({notChat})=>(notChat? '15px': '5px')};
+    margin-bottom: ${({notChat})=>(notChat? '15px': '5px')};
 `;
 
 const ProfilePicture = styled.Image<{ modal?: boolean }>`
-    width: ${({ modal }) => (modal ? '100px' : '40px')};
-    height: ${({ modal }) => (modal ? '100px' : '40px')};
+    width: ${({ modal }) => (modal ? '100px' : '34px')};
+    height: ${({ modal }) => (modal ? '100px' : '34px')};
     border-radius: ${({ modal }) => (modal ? '50px' : '20px')};
     margin-right: ${({ modal }) => (modal ? '0' : '10px')};
     margin-left: ${({ modal }) => (modal ? '0' : '2px')};
@@ -142,9 +164,9 @@ const MessageContainer = styled.View<{ isSelf: boolean; hasNewline: boolean; sho
     flex-direction: row;
     align-items: flex-end;
     flex-wrap: wrap;
-    max-width: ${({ hasNewline }) => (hasNewline ? '80%' : 'auto')};
+    max-width: ${({ hasNewline, isSelf }) => (isSelf && hasNewline ? '82%' : !isSelf && hasNewline? '78%' : 'auto')};
     justify-content: ${({ isSelf }) => (isSelf ? 'flex-end' : 'flex-start')};
-    margin-left: ${({ isSelf, showProfileTime }) => (!isSelf && !showProfileTime ? '52px' : '0px')}; 
+    margin-left: ${({ isSelf, showProfileTime }) => (!isSelf && !showProfileTime ? '46px' : '0px')}; 
 `; //bottom margin-left : profile pic length
 
 const MessageBubbleContent = styled.View<{ isSelf: boolean; hasNewline: boolean }>`
@@ -152,7 +174,7 @@ const MessageBubbleContent = styled.View<{ isSelf: boolean; hasNewline: boolean 
     border-radius: 10px;
     background-color: ${({ isSelf }) => (isSelf ? '#E4F1EE' : '#FFFFFF')};
     flex-shrink: 1;
-    max-width: ${({ hasNewline }) => (hasNewline ? '100%' : 'auto')};
+    max-width: 78%;
 `;
 
 const AnnouncementMessageBubble = styled.View`
@@ -161,21 +183,37 @@ const AnnouncementMessageBubble = styled.View`
     background-color: #C6DBDA;
 `;
 
-
-
 const Username = styled(Text)`
     margin-bottom: 5px;
     margin-top: 2px;
 `;
 
 const DateTime = styled(Text)<{ isSelf: boolean }>`
-    font-size: 10px;
+    font-size: 9px;
     color: #888888;
-    margin-top: 5px;
-    margin-right: ${({ isSelf }) => (isSelf ? '8px' : '0')};
+    margin-right: ${({ isSelf }) => (isSelf ? '6px' : '0')};
     align-self: flex-end;
     flex-shrink: 0;
     padding-left: 8px;
+`;
+
+// #377e22;
+// #20b2aa;
+const ReadStatus = styled(Text)<{ isSelf: boolean }>`
+    font-size: 10px;
+    color: #20b2aa;
+    margin-bottom: 1px;
+    margin-right: ${({ isSelf }) => (isSelf ? '8px' : '0')};
+    align-self: ${({ isSelf }) => (isSelf ? 'flex-end' : 'flex-start')};
+    flex-shrink: 0;
+    padding-left: 8px;
+`;
+
+
+
+const DateReadStatusContainer = styled.View`
+    flex-direction: column;
+    justify-content: space-between;
 `;
 
 const ButtonContainer = styled.View`

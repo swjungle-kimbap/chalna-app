@@ -1,48 +1,81 @@
-import React, { useState, useCallback } from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator, Text, RefreshControl, AppState, AppStateStatus } from 'react-native';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { View, FlatList, StyleSheet, ActivityIndicator, Text, SafeAreaView, AppState, AppStateStatus } from 'react-native';
 import ChatRoomCard from '../../components/Chat/ChatRoomCard';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import CustomHeader from "../../components/common/CustomHeader";
-import {useRecoilValue} from "recoil";
-import {LoginResponse} from "../../interfaces";
-import {userInfoState} from "../../recoil/atoms";
-import {SafeAreaView} from "react-native-safe-area-context";
-import {ChatRoom} from "../../interfaces/Chatting";
-import {fetchChatRoomList} from "../../service/Chatting/chattingAPI";
-
+import { useRecoilValue } from "recoil";
+import { LoginResponse } from "../../interfaces";
+import { userInfoState } from "../../recoil/atoms";
+import { ChatRoomLocal } from "../../interfaces/Chatting";
+import { fetchChatRoomList } from "../../service/Chatting/chattingAPI";
+import BackgroundTimer from 'react-native-background-timer';
+import { saveChatRoomList, getChatRoomList } from '../../localstorage/mmkvStorage';
 
 const ChattingListScreen = ({ navigation }) => {
-    const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
+    const [chatRooms, setChatRooms] = useState<ChatRoomLocal[]>([]);
     const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [appState, setAppState] = useState(AppState.currentState);
+    const isFocused = useIsFocused();
+    const intervalId = useRef<NodeJS.Timeout | null>(null);
 
     const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
 
     const fetchChatRooms = async () => {
-        const response = await fetchChatRoomList()
-        if (response)
-            setChatRooms(response);
-        setLoading(false);
+        try {
+            const response = await fetchChatRoomList('2024-06-23T10:32:40');
+            if (response) {
+                setChatRooms(response);
+                saveChatRoomList(response); // Save chat rooms to MMKV
+            }
+        } catch (error){
+            console.error('Error fetching chatroom data:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-
-    useFocusEffect(
-        useCallback(() => {
-            fetchChatRooms();
-
-            const interval = setInterval(() => {
+    useEffect(() => {
+        const startPolling = () => {
+            intervalId.current = BackgroundTimer.setInterval(async () =>{
                 fetchChatRooms();
-            }, 5000); // Poll every 5 seconds
+            }, 4000);
+        };
 
-            return () => clearInterval(interval); // Clear interval on screen unfocus
-        }, [])
-    );
+        const handleAppStateChange = (nextAppState: AppStateStatus) => {
+            if (nextAppState !== 'active') {
+                if (intervalId.current !== null) {
+                    BackgroundTimer.clearInterval(intervalId.current);
+                    intervalId.current = null;
+                }
+            } else {
+                startPolling();
+            }
+        };
 
-    const onRefresh = useCallback(() => {
-        setRefreshing(true);
-        fetchChatRooms().then(() => setRefreshing(false));
-    }, []);
+        const storedChatRooms = getChatRoomList();
+        if (storedChatRooms) {
+            setChatRooms(storedChatRooms);
+            setLoading(false);
+        } else {
+            fetchChatRooms();
+        }
+
+        if (isFocused) {
+            startPolling();
+            const subscription = AppState.addEventListener('change', handleAppStateChange);
+            return () => {
+                if (intervalId.current !== null) {
+                    BackgroundTimer.clearInterval(intervalId.current);
+                    intervalId.current = null;
+                }
+                subscription.remove();
+            };
+        } else {
+            if (intervalId.current !== null) {
+                BackgroundTimer.clearInterval(intervalId.current);
+                intervalId.current = null;
+            }
+        }
+    }, [isFocused]);
 
     if (loading) {
         return (
@@ -53,7 +86,6 @@ const ChattingListScreen = ({ navigation }) => {
     }
 
     return (
-
         <View style={styles.container}>
             <CustomHeader
                 title={"채팅 목록"}
@@ -65,7 +97,6 @@ const ChattingListScreen = ({ navigation }) => {
                     data={chatRooms}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) => {
-                        console.log('Rendering item:', item);
                         const usernames = item.members
                             .filter(member => member.memberId !== currentUserId)
                             .map(member => item.type === 'FRIEND' ? member.username : `익명${member.memberId}`)
@@ -74,8 +105,8 @@ const ChattingListScreen = ({ navigation }) => {
                         return (
                             <ChatRoomCard
                                 usernames={usernames}
-                                lastMsg={item.recentMessage === null ? "" : item.recentMessage.content}
-                                lastUpdate={item.recentMessage ===null? "" : item.recentMessage.createdAt}
+                                lastMsg={item.recentMessage ? item.recentMessage.content : ""}
+                                lastUpdate={item.recentMessage ? item.recentMessage.createdAt : ""}
                                 navigation={navigation}
                                 chatRoomType={item.type}
                                 chatRoomId={item.id}
@@ -84,12 +115,6 @@ const ChattingListScreen = ({ navigation }) => {
                             />
                         );
                     }}
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={refreshing}
-                            onRefresh={onRefresh}
-                        />
-                    }
                     ListEmptyComponent={() => (
                         <View style={styles.emptyContainer}>
                             <Text style={styles.emptyText}>새로운 인연과 대화를 시작해보세요</Text>
@@ -98,7 +123,6 @@ const ChattingListScreen = ({ navigation }) => {
                 />
             </SafeAreaView>
         </View>
-
     );
 };
 
@@ -118,7 +142,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     emptyText: {
-        marginTop:30,
+        marginTop: 30,
         fontSize: 18,
         color: '#999',
     },
