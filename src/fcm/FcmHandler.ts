@@ -1,8 +1,11 @@
 import PushNotification from 'react-native-push-notification';
+import { storeFCM } from './FcmStorage'
 
 // FCM Message 처리
 const handleFCMMessage = (remoteMessage) => {
   console.log('Received remote message', remoteMessage);
+  // 저장
+  storeFCM(remoteMessage);
   // 모든 메시지는 Notification으로 변환하여 알림 디스플레이함!
   const { title, body, isMatch } = createNotification(remoteMessage.data);
   showLocalNotification(title, body, isMatch);
@@ -20,7 +23,6 @@ const createNotification = (data) => {
 
 // 로컬 알림 표시 함수
 const showLocalNotification = (title: string, body: string, isMatch: boolean) => {
-  console.log("안 오나봅니다.");
   let notificationOptions: any = {
     channelId: "chalna_default_channel", // channelId 추가    
     title: title,
