@@ -13,7 +13,7 @@ import { getMMKVObject, setMMKVObject, userMMKVStorage } from "../../utils/mmkvS
 import { useMMKVBoolean } from "react-native-mmkv";
 
 const NotDisturbTimeSelectScreen = () => {
-  let [isDisturb = false, setIsDisturb] = useMMKVBoolean('mypage.isDisturb', userMMKVStorage);
+  const [isDisturb, setIsDisturb] = useMMKVBoolean('mypage.isDisturb', userMMKVStorage);
   const currentTime = new Date();
   const startDateRef = useRef<Date>(currentTime);
   const endDateRef = useRef<Date>(currentTime);

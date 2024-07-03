@@ -130,7 +130,7 @@ android {
             // ]
         }
         project.ext.envConfigFiles = [
-                debug: file('../../env/.env')
+                debug: file('../../env/.env'),
                 release: file('../../env/.env')
             ]
     }

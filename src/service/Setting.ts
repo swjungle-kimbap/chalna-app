@@ -49,3 +49,20 @@ export const withdrawlAlert = () => {
     ]
   )
 }
+
+export const initUserSetting = () => {
+  const isinitialized = userMMKVStorage.getBoolean('mypage.isAlarm');
+  if (isinitialized === undefined) {
+    userMMKVStorage.set('mypage.isAlarm', true);
+    userMMKVStorage.set('mypage.isFriendAlarm', true);
+    userMMKVStorage.set('mypage.isMatchAlarm', true);
+    userMMKVStorage.set('mypage.alarmSound', true);
+    userMMKVStorage.set('mypage.alarmVibration', true);
+    userMMKVStorage.set('mypage.isKeywordAlarm', false);
+    userMMKVStorage.set('mypage.isDisturb', false);
+    userMMKVStorage.set('bluetooth.advertiseMode', 1);
+    userMMKVStorage.set('bluetooth.txPowerLevel', 2);
+    userMMKVStorage.set('bluetooth.scanMode', 1);
+    userMMKVStorage.set('bluetooth.numberOfMatches', 3);
+  }
+}

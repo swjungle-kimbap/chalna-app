@@ -2,7 +2,7 @@ import { NativeEventEmitter, NativeModules } from 'react-native';
 import BLEAdvertiser from 'react-native-ble-advertiser';
 import { axiosPost } from '../axios/axios.method';
 import {urls} from "../axios/config";
-import { loginMMKVStorage } from '../utils/mmkvStorage';
+import { getMMKVObject, loginMMKVStorage, userMMKVStorage } from '../utils/mmkvStorage';
 
 const APPLE_ID = 0x4c;
 const MANUF_DATA = [1, 0];
@@ -38,27 +38,44 @@ const ScanNearbyAndPost = (
       for (let i = 0; i < event.serviceUuids.length; i++) {
         if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00')) {
           if (sendNearby)
-            sendNearby(event.serviceUuids[i]);
+            sendNearby(event.serviceUuids[i], event);
           await addDevice(event.serviceUuids[i], new Date().getTime());
         }
       }
     }
   });
 
-  console.log(uuid, 'Starting Advertising');
-  BLEAdvertiser.broadcast(uuid, MANUF_DATA, {
-    advertiseMode: BLEAdvertiser.ADVERTISE_MODE_BALANCED,
-    txPowerLevel: BLEAdvertiser.ADVERTISE_TX_POWER_MEDIUM,
+  const advertiseMode = userMMKVStorage.getNumber("bluetooth.advertiseMode");
+  const txPowerLevel =  userMMKVStorage.getNumber("bluetooth.txPowerLevel");
+  const scanMode =  userMMKVStorage.getNumber("bluetooth.scanMode");
+  const numberOfMatches =  userMMKVStorage.getNumber("bluetooth.numberOfMatches");
+  
+  console.log(uuid, 'Starting Advertising', "AdvertisingSetting: ", {
+    advertiseMode,
+    txPowerLevel,
     connectable: false,
     includeDeviceName: false,
-    includeTxPowerLevel: false,
+    includeTxPowerLevel: true,
+  }, "ScanSetting: ", {
+    scanMode,
+    matchMode: BLEAdvertiser.AGGRESSIVE,
+    reportDelay: 5,
+  });
+  BLEAdvertiser.broadcast(uuid, MANUF_DATA, {
+    advertiseMode,
+    txPowerLevel,
+    connectable: false,
+    includeDeviceName: false,
+    includeTxPowerLevel: true,
   })
     .then((success) => console.log(uuid, 'Advertise Successful', success))
     .catch((error) => console.log(uuid, 'Advertise Error', error));
 
   console.log(uuid, 'Starting Scanner');
   BLEAdvertiser.scan(MANUF_DATA, {
-    scanMode: BLEAdvertiser.SCAN_MODE_LOW_LATENCY,
+    scanMode,
+    matchMode: BLEAdvertiser.AGGRESSIVE,
+    numberOfMatches,
   })
     .then((success) => console.log(uuid, 'Scan Successful', success))
     .catch((error) => console.log(uuid, 'Scan Error', error));

@@ -67,6 +67,11 @@ export const isKeywordAlarmState = atom<boolean>({
 })
 
 export const isDisturbState = atom<boolean>({
-  key: 'isDisturbState',
+  key: 'isDisturb',
+  default: false,
+})
+
+export const isRssiTrackingState = atom<boolean>({
+  key: 'isRssiTracking',
   default: false,
 })
