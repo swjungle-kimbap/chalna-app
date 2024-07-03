@@ -4,8 +4,9 @@
 # You can edit the include path and order by changing the proguardFiles
 # directive in build.gradle.
 #
-# For more details, see
+# For more details, seer
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
-
+-keep class com.kakao.sdk.**.model.* { <fields>; }
+-keep class * extends com.google.gson.TypeAdapter
