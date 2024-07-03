@@ -9,7 +9,7 @@ import { userInfoState } from "../../recoil/atoms";
 import { ChatRoomLocal } from "../../interfaces/Chatting";
 import { fetchChatRoomList } from "../../service/Chatting/chattingAPI";
 import BackgroundTimer from 'react-native-background-timer';
-import { saveChatRoomList, getChatRoomList } from '../../localstorage/mmkvStorage';
+import { saveChatRoomList, getChatRoomList } from '../../service/Chatting/chatCache';
 
 const ChattingListScreen = ({ navigation }) => {
     const [chatRooms, setChatRooms] = useState<ChatRoomLocal[]>([]);

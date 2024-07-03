@@ -19,9 +19,10 @@ import useBackToScreen from '../../hooks/useBackToScreen';
 import { chatRoomMember, ChatMessage, directedChatMessage } from "../../interfaces/Chatting";
 import { formatDateToKoreanTime } from "../../service/Chatting/DateHelpers";
 import Text from '../../components/common/Text';
-import {saveChatMessages, getChatMessages, removeChatMessages, removeChatRoom} from '../../localstorage/mmkvStorage';
-import {getMMKVString, setMMKVString, getMMKVObject, setMMKVObject, removeMMKVItem} from "../../utils/mmkvStorage";
+import {saveChatMessages, getChatMessages, removeChatMessages, removeChatRoom} from '../../service/Chatting/chatCache';
 import {IMessage} from "@stomp/stompjs";
+import {uploadFile} from "../../service/Chatting/fileService";
+import DocumentPicker from "react-native-document-picker";
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -188,6 +189,7 @@ const ChattingScreen = () => {
         }
     };
 
+
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -195,7 +197,6 @@ const ChattingScreen = () => {
             </View>
         );
     }
-
 
     return (
         <SWRConfig value={{}}>
