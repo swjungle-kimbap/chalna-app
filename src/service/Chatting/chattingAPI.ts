@@ -6,10 +6,10 @@ import {chatroomInfoAndMsg} from "../../interfaces/Chatting";
 import axiosInstance from "../../axios/axios.instance";
 import {ChatRoom} from "../../interfaces/Chatting";
 
-export const fetchChatRoomList=async(lastLeaveAt: string):Promise<ChatRoom[]|any>=>{
+export const fetchChatRoomList=async():Promise<ChatRoom[]|any>=>{
     try {
         const response = await axiosGet<{ data: { list: ChatRoom[] } }>(
-            urls.CHATROOM_LIST_URL+`?lastLeaveAt=${lastLeaveAt}`,
+            urls.CHATROOM_LIST_URL,
         );
         return response.data.data.list
     } catch (error) {
@@ -20,14 +20,14 @@ export const fetchChatRoomList=async(lastLeaveAt: string):Promise<ChatRoom[]|any
 // export const viewChatRoomList => {}
 export const fetchChatRoomContent =
     async(
-        chatRoomId: string, lastLeaveAt: string, currentUserId: number
+        chatRoomId: string, currentUserId: number
     ):Promise<chatroomInfoAndMsg|any> => {
     try{
         // get response
         // console.log("채팅방 입장시 메세지 목록 조회 api 호출");
         // console.log('url fetchChatRoomcontent: ', urls.CHATROOM_MSG_URL+`/${chatRoomId}?lastLeaveAt=${lastLeaveAt}` );
         const response = await axiosGet(
-            urls.CHATROOM_MSG_URL+`/${chatRoomId}?lastLeaveAt=${lastLeaveAt}` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
+            urls.CHATROOM_MSG_URL+`${chatRoomId}` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
         );
         // console.log(response.data.data);
 
@@ -46,7 +46,7 @@ export const deleteChat = async (navigation: any, chatRoomId:string):Promise<boo
                         onPress: async () => {
                             try {
                                 await axiosDelete(
-                                    urls.CHATROOM_LEAVE_URL+`/${chatRoomId}`
+                                    urls.CHATROOM_LEAVE_URL+`${chatRoomId}`
                                 );
                                 Alert.alert("채팅방 삭제 완료", "채팅 목록 화면으로 돌아갑니다.");
                                 navigation.navigate('채팅 목록');

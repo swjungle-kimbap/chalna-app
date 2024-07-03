@@ -21,7 +21,7 @@ const ChattingListScreen = ({ navigation }) => {
 
     const fetchChatRooms = async () => {
         try {
-            const response = await fetchChatRoomList('2024-06-23T10:32:40');
+            const response = await fetchChatRoomList();
             if (response) {
                 setChatRooms(response);
                 saveChatRoomList(response); // Save chat rooms to MMKV
