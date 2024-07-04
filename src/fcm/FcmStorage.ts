@@ -63,6 +63,13 @@ const storeMatchFCM = async (newFCM: MatchFCM): Promise<void> => {
     setMMKVObject(MATCH_FCM_STORAGE, existingMessages);
     console.log(`Stored ${MATCH_FCM_STORAGE} message for user ${newFCM.receiverId}:`, newFCM);
     console.log(`All ${MATCH_FCM_STORAGE} messages: `, existingMessages);
+
+    // 10분 뒤에 메시지 삭제
+    setTimeout(() => {
+      deleteMatchFCMById(newFCM.receiverId, newFCM.id);
+      console.log(`Deleted ${MATCH_FCM_STORAGE} message for user ${newFCM.receiverId} after 10 minutes:`, newFCM);
+    }, 10 * 60 * 1000);
+    console.log(`All ${MATCH_FCM_STORAGE} messages: `, existingMessages); 
   } catch (error) {
     console.error(`Error storing ${MATCH_FCM_STORAGE} message for user ${newFCM.receiverId}:`, error);
   }
