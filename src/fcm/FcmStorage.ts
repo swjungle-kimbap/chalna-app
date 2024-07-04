@@ -1,14 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAsyncObject, removeAsyncItem, removeOneAsyncItem} from '../utils/asyncStorage';
 
-// 간단한 고유 식별자 생성 함수
-const generateUUID = (): string => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-};
+const MATCH_FCM_STORAGE = "matchFCMStorage";
+
 
 const convertTimestampToKoreanTime = (timestamp: number): string => {
   const date = new Date(timestamp);
@@ -46,19 +40,18 @@ export const storeFCM = async (remoteMessage): Promise<void> => {
 
 interface MatchFCM {
   id: string,
-  notificationId: string,
   senderId: string,
+  receiverId: string,
   message: string,
   createdAt: string
 }
 
 const storeMatchFCM = async (data: any, additionalData: any, sentTime: string): Promise<void> => {
-  const id = generateUUID();
   const newMatchFCM: MatchFCM = {
-    id,
-    notificationId: additionalData.notificationId,
+    id: additionalData.notificationId,
     message: data.message,
     senderId: data.senderId,
+    receiverId: additionalData.receiverId,
     createdAt: sentTime,
   };
 
@@ -71,13 +64,12 @@ const storeChatFCM = async (data): Promise<void> => {
 
 const storeFCMAsync = async (newFCM: MatchFCM): Promise<void> => {
   try {
-    const matchFCMStorage = "matchFCMStorage";
-    const existingMessages = await AsyncStorage.getItem(matchFCMStorage);
+    const existingMessages = await AsyncStorage.getItem(MATCH_FCM_STORAGE);
     const matchMessages: MatchFCM[] = existingMessages ? JSON.parse(existingMessages) : [];
     matchMessages.push(newFCM);
 
-    await AsyncStorage.setItem(matchFCMStorage, JSON.stringify(matchMessages));
-    console.log(`Stored ${matchFCMStorage} message:`, newFCM);
+    await AsyncStorage.setItem(MATCH_FCM_STORAGE, JSON.stringify(matchMessages));
+    console.log(`Stored ${MATCH_FCM_STORAGE} message:`, newFCM);
   } catch (error) {
     console.error('Error storing matchFCMStorage message:', error);
   }
@@ -85,13 +77,11 @@ const storeFCMAsync = async (newFCM: MatchFCM): Promise<void> => {
 
 // 수락 or 거절 or 유효시간 10분이 넘은 메시지의 경우 단일 삭제 처리
 const deleteMatchFCMById = async (id: string): Promise<void> => {
-  const matchFCMStorage = "matchFCMStorage";
-  removeOneAsyncItem<MatchFCM>(matchFCMStorage, id);
+  removeOneAsyncItem<MatchFCM>(MATCH_FCM_STORAGE, id);
 };
 
 // 모든 저장된 메시지들을 삭제하는 함수 - 모두 지우기
 export const removeAllMatchFCM = async (): Promise<void> => {
-  const matchFCMStorage = "matchFCMStorage";
-  removeAsyncItem(matchFCMStorage);
-  console.log(`Removed all messages in ${matchFCMStorage}`);
+  removeAsyncItem(MATCH_FCM_STORAGE);
+  console.log(`Removed all messages in ${MATCH_FCM_STORAGE}`);
 };
