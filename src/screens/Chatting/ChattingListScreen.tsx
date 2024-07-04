@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, {useState, useCallback, useEffect, useRef, useMemo} from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, Text, SafeAreaView, AppState, AppStateStatus } from 'react-native';
 import ChatRoomCard from '../../components/Chat/ChatRoomCard';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
@@ -6,7 +6,7 @@ import CustomHeader from "../../components/common/CustomHeader";
 import { useRecoilValue } from "recoil";
 import { LoginResponse } from "../../interfaces";
 import { userInfoState } from "../../recoil/atoms";
-import { ChatRoomLocal } from "../../interfaces/Chatting";
+import {ChatRoom, ChatRoomLocal} from "../../interfaces/Chatting.type";
 import { fetchChatRoomList } from "../../service/Chatting/chattingAPI";
 import BackgroundTimer from 'react-native-background-timer';
 import { saveChatRoomList, getChatRoomList } from '../../localstorage/mmkvStorage';
@@ -77,6 +77,28 @@ const ChattingListScreen = ({ navigation }) => {
         }
     }, [isFocused]);
 
+    // Memoized map of chat room IDs to member usernames
+    const chatRoomIdToUsernamesMap = useMemo(() => {
+        const map = new Map<number, string>();
+        chatRooms.forEach(room => {
+            // if (room.type !== 'LOCAL') {
+                const usernames = room.members
+                    .filter(member => member.memberId !== currentUserId)
+                    .map(member => member.username);
+                map.set(room.id, usernames.join(', '));
+            // }
+        });
+        return map;
+    }, [chatRooms, currentUserId]);
+
+    const getDisplayName = (room: ChatRoom) => {
+        // if (room.type === 'LOCAL') {
+        //     return room.name;
+        // } else {
+            return chatRoomIdToUsernamesMap.get(room.id) || 'Unknown';
+        // }
+    };
+
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -98,15 +120,12 @@ const ChattingListScreen = ({ navigation }) => {
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) => {
                         const usernames = item.members
-                            .filter(member => member.memberId !== currentUserId)
-                            .map(member => item.type === 'FRIEND' ? member.username : `익명${member.memberId}`)
-                            .join(', ');
 
                         return (
                             <ChatRoomCard
-                                usernames={usernames}
-                                lastMsg={item.recentMessage ? item.recentMessage.content : ""}
-                                lastUpdate={item.recentMessage ? item.recentMessage.createdAt : ""}
+                                usernames={getDisplayName(item)}
+                                lastMsg={item.recentMessage.content || " "}
+                                lastUpdate={item.recentMessage.createdAt || " "}
                                 navigation={navigation}
                                 chatRoomType={item.type}
                                 chatRoomId={item.id}

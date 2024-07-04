@@ -3,7 +3,7 @@ export type ChatMessage = {
     type: string;
     content: string;
     senderId: number;
-    status: boolean;
+    unreadCount: number;
     createdAt: string;
 }
 
@@ -22,7 +22,7 @@ export type chatroomInfoAndMsg= {
     type: string,
     members: chatRoomMember[],
     createdAt:string,
-    list: ChatMessage[],
+    messages: ChatMessage[],
 }
 
 export type ChatRoom = {
@@ -34,7 +34,6 @@ export type ChatRoom = {
     unreadMessageCount?: number;
     createdAt: string;
     updatedAt?: string;
-    removedAt?: string | null;
 }
 
 
@@ -49,12 +48,12 @@ export type chatRoomMemberImage = {
 export type ChatRoomLocal = {
     id: number;
     type: string;
-    memberCount: number;
+    memberCount?: number;
     members: chatRoomMemberImage[];
     recentMessage?: ChatMessage;
     messages?: directedChatMessage[];
     unreadMessageCount?: number;
-    createdAt: string;
+    createdAt?: string;
     updatedAt?: string;
     removedAt?: string | null;
 }
