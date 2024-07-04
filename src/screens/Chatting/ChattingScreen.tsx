@@ -187,7 +187,7 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                         const usernames = responseData.members
                             .filter((member: chatRoomMember) => member.memberId !== currentUserId)
                             .map((member: chatRoomMember) => member.username);
-                        const fetchedMessages: directedChatMessage[] = (responseData.list || []).map((msg: ChatMessage) => ({
+                        const fetchedMessages: directedChatMessage[] = (responseData.messages || []).map((msg: ChatMessage) => ({
                             ...msg,
                             isSelf: msg.senderId === currentUserId,
                             formatedTime: formatDateToKoreanTime(msg.createdAt)

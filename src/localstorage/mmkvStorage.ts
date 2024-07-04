@@ -52,7 +52,6 @@ export const getChatRoomInfo = (chatRoomId: number): ChatRoomLocal | null => {
 
 
 
-
 // Remove a chat room from storage
 export const removeChatRoom = (chatRoomId: number) => {
     // Retrieve the current chat room list
