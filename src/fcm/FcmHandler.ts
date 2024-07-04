@@ -1,5 +1,6 @@
 import PushNotification from 'react-native-push-notification';
 import { storeFCM } from './FcmStorage'
+import { navigate } from '../navigation/RootNavigation';
 
 // FCM Message 처리
 const handleFCMMessage = (remoteMessage) => {
@@ -7,7 +8,7 @@ const handleFCMMessage = (remoteMessage) => {
   storeFCM(remoteMessage);
   // 모든 메시지는 Notification으로 변환하여 알림 디스플레이함!
   const { title, body, isMatch } = createNotification(remoteMessage.data);
-  showLocalNotification(title, body, isMatch);
+  showLocalNotification(title, body, isMatch, remoteMessage.data);
 }
 
 // 공통 알림 생성 함수
@@ -18,14 +19,15 @@ const createNotification = (data) => {
   const body = data.message || "No message content";
 
   return { title, body, isMatch: additionalData.fcmType === 'match' };
-};
+}
 
 // 로컬 알림 표시 함수
-const showLocalNotification = (title: string, body: string, isMatch: boolean) => {
+const showLocalNotification = (title: string, body: string, isMatch: boolean, data: any) => {
   let notificationOptions: any = {
     channelId: "chalna_default_channel", // channelId 추가    
     title: title,
     message: body,
+    data: data,
     playSound: true,
     soundName: 'default',
     importance: 'high',
@@ -48,6 +50,36 @@ const showLocalNotification = (title: string, body: string, isMatch: boolean) =>
   }
 
   PushNotification.localNotification(notificationOptions);
-};
+}
 
-export { handleFCMMessage, createNotification, showLocalNotification };
+const handleFCMClick = (notification: any) => {
+  const data = notification.data;
+  console.log(`클릭이 발생한 fcm 내용 : '${data.message}'`);
+  
+  const additionalData = data.additionalData ? JSON.parse(data.additionalData) : {};
+
+  if (data) {
+    const fcmType = data.fcmType;
+
+    switch (fcmType) {
+      case 'match':
+        // 예: 매치 화면으로 이동
+        navigate("로그인 성공", {
+          screen: "지도",
+          params: { notificationId: additionalData.notificationId }
+        });
+        break;
+      case 'chat':
+        // 예: 채팅 화면으로 이동
+        navigate("채팅", { chatRoomId: additionalData.chatRoomId });  
+        break;
+      default:
+        console.log('Unknown fcmType:', fcmType);
+        break;
+    }
+  } else {
+    console.log('Notification data is undefined');
+  }  
+}
+
+export { handleFCMMessage, createNotification, showLocalNotification, handleFCMClick };
