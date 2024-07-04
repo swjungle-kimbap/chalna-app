@@ -10,7 +10,7 @@ import { useSetRecoilState } from 'recoil';
 import { locationState } from '../recoil/atoms';
 import { getMMKVObject } from '../utils/mmkvStorage';
 import { Position } from '../interfaces';
-
+import { initUserSetting } from '../service/Setting';
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
@@ -22,6 +22,7 @@ const BottomTabs = () => {
     if (lastLocation) {
       setLastLocation(lastLocation);
     }
+    initUserSetting();
     setIsLoading(false);
   }, [setLastLocation]);
 

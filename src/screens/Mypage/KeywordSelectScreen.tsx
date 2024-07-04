@@ -16,7 +16,7 @@ import { getMMKVObject, setMMKVObject, userMMKVStorage } from "../../utils/mmkvS
 import { useMMKVBoolean } from "react-native-mmkv";
 
 const KeywordSelectScreen: React.FC = ({}) => {
-  let [isKeywordAlarm = false, setIsKeywordAlarm] = useMMKVBoolean('mypage.isKeywordAlarm', userMMKVStorage);
+  const [isKeywordAlarm, setIsKeywordAlarm] = useMMKVBoolean('mypage.isKeywordAlarm', userMMKVStorage);
   const [keyword, setKeyword] = useState<string>("");
   const [keywordList, setKeywordList] = useState<string[]>([]);
   const inputRef = useRef<TextInput>(null);

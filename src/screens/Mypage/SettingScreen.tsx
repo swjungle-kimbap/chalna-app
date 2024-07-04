@@ -16,11 +16,11 @@ type SettingScreenProps = {
 const MoveButtonUrl ='../../assets/buttons/MoveButton.png'
 
 const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
-  let [isAlarm = true, setIsAlarm] = useMMKVBoolean('mypage.isAlarm', userMMKVStorage);
-  let [isFriendAlarm = true, setIsFriendAlarm] = useMMKVBoolean('mypage.isFriendAlarm', userMMKVStorage);
-  let [isMatchAlarm = true, setIsMatchAlarm] = useMMKVBoolean('mypage.isMatchAlarm', userMMKVStorage);
-  let [alarmSound = true, setAlarmSound] = useMMKVBoolean('mypage.alarmSound', userMMKVStorage);
-  let [alarmVibration = true, setAlarmVibration] = useMMKVBoolean('mypage.alarmVibration', userMMKVStorage);
+  const [isAlarm, setIsAlarm] = useMMKVBoolean('mypage.isAlarm', userMMKVStorage);
+  const [isFriendAlarm, setIsFriendAlarm] = useMMKVBoolean('mypage.isFriendAlarm', userMMKVStorage);
+  const [isMatchAlarm, setIsMatchAlarm] = useMMKVBoolean('mypage.isMatchAlarm', userMMKVStorage);
+  const [alarmSound, setAlarmSound] = useMMKVBoolean('mypage.alarmSound', userMMKVStorage);
+  const [alarmVibration, setAlarmVibration] = useMMKVBoolean('mypage.alarmVibration', userMMKVStorage);
   const [isdisable , setIsdisable] = useState(false);
   
   useEffect(() => {
@@ -83,8 +83,14 @@ const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
             <Toggle isdisable={isdisable} value={alarmVibration} toggleHandler={handleAlarmVibration} /> 
           </InlineButton>
         </View>
-        <InlineButton text="방해금지 시간 설정" textstyle={{paddingTop: 10}} horizon='none'
+        <InlineButton text="방해금지 시간 설정" textstyle={{paddingTop: 10}} horizon='bottom'
           onPressfunc={()=>navigation.navigate('방해금지 시간 설정')} isdisable={isdisable}>
+          <View style={styles.otherimagePos} >
+            <Image source={require(MoveButtonUrl)} />
+          </View>
+        </InlineButton>
+        <InlineButton text="블루투스 설정" textstyle={{paddingTop: 10}} horizon='none'
+          onPressfunc={()=>navigation.navigate('블루투스 설정')}>
           <View style={styles.otherimagePos} >
             <Image source={require(MoveButtonUrl)} />
           </View>

@@ -33,7 +33,7 @@ export const setMMKVObject = <T>(key: string, value: T) => {
 
 export const getMMKVString = (key: string):string|null => {
     const value = userMMKVStorage.getString(key);
-    if (value === null) {
+    if (value === undefined) {
         console.log(`${key} is not stored in MMKV`);
         return null;
     }
@@ -43,7 +43,7 @@ export const getMMKVString = (key: string):string|null => {
 
 export const getMMKVObject = <T>(key: string): T | null => {
     const jsonValue = userMMKVStorage.getString(key);
-    if (jsonValue != null) {
+    if (jsonValue !== undefined) {
         console.log(`Using stored ${key} : ${jsonValue} in MMKV`);
         return JSON.parse(jsonValue);
     }
