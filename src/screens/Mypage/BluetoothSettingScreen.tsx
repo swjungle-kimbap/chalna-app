@@ -7,19 +7,34 @@ import { isRssiTrackingState } from "../../recoil/atoms";
 import { useRecoilState } from "recoil";
 import Slider from '@react-native-community/slider';
 import Text from "../../components/common/Text";
+import Button from "../../components/common/Button";
 
 const BluetoothSettingScreen: React.FC = () => {
   const [advertiseMode, setAdvertiseMode] = useMMKVNumber('bluetooth.advertiseMode', userMMKVStorage);
   const [txPowerLevel, setTxPowerLevel] = useMMKVNumber('bluetooth.txPowerLevel', userMMKVStorage);
   const [scanMode, setScanMode] = useMMKVNumber('bluetooth.scanMode', userMMKVStorage);
   const [numberOfMatches, setNumberOfMatches] = useMMKVNumber('bluetooth.numberOfMatches', userMMKVStorage);
+  const [RSSIvalue, setRSSIvalue] = useMMKVNumber('bluetooth.rssivalue', userMMKVStorage);
   const [isRssiTracking, setIsRssiTracking] = useRecoilState(isRssiTrackingState);
+
+  const setDefaultSetting = () => {
+    setAdvertiseMode(1);
+    setTxPowerLevel(2);
+    setScanMode(1);
+    setNumberOfMatches(3);
+    setRSSIvalue(-100);
+    setIsRssiTracking(false);
+  }
 
   return (
     <View style={styles.background}>
       <View style={styles.mypage}>
+        <Text style={{marginBottom: 10}}>커질수록 성능이 좋아지며 배터리 소모가 커집니다.</Text>
+        <View  style= {styles.defaultButton}>
+          <Button variant ="sub" title="기본값" onPress={setDefaultSetting}/> 
+        </View>
         <View style={styles.advertisestyle}>
-          <Text style={{marginBottom: 10}}>커질수록 성능이 좋아지며 배터리 소모가 커집니다.</Text>
+          
           <InlineButton text="전파 빈도 설정" textstyle={{paddingTop: 3}} horizon='none'>
             <Slider
               style={{ width: 200, height: 40 }}
@@ -76,7 +91,7 @@ const BluetoothSettingScreen: React.FC = () => {
               maximumTrackTintColor="#000000"
             />
           </InlineButton>
-          <InlineButton text="탐지 개수 설정" textstyle={{paddingTop: 3}} horizon='bottom'>
+          <InlineButton text="탐지 댓수 설정" textstyle={{paddingTop: 3}} horizon='bottom'>
             <Slider
               style={{ width: 200, height: 40 }}
               minimumValue={0}
@@ -95,15 +110,36 @@ const BluetoothSettingScreen: React.FC = () => {
             />
           </InlineButton>
         </View>
-        <InlineButton text="rssi 값 보기" textstyle={{paddingTop: 10}} horizon='none'>
-          <Toggle value={isRssiTracking} toggleHandler={()=> setIsRssiTracking(isRssiTracking)} /> 
+        <Text>RSSI 값이 높아지면 탐지 하는 범위가 줄어듭니다.</Text>
+        <InlineButton text="RSSI 보기" textstyle={{paddingVertical: 20}} horizon='none'>
+          <Toggle value={isRssiTracking} toggleHandler={(value)=> setIsRssiTracking(value)} /> 
         </InlineButton>
+        {isRssiTracking && (
+          <InlineButton text="RSSI value" textstyle={{paddingTop: 3}} horizon='bottom'>
+            <Slider
+              style={{ width: 200, height: 40 }}
+              minimumValue={-100}
+              maximumValue={-70}
+              step={5}
+              value={RSSIvalue}
+              onValueChange={value => setRSSIvalue(value)}
+              tapToSeek
+              minimumTrackTintColor="#3EB297"
+              maximumTrackTintColor="#000000"
+            />
+            <Text>{RSSIvalue}</Text>
+          </InlineButton>
+        )}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  defaultButton: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
   mypage: {
     width: "90%",
     height: "90%",
@@ -120,7 +156,7 @@ const styles = StyleSheet.create({
   },
   advertisestyle: {
     justifyContent:"space-evenly",
-    height:200
+    height:140
   },
   scanstyle: {
     justifyContent:"space-evenly",

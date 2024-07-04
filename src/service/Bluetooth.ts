@@ -30,13 +30,15 @@ const ScanNearbyAndPost = (
   uuid:string,
   sendNearby?: Function
 ) => {
+  const RSSIvalue =  userMMKVStorage.getNumber("bluetooth.rssivalue");
+
   const { BLEAdvertiser } = NativeModules;
   const eventEmitter = new NativeEventEmitter(BLEAdvertiser);
   eventEmitter.removeAllListeners('onDeviceFound');
   eventEmitter.addListener('onDeviceFound', async (event) => {
     if (event.serviceUuids) {
       for (let i = 0; i < event.serviceUuids.length; i++) {
-        if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00')) {
+        if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00') && event.rssi >= RSSIvalue) {
           if (sendNearby)
             sendNearby(event.serviceUuids[i], event);
           await addDevice(event.serviceUuids[i], new Date().getTime());
@@ -58,7 +60,7 @@ const ScanNearbyAndPost = (
     includeTxPowerLevel: true,
   }, "ScanSetting: ", {
     scanMode,
-    matchMode: BLEAdvertiser.AGGRESSIVE,
+    matchMode: BLEAdvertiser.MATCH_MODE_AGGRESSIVE,
     reportDelay: 5,
   });
   BLEAdvertiser.broadcast(uuid, MANUF_DATA, {
@@ -74,7 +76,7 @@ const ScanNearbyAndPost = (
   console.log(uuid, 'Starting Scanner');
   BLEAdvertiser.scan(MANUF_DATA, {
     scanMode,
-    matchMode: BLEAdvertiser.AGGRESSIVE,
+    matchMode: BLEAdvertiser.MATCH_MODE_AGGRESSIVE,
     numberOfMatches,
   })
     .then((success) => console.log(uuid, 'Scan Successful', success))

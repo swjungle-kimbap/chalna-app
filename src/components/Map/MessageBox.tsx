@@ -4,7 +4,7 @@ import Button from '../common/Button';
 import { StyleSheet, TextInput, View, Alert, NativeModules, NativeEventEmitter, Animated, AppStateStatus, AppState } from 'react-native';
 import Text from '../common/Text';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { DeviceUUIDState, showMsgBoxState } from '../../recoil/atoms';
+import { DeviceUUIDState, isRssiTrackingState, showMsgBoxState } from '../../recoil/atoms';
 import ScanNearbyAndPost, { addDevice, ScanNearbyStop } from '../../service/Bluetooth';
 import showPermissionAlert from '../../utils/showPermissionAlert';
 import requestPermissions from '../../utils/requestPermissions';
@@ -16,7 +16,19 @@ import { axiosPost } from '../../axios/axios.method';
 import BleButton from './BleButton';
 import { urls } from '../../axios/config';
 import useBackground from '../../hooks/useBackground';
-import { getMMKVObject } from '../../utils/mmkvStorage';
+import { getMMKVObject, userMMKVStorage } from '../../utils/mmkvStorage';
+import RssiTracking from './RssiTracking';
+
+interface BleScanInfo {
+  advFlag: number,
+  companyId: number,
+  deviceAddress: string,
+  deviceName: string|null,
+  manufData: number[],
+  rssi: number,
+  serviceUuids: string[],
+  txPower: number,
+}
 
 const requiredPermissions = [
   PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
@@ -26,8 +38,7 @@ const requiredPermissions = [
 
 const uuidSet = new Set<string>(); 
 const uuidTime = new Map(); 
-const uuidTimeoutID = new Map();  
-
+const uuidTimeoutID = new Map();
 const scanDelayedTime = 5 * 1000;
 const sendDelayedTime = 60 * 1000;
 
@@ -35,6 +46,7 @@ const MessageBox: React.FC = ()  => {
   const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
   const [msgText, setMsgText] = useState('안녕하세요!');
   const [nearInfo, setNearInfo] = useRecoilState(isNearbyState);
+  const isRssiTracking = useRecoilValue(isRssiTrackingState);
   const [isScanning, setIsScanning] = useState(false);
   const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
   const [isBlocked, setIsBlocked] = useState<boolean>(false);
@@ -43,6 +55,8 @@ const MessageBox: React.FC = ()  => {
   const blockedTimeRef = useRef<number>(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
+  const [showTracking, setShowTracking] = useState(false);
+  const [rssiMap, setRssiMap] = useState<Map<string, number>>(null);
   const sendCountsRef = useRef(0);
 
   const fetchSavedData = () => {
@@ -81,9 +95,21 @@ const MessageBox: React.FC = ()  => {
     };
   }, []);
 
-  const handleSetIsNearby = (uuid:string, isBlocked = false) => {
+  const updateRssi = (uuid: string, rssi: number) => {
+    setRssiMap(prevMap => {
+      // 기존 Map을 복사
+      const newMap = new Map(prevMap);
+      // 새로운 값으로 갱신
+      newMap.set(uuid, rssi);
+      return newMap;
+    });
+  };
+
+  const handleSetIsNearby = (uuid: string, event:BleScanInfo, isBlocked = false) => {
     const currentTime = new Date().getTime();
-    
+    if (isRssiTracking)
+      updateRssi(uuid, event.rssi);
+
     if (nearInfo.lastMeetTime + scanDelayedTime - 1000 < currentTime) {
       setNearInfo({isNearby: true, lastMeetTime: currentTime});
       if (timeoutIdRef.current) {
@@ -123,18 +149,26 @@ const MessageBox: React.FC = ()  => {
     uuidTime[uuid] = currentTime;
     uuidTimeoutID[uuid] = setTimeout(() => {
       uuidSet.delete(uuid)
+      if (isRssiTracking) {
+        setRssiMap(prevMap => {
+          const newMap = new Map(prevMap);
+          newMap.delete(uuid);
+          return newMap;
+        });
+      }
     }, scanDelayedTime)
   };
 
   useEffect(() => {
+    const RSSIvalue =  userMMKVStorage.getNumber("bluetooth.rssivalue");
     const { BLEAdvertiser } = NativeModules;
     const eventEmitter = new NativeEventEmitter(BLEAdvertiser);
     eventEmitter.removeAllListeners('onDeviceFound');
     eventEmitter.addListener('onDeviceFound', async (event) => {
       if (event.serviceUuids) {
         for (let i = 0; i < event.serviceUuids.length; i++) {
-          if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00')) {
-            handleSetIsNearby(event.serviceUuids[i], isBlocked);
+          if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00') && event.rssi >= RSSIvalue) {
+            handleSetIsNearby(event.serviceUuids[i], event, isBlocked);
             addDevice(event.serviceUuids[i], new Date().getTime());
           }
         }
@@ -277,7 +311,15 @@ const MessageBox: React.FC = ()  => {
   };
 
   return (
-    <>
+    <> 
+      {isRssiTracking && (
+        <>
+          <RoundBox style={styles.TVButton}>
+            <Button title='CCTV' onPress={()=>setShowTracking(true)} titleStyle={{color: '#979797' , fontSize: 10}}/>
+          </RoundBox>
+          <RssiTracking closeModal={()=>setShowTracking(false)} modalVisible = {showTracking} items={rssiMap}/>
+        </>
+      )}
       <BleButton bleON = {isScanning} bleHanddler = {handleBLEButton}/>
       <Animated.View
         style={[
@@ -317,6 +359,19 @@ const MessageBox: React.FC = ()  => {
 };
 
 const styles = StyleSheet.create({
+  TVButton: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    top: 20,
+    left: 80,
+    height: 40, 
+    width: 40,
+    borderRadius: 20, 
+    paddingVertical: 2, // 상하 여백 설정
+    paddingHorizontal: 3, // 좌우 여백 설정
+    zIndex:3
+  },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
