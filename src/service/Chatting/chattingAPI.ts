@@ -25,11 +25,11 @@ export const fetchChatRoomContent =
     try{
         // get response
         // console.log("채팅방 입장시 메세지 목록 조회 api 호출");
-        // console.log('url fetchChatRoomcontent: ', urls.CHATROOM_MSG_URL+`/${chatRoomId}?lastLeaveAt=${lastLeaveAt}` );
+        console.log('url fetchChatRoomcontent: ', urls.CHATROOM_MSG_URL+`${chatRoomId}`);
         const response = await axiosGet(
             urls.CHATROOM_MSG_URL+`${chatRoomId}` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
         );
-        // console.log(response.data.data);
+        console.log(response.data.data);
 
         return response.data.data;
     } catch (error){
