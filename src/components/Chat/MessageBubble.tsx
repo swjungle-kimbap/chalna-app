@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Image, Modal, TouchableOpacity } from 'react-native';
+import { View, Image, Modal, TouchableOpacity, Button } from 'react-native';
 import styled from 'styled-components/native';
 import ImageTextButton from "../common/Button";
 import WebSocketManager from "../../utils/WebSocketManager";
@@ -18,12 +18,13 @@ interface MessageBubbleProps {
     profilePicture?: string;
     username?: string;
     showProfileTime?: boolean;
+    onFileDownload?: () => void; // Optional download handler for file messages
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({
+const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                                                          message, datetime, isSelf, type, unreadCnt,
                                                          otherId, chatRoomId, chatRoomType,
-                                                         profilePicture, username, showProfileTime
+                                                         profilePicture, username, showProfileTime, onFileDownload
                                                      }) => {
     // const date = new Date(datetime);
     // const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -103,6 +104,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                         {!isSelf && (<DateReadStatusContainer>
                             <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt}</ReadStatus>
                             {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
+                            {type === 'FILE' && <Button title="Download" onPress={onFileDownload} />}
                         </DateReadStatusContainer>)}
                     </MessageContainer>
                 )}
@@ -136,7 +138,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             </Modal>
         </Container>
     );
-};
+});
 
 const Container = styled.View<{ isSelf: boolean , notChat: boolean}>`
     max-width: 80%;

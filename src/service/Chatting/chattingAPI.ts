@@ -2,9 +2,9 @@ import {axiosDelete, axiosGet} from '../../axios/axios.method'; // Adjust the pa
 import Config from 'react-native-config';
 import {Alert} from "react-native";
 import {urls} from "../../axios/config";
-import {chatroomInfoAndMsg} from "../../interfaces/Chatting";
+import {chatroomInfoAndMsg} from "../../interfaces/Chatting.type";
 import axiosInstance from "../../axios/axios.instance";
-import {ChatRoom} from "../../interfaces/Chatting";
+import {ChatRoom} from "../../interfaces/Chatting.type";
 
 export const fetchChatRoomList=async():Promise<ChatRoom[]|any>=>{
     try {

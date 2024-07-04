@@ -1,5 +1,5 @@
 // ChattingScreen.tsx
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, {useEffect, useState, useCallback, useRef, useMemo} from 'react';
 import { View, TextInput, ScrollView, StyleSheet, ActivityIndicator, Keyboard, AppState, AppStateStatus } from 'react-native';
 import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRecoilValue } from "recoil";
@@ -15,16 +15,28 @@ import MenuModal from "../../components/common/MenuModal";
 import ImageTextButton from "../../components/common/Button";
 import { navigate } from '../../navigation/RootNavigation';
 import useBackToScreen from '../../hooks/useBackToScreen';
-import { chatRoomMember, ChatMessage, directedChatMessage } from "../../interfaces/Chatting";
+import {
+    chatRoomMember,
+    ChatMessage,
+    directedChatMessage,
+    ChatRoomLocal,
+    chatroomInfoAndMsg
+} from "../../interfaces/Chatting.type";
 import { formatDateToKoreanTime } from "../../service/Chatting/DateHelpers";
 import Text from '../../components/common/Text';
-import {saveChatMessages, getChatMessages, removeChatMessages, removeChatRoom} from '../../localstorage/mmkvStorage';
+import {
+    saveChatMessages,
+    getChatMessages,
+    removeChatMessages,
+    removeChatRoom,
+    saveChatRoomInfo
+} from '../../localstorage/mmkvStorage';
 import {getMMKVString, setMMKVString, getMMKVObject, setMMKVObject, removeMMKVItem, loginMMKVStorage} from "../../utils/mmkvStorage";
 import {IMessage} from "@stomp/stompjs";
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
-const ChattingScreen = () => {
+const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
     const route = useRoute<ChattingScreenRouteProp>();
     const { chatRoomId } = route.params;
     const navigation = useNavigation();
@@ -36,15 +48,44 @@ const ChattingScreen = () => {
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [chatRoomType, setChatRoomType] = useState<string>('');
     const [username, setUsername] = useState<string>('');
+    const [members, setMembers] = useState<chatRoomMember[]>([]);
 
     const otherIdRef = useRef<number | null>(null);
-    const friendNameRef = useRef<string>('');
 
     useBackToScreen("로그인 성공", { screen: "채팅목록", params: { screen: "채팅 목록" } });
 
     const scrollViewRef = useRef<ScrollView>(null);
 
-    // Set up WebSocket connection and message handling
+    // const memoizedMessages = useMemo(() => {
+    //     return messages.map(msg => ({
+    //         ...msg,
+    //         isSelf: msg.senderId === currentUserId,
+    //         formatedTime: formatDateToKoreanTime(msg.createdAt)
+    //     }));
+    // }, [messages, currentUserId]);
+
+    const updateRoomInfo = async () => {
+            const responseData: chatroomInfoAndMsg = await fetchChatRoomContent(chatRoomId, currentUserId);
+            if (responseData) {
+                const usernames = responseData.members
+                    .filter((member: chatRoomMember) => member.memberId !== currentUserId)
+                    .map((member: chatRoomMember) => member.username);
+
+                setChatRoomType(responseData.type);
+                setMembers(responseData.members);
+                setUsername(usernames.join(', '));
+
+                const chatRoomInfo: ChatRoomLocal = {
+                    id: parseInt(chatRoomId, 10),
+                    type: responseData.type,
+                    members: responseData.members
+                }
+                saveChatRoomInfo(chatRoomInfo);
+            }
+    };
+
+
+        // Set up WebSocket connection and message handling
     const setupWebSocket = async () => {
         try {
             const accessToken = loginMMKVStorage.getString('accessToken');
@@ -52,29 +93,33 @@ const ChattingScreen = () => {
                 console.log('Received message: ' + message.body);
                 try {
                     const parsedMessage:directedChatMessage = JSON.parse(message.body);
-                    if ((parsedMessage.type === 'CHAT' || parsedMessage.type === 'FRIEND_REQUEST')
-                        && parsedMessage.content && parsedMessage.senderId !== 0) {
+                    // 저장할 메세지
+                    if (parsedMessage.type !== 'USER_ENTER' && parsedMessage.content) {
                         parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
                         parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt)
 
                         if (parsedMessage.type === 'FRIEND_REQUEST' && parsedMessage.content === '친구가 되었습니다!\n대화를 이어가보세요.') {
-                            setChatRoomType('FRIEND');
-                            setUsername(friendNameRef.current);
+                            updateRoomInfo();
                         }
-
-                        setMessages((prevMessages) => [...prevMessages, parsedMessage]);
-                        saveChatMessages(chatRoomId, [parsedMessage])
-                        scrollViewRef.current?.scrollToEnd({ animated: true });
-                    } else {
+                        // 5분 지났으면 채팅방 타입 다시로드
                         if (parsedMessage.type === 'TIMEOUT' && parsedMessage.senderId === 0 && chatRoomType !== 'FRIEND') {
                             setChatRoomType('WAITING');
-                            setMessages((prevMessages) => [...prevMessages, parsedMessage]);
-                            saveChatMessages(chatRoomId, [parsedMessage])
-                            scrollViewRef.current?.scrollToEnd({ animated: true });
                         }
+
+                    }
+                    // 저장 안할 메세지
+                    else {
+
                     }
                 } catch (error) {
-                    console.error('Failed to parse received message:', error);
+                    // USER_ENTER 처리하고 어
+                    const userEnterMessage = JSON.parse(message.body);
+                    if (userEnterMessage.type==='USER_ENTER'){
+                        const lastLeaveAt = userEnterMessage.content.lastLeaveAt;
+                        console.log('user enter since ', lastLeaveAt);
+                        // unreadCount -1하는 처리 필요
+
+                    }
                 }
             });
         } catch (error) {
@@ -115,32 +160,14 @@ const ChattingScreen = () => {
         };
     }, []);
 
+
+
     // Focus effect to fetch initial messages and set up WebSocket
     useFocusEffect(
         useCallback(() => {
             const fetchMessages = async () => {
                 try {
                     setLoading(true);
-
-                    // 채팅방 정보 & 그동안 못받은 메세지 가져오기
-                    const currentTimestamp = new Date().toISOString().slice(0, 19);
-                    const responseData = await fetchChatRoomContent(chatRoomId, currentUserId);
-                    if (responseData) {
-                        const usernames = responseData.members
-                            .filter((member: chatRoomMember) => member.memberId !== currentUserId)
-                            .map((member: chatRoomMember) => responseData.type === 'FRIEND' ? member.username : `익명${member.memberId}`);
-                        const fetchedMessages: directedChatMessage[] = (responseData.list || []).map((msg: ChatMessage) => ({
-                            ...msg,
-                            isSelf: msg.senderId === currentUserId,
-                            formatedTime: formatDateToKoreanTime(msg.createdAt)
-                        }));
-
-                        //채팅방 정보 받아오기 & 메세지 저장
-                        setChatRoomType(responseData.type);
-                        setUsername(usernames.join(', '));
-                        console.log("api 호출 채팅데이터: ", fetchedMessages);
-                        saveChatMessages(chatRoomId, fetchedMessages); // Save new messages to MMKV
-                    }
 
                     // 로컬 스토리지에서 채팅가져와 렌더링하기
                     const storedMessages = await getChatMessages(chatRoomId);
@@ -149,6 +176,39 @@ const ChattingScreen = () => {
                         console.log("저장된 메세지 렌더링");
                         setMessages(storedMessages);
                     }
+
+                    // 채팅방 정보 & 그동안 못받은 메세지 가져오기
+                    const responseData = await fetchChatRoomContent(chatRoomId, currentUserId);
+                    if (responseData) {
+                        const usernames = responseData.members
+                            .filter((member: chatRoomMember) => member.memberId !== currentUserId)
+                            .map((member: chatRoomMember) => member.username);
+                        const fetchedMessages: directedChatMessage[] = (responseData.list || []).map((msg: ChatMessage) => ({
+                            ...msg,
+                            isSelf: msg.senderId === currentUserId,
+                            formatedTime: formatDateToKoreanTime(msg.createdAt)
+                        }));
+
+                        //채팅방 정보 받아오기: 렌더링용
+                        setChatRoomType(responseData.type); //채팅방 타입 업데이트
+                        setMembers(responseData.members); //멤버정보 업데이트
+                        setUsername(usernames.join(', ')); //title 수정하기
+
+                        // 채팅방 정보 저장 필요
+                        const chatRoomInfo: ChatRoomLocal = {
+                            id: parseInt(chatRoomId, 10),
+                            type: responseData.type,
+                            members: responseData.members
+                        }
+                        saveChatRoomInfo(chatRoomInfo);
+
+                        // 메세지 렌더링 & 저장
+                        setMessages((prevMessages) => [...prevMessages, ... fetchedMessages]);
+                        console.log("api 호출 채팅데이터: ", fetchedMessages);
+                        saveChatMessages(chatRoomId, fetchedMessages); // Save new messages to MMKV
+                    }
+
+
 
                 } catch (error) {
                     console.error('채팅방 메세지 목록조회 실패:', error);
@@ -186,6 +246,19 @@ const ChattingScreen = () => {
             console.error('Failed to delete chat:', error);
         }
     };
+
+    // Memoized map of memberId to username
+    const memberIdToUsernameMap = useMemo(() => {
+        const map = new Map<number, string>();
+        members.forEach(member => {
+            map.set(member.memberId, member.username);
+        });
+        return map;
+    },[members]);
+
+    const getUsernameBySenderId = (senderId: number) => {
+        return memberIdToUsernameMap.get(senderId) || '익명의 하마';
+    }
 
     if (loading) {
         return (
@@ -233,13 +306,14 @@ const ChattingScreen = () => {
                                 datetime={msg.formatedTime}
                                 isSelf={msg.isSelf}
                                 type={msg.type}
-                                unreadCnt={1}
+                                unreadCnt={msg.unreadCount}
                                 chatRoomId={Number(chatRoomId)}
                                 otherId={otherIdRef.current}
                                 chatRoomType={chatRoomType}
                                 profilePicture={msg.isSelf ? '' : 'https://img.freepik.com/premium-photo/full-frame-shot-rippled-water_1048944-5521428.jpg?size=626&ext=jpg&ga=GA1.1.2034235092.1718206967&semt=ais_user'}
-                                username={msg.isSelf ? '' : '익명12'}
+                                username={getUsernameBySenderId(msg.senderId)}
                                 showProfileTime={showProfile || showTime}
+                                // onFileDownload={msg.type==='FILE' ? () => handleFileDownload(msg.id):undefined}
                             />
                         );
                     })}
