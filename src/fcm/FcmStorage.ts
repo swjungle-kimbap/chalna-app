@@ -1,4 +1,8 @@
 import { setUserMMKVStorage, setMMKVObject, getMMKVObject, removeMMKVItem } from '../utils/mmkvStorage';
+import { saveChatRoomInfo, createChatRoomLocal, getChatRoomList } from '../localstorage/mmkvStorage';
+import { ChatFCM, MatchFCM } from '../interfaces/ReceivedFCMData.type';
+import { formatDateToKoreanTime } from "../service/Chatting/DateHelpers";
+import { ChatRoomLocal } from '../interfaces/Chatting.type';
 
 const MATCH_FCM_STORAGE = "matchFCMStorage";
 
@@ -29,29 +33,35 @@ export const storeFCM = async (remoteMessage): Promise<void> => {
         message: data.message,
         senderId: data.senderId,
         receiverId: additionalData.receiverId,
-        createdAt: sentTime,
+        createdAt: sentTime
       };
       await storeMatchFCM(newMatchFCM);
       break;
     case 'chat':
-      console.log("chat 저장은 구현x");
+      const newChatFCM: ChatFCM = {
+        chatRoomId: additionalData.chatRoomId,
+        senderId: data.senderId,
+        message: data.message,
+        senderName: additionalData.senderName,
+        chatRoomType: additionalData.chatRoomType,
+        messageType: additionalData.messageType === "ALARM" ? "CHAT" : additionalData.messageType,
+        createdAt: remoteMessage.sentTime
+      };
+      await storeChatFCM(newChatFCM);
       break;
     default:
       console.error('Unknown fcmType:', data.fcmType);
   }
 };
 
-interface MatchFCM {
-  id: string,
-  senderId: string,
-  receiverId: string,
-  message: string,
-  createdAt: string
-}
-
-
-const storeChatFCM = async (data): Promise<void> => {
-  console.log("chat 저장은 구현x");
+const storeChatFCM = async (newFCM: ChatFCM): Promise<void> => {
+  try {
+    saveChatRoomInfo(createChatRoomLocal(newFCM));
+  } catch (error) {
+    console.error('채팅룸 정보를 저장하는 동안 오류가 발생했습니다:', error);
+  }
+  
+  console.log(`저장한 채팅룸Id: ${newFCM.chatRoomId}, 저장한 메시지: ${newFCM.message}`);
 };
 
 const storeMatchFCM = async (newFCM: MatchFCM): Promise<void> => {
@@ -89,3 +99,4 @@ export const removeAllMatchFCM = async (receiverId: string): Promise<void> => {
   removeMMKVItem(MATCH_FCM_STORAGE);
   console.log(`Removed all messages in ${MATCH_FCM_STORAGE} for user ${receiverId}`);
 };
+
