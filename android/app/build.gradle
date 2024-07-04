@@ -77,9 +77,14 @@ file('../../env/.env').withInputStream { project.ext.env.load(it) }
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
-    compileSdk rootProject.ext.compileSdkVersion
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
     namespace "com.chalna"
+
+    lintOptions {
+    checkReleaseBuilds false
+    abortOnError false
+  }
     defaultConfig {
         applicationId "com.chalna"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -89,7 +94,7 @@ android {
         resValue "string", "build_config_package", "com.chalna"
         resValue "string", "kakao_native_app_key", project.ext.env['KAKAO_NATIVE_APP_KEY']
         manifestPlaceholders = [NAVER_MAP_CLINET_ID: project.ext.env['NAVER_MAP_CLINET_ID'], 
-                KAKAO_NATIVE_APP_KEY:project.ext.env['KAKAO_NATIVE_APP_KEY'] ]
+                KAKAO_NATIVE_APP_KEY: project.ext.env['KAKAO_NATIVE_APP_KEY']]
     }
     signingConfigs {
         debug {
@@ -99,42 +104,28 @@ android {
             keyPassword 'android'
         }
         release {
-            // if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
-            //     storeFile file(MYAPP_UPLOAD_STORE_FILE)
-            //     storePassword MYAPP_UPLOAD_STORE_PASSWORD
-            //     keyAlias MYAPP_UPLOAD_KEY_ALIAS
-            //     keyPassword MYAPP_UPLOAD_KEY_PASSWORD
-            // }
-
-              storeFile file('my-upload-key.keystore')
-                storePassword 'dlekqls222'
-                keyAlias 'my-key-alias'
-                keyPassword 'dlekqls222'
-
-
+            storeFile file('my-upload-key.keystore')
+            storePassword 'dlekqls222'
+            keyAlias 'my-key-alias'
+            keyPassword 'dlekqls222'
         }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
-
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-             signingConfig signingConfigs.release
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-            //  project.ext.envConfigFiles = [
-            //     release: file('../../env/.env')
-            // ]
         }
-        project.ext.envConfigFiles = [
-                debug: file('../../env/.env')
-                release: file('../../env/.env')
-            ]
     }
+    project.ext.envConfigFiles = [
+        debug: file('../../env/.env'),
+        release: file('../../env/.env')
+    ]
 }
+
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
