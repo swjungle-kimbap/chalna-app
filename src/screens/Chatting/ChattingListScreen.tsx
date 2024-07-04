@@ -124,8 +124,8 @@ const ChattingListScreen = ({ navigation }) => {
                         return (
                             <ChatRoomCard
                                 usernames={getDisplayName(item)}
-                                lastMsg={item.recentMessage.content || " "}
-                                lastUpdate={item.recentMessage.createdAt || " "}
+                                lastMsg={item.recentMessage?.content || " "}
+                                lastUpdate={item.recentMessage?.createdAt || " "}
                                 navigation={navigation}
                                 chatRoomType={item.type}
                                 chatRoomId={item.id}

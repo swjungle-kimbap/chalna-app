@@ -88,7 +88,7 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
         // Set up WebSocket connection and message handling
     const setupWebSocket = async () => {
         try {
-            const accessToken = loginMMKVStorage.getString('accessToken');
+            const accessToken = loginMMKVStorage.getString('login.accessToken');
             WebSocketManager.connect(chatRoomId, accessToken, (message: IMessage) => {
                 console.log('Received message: ' + message.body);
                 try {
@@ -105,6 +105,10 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                         if (parsedMessage.type === 'TIMEOUT' && parsedMessage.senderId === 0 && chatRoomType !== 'FRIEND') {
                             setChatRoomType('WAITING');
                         }
+
+                        setMessages((prevMessages) => [...prevMessages, parsedMessage]);
+                        saveChatMessages(chatRoomId, [parsedMessage])
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
 
                     }
                     // 저장 안할 메세지
