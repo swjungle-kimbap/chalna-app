@@ -1,5 +1,6 @@
-import React from 'react';
+import React , { useState }  from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import * as ImagePicker from 'react-native-image-picker';
 
 interface ChatRoomCardProps {
     numMember: number;
@@ -18,6 +19,24 @@ const formatTime = (timestamp: string) => {
 };
 
 const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ lastMsg, lastUpdate, usernames, navigation, chatRoomType, chatRoomId, unReadMsg }) => {
+
+    // const [file, setFile] = useState<any>(null);
+
+    // const pickImage = () => {
+    //     ImagePicker.launchImageLibrary({ mediaType: 'photo' }, (response) => {
+    //         if (response.didCancel) {
+    //             console.log('User cancelled image picker');
+    //         } else if (response.errorCode) {
+    //             console.log('ImagePicker Error: ', response.errorMessage);
+    //         } else {
+    //             const { uri, type, fileName, fileSize } = response.assets[0];
+    //             setFile({ uri, type, fileName, fileSize });
+    //             // 이후에 서버로 메타데이터와 URL을 전송하는 로직을 추가
+    //             // uploadImageMetadata({ uri, type, fileName, fileSize });
+    //         }
+    //     });
+    // };
+
     return (
         <TouchableOpacity
             onPress={() => navigation.navigate('채팅', { chatRoomId })}
@@ -31,6 +50,11 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ lastMsg, lastUpdate, userna
                     source={require('../../assets/images/anonymous.png')} // Replace with your image path
                     style={styles.image}
                 />
+
+                 {/* <TouchableOpacity onPress={pickImage} style={styles.addButton}>
+                    <Text style={styles.addButtonText}>+</Text>
+                </TouchableOpacity> */}
+
                 <View style={styles.content}>
                     <View style={styles.header}>
                         <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}>{usernames}</Text>
@@ -47,6 +71,14 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ lastMsg, lastUpdate, userna
                     </View>
                 </View>
             </View>
+            {/* {file && (
+                <View style={styles.imageContainer}>
+                    <Image source={{ uri: file.uri }} style={styles.selectedImage} />
+                    <Text>File Name: {file.fileName}</Text>
+                    <Text>File Size: {file.fileSize}</Text>
+                    <Text>File Type: {file.type}</Text>
+                </View>
+            )} */}
         </TouchableOpacity>
     );
 }
@@ -128,6 +160,29 @@ const styles = StyleSheet.create({
         width: 45,
         height: 45,
     },
+    // addButton: {
+    //     marginLeft: 10,
+    //     backgroundColor: '#007BFF',
+    //     borderRadius: 20,
+    //     width: 40,
+    //     height: 40,
+    //     justifyContent: 'center',
+    //     alignItems: 'center',
+    // },
+    // addButtonText: {
+    //     color: 'white',
+    //     fontSize: 24,
+    //     fontWeight: 'bold',
+    // },
+    // imageContainer: {
+    //     alignItems: 'center',
+    //     marginTop: 10,
+    // },
+    // selectedImage: {
+    //     width: 200,
+    //     height: 200,
+    //     resizeMode: 'cover',
+    // },
 });
 
 export default ChatRoomCard;

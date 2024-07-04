@@ -1,6 +1,6 @@
 // ChattingScreen.tsx
 import React, {useEffect, useState, useCallback, useRef, useMemo} from 'react';
-import { View, TextInput, ScrollView, StyleSheet, ActivityIndicator, Keyboard, AppState, AppStateStatus } from 'react-native';
+import { View, TextInput, ScrollView, StyleSheet, ActivityIndicator, Keyboard, AppState, AppStateStatus,  TouchableOpacity , Text as RNText} from 'react-native';
 import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRecoilValue } from "recoil";
 import { userInfoState } from "../../recoil/atoms";
@@ -33,6 +33,12 @@ import {
 } from '../../localstorage/mmkvStorage';
 import {getMMKVString, setMMKVString, getMMKVObject, setMMKVObject, removeMMKVItem, loginMMKVStorage} from "../../utils/mmkvStorage";
 import {IMessage} from "@stomp/stompjs";
+import { launchImageLibrary } from 'react-native-image-picker'; // Import ImagePicker
+import { axiosPost } from '../../axios/axios.method';
+import {urls} from "../../axios/config";
+import { AxiosResponse } from "axios";
+import { FileResponse } from "../../interfaces";
+
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -84,6 +90,69 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
             }
     };
 
+    const handleSelectImage = () => {
+        launchImageLibrary({ mediaType: 'photo', includeBase64: false }, (response) => {
+            if (response.didCancel) {
+                console.log('User cancelled image picker');
+            } else if (response.errorMessage) {
+                console.log('ImagePicker Error: ', response.errorMessage);
+            } else if (response.assets && response.assets.length > 0) {
+                const selectedImage = response.assets[0]; 
+                const uri = response.assets[0].uri; // assets 여러개 중 0번방 꺼
+                // 선택된 이미지 서버로 전송
+                const { fileName, fileSize, type: contentType } = selectedImage;
+          
+                const uploadFileToServer = async () => {
+                try {
+                    console.log("파일 서버로 전송중..");
+                    const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}${chatRoomId}`,"파일 업로드",{
+                        fileName,
+                        fileSize,
+                        contentType
+                });
+    
+                    console.log("서버로 받은 데이터 : ", JSON.stringify(metadataResponse?.data?.data));
+                    const { fileId, presignedUrl } = metadataResponse?.data?.data;
+
+                    // 프리사인드 URL을 사용하여 S3에 파일 업로드
+                    const formData = new FormData();
+                    formData.append('file', {
+                        uri,
+                        type: contentType,
+                        name: fileName
+                    } as any);
+
+                    const uploadResponse = await fetch(presignedUrl, {
+                        method: 'PUT',
+                        body: formData,
+                    });
+                
+                    if (uploadResponse.ok) {
+                        console.log('S3 파일에 업로드 성공');
+                        console.log(uploadResponse);
+
+                        // 업로드된 파일 URL을 소켓 ?? 에 전송
+                        // await axios.post(`${urls.FILE_UPLOAD_COMPLETE_URL}`, {
+                        //     chatRoomId,
+                        //     fileId,
+                        //     fileUrl: presignedUrl.split('?')[0], // S3 파일 URL
+                        // });
+                        // WebSocketManager.sendMessage(chatRoomId, messageContent, 'FILE');
+
+                        console.log('소켓에 전송 완료');
+                    } else {
+                        console.log('실패');
+                    }
+
+                } catch (error) {
+                    console.error('Error 메시지: ', error);
+                }
+            };
+                uploadFileToServer();
+        
+            }
+        });
+    };
 
         // Set up WebSocket connection and message handling
     const setupWebSocket = async () => {
@@ -165,7 +234,6 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
     }, []);
 
 
-
     // Focus effect to fetch initial messages and set up WebSocket
     useFocusEffect(
         useCallback(() => {
@@ -229,6 +297,7 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
             };
         }, [chatRoomId, currentUserId])
     );
+
 
     const sendMessage = () => {
         if (chatRoomType === 'WAITING') return;
@@ -323,6 +392,9 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                     })}
                 </ScrollView>
                 <View style={chatRoomType !== 'WAITING' ? styles.inputContainer : styles.disabledInputContainer}>
+                     <TouchableOpacity onPress={handleSelectImage} style={styles.imagePickerButton}>
+                            <Text style={styles.addButtonText}>+</Text>
+                        </TouchableOpacity>  
                     <TextInput
                         style={styles.input}
                         value={messageContent}
@@ -397,6 +469,16 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         backgroundColor: '#f0f0f0',
         color: '#a9a9a9',
+    },
+    imagePickerButton: {
+        paddingHorizontal: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+      addButtonText: {
+        color: 'black',
+        fontSize: 24,
+        fontWeight: 'bold',
     },
 });
 
