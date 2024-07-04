@@ -7,15 +7,40 @@
 //     );
 // };
 
-export const formatDateToKoreanTime = (dateString) => {
+export const formatDateToKoreanTime = (dateString: string) => {
     const date = new Date(dateString);
-    const options = {
-        hour: 'numeric',
-        minute: 'numeric',
+    const options: Intl.DateTimeFormatOptions ={
+        hour: '2-digit',
+        minute: '2-digit',
         hour12: true,
         timeZone: 'Asia/Seoul'
     };
-    const formatter = new Intl.DateTimeFormat('ko-KR', options);
-    return formatter.format(date);
+    return new Intl.DateTimeFormat('ko-KR', options).format(date);
 };
+
+export const convertChatDateFormat = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const options: Intl.DateTimeFormatOptions ={
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'Asia/Seoul'
+    };
+    return new Intl.DateTimeFormat('ko-KR', options).format(date);
+};
+
+export const convertChatRoomDateFormat = (timestamp: string): string => {
+    const date = new Date(timestamp);
+    const options: Intl.DateTimeFormatOptions = {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    };
+    return new Intl.DateTimeFormat('ko-KR', options).format(date);
+  };
 
