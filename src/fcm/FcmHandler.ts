@@ -3,7 +3,6 @@ import { storeFCM } from './FcmStorage'
 
 // FCM Message 처리
 const handleFCMMessage = (remoteMessage) => {
-  console.log('Received remote message', remoteMessage);
   // 저장
   storeFCM(remoteMessage);
   // 모든 메시지는 Notification으로 변환하여 알림 디스플레이함!
