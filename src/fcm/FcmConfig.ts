@@ -1,7 +1,7 @@
 import messaging from '@react-native-firebase/messaging';
 import PushNotification from 'react-native-push-notification';
 import { AppRegistry, Platform } from 'react-native';
-import { handleFCMMessage, showLocalNotification, createNotification } from './FcmHandler';
+import { handleFCMMessage, showLocalNotification, createNotification, handleFCMClick } from './FcmHandler';
 
 class FcmConfig {
 	// 유저 권한 확인
@@ -34,7 +34,6 @@ class FcmConfig {
       await handleFCMMessage(remoteMessage);
     });
 
-
     // Headless 작업으로 추가
     if (Platform.OS === 'android') {
       AppRegistry.registerHeadlessTask('RNFirebaseBackgroundMessage', () => {
@@ -55,9 +54,13 @@ class FcmConfig {
       onNotification: function (notification) {
         console.log('LOCAL NOTIFICATION ==>', notification);
 
-        const { title, body, isMatch } = createNotification(notification.data || {});
+        // const { title, body, isMatch } = createNotification(notification.data || {});
+        // showLocalNotification(title, body, isMatch);
 
-        showLocalNotification(title, body, isMatch);
+        // 알림 메시지를 클릭 시
+        if (notification.userInteraction) {
+          handleFCMClick(notification);
+        }
 
         if (notification.action === 'accept') {
           console.log('수락 버튼 눌림');
