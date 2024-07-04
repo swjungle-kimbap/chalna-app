@@ -78,7 +78,7 @@ class WebSocketManager {
     sendMessage = <sendMessageProps>(chatRoomId, message, type) => {
         const messageBody = this.parseMsgToSend(message, type);
         if (this.client) {
-            this.client.publish({ destination: `/api/send/chat/${chatRoomId}/sendMessage`, body: messageBody });
+            this.client.publish({ destination: `/api/send/${chatRoomId}`, body: messageBody });
         }
     };
 

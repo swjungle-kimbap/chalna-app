@@ -1,4 +1,4 @@
-import {ChatRoomLocal, ChatMessage, directedChatMessage} from "../interfaces/Chatting";
+import {ChatRoomLocal, ChatMessage, directedChatMessage} from "../interfaces/Chatting.type";
 import { userMMKVStorage } from "../utils/mmkvStorage";
 
 // Save chat room list
@@ -16,6 +16,42 @@ export const getChatRoomList = (): ChatRoomLocal[] | null => {
     const chatRoomListString = userMMKVStorage.getString('chatRoomList');
     return chatRoomListString ? JSON.parse(chatRoomListString) : null;
 };
+
+// Save a single chat room info
+export const saveChatRoomInfo = (chatRoom: ChatRoomLocal) => {
+    console.log('saveChatRoomInfo');
+    const chatRooms = getChatRoomList() || [];
+    const existingChatRoom = chatRooms.find(room => room.id === chatRoom.id);
+
+    if (existingChatRoom) {
+        const updatedChatRoom = { ...existingChatRoom };
+
+        // Update only fields that are different
+        Object.keys(chatRoom).forEach((key) => {
+            if (chatRoom[key] !== existingChatRoom[key]) {
+                updatedChatRoom[key] = chatRoom[key];
+            }
+        });
+
+        const updatedChatRooms = chatRooms.map(room => room.id === chatRoom.id ? updatedChatRoom : room);
+        saveChatRoomList(updatedChatRooms);
+    } else {
+        // If chat room doesn't exist, add it
+        const updatedChatRooms = [...chatRooms, chatRoom];
+        saveChatRoomList(updatedChatRooms);
+    }
+};
+
+
+// Retrieve a single chat room info
+export const getChatRoomInfo = (chatRoomId: number): ChatRoomLocal | null => {
+    console.log('getChatRoomInfo');
+    const chatRooms = getChatRoomList();
+    return chatRooms ? chatRooms.find(room => room.id === chatRoomId) || null : null;
+};
+
+
+
 
 // Remove a chat room from storage
 export const removeChatRoom = (chatRoomId: number) => {
