@@ -3,7 +3,7 @@ import { View, Image, Modal, TouchableOpacity, Button } from 'react-native';
 import styled from 'styled-components/native';
 import ImageTextButton from "../common/Button";
 import WebSocketManager from "../../utils/WebSocketManager";
-import {acceptFriendRequest, rejectFriendRequest, sendFriendRequest} from "../../service/FriendRelationService";
+import {acceptFriendRequest, rejectFriendRequest, sendFriendRequest} from "../../service/Friends/FriendRelationService";
 import Text from '../common/Text';
 
 interface MessageBubbleProps {

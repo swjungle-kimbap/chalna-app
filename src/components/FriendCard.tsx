@@ -15,6 +15,7 @@ interface FriendCardProps {
     isExpanded: boolean;
     onExpand: ()=> void;
     navigation: StackNavigationProp<RootStackParamList, '채팅'>;
+    options: 'friend' | 'blocked' | 'requested'
 }
 
 interface ApiResponse {
