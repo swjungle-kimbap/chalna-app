@@ -178,12 +178,12 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                             <Button title="친구요청 목록"
                                     style={{marginBottom: 15}}
                                     onPress={() => {
-                                setModalVisible(false);
-                                navigationProp.navigate(friendRequestScreen);
-                            }} />
+                                        setModalVisible(false);
+                                        navigation.navigate('Tabs', {screen: '친구요청 목록' });
+                                    }} />
                             <Button title="차단친구 목록" onPress={() => {
                                 setModalVisible(false);
-                                navigation.navigate('차단친구 목록');
+                                navigation.navigate('Tabs', {screen: '차단친구 목록' });
                             }} />
                         </ModalContent>
                     </ModalContainer>
