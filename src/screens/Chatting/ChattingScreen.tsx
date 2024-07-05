@@ -154,9 +154,12 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
 
             console.log('소켓에 전송 완료');
             setSelectedImage(null);
+
         } else {
             console.log('실패');
         }
+        
+        chatMessageType.current = "CHAT"
 
         } catch (error) {
             console.error('Error 메시지: ', error);

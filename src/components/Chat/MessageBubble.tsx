@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Image, Modal, TouchableOpacity, Button } from 'react-native';
+import { View, Image, Modal, TouchableOpacity, Button, Alert } from 'react-native';
 import styled from 'styled-components/native';
 import ImageTextButton from "../common/Button";
 import WebSocketManager from "../../utils/WebSocketManager";
 import {acceptFriendRequest, rejectFriendRequest, sendFriendRequest} from "../../service/FriendRelationService";
 import Text from '../common/Text';
-
+import RNFS from 'react-native-fs';
 interface MessageBubbleProps {
     message: any;
     datetime: string;
@@ -31,6 +31,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     const formattedTime = datetime;
     const [isDisabled, setIsDisabled] = useState(chatRoomType === 'FRIEND');
     const [modalVisible, setModalVisible] = useState(false);
+    const [imageModalVisible, setImageModalVisible] = useState(false);
 
     const handleAccept = async () => {
         const response = await acceptFriendRequest(chatRoomId);
@@ -66,7 +67,34 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     const closeUserInfoModal = () => {
         setModalVisible(false);
     };
-    console.log("message", message)
+
+    const openImageModal = () => {
+        setImageModalVisible(true);
+    }
+
+    const closeImageModal = () => {
+        setImageModalVisible(false);
+    }
+
+    const handleFileDownload = async () => {
+        try {
+            const { preSignedUrl } = message;
+            const downloadDest = `${RNFS.DocumentDirectoryPath}/${message.fileId}.jpg`;
+            const downloadOptions = {
+                fromUrl: preSignedUrl,
+                toFile: downloadDest,
+            };
+            const result = await RNFS.downloadFile(downloadOptions).promise;
+            if (result.statusCode === 200) {
+                Alert.alert('다운로드 완료', '파일이 다운로드되었습니다.', [{ text: '확인' }]);
+            } else {
+                Alert.alert('다운로드 실패', '파일 다운로드에 실패했습니다.', [{ text: '확인' }]);
+            }
+        } catch (error) {
+            console.error('File download error:', error);
+            Alert.alert('다운로드 실패', '파일 다운로드 중 오류가 발생했습니다.', [{ text: '확인' }]);
+        }
+    };
 
     const renderMessageContent = () => {
         if (typeof message === 'string') {
@@ -74,11 +102,14 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
         } else if (type === 'FILE' && message.preSignedUrl) {
             console.log(message.preSignedUrl);
             return (
+                <TouchableOpacity onPress={openImageModal}>
                 <Image
                     source={{ uri: message.preSignedUrl }}
                     style={{ width: 200, height: 200, borderRadius: 10 }}
                 />
+                </TouchableOpacity>
             );
+
         } else if (typeof message === 'object') {
             // Handle other object types if necessary
             return <Text variant="sub" style={{ color: "#444444" }}>{JSON.stringify(message)}</Text>;
@@ -155,6 +186,20 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                         </NameBtnContainer>
                         <Text variant={"sub"} style={{size: 12, marginBottom: 10}} >{"스쳐간 횟수 or 상태메세지 표기"}</Text>
 
+                    </ModalContent>
+                </ModalContainer>
+            </Modal>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={imageModalVisible}
+                onRequestClose={closeImageModal}
+            >
+                <ModalContainer>
+                    <ModalContent>
+                        <ImageTextButton title={"닫기"} onPress={closeImageModal} style={{ alignSelf: 'flex-end' }} />
+                        <ProfilePicture modal source={{ uri: message.preSignedUrl }} />
+                        <Button title="Download" onPress={handleFileDownload} />
                     </ModalContent>
                 </ModalContainer>
             </Modal>
