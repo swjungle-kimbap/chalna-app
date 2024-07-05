@@ -2,6 +2,7 @@ import messaging from '@react-native-firebase/messaging';
 import PushNotification from 'react-native-push-notification';
 import { AppRegistry, Platform } from 'react-native';
 import { handleFCMMessage, showLocalNotification, createNotification, handleFCMClick } from './FcmHandler';
+import { getFCMChannels } from './FcmAlarm';
 
 class FcmConfig {
 	// 유저 권한 확인
@@ -86,14 +87,15 @@ class FcmConfig {
       requestPermissions: Platform.OS === 'ios',
     });
 
+    getFCMChannels();
     // 채널 생성 (안드로이드 8.0부터 default 채널 필요)
     PushNotification.createChannel(
       {
         channelId: "chalna_default_channel", // 채널 ID
-        channelName: "Default Channel", // 채널 이름
+        channelName: "jooyoung2", // 채널 이름
         channelDescription: "A default channel", // (optional) default: undefined.
         importance: 4, // (optional) default: 4. Int value of the Android notification importance
-        vibrate: true, // (optional) default: true. Creates the default vibration pattern if true.
+        vibrate: false, // (optional) default: true. Creates the default vibration pattern if true.
       },
       (created) => console.log(`createChannel returned '${created}'`) // (optional) callback returns whether the channel was created, false means it already existed.
     );

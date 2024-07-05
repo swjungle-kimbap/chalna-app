@@ -10,8 +10,8 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.soloader.SoLoader
-import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
-
+import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage
+import com.chalna.fcm.NotificationPackage // 경로 수정
 
 class MainApplication : Application(), ReactApplication {
 
@@ -21,6 +21,7 @@ class MainApplication : Application(), ReactApplication {
             PackageList(this).packages.apply {
               // Packages that cannot be autolinked yet can be added manually here, for example:
               // add(MyReactNativePackage())
+              add(NotificationPackage()) // NotificationPackage 추가
             }
 
         override fun getJSMainModuleName(): String = "index"
