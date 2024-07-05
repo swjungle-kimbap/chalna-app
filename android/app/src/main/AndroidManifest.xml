@@ -28,6 +28,7 @@
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.CAMERA" />
 
+    <!-- <application android:requestLegacyExternalStorage="true"> -->
 
   <application
     android:name=".MainApplication"
@@ -78,6 +79,8 @@
         <data android:host="oauth" android:scheme="kakao${KAKAO_NATIVE_APP_KEY}" />
       </intent-filter>
     </activity>
+
+
     <!-- react-native-background-actions -->
     <service android:name="com.asterinet.react.bgactions.RNBackgroundActionsTask" android:foregroundServiceType="shortService"/>
 

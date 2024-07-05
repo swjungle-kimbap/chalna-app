@@ -6,6 +6,9 @@ import WebSocketManager from "../../utils/WebSocketManager";
 import {acceptFriendRequest, rejectFriendRequest, sendFriendRequest} from "../../service/FriendRelationService";
 import Text from '../common/Text';
 import RNFS from 'react-native-fs';
+import { PermissionsAndroid, Platform } from 'react-native';
+import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import CameraRoll from '@react-native-camera-roll/camera-roll';
 interface MessageBubbleProps {
     message: any;
     datetime: string;
@@ -76,25 +79,81 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
         setImageModalVisible(false);
     }
 
+    // const handleFileDownload = async () => {
+    //     try {
+    //         const { preSignedUrl } = message;
+    //         const downloadDest = `${RNFS.DocumentDirectoryPath}/${message.fileId}.jpg`;
+    //         const downloadOptions = {
+    //             fromUrl: preSignedUrl,
+    //             toFile: downloadDest,
+    //         };
+    //         const result = await RNFS.downloadFile(downloadOptions).promise;
+    //         if (result.statusCode === 200) {
+    //             Alert.alert('다운로드 완료', '파일이 다운로드되었습니다.', [{ text: '확인' }]);
+    //         } else {
+    //             Alert.alert('다운로드 실패', '파일 다운로드에 실패했습니다.', [{ text: '확인' }]);
+    //         }
+    //     } catch (error) {
+    //         console.error('File download error:', error);
+    //         Alert.alert('다운로드 실패', '파일 다운로드 중 오류가 발생했습니다.', [{ text: '확인' }]);
+    //     }
+    // };
+
     const handleFileDownload = async () => {
         try {
-            const { preSignedUrl } = message;
-            const downloadDest = `${RNFS.DocumentDirectoryPath}/${message.fileId}.jpg`;
-            const downloadOptions = {
-                fromUrl: preSignedUrl,
-                toFile: downloadDest,
-            };
-            const result = await RNFS.downloadFile(downloadOptions).promise;
-            if (result.statusCode === 200) {
-                Alert.alert('다운로드 완료', '파일이 다운로드되었습니다.', [{ text: '확인' }]);
+            if (Platform.OS === 'android') {
+                const permission = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                    {
+                        title: 'Storage Permission Required',
+                        message: 'This app needs access to your storage to download photos',
+                        buttonNeutral: 'Ask Me Later',
+                        buttonNegative: 'Cancel',
+                        buttonPositive: 'OK',
+                    }
+                );
+
+                if (permission === PermissionsAndroid.RESULTS.GRANTED) {
+                    console.log('permission : ', permission);
+                    const { preSignedUrl } = message;
+                    const downloadDest = `${RNFS.DownloadDirectoryPath}/${message.fileId}.jpg`;
+                    console.log('다운로드 목적지 : ', downloadDest);
+                    
+                    // 디렉토리가 존재하는지 확인하고, 없다면 생성
+                    const directoryPath = `${RNFS.DownloadDirectoryPath}`;
+                    console.log('디렉토리 path :', directoryPath);
+                    const directoryExists = await RNFS.exists(directoryPath);
+                    if (!directoryExists) {
+                        await RNFS.mkdir(directoryPath);
+                    }
+
+                    const downloadOptions = {
+                        fromUrl: preSignedUrl,
+                        toFile: downloadDest,
+                    };
+
+                    console.log(downloadOptions.fromUrl);
+                    
+                    const result = await RNFS.downloadFile(downloadOptions).promise;
+                    if (result.statusCode === 200) {
+                        await CameraRoll.save(downloadDest, { type: 'photo' });
+                        Alert.alert('다운로드 완료', '사진이 갤러리에 저장되었습니다.', [{ text: '확인' }]);
+                    } else {
+                        Alert.alert('다운로드 실패', '사진 다운로드에 실패했습니다.', [{ text: '확인' }]);
+                    }
+                } else {
+                    Alert.alert('권한 필요', '사진 저장 권한이 필요합니다.', [{ text: '확인' }]);
+                }
             } else {
-                Alert.alert('다운로드 실패', '파일 다운로드에 실패했습니다.', [{ text: '확인' }]);
+                Alert.alert('iOS에서는 지원되지 않습니다.', '사진 저장 기능은 Android에서만 지원됩니다.', [{ text: '확인' }]);
             }
         } catch (error) {
             console.error('File download error:', error);
-            Alert.alert('다운로드 실패', '파일 다운로드 중 오류가 발생했습니다.', [{ text: '확인' }]);
+            Alert.alert('다운로드 실패', '사진 다운로드 중 오류가 발생했습니다.', [{ text: '확인' }]);
         }
     };
+
+
 
     const renderMessageContent = () => {
         if (typeof message === 'string') {
@@ -195,13 +254,13 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                 visible={imageModalVisible}
                 onRequestClose={closeImageModal}
             >
-                <ModalContainer>
-                    <ModalContent>
+                    <FullScreenModalContainer>
+                    <FullScreenModalContent>
                         <ImageTextButton title={"닫기"} onPress={closeImageModal} style={{ alignSelf: 'flex-end' }} />
-                        <ProfilePicture modal source={{ uri: message.preSignedUrl }} />
+                        <FullScreenImage source={{ uri: message.preSignedUrl }} />
                         <Button title="Download" onPress={handleFileDownload} />
-                    </ModalContent>
-                </ModalContainer>
+                    </FullScreenModalContent>
+                </FullScreenModalContainer>
             </Modal>
         </Container>
     );
@@ -318,6 +377,28 @@ const ModalContent = styled.View`
 const CloseModalButton = styled(Text)`
     font-size: 16px;
     color: #5A5A5A;
+`;
+
+const FullScreenModalContainer = styled.View`
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.9);
+`;
+
+const FullScreenModalContent = styled.View`
+    width: 90%;
+    height: 90%;
+    background-color: white;
+    padding: 10px;
+    border-radius: 10px;
+    align-items: center;
+`;
+
+const FullScreenImage = styled.Image`
+    width: 100%;
+    height: 80%;
+    resize-mode: contain;
 `;
 
 export default MessageBubble;
