@@ -2,7 +2,7 @@ import { AxiosResponse, MatchAcceptResponse } from '../../interfaces';
 import Button from '../common/Button'
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import FontTheme from '../../styles/FontTheme';
-import { axiosPost, axiosPut } from '../../axios/axios.method';
+import { axiosPost } from '../../axios/axios.method';
 import { navigate } from '../../navigation/RootNavigation';
 import {urls} from "../../axios/config";
 import { MatchFCM } from '../../interfaces/ReceivedFCMData.type';
@@ -17,16 +17,11 @@ export interface AlaramItemProps{
 const AlarmCardRender: React.FC<AlaramItemProps> =
   ({ item, expandedCardId, handleCardPress, removeAlarmItem }) => {
 
-  const handleAcceptButton = async (notificationId:string) => {
+    const handleAcceptButton = async (notificationId:string) => {
     removeAlarmItem(notificationId);
     const matchAcceptResponse = await axiosPost<AxiosResponse<MatchAcceptResponse>>
                               (urls.ACCEPT_MSG_URL + notificationId, "인연 수락");
     navigate("채팅", { chatRoomId: matchAcceptResponse.data.data.chatRoomId });
-  }
-
-  const handleDeleteButton = async (notificationId:string) => {
-    await axiosPut(urls.DELETE_MSG_URL + notificationId, "인연 알림 지우기");
-    removeAlarmItem(notificationId);
   }
 
   return (
@@ -46,7 +41,7 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
             <Button style={{flex:1}} variant="sub" title="대화하기"
               onPress={async () => {handleAcceptButton(item.id)}} />
             <Button style={{flex:1}} variant="sub" title="지우기"
-              onPress={async () => {handleDeleteButton(item.id)}} />
+              onPress={() => {removeAlarmItem(item.id)}} />
           </View>
         </>
       ) : (
