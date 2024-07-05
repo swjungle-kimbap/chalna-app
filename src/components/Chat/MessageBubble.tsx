@@ -17,7 +17,7 @@ interface MessageBubbleProps {
     datetime: string;
     isSelf: boolean;
     type?: string;
-    unreadCnt?: number; //unread count 로 바꿔야할듯
+    unreadCnt?: number;
     otherId: number;
     chatRoomId: number;
     chatRoomType: string;
@@ -162,19 +162,24 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
 
 
 
+
     const renderMessageContent = () => {
         if (typeof message === 'string') {
             return <Text variant="sub" style={{ color: "#444444" }}>{message}</Text>;
         } else if (type === 'FILE' && message.preSignedUrl) {
             console.log(message.preSignedUrl);
             return (
+
                 <TouchableOpacity onPress={openImageModal}>
+
                 <Image
                     source={{ uri: message.preSignedUrl }}
                     style={{ width: 200, height: 200, borderRadius: 10 }}
                 />
+
                 </TouchableOpacity>
             );
+
 
         } else if (typeof message === 'object') {
             // Handle other object types if necessary
@@ -184,11 +189,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
         }
     };
 
-    // const hasNewline = message?.includes('\n');
-    // const isImageMessage = type === 'FILE';
+
+    // const hasNewline = message.includes('\n');
 
     return (
-        <Container isSelf={isSelf} notChat={type!=='CHAT'}>
+        <Container isSelf={isSelf} notChat={type!=='CHAT' && type!=='FILE'}>
             {!isSelf && showProfileTime && type==='CHAT' && (
                 <TouchableOpacity onPress={openUserInfoModal}>
                     <ProfilePicture source={{ uri: profilePicture || 'https://www.refugee-action.org.uk/wp-content/uploads/2016/10/anonymous-user.png' }} />
@@ -210,23 +215,31 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                     <AnnouncementMessageBubble style={{backgroundColor: '#c0c0c0'}}>
                         <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
                     </AnnouncementMessageBubble>
+
                 ) : (
+
                     <MessageContainer isSelf={isSelf} showProfileTime={showProfileTime}>
                         {isSelf && (<DateReadStatusContainer>
                                 <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt}</ReadStatus>
                                 {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
                         </DateReadStatusContainer>)}
+
                         <MessageBubbleContent isSelf={isSelf}>
                         {renderMessageContent()}
-                            {/* <Text variant="sub" style={{color:"#444444"}}>{message}</Text> */}
+               
+
                         </MessageBubbleContent>
                         {!isSelf && (<DateReadStatusContainer>
                             <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt}</ReadStatus>
                             {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
-                            {type === 'FILE' && <Button title="Download" onPress={onFileDownload} />}
                         </DateReadStatusContainer>)}
                     </MessageContainer>
-                )}
+                ) : (
+                    <MessageContainer>
+                        message
+                    </MessageContainer>
+                )
+                }
             </BubbleContainer>
             <Modal
                 animationType="slide"
@@ -303,6 +316,7 @@ const MessageContainer = styled.View<{ isSelf: boolean; hasNewline: boolean; sho
     justify-content: ${({ isSelf }) => (isSelf ? 'flex-end' : 'flex-start')};
     margin-left: ${({ isSelf, showProfileTime }) => (!isSelf && !showProfileTime ? '46px' : '0px')}; 
 `; //bottom margin-left : profile pic length
+
 
 const MessageBubbleContent = styled.View<{ isSelf: boolean; hasNewline: boolean }>`
     padding: 8px 15px;

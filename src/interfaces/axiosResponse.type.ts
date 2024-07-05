@@ -28,27 +28,6 @@ export interface RelationCntResponse {
   lastOverlapAt: null,
 }
 
-export interface RelationCntResponse {
-  friendStatus: string,
-  isBlocked: boolean,
-  overlapCount: number,
-  lastOverlapAt: null,
-}
-
-export interface AlarmItem {
-  notificationId: number;
-  createAt: string;
-  message: string;
-  senderId: string;
-  overlapCount: string;
-}
-
-export interface AlarmListResponse {
-  code: string,
-  data: AlarmItem[]
-  message: string,
-}
-
 export interface MatchAcceptResponse {
   chatRoomId: number
 }
@@ -88,7 +67,14 @@ export interface JoinLocalChatResponse {
   message: string
 }
 
+
 export interface FileResponse {
   fileId: number,
   presignedUrl:string
 }
+
+export interface SendMatchResponse {
+  sendCount: number
+}
+
+

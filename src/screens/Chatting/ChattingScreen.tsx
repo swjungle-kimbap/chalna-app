@@ -29,8 +29,8 @@ import {
     getChatMessages,
     removeChatMessages,
     removeChatRoom,
-    saveChatRoomInfo
-} from '../../localstorage/mmkvStorage';
+    saveChatRoomInfo, decrementUnreadCountBeforeTimestamp, resetUnreadCountForChatRoom
+} from '../../service/Chatting/mmkvChatStorage';
 import {getMMKVString, setMMKVString, getMMKVObject, setMMKVObject, removeMMKVItem, loginMMKVStorage} from "../../utils/mmkvStorage";
 import {IMessage} from "@stomp/stompjs";
 import { launchImageLibrary } from 'react-native-image-picker'; // Import ImagePicker
@@ -39,6 +39,7 @@ import {urls} from "../../axios/config";
 import { AxiosResponse } from "axios";
 import { FileResponse } from "../../interfaces";
 import RNFS from "react-native-fs";
+
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -91,6 +92,7 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                 saveChatRoomInfo(chatRoomInfo);
             }
     };
+
 
     const handleSelectImage = () => {
         launchImageLibrary({ mediaType: 'photo', includeBase64: false }, (response) => {
@@ -172,6 +174,23 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
         }
     };
 
+
+    // update unread count
+    // const updateUnreadCount = (timestamp: string) => {
+    //     setMessages((prevMessages) => {
+    //         const updatedMessages = prevMessages.map(msg => {
+    //             if (msg.createdAt >= timestamp) {
+    //                 return { ...msg, unreadCount: (msg.unreadCount || 0) - 1 };
+    //             }
+    //             return msg;
+    //         });
+    //         saveChatMessages(chatRoomId, updatedMessages);
+    //         console.log('========= ON USER ENTER ===========' +
+    //             'update chat msg: ',updatedMessages);
+    //         return updatedMessages;
+    //     });
+    // }
+
     // Set up WebSocket connection and message handling
     const setupWebSocket = async () => {
         try {
@@ -202,17 +221,22 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                     }
                     // 저장 안할 메세지
                     else {
+                        if (parsedMessage.type==='USER_ENTER'){
+                            const lastLeaveAt = parsedMessage.content.lastLeaveAt;
+                            console.log('user enter since ', lastLeaveAt);
+                            decrementUnreadCountBeforeTimestamp(chatRoomId, lastLeaveAt);
+                            const fetchMessages = async () => {
+                                const fetchedMessages = await getChatMessages(chatRoomId);
+                                setMessages(fetchedMessages || []);
+                            };
+                        }
 
                     }
                 } catch (error) {
-                    // USER_ENTER 처리하고 어
-                    const userEnterMessage = JSON.parse(message.body);
-                    if (userEnterMessage.type==='USER_ENTER'){
-                        const lastLeaveAt = userEnterMessage.content.lastLeaveAt;
-                        console.log('user enter since ', lastLeaveAt);
-                        // unreadCount -1하는 처리 필요
+                    console.log(error);
 
-                    }
+
+
                 }
             });
         } catch (error) {
@@ -260,10 +284,11 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
             const fetchMessages = async () => {
                 try {
                     setLoading(true);
+                    //onetime 지우기
 
                     // 로컬 스토리지에서 채팅가져와 렌더링하기
                     const storedMessages = await getChatMessages(chatRoomId);
-                    console.log("Get Messages from LocalStorage: ", storedMessages);
+                    // console.log("Get Messages from LocalStorage: ", storedMessages);
                     if (storedMessages) {
                         console.log("저장된 메세지 렌더링");
                         setMessages(storedMessages);
@@ -305,7 +330,8 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                 } catch (error) {
                     console.error('채팅방 메세지 목록조회 실패:', error);
                 } finally {
-                    setLoading(false);
+                    console.log("로딩 끝");
+                    setLoading(false); //Text string must be rendered within a text component
                 }
             };
 
@@ -313,7 +339,9 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
             setupWebSocket();
 
             return () => {
+                console.log("loose focus");
                 WebSocketManager.disconnect();
+                resetUnreadCountForChatRoom(Number(chatRoomId));
             };
         }, [chatRoomId, currentUserId])
     );
@@ -375,7 +403,7 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
         <SWRConfig value={{}}>
             <CustomHeader
                 title={username}
-                subtitle={'경고문구 출력용'}
+                subtitle={'안내문구 출력용'}
                 onBackPress={() => {
                     navigate("로그인 성공", {
                         screen: "채팅목록",
@@ -390,7 +418,7 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                 useNav={true}
                 useMenu={true}
             />
-            <Text>Status: {WebSocketManager.isConnected() ? 'Connected' : 'Not Connected'} </Text>
+            <Text>{chatRoomType}: {WebSocketManager.isConnected() ? 'Connected' : ' - '} </Text>
             <View style={styles.container}>
                 <ScrollView
                     contentContainerStyle={styles.scrollView}
