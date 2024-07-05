@@ -142,8 +142,8 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
         <FriendsStyle>
 
             <ImageTextButton
-                    iconSource={require('../../assets/Icons/3dotsIcon.png')}
-                    imageStyle={{height:10, width:15}}
+                    iconSource={require('../../assets/Icons/cogIcon.png')}
+                    imageStyle={{height:15, width:15}}
                     style={{padding: 10, alignSelf:'flex-end', marginRight:20}}
                     onPress={() => setModalVisible(true) } />
             <View style={styles.searchContainer}>
@@ -174,9 +174,9 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
             >
                 <TouchableWithoutFeedback onPress={()=>setModalVisible(false)}>
                     <ModalContainer>
-                        <ModalContent>
+                        <ModalContent style={shadowStyles}>
                             <Button title="친구요청 목록"
-                                    style={{marginBottom: 15}}
+                                    style={{marginBottom: 20}}
                                     onPress={() => {
                                         setModalVisible(false);
                                         navigation.navigate('Tabs', {screen: '친구요청 목록' });
@@ -197,6 +197,8 @@ const FriendsStyle = styled.View`
   background-color: #FFFFFF;
    
 `;
+
+
 
 const styles = StyleSheet.create({
     searchContainer: {
@@ -229,7 +231,7 @@ const ModalContainer = styled.View`
   flex: 1;
   justify-content: flex-start;
   align-items: flex-end;
-    padding-top: 80px;
+    padding-top: 85px;
   padding-right: 20px;
     
     //shadow-color: #000;
@@ -247,5 +249,18 @@ const ModalContent = styled.View`
   border-radius: 10px;
   align-items: center;
 `;
+
+const shadowStyles = {
+    shadowColor: "#000",
+    shadowOffset: {
+        width: 0,
+        height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+
+    elevation: 5,
+};
+
 
 export default FriendsScreen;
