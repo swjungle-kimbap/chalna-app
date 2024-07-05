@@ -110,24 +110,30 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                     const parsedMessage:directedChatMessage = JSON.parse(message.body);
                     // 저장할 메세지
                     if (parsedMessage.type !== 'USER_ENTER' && parsedMessage.content) {
-                        parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
-                        parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt)
 
+                        parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
+                        parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt);
+
+                        // 친구가 되었으면 채팅방 정보 다시 로드
                         if (parsedMessage.type === 'FRIEND_REQUEST' && parsedMessage.content === '친구가 되었습니다!\n대화를 이어가보세요.') {
                             updateRoomInfo();
                         }
-                        // 5분 지났으면 채팅방 타입 다시로드
-                        if (parsedMessage.type === 'TIMEOUT' && parsedMessage.senderId === 0 && chatRoomType !== 'FRIEND') {
-                            setChatRoomType('WAITING');
+                        // TIMEOUT 메세지 왔을 때 채팅방타입 친구가 아니면 타입변경
+                        if (parsedMessage.type==='TIMEOUT' && chatRoomType !== 'FRIEND'){
+                                setChatRoomType('WAITING');
                         }
 
-                        setMessages((prevMessages) => [...prevMessages, parsedMessage]);
-                        saveChatMessages(chatRoomId, [parsedMessage])
-                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                        // 이미 친구인데 타임아웃 메세지가 오는경우 가 아닌경우에만 메세지 화면에 렌더
+                        if( !(parsedMessage.type==='TIMEOUT' && chatRoomType==='FRIEND')) {
+                            setMessages((prevMessages) => [...prevMessages, parsedMessage]);
+                            saveChatMessages(chatRoomId, [parsedMessage])
+                            scrollViewRef.current?.scrollToEnd({animated: true});
+                        }
 
-                    }
+
+                    } else {
                     // 저장 안할 메세지
-                    else {
+
                         if (parsedMessage.type==='USER_ENTER'){
                             const lastLeaveAt = parsedMessage.content.lastLeaveAt;
                             console.log('user enter since ', lastLeaveAt);
