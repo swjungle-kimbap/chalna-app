@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import FontTheme from "../styles/FontTheme"
 import FriendsScreen from "../screens/Friends/FriendsScreen";
 import BlockFriendsScreen from "../screens/Friends/BlockFriendsScreen";
+import FriendRequestScreen from "../screens/Friends/FriendRequestScreen";
 
 const FriendsStack = createNativeStackNavigator();
 
@@ -10,7 +11,7 @@ const FriendsStackScreen = () => {
     <FriendsStack.Navigator initialRouteName="친구 목록"
     screenOptions={() => ({
       headerTitleStyle: {
-        fontFamily: FontTheme.fonts.title, 
+        fontFamily: FontTheme.fonts.title,
         fontSize: 20,
       }
     })}>
