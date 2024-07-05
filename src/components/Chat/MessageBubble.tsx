@@ -140,9 +140,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
         
                     if (result.statusCode === 200) {
                         // await RNFS.moveFile(downloadDest, `file:///sdcard/Download/${message.fileId}.jpg`);
-                        const saveToGallery = await RNFS.moveFile(downloadDest, RNFS.PicturesDirectoryPath + `/${message.fileId}.jpg`);
-                        await RNFS.scanFile(RNFS.PicturesDirectoryPath + `/${message.fileId}.jpg`);
-                        // await RNFS.scanFile(downloadDest);
+                        // const saveToGallery = await RNFS.moveFile(downloadDest, RNFS.PicturesDirectoryPath + `/${message.fileId}.jpg`);
+                        // await RNFS.scanFile(RNFS.PicturesDirectoryPath + `/${message.fileId}.jpg`);
+                        await RNFS.scanFile(downloadDest);
         
                         Alert.alert('다운로드 완료', '사진이 갤러리에 저장되었습니다.', [{ text: '확인' }]);
                     } else {
@@ -234,12 +234,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                             {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
                         </DateReadStatusContainer>)}
                     </MessageContainer>
-                ) : (
-                    <MessageContainer>
-                        message
-                    </MessageContainer>
                 )
-                }
+            }
             </BubbleContainer>
             <Modal
                 animationType="slide"
