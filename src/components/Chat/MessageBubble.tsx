@@ -7,7 +7,7 @@ import {acceptFriendRequest, rejectFriendRequest, sendFriendRequest} from "../..
 import Text from '../common/Text';
 
 interface MessageBubbleProps {
-    message: string;
+    message: any;
     datetime: string;
     isSelf: boolean;
     type?: string;
@@ -66,8 +66,29 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     const closeUserInfoModal = () => {
         setModalVisible(false);
     };
+    console.log("message", message)
 
-    const hasNewline = message.includes('\n');
+    const renderMessageContent = () => {
+        if (typeof message === 'string') {
+            return <Text variant="sub" style={{ color: "#444444" }}>{message}</Text>;
+        } else if (type === 'FILE' && message.preSignedUrl) {
+            console.log(message.preSignedUrl);
+            return (
+                <Image
+                    source={{ uri: message.preSignedUrl }}
+                    style={{ width: 200, height: 200, borderRadius: 10 }}
+                />
+            );
+        } else if (typeof message === 'object') {
+            // Handle other object types if necessary
+            return <Text variant="sub" style={{ color: "#444444" }}>{JSON.stringify(message)}</Text>;
+        } else {
+            return null;
+        }
+    };
+
+    // const hasNewline = message?.includes('\n');
+    // const isImageMessage = type === 'FILE';
 
     return (
         <Container isSelf={isSelf} notChat={type!=='CHAT'}>
@@ -93,13 +114,14 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                         <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
                     </AnnouncementMessageBubble>
                 ) : (
-                    <MessageContainer isSelf={isSelf} hasNewline={hasNewline} showProfileTime={showProfileTime}>
+                    <MessageContainer isSelf={isSelf} showProfileTime={showProfileTime}>
                         {isSelf && (<DateReadStatusContainer>
                                 <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt}</ReadStatus>
                                 {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
                         </DateReadStatusContainer>)}
-                        <MessageBubbleContent isSelf={isSelf} hasNewline={hasNewline}>
-                            <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
+                        <MessageBubbleContent isSelf={isSelf}>
+                        {renderMessageContent()}
+                            {/* <Text variant="sub" style={{color:"#444444"}}>{message}</Text> */}
                         </MessageBubbleContent>
                         {!isSelf && (<DateReadStatusContainer>
                             <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt}</ReadStatus>

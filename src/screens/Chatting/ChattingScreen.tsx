@@ -1,6 +1,6 @@
 // ChattingScreen.tsx
 import React, {useEffect, useState, useCallback, useRef, useMemo} from 'react';
-import { View, TextInput, ScrollView, StyleSheet, ActivityIndicator, Keyboard, AppState, AppStateStatus,  TouchableOpacity , Text as RNText} from 'react-native';
+import { View, TextInput, ScrollView, StyleSheet, ActivityIndicator, Keyboard, AppState, AppStateStatus,  TouchableOpacity , Text as RNText, Image} from 'react-native';
 import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRecoilValue } from "recoil";
 import { userInfoState } from "../../recoil/atoms";
@@ -38,7 +38,7 @@ import { axiosPost } from '../../axios/axios.method';
 import {urls} from "../../axios/config";
 import { AxiosResponse } from "axios";
 import { FileResponse } from "../../interfaces";
-
+import RNFS from "react-native-fs";
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -55,8 +55,10 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
     const [chatRoomType, setChatRoomType] = useState<string>('');
     const [username, setUsername] = useState<string>('');
     const [members, setMembers] = useState<chatRoomMember[]>([]);
+    const [selectedImage, setSelectedImage] = useState<any>(null);
 
     const otherIdRef = useRef<number | null>(null);
+    const chatMessageType = useRef('CHAT');
 
     useBackToScreen("로그인 성공", { screen: "채팅목록", params: { screen: "채팅 목록" } });
 
@@ -97,64 +99,71 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
             } else if (response.errorMessage) {
                 console.log('ImagePicker Error: ', response.errorMessage);
             } else if (response.assets && response.assets.length > 0) {
-                const selectedImage = response.assets[0]; 
-                const uri = response.assets[0].uri; // assets 여러개 중 0번방 꺼
-                // 선택된 이미지 서버로 전송
-                const { fileName, fileSize, type: contentType } = selectedImage;
-          
-                const uploadFileToServer = async () => {
-                try {
-                    console.log("파일 서버로 전송중..");
-                    const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}${chatRoomId}`,"파일 업로드",{
-                        fileName,
-                        fileSize,
-                        contentType
-                });
-    
-                    console.log("서버로 받은 데이터 : ", JSON.stringify(metadataResponse?.data?.data));
-                    const { fileId, presignedUrl } = metadataResponse?.data?.data;
-
-                    // 프리사인드 URL을 사용하여 S3에 파일 업로드
-                    const formData = new FormData();
-                    formData.append('file', {
-                        uri,
-                        type: contentType,
-                        name: fileName
-                    } as any);
-
-                    const uploadResponse = await fetch(presignedUrl, {
-                        method: 'PUT',
-                        body: formData,
-                    });
-                
-                    if (uploadResponse.ok) {
-                        console.log('S3 파일에 업로드 성공');
-                        console.log(uploadResponse);
-
-                        // 업로드된 파일 URL을 소켓 ?? 에 전송
-                        // await axios.post(`${urls.FILE_UPLOAD_COMPLETE_URL}`, {
-                        //     chatRoomId,
-                        //     fileId,
-                        //     fileUrl: presignedUrl.split('?')[0], // S3 파일 URL
-                        // });
-                        // WebSocketManager.sendMessage(chatRoomId, messageContent, 'FILE');
-
-                        console.log('소켓에 전송 완료');
-                    } else {
-                        console.log('실패');
-                    }
-
-                } catch (error) {
-                    console.error('Error 메시지: ', error);
-                }
-            };
-                uploadFileToServer();
-        
+                console.log("handleSelectImage")
+                setSelectedImage(response.assets[0]);
+                chatMessageType.current = 'FILE';
             }
         });
     };
 
-        // Set up WebSocket connection and message handling
+    const hadleUploadAndSend = async () => {
+        console.log("선택된 이미지 : ",selectedImage);
+        if (!selectedImage) {
+            sendMessage();
+            return; 
+        }
+        // const uri = response.assets[0].uri; // assets 여러개 중 0번방 꺼
+        const { uri, fileName, fileSize, type: contentType } = selectedImage;
+        
+        // 선택된 이미지 서버로 전송
+        try {
+            console.log("파일 서버로 전송중..");
+            const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}${chatRoomId}`,"파일 업로드",{
+                fileName,
+                fileSize,
+                contentType 
+        });
+
+        console.log("콘텐츠 타입 :",selectedImage.type);
+
+        console.log("서버로 받은 데이터 : ", JSON.stringify(metadataResponse?.data?.data));
+        const { fileId, presignedUrl } = metadataResponse?.data?.data;
+
+        // 프리사인드 URL을 사용하여 S3에 파일 업로드
+        const file = await fetch(uri);
+        const blob = await file.blob();
+          const uploadResponse = await fetch(presignedUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': selectedImage.type
+          },
+          body: blob
+        });
+    
+        if (uploadResponse.ok) {
+            console.log('S3 파일에 업로드 성공');
+            console.log(uploadResponse.url);
+
+            // 업로드된 파일 URL을 소켓 ?? 에 전송
+            const content = {
+                fileId: fileId,
+                fileUrl: uploadResponse.url
+            }
+            console.log("content", content)
+            WebSocketManager.sendMessage(chatRoomId, content, 'FILE');            
+
+            console.log('소켓에 전송 완료');
+            setSelectedImage(null);
+        } else {
+            console.log('실패');
+        }
+
+        } catch (error) {
+            console.error('Error 메시지: ', error);
+        }
+    };
+
+    // Set up WebSocket connection and message handling
     const setupWebSocket = async () => {
         try {
             const accessToken = loginMMKVStorage.getString('login.accessToken');
@@ -170,12 +179,14 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                         if (parsedMessage.type === 'FRIEND_REQUEST' && parsedMessage.content === '친구가 되었습니다!\n대화를 이어가보세요.') {
                             updateRoomInfo();
                         }
+
                         // 5분 지났으면 채팅방 타입 다시로드
                         if (parsedMessage.type === 'TIMEOUT' && parsedMessage.senderId === 0 && chatRoomType !== 'FRIEND') {
                             setChatRoomType('WAITING');
                         }
 
                         setMessages((prevMessages) => [...prevMessages, parsedMessage]);
+                        console.log("setMessage", parsedMessage)
                         saveChatMessages(chatRoomId, [parsedMessage])
                         scrollViewRef.current?.scrollToEnd({ animated: true });
 
@@ -300,10 +311,19 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
 
 
     const sendMessage = () => {
-        if (chatRoomType === 'WAITING') return;
-        WebSocketManager.sendMessage(chatRoomId, messageContent, 'CHAT');
-        setMessageContent('');
+        if (chatRoomType === 'WAITING') 
+            return;
+        else if (chatMessageType.current == 'CHAT') {
+            WebSocketManager.sendMessage(chatRoomId, messageContent, 'CHAT');
+            setMessageContent('');
+        }else {
+            hadleUploadAndSend();
+        }
     };
+
+    
+
+
 
     const toggleModal = () => {
         setIsModalVisible(!isModalVisible);
@@ -394,7 +414,13 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                 <View style={chatRoomType !== 'WAITING' ? styles.inputContainer : styles.disabledInputContainer}>
                      <TouchableOpacity onPress={handleSelectImage} style={styles.imagePickerButton}>
                             <Text style={styles.addButtonText}>+</Text>
-                        </TouchableOpacity>  
+                        </TouchableOpacity> 
+                    {selectedImage && (
+                        <Image
+                          source={{uri:selectedImage.uri}}
+                          style={{width:50, height: 50, marginRight: 10}}
+                        />
+                    )} 
                     <TextInput
                         style={styles.input}
                         value={messageContent}
@@ -409,7 +435,9 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                         <ImageTextButton
                             onPress={sendMessage}
                             iconSource={require('../../assets/Icons/sendMsgIcon.png')}
-                            disabled={chatRoomType === 'WAITING' || messageContent === ''}
+                            // disabled={chatRoomType === 'WAITING' || messageContent === ''}
+                            disabled={chatRoomType === 'WAITING'}
+
                             imageStyle={{ height: 15, width: 15 }}
                             containerStyle={{ paddingRight: 15 }}
                         />

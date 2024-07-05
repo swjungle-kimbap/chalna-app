@@ -87,3 +87,8 @@ export interface JoinLocalChatResponse {
   data: LocalChat,
   message: string
 }
+
+export interface FileResponse {
+  fileId: number,
+  presignedUrl:string
+}
