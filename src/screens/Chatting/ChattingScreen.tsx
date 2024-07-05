@@ -142,14 +142,14 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
     
         if (uploadResponse.ok) {
             console.log('S3 파일에 업로드 성공');
-            console.log(uploadResponse.url);
+            console.log('S3 업로드하고 진짜 자기 파일 url : ',uploadResponse.url);
 
             // 업로드된 파일 URL을 소켓 ?? 에 전송
             const content = {
                 fileId: fileId,
                 fileUrl: uploadResponse.url
             }
-            console.log("content", content)
+            console.log("fileId랑 진짜 자기 파일 url : ", content)
             WebSocketManager.sendMessage(chatRoomId, content, 'FILE');            
 
             console.log('소켓에 전송 완료');
