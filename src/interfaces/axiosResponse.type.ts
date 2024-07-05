@@ -67,7 +67,14 @@ export interface JoinLocalChatResponse {
   message: string
 }
 
+
+export interface FileResponse {
+  fileId: number,
+  presignedUrl:string
+}
+
 export interface SendMatchResponse {
   sendCount: number
 }
+
 

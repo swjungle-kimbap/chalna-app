@@ -1,6 +1,8 @@
-import React from 'react';
+import React , { useState }  from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import * as ImagePicker from 'react-native-image-picker';
 import { Swipeable } from 'react-native-gesture-handler';
+
 
 interface ChatRoomCardProps {
     numMember: number;
@@ -18,6 +20,7 @@ const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     return `${date.getHours()}:${date.getMinutes() < 10 ? '0' : ''}${date.getMinutes()}`;
 };
+
 
 const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
                                                        lastMsg, lastUpdate, usernames
