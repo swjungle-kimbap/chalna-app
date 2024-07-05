@@ -50,6 +50,7 @@
     "react-native-screens": "^3.32.0",
     "react-native-uuid": "^2.0.2",
     "recoil": "^0.7.7",
+    "rn-fetch-blob": "^0.12.0",
     "socket.io-client": "^4.7.5",
     "sockjs-client": "^1.6.1",
     "styled-components": "^5.3.6",
