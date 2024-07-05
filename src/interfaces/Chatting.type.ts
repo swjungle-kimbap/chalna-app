@@ -1,7 +1,7 @@
 export type ChatMessage = {
     id: number;
     type: string;
-    content: string;
+    content: string | any;
     senderId: number;
     unreadCount: number;
     createdAt: string;

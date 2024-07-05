@@ -1,11 +1,12 @@
-import {ChatRoomLocal, ChatMessage, directedChatMessage} from "../interfaces/Chatting.type";
-import { userMMKVStorage } from "../utils/mmkvStorage";
-import { ChatFCM } from "../interfaces/ReceivedFCMData.type";
-import { chatRoomMemberImage } from '../interfaces/Chatting.type';
+import {ChatRoomLocal, ChatMessage, directedChatMessage} from "../../interfaces/Chatting.type";
+import { userMMKVStorage } from "../../utils/mmkvStorage";
+import { ChatFCM } from "../../interfaces/ReceivedFCMData.type";
+import { chatRoomMemberImage } from '../../interfaces/Chatting.type';
+
 
 // Save chat room list
 export const saveChatRoomList = (chatRooms: ChatRoomLocal[]) => {
-    console.log('setChatRoomList loacl');
+    // console.log('setChatRoomList loacl');
     const currentChatRooms = getChatRoomList();
     if (JSON.stringify(currentChatRooms) !== JSON.stringify(chatRooms)) {
         userMMKVStorage.set('chatRoomList', JSON.stringify(chatRooms));
@@ -14,7 +15,7 @@ export const saveChatRoomList = (chatRooms: ChatRoomLocal[]) => {
 
 // Retrieve chat room list
 export const getChatRoomList = (): ChatRoomLocal[] | null => {
-    console.log('getChatRoomList loacl');
+    // console.log('getChatRoomList loacl');
     const chatRoomListString = userMMKVStorage.getString('chatRoomList');
     return chatRoomListString ? JSON.parse(chatRoomListString) : null;
 };
@@ -37,13 +38,13 @@ export const saveChatRoomInfo = (chatRoom: ChatRoomLocal) => {
 
         const updatedChatRooms = chatRooms.map(room => room.id === chatRoom.id ? updatedChatRoom : room);
         saveChatRoomList(updatedChatRooms);
+
     } else {
         // If chat room doesn't exist, add it
         const updatedChatRooms = [...chatRooms, chatRoom];
         saveChatRoomList(updatedChatRooms);
     }
 };
-
 
 // Retrieve a single chat room info
 export const getChatRoomInfo = (chatRoomId: number): ChatRoomLocal | null => {
@@ -53,19 +54,19 @@ export const getChatRoomInfo = (chatRoomId: number): ChatRoomLocal | null => {
 };
 
 
-
 // Remove a chat room from storage
 export const removeChatRoom = (chatRoomId: number) => {
+    // Remove associated chat messages
+    removeChatMessages(chatRoomId.toString());
     // Retrieve the current chat room list
     const chatRoomList = getChatRoomList();
     if (chatRoomList) {
         // Filter out the chat room to be removed
         const updatedChatRoomList = chatRoomList.filter(room => room.id !== chatRoomId);
         // Save the updated chat room list back to storage
-        saveChatRoomList(updatedChatRoomList);
+        userMMKVStorage.set('chatRoomList', JSON.stringify(updatedChatRoomList));
     }
-    // Remove associated chat messages
-    removeChatMessages(chatRoomId.toString());
+
 };
 
 
@@ -86,11 +87,65 @@ export const getChatMessages = (chatRoomId: string): directedChatMessage[] | nul
     return messagesString ? JSON.parse(messagesString) : null;
 };
 
+// Retrieve the last inserted message for a specific chat room
+export const getLastInsertedMessage = (chatRoomId: string): directedChatMessage | null => {
+    console.log('get last inserted message');
+    const messages = getChatMessages(chatRoomId);
+    if (!messages || messages.length === 0) {
+        return null;
+    }
+
+    // Return the last message in the array
+    const lastMessage = messages[messages.length - 1];
+    return lastMessage;
+};
+
+
+// Reset unread count for a specific chat room ===============================
+export const resetUnreadCountForChatRoom = (chatRoomId: number) => {
+    console.log('reset unread count for chat room');
+    const chatRooms = getChatRoomList();
+    if (!chatRooms || chatRooms.length === 0) {
+        return;
+    }
+
+    const updatedChatRooms = chatRooms.map(chatRoom => {
+        if (chatRoom.id === chatRoomId) {
+            return { ...chatRoom, unreadMessageCount: 0 };
+        }
+        return chatRoom;
+    });
+
+    saveChatRoomList(updatedChatRooms);
+};
+
+
 // Remove chat messages for a specific chat room
 export const removeChatMessages = (chatRoomId: string) => {
     userMMKVStorage.delete(`chatMessages_${chatRoomId}`);
 };
 
+
+
+export const decrementUnreadCountBeforeTimestamp = (chatRoomId: string, timestamp: string) => {
+    console.log('decrement unread count before timestamp');
+    const messages = getChatMessages(chatRoomId);
+    if (messages) {
+        let messagesChanged = false;
+
+        const updatedMessages = messages.map(message => {
+            if (message.createdAt < timestamp && message.unreadCount > 0) {
+                messagesChanged = true;
+                return { ...message, unreadCount: message.unreadCount - 1 };
+            }
+            return message;
+        });
+
+        if (messagesChanged) {
+            userMMKVStorage.set(`chatMessages_${chatRoomId}`, JSON.stringify(updatedMessages));
+        }
+    }
+};
 
 export const createChatRoomLocal = (fcmData: ChatFCM): ChatRoomLocal => {
     const chatRoomMemberImage: chatRoomMemberImage = {
@@ -123,3 +178,4 @@ export const createChatRoomLocal = (fcmData: ChatFCM): ChatRoomLocal => {
         updatedAt: new Date().toISOString() // Assuming the current time as updatedAt
     };
 }
+

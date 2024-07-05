@@ -7,17 +7,24 @@ import { useRecoilValue } from "recoil";
 import { LoginResponse } from "../../interfaces";
 import { userInfoState } from "../../recoil/atoms";
 import {ChatRoom, ChatRoomLocal} from "../../interfaces/Chatting.type";
-import { fetchChatRoomList } from "../../service/Chatting/chattingAPI";
+import { fetchChatRoomList, deleteChat } from "../../service/Chatting/chattingAPI";
 import BackgroundTimer from 'react-native-background-timer';
-import { saveChatRoomList, getChatRoomList } from '../../localstorage/mmkvStorage';
+import {saveChatRoomList, getChatRoomList, removeChatRoom} from '../../service/Chatting/mmkvChatStorage';
 
 const ChattingListScreen = ({ navigation }) => {
-    const [chatRooms, setChatRooms] = useState<ChatRoomLocal[]>([]);
+    const [chatRooms, setChatRooms] = useState<ChatRoomLocal[]>(getChatRoomList()||[]);
     const [loading, setLoading] = useState(true);
     const isFocused = useIsFocused();
     const intervalId = useRef<NodeJS.Timeout | null>(null);
 
     const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
+
+    const handleDeleteChatRoom = (chatRoomId: number) => {
+        deleteChat('none', String(chatRoomId));
+        removeChatRoom(chatRoomId);
+        setChatRooms(getChatRoomList);
+        console.log("chat room list from local storage: ", getChatRoomList());
+    };
 
     const fetchChatRooms = async () => {
         try {
@@ -131,6 +138,7 @@ const ChattingListScreen = ({ navigation }) => {
                                 chatRoomId={item.id}
                                 numMember={item.memberCount}
                                 unReadMsg={item.unreadMessageCount}
+                                onDelete={handleDeleteChatRoom}
                             />
                         );
                     }}
