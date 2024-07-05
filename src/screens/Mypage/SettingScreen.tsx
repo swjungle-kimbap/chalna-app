@@ -8,6 +8,8 @@ import { axiosPatch } from "../../axios/axios.method";
 import { urls } from "../../axios/config";
 import { userMMKVStorage } from "../../utils/mmkvStorage";
 import { useMMKVBoolean } from "react-native-mmkv";
+import { useRecoilState } from "recoil";
+import { FlyingModeState } from "../../recoil/atoms";
 
 type SettingScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, '키워드 알림 설정' | '방해금지 시간 설정'>
@@ -21,6 +23,7 @@ const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
   const [isMatchAlarm, setIsMatchAlarm] = useMMKVBoolean('mypage.isMatchAlarm', userMMKVStorage);
   const [alarmSound, setAlarmSound] = useMMKVBoolean('mypage.alarmSound', userMMKVStorage);
   const [alarmVibration, setAlarmVibration] = useMMKVBoolean('mypage.alarmVibration', userMMKVStorage);
+  const [flyingMode, setFlyingMode] = useRecoilState(FlyingModeState);
   const [isdisable , setIsdisable] = useState(false);
   
   useEffect(() => {
@@ -94,6 +97,9 @@ const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
           <View style={styles.otherimagePos} >
             <Image source={require(MoveButtonUrl)} />
           </View>
+        </InlineButton>
+        <InlineButton text="슈퍼맨 모드" textstyle={{paddingTop: 10}} horizon='top'>
+          <Toggle value={flyingMode} toggleHandler={(value)=>setFlyingMode(value)} /> 
         </InlineButton>
       </View>
     </View>
