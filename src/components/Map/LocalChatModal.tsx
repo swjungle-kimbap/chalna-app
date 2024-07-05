@@ -62,6 +62,8 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
                   onPress={() => {const success = makeLocalChat(name, description, currentLocation)
                      if (success) {
                       setPostSuccess(!postSuccess);
+                      setName("");
+                      setDescription("");
                       closeModal();
                      }
                   }}

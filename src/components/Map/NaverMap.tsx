@@ -1,44 +1,77 @@
 import { NaverMapView, NaverMapMarkerOverlay, NaverMapCircleOverlay, NaverMapViewRef } from "@mj-studio/react-native-naver-map";
-import { isNearbyState, showMsgBoxState } from "../../recoil/atoms";
+import { FlyingModeState, isNearbyState, showMsgBoxState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useEffect, useRef } from "react";
 import Geolocation from "react-native-geolocation-service";
-import requestPermissions from "../../utils/requestPermissions";
 import { Alert } from "react-native";
-import { useStartWatchingPosition } from "../../hooks/useStartWatchingPosition";
-import { PERMISSIONS } from "react-native-permissions";
+import { openSettings, PERMISSIONS } from "react-native-permissions";
 import { IsNearbyState } from "../../recoil/atomtypes";
 import LocalChatButton from "./LocalChatButton";
 import LocalChatMarkerOverlay from "./LocalChatMarkerOverlay";
 import { locationState } from "../../recoil/atoms";
 import { Position } from '../../interfaces';
 import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
+import requestPermissions from "../../utils/requestPermissions";
+import ArrowButton from "./ArrowButton";
 
 export const NaverMap: React.FC = ({}) => {
-  const currentLocation = useRecoilValue<Position>(locationState);
+  const [currentLocation, setCurrentLocation] = useRecoilState<Position>(locationState);
   const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
   const nearbyInfo = useRecoilValue<IsNearbyState>(isNearbyState);
   const mapViewRef = useRef<NaverMapViewRef>(null);
-  const watchIdRef = useRef(0);
-  const startWatchingPosition = useStartWatchingPosition();
+  const flyingMode = useRecoilValue(FlyingModeState);
+  const watchId = useRef<number | null>(null);
+  
   useChangeBackgroundSave<Position>('map.lastLocation', currentLocation);
 
   useEffect(() => {
-    if (mapViewRef.current) {
-      mapViewRef.current.setLocationTrackingMode("Face");
-    }
-
-    requestPermissions([PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION]).then((granted) => {
+    const startWatchPosition = async () => {
+      const granted = await requestPermissions([PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION])
       if (granted) {
-        watchIdRef.current = startWatchingPosition();
+        watchId.current = Geolocation.watchPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            setCurrentLocation({ latitude, longitude });
+            console.log(position.coords);
+          },
+          (e) => {
+            Alert.alert(
+              "GPS 필요",
+              "GPS가 필요한 서비스 입니다. GPS를 켜주세요",
+              [
+                { text: "설정", onPress: () => openSettings()},
+                { text: "취소", onPress: () => {}, style: "cancel" } // 지도 채팅방 나가기, 지도 정보 확인 불가
+              ]
+            );
+          },
+          { 
+            accuracy: { android: "high" },
+            interval: 3000,
+            distanceFilter: 1,
+            enableHighAccuracy: true,
+            showLocationDialog: true,
+          }
+        );
+    }}
+    
+    if (!flyingMode) {
+      startWatchPosition();
+      if (mapViewRef.current) {
+        mapViewRef.current.setLocationTrackingMode("Face");
       }
-    });
-    return () => {
-      if (watchIdRef.current)
-        Geolocation.clearWatch(watchIdRef.current);
+    } else {
+      Geolocation.clearWatch(watchId.current);
+      Geolocation.stopObserving();
+      if (mapViewRef.current) {
+        mapViewRef.current.setLocationTrackingMode("NoFollow");
+      }
     }
-  }, []);
+  }, [flyingMode]);
   
+  const cameraMove = (newLocation) => {
+    mapViewRef.current.animateCameraTo({...newLocation, zoom:16});
+  };
+
   return (
   <>
     <NaverMapView
@@ -74,6 +107,9 @@ export const NaverMap: React.FC = ({}) => {
         <LocalChatMarkerOverlay />
     </NaverMapView>
     <LocalChatButton />
+    {flyingMode && (
+      <ArrowButton cameraMove = {cameraMove} />
+    )}
   </>
 );
 }

@@ -1,7 +1,7 @@
-import {ChatRoomLocal, ChatMessage, directedChatMessage} from "../../interfaces/Chatting.type";
-import { userMMKVStorage } from "../../utils/mmkvStorage";
-
-
+import {ChatRoomLocal, ChatMessage, directedChatMessage} from "../interfaces/Chatting.type";
+import { userMMKVStorage } from "../utils/mmkvStorage";
+import { ChatFCM } from "../interfaces/ReceivedFCMData.type";
+import { chatRoomMemberImage } from '../interfaces/Chatting.type';
 
 
 // Save chat room list
@@ -126,6 +126,7 @@ export const removeChatMessages = (chatRoomId: string) => {
 };
 
 
+
 export const decrementUnreadCountBeforeTimestamp = (chatRoomId: string, timestamp: string) => {
     console.log('decrement unread count before timestamp');
     const messages = getChatMessages(chatRoomId);
@@ -145,3 +146,36 @@ export const decrementUnreadCountBeforeTimestamp = (chatRoomId: string, timestam
         }
     }
 };
+
+export const createChatRoomLocal = (fcmData: ChatFCM): ChatRoomLocal => {
+    const chatRoomMemberImage: chatRoomMemberImage = {
+        memberId: Number(fcmData.senderId),
+        username: fcmData.senderName,
+        profile: "", // Assuming you have a way to get the profile URL
+        statusMsg: "" // Assuming you have a way to get the status message
+    };
+
+    const chatMessage: ChatMessage = {
+        id: Date.now(), // Generate a unique ID for the message
+        type: fcmData.messageType,
+        content: fcmData.message,
+        senderId: Number(fcmData.senderId),
+        unreadCount: 0, // Assuming no unread count initially
+        createdAt: fcmData.createdAt
+    };
+
+    return {
+        id: Number(fcmData.chatRoomId),
+        type: fcmData.chatRoomType,
+        members: [chatRoomMemberImage],
+        recentMessage: chatMessage,
+        messages: [{
+            ...chatMessage,
+            isSelf: false, // Assuming the message is sent by the current user
+            formatedTime: new Date(fcmData.createdAt).toLocaleString() // Format the time as needed
+        }],
+        createdAt: new Date().toISOString(), // Assuming the current time as createdAt
+        updatedAt: new Date().toISOString() // Assuming the current time as updatedAt
+    };
+}
+
