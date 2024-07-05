@@ -37,7 +37,11 @@ export const withdrawlAlert = () => {
         text: '탈퇴',
         onPress: async () => {
           // await axiosPost(urls.WITHDRAWAL_URL, "회원 탈퇴");
+          loginMMKVStorage.delete("loginToken");
+          loginMMKVStorage.delete("accessToken");
+          loginMMKVStorage.delete("refreshToken");
           userMMKVStorage.clearAll();
+          navigate("로그인")
           console.log('user Storage 데이터 전부 삭제 완료');
         },
         style: 'default'
@@ -67,5 +71,6 @@ export const initUserSetting = () => {
     userMMKVStorage.set('bluetooth.scanMode', 1);
     userMMKVStorage.set('bluetooth.numberOfMatches', 3);
     userMMKVStorage.set('bluetooth.rssivalue', -100);
+    userMMKVStorage.set('matchFCMStorage', JSON.stringify([]));
   }
 }
