@@ -119,7 +119,7 @@ const BluetoothSettingScreen: React.FC = () => {
             <Slider
               style={{ width: 200, height: 40 }}
               minimumValue={-100}
-              maximumValue={-70}
+              maximumValue={-60}
               step={5}
               value={RSSIvalue}
               onValueChange={value => setRSSIvalue(value)}

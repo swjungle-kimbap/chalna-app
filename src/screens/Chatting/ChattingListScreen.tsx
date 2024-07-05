@@ -58,13 +58,14 @@ const ChattingListScreen = ({ navigation }) => {
             }
         };
 
-        const storedChatRooms = getChatRoomList();
-        if (storedChatRooms) {
-            setChatRooms(storedChatRooms);
-            setLoading(false);
-        } else {
+        // const storedChatRooms = getChatRoomList();
+        // if (storedChatRooms) {
+        //     setChatRooms(storedChatRooms);
+        //     setLoading(false);
+        // } else {
+            // }
             fetchChatRooms();
-        }
+        
 
         if (isFocused) {
             startPolling();
@@ -131,7 +132,7 @@ const ChattingListScreen = ({ navigation }) => {
                         return (
                             <ChatRoomCard
                                 usernames={getDisplayName(item)}
-                                lastMsg={item.recentMessage?.content || " "}
+                                lastMsg={item.recentMessage ? (item.recentMessage.type == "FILE" ? "사진": item.recentMessage.content) : ""}
                                 lastUpdate={item.recentMessage?.createdAt || " "}
                                 navigation={navigation}
                                 chatRoomType={item.type}

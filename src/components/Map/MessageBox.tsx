@@ -11,13 +11,14 @@ import requestPermissions from '../../utils/requestPermissions';
 import requestBluetooth from '../../utils/requestBluetooth';
 import { PERMISSIONS } from 'react-native-permissions';
 import { isNearbyState } from "../../recoil/atoms";
-import { SavedMessageData, SendMsgRequest } from '../../interfaces';
+import { AxiosResponse, SavedMessageData, SendMatchResponse, SendMsgRequest } from '../../interfaces';
 import { axiosPost } from '../../axios/axios.method';
 import BleButton from './BleButton';
 import { urls } from '../../axios/config';
 import useBackground from '../../hooks/useBackground';
 import { getMMKVObject, userMMKVStorage } from '../../utils/mmkvStorage';
 import RssiTracking from './RssiTracking';
+import { useMMKVBoolean, useMMKVNumber, useMMKVString } from 'react-native-mmkv';
 
 interface BleScanInfo {
   advFlag: number,
@@ -39,67 +40,44 @@ const requiredPermissions = [
 const uuidSet = new Set<string>(); 
 const uuidTime = new Map(); 
 const uuidTimeoutID = new Map();
-const scanDelayedTime = 5 * 1000;
+const scanDelayedTime = 6 * 1000;
 const sendDelayedTime = 60 * 1000;
 
 const MessageBox: React.FC = ()  => {
   const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
-  const [msgText, setMsgText] = useState('안녕하세요!');
   const [nearInfo, setNearInfo] = useRecoilState(isNearbyState);
   const isRssiTracking = useRecoilValue(isRssiTrackingState);
-  const [isScanning, setIsScanning] = useState(false);
-  const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
-  const [isBlocked, setIsBlocked] = useState<boolean>(false);
   const deviceUUID = useRecoilValue(DeviceUUIDState);
-  const msgTextRef = useRef(msgText);
-  const blockedTimeRef = useRef<number>(0);
+  const [msgText, setMsgText] = useMMKVString("map.msgText", userMMKVStorage);
+  const [isScanning, setIsScanning] = useMMKVBoolean("map.isScanning", userMMKVStorage);
+  const [isBlocked, setIsBlocked] = useMMKVBoolean("map.isBlocked", userMMKVStorage);
+  const [blockedTime, setBlockedTime] = useMMKVNumber("map.blockedTime", userMMKVStorage);
+  const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const sendCountsRef = useRef(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
   const [showTracking, setShowTracking] = useState(false);
   const [rssiMap, setRssiMap] = useState<Map<string, number>>(null);
-  const sendCountsRef = useRef(0);
-
-  const fetchSavedData = () => {
-    const savedData = getMMKVObject<SavedMessageData>("map.savedMessageData");
-    console.log(savedData, "in messagebox");
-    if (savedData?.msgText) setMsgText(savedData.msgText);
-    if (savedData?.isScanning) {
-      setIsScanning(true);
+  
+  useEffect(()=> {
+    if (isScanning) {
       ScanNearbyAndPost(deviceUUID, handleSetIsNearby);
     }
-    if (savedData?.isBlocked) {
-      const restBlockedTime = sendDelayedTime - (Date.now() - savedData.blockedTime);
-      console.log("restBlockedTime", restBlockedTime);
+    if (isBlocked) {
+      const restBlockedTime = sendDelayedTime - (Date.now() - blockedTime);
       if (restBlockedTime > 0) {
         setIsBlocked(true);
         setTimeout(() => setIsBlocked(false), restBlockedTime);
-        blockedTimeRef.current = savedData.blockedTime;
-      } 
-    }
-  };
-  
-  useEffect(()=> {
-    fetchSavedData();
-  }, []);
-
-  useEffect(() => {
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (nextAppState === 'active') {
-        fetchSavedData();
+      } else {
+        setIsBlocked(false);
       }
-    };
-
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-    return () => {
-      subscription.remove();
-    };
+    }
   }, []);
 
   const updateRssi = (uuid: string, rssi: number) => {
     setRssiMap(prevMap => {
-      // 기존 Map을 복사
       const newMap = new Map(prevMap);
-      // 새로운 값으로 갱신
       newMap.set(uuid, rssi);
       return newMap;
     });
@@ -110,19 +88,18 @@ const MessageBox: React.FC = ()  => {
     if (isRssiTracking)
       updateRssi(uuid, event.rssi);
 
-    if (nearInfo.lastMeetTime + scanDelayedTime - 1000 < currentTime) {
-      setNearInfo({isNearby: true, lastMeetTime: currentTime});
-      if (timeoutIdRef.current) {
-        clearTimeout(timeoutIdRef.current);
-      }
-
-      timeoutIdRef.current = setTimeout(() => {
-        setNearInfo(prevNearInfo => ({
-          ...prevNearInfo,
-          isNearby: false
-        }));
-      }, scanDelayedTime)
+    setNearInfo({isNearby: true, lastMeetTime: currentTime});
+    if (timeoutIdRef.current) {
+      clearTimeout(timeoutIdRef.current);
     }
+
+    timeoutIdRef.current = setTimeout(() => {
+      setNearInfo(prevNearInfo => ({
+        ...prevNearInfo,
+        isNearby: false
+      }));
+    }, scanDelayedTime)
+    
 
     if (isBlocked) {
       if (uuidSet.size > 0) {
@@ -136,11 +113,8 @@ const MessageBox: React.FC = ()  => {
       return;
     }
 
-    // 마지막 1초 남았을 때만 update
     if (!uuidSet.has(uuid)) {
       uuidSet.add(uuid);
-    } else if (uuidTime[uuid] + scanDelayedTime - 1000 > currentTime){
-      return;
     } else {
       if (uuidTimeoutID[uuid]) {
         clearTimeout(uuidTimeoutID[uuid]);
@@ -174,7 +148,7 @@ const MessageBox: React.FC = ()  => {
         }
       }
     });
-  }, [isBlocked])
+  }, [isScanning, isBlocked, isRssiTracking])
 
   const startScan = async () => {
     if (!isScanning) {
@@ -220,10 +194,11 @@ const MessageBox: React.FC = ()  => {
   };
   
   const sendMsg = async ( uuids:Set<string>) => {
-    await axiosPost(urls.SEND_MSG_URL, "인연 보내기", {
+    const response = await axiosPost<AxiosResponse<SendMatchResponse>>(urls.SEND_MSG_URL, "인연 보내기", {
       deviceIdList: Array.from(uuids),
       message: msgText,
     } as SendMsgRequest)
+    sendCountsRef.current = response.data.data.sendCount;
   }  
 
   const handleSendingMessage = async () => {
@@ -246,11 +221,10 @@ const MessageBox: React.FC = ()  => {
     } else if (!nearInfo.isNearby || !uuidSet) {
       Alert.alert('주위 인연이 없습니다.', '새로운 인연을 만나기 전까지 기다려주세요!');
     } else {
-      sendCountsRef.current = uuidSet.size;
-      sendMsg(uuidSet);
+      await sendMsg(uuidSet);
 
       setIsBlocked(true);
-      blockedTimeRef.current = Date.now();
+      setBlockedTime(Date.now());
       setTimeout(() => {
         setIsBlocked(false);
       }, sendDelayedTime);
@@ -260,20 +234,13 @@ const MessageBox: React.FC = ()  => {
   }
 
   const checkvalidInput = () => {
-    if (!isScanning && msgTextRef.current.length < 5) {
+    if (!isScanning && msgText.length < 5) {
       Alert.alert('내용을 더 채워 주세요', '5글자 이상 입력해 주세요!');
       return false;
     } else {
       return true;
     }
   };
-
-  useBackground({
-    msgText,
-    isScanning,
-    isBlocked,
-    blockedTime : blockedTimeRef.current
-  });
 
   const fadeInAndMoveUp = () => {
     fadeAnim.setValue(0);
