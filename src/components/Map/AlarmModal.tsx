@@ -1,31 +1,33 @@
-import { axiosGet, axiosPut } from '../../axios/axios.method';
-import { AlarmItem, AlarmListResponse } from '../../interfaces';
+import { axiosPut } from '../../axios/axios.method';
 import AlarmCardRender from './AlarmCardRender';
-import { FlatList, Modal, StyleSheet, TouchableWithoutFeedback, View, AppState, AppStateStatus }from 'react-native';
-import { useCallback, useState, useEffect, useRef } from 'react';
+import { FlatList, Modal, StyleSheet, TouchableWithoutFeedback, View }from 'react-native';
+import { useCallback, useState, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/core';
-import { useIsFocused } from '@react-navigation/native';
 import Button from '../common/Button';
 import { useRecoilState } from 'recoil';
 import { AlarmCountState } from '../../recoil/atoms';
-import BackgroundTimer from 'react-native-background-timer';
 import {urls} from "../../axios/config";
+import { userMMKVStorage } from '../../utils/mmkvStorage';
+import { MatchFCM } from '../../interfaces/ReceivedFCMData.type';
+import { useMMKVObject } from 'react-native-mmkv';
 
 export interface AlarmModalProps{
   closeModal: () => void,
   modalVisible: boolean,
-  notificationId: number,
+  notificationId: string,
 }
 
 const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notificationId}) => {
-  const [expandedCardId, setExpandedCardId] = useState<number>(notificationId);
-  const [alarms, setAlarms] = useState<AlarmItem[]>([]);
+  const [expandedCardId, setExpandedCardId] = useState<string>(notificationId);
   const [alarmCnt, setAlarmCnt] = useRecoilState(AlarmCountState);
-  const isFocused = useIsFocused(); // 화면 포커스 상태 가져오기
-  const intervalId = useRef<NodeJS.Timeout | null>(null);
+  const [FCMalarms, setFCMAlarms] = useMMKVObject<MatchFCM[]>("matchFCMStorage", userMMKVStorage);
 
-  const handleCardPress = (notificationId: number) => {
-    setExpandedCardId(expandedCardId === notificationId ? 0 : notificationId);
+  useEffect(() => {
+    setAlarmCnt(FCMalarms.length);
+  }, [FCMalarms]);
+  
+  const handleCardPress = (notificationId: string) => {
+    setExpandedCardId(expandedCardId === notificationId ? "" : notificationId);
   };
 
   useFocusEffect(
@@ -34,76 +36,23 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
     }, [])
   );
 
-  const fetchAlarms = async () => {
-    const response = await axiosGet<AlarmListResponse>(
-      urls.GET_MSG_LIST_URL, "알림 조회", null, false); // Adjust as necessary
-    if (response) {
-      const fetchedData = response.data; // Adjust as necessary
-      setAlarms(fetchedData.data);
-      setAlarmCnt(fetchedData.data?.length);
-    }
-  }
-
-  useEffect(() => {
-    const startPolling = () => {
-      intervalId.current = BackgroundTimer.setInterval(async () => {
-        try {
-          fetchAlarms();
-        } catch (error) {
-          console.error('Error fetching alarm data:', error);
-        }
-      }, 3000);
-    };
-
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (nextAppState !== 'active') {
-        // 앱이 background 상태로 변경될 때 polling 중지
-        if (intervalId.current !== null) {
-          BackgroundTimer.clearInterval(intervalId.current);
-          intervalId.current = null;
-        }
-      } if (nextAppState === 'active') {
-        startPolling();
-      }
-    };
-
-    fetchAlarms();
-    if (isFocused) {
-      startPolling();
-      const subscription = AppState.addEventListener('change', handleAppStateChange);
-      return () => {
-        if (intervalId.current !== null) {
-          BackgroundTimer.clearInterval(intervalId.current);
-          intervalId.current = null;
-        }
-        subscription.remove();
-      };
-    } else {
-      // 화면 focus를 잃으면 polling 중지
-      if (intervalId.current !== null) {
-        BackgroundTimer.clearInterval(intervalId.current);
-        intervalId.current = null;
-      }
-    }
-  }, [isFocused]);
-
-  const removeAlarmItem = (notificationId:number, DeleteAll = false) => {
+  const removeAlarmItem = (notificationId:string, DeleteAll = false) => {
     if (DeleteAll) {
-      setAlarms([]);
+      setFCMAlarms([]);
       setAlarmCnt(0);
-    } else if (alarms) {
-      const newAlarmList = alarms.filter(item => item.notificationId !== notificationId);
-      setAlarms(newAlarmList);
+    } else if (FCMalarms) {
+      const newAlarmList = FCMalarms.filter(item => item.id !== notificationId);
+      setFCMAlarms(newAlarmList);
       setAlarmCnt((prev) => prev-1);
     }
   }
 
   const handleAllDeleteAlarm = async () => {
-    removeAlarmItem(0, true);
+    removeAlarmItem("", true);
     await axiosPut(urls.DELETE_ALL_MSG_URL, "인연 알림 모두 지우기");
   }
 
-  const renderAlarmCard = ({ item }: { item: AlarmItem }) => (
+  const renderAlarmCard = ({ item }: { item: MatchFCM }) => (
     <AlarmCardRender
       item={item}
       expandedCardId={expandedCardId}
@@ -124,8 +73,8 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
           <TouchableWithoutFeedback>
             <View style={styles.modalpos}>
               <FlatList
-                data={alarms}
-                keyExtractor={(item) => item.notificationId.toString()}
+                data={FCMalarms}
+                keyExtractor={(item) => item.id}
                 renderItem={renderAlarmCard}
               />
               {alarmCnt === 0 ? <></> :

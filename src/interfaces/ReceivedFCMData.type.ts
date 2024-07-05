@@ -14,4 +14,5 @@ export interface MatchFCM {
   receiverId: string,
   message: string,
   createdAt: string
+  overlapCount: string,
 }

@@ -8,7 +8,7 @@ import { AlarmCountState } from '../../recoil/atoms';
 import Text from '../common/Text';
 
 interface AlarmButtonPrams {
-  notificationId : number
+  notificationId : string
 }
 
 const AlarmButton : React.FC<AlarmButtonPrams> = ({notificationId}) => {

@@ -5,7 +5,7 @@ import MessageBox from "../../components/Map/MessageBox";
 interface MapPrams {
   route: {
     params?: {
-      notificationId? : number;
+      notificationId? : string;
     }
   }
 }
