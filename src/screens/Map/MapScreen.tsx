@@ -11,7 +11,7 @@ interface MapPrams {
 }
 
 const MapScreen: React.FC<MapPrams> = ({ route }) => {
-  const { notificationId = -1 } = route.params ?? {};
+  const { notificationId = "" } = route.params ?? {};
   return (
     <>
       <AlarmButton notificationId={notificationId} />
