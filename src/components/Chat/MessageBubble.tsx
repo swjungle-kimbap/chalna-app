@@ -9,6 +9,10 @@ import RNFS from 'react-native-fs';
 import { PermissionsAndroid, Platform } from 'react-native';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import CameraRoll from '@react-native-camera-roll/camera-roll';
+import { NativeModules } from 'react-native';
+import RNFetchBlob from 'rn-fetch-blob';
+
+const { MediaScanner } = NativeModules;
 interface MessageBubbleProps {
     message: any;
     datetime: string;
@@ -99,59 +103,124 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     //     }
     // };
 
-    const handleFileDownload = async () => {
-        try {
-            if (Platform.OS === 'android') {
-                const permission = await PermissionsAndroid.request(
-                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-                    {
-                        title: 'Storage Permission Required',
-                        message: 'This app needs access to your storage to download photos',
-                        buttonNeutral: 'Ask Me Later',
-                        buttonNegative: 'Cancel',
-                        buttonPositive: 'OK',
-                    }
-                );
 
-                if (permission === PermissionsAndroid.RESULTS.GRANTED) {
-                    console.log('permission : ', permission);
-                    const { preSignedUrl } = message;
-                    const downloadDest = `${RNFS.DownloadDirectoryPath}/${message.fileId}.jpg`;
-                    console.log('다운로드 목적지 : ', downloadDest);
-                    
-                    // 디렉토리가 존재하는지 확인하고, 없다면 생성
-                    const directoryPath = `${RNFS.DownloadDirectoryPath}`;
-                    console.log('디렉토리 path :', directoryPath);
-                    const directoryExists = await RNFS.exists(directoryPath);
-                    if (!directoryExists) {
-                        await RNFS.mkdir(directoryPath);
-                    }
+const handleFileDownload = async () => {
+    try {
+        if (Platform.OS === 'android') {
+            const permission = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                {
+                    title: 'Storage Permission Required',
+                    message: 'This app needs access to your storage to download photos',
+                    buttonNeutral: 'Ask Me Later',
+                    buttonNegative: 'Cancel',
+                    buttonPositive: 'OK',
+                }
+            );
 
-                    const downloadOptions = {
-                        fromUrl: preSignedUrl,
-                        toFile: downloadDest,
-                    };
+            if (permission === PermissionsAndroid.RESULTS.GRANTED) {
+                const { preSignedUrl } = message;
 
-                    console.log(downloadOptions.fromUrl);
-                    
-                    const result = await RNFS.downloadFile(downloadOptions).promise;
-                    if (result.statusCode === 200) {
-                        await CameraRoll.save(downloadDest, { type: 'photo' });
-                        Alert.alert('다운로드 완료', '사진이 갤러리에 저장되었습니다.', [{ text: '확인' }]);
-                    } else {
-                        Alert.alert('다운로드 실패', '사진 다운로드에 실패했습니다.', [{ text: '확인' }]);
-                    }
+
+                console.log(message);
+
+                // const path = RNFetchBlob.fs.dirs.DownloadDir;
+                const path = RNFS.DocumentDirectoryPath;// 다운로드 디렉토리
+                let downloadDest = `${path}/${message.fileId}.jpg`;
+                console.log('다운로드 경로 : ',downloadDest);
+
+                  // 디렉토리가 존재하는지 확인하고, 없다면 생성
+                  const directoryExists = await RNFS.exists(path);
+                  if (!directoryExists) {
+                      await RNFS.mkdir(path);
+                  }
+                
+                const downloadOptions = {
+                    fromUrl: preSignedUrl, // s3 다운 경로
+                    toFile: downloadDest, // 로컬 다운 경로 
+                };
+
+                const res = RNFS.downloadFile(downloadOptions);
+                console.log('Download result:', res);
+
+                const result = await res.promise;
+                console.log('result : ',result);
+                console.log('Download status code:', result.statusCode);
+     
+                if (result.statusCode === 200) {
+                    // await CameraRoll.save(downloadDest, { type: 'photo' });
+                    await RNFS.moveFile(downloadDest, `${RNFS.PicturesDirectoryPath}/${message.fileId}.jpg`);
+                    Alert.alert('다운로드 완료', '사진이 갤러리에 저장되었습니다.', [{ text: '확인' }]);
                 } else {
-                    Alert.alert('권한 필요', '사진 저장 권한이 필요합니다.', [{ text: '확인' }]);
+                    Alert.alert('다운로드 실패', '사진 다운로드에 실패했습니다.', [{ text: '확인' }]);
                 }
             } else {
-                Alert.alert('iOS에서는 지원되지 않습니다.', '사진 저장 기능은 Android에서만 지원됩니다.', [{ text: '확인' }]);
+                Alert.alert('권한 필요', '사진 저장 권한이 필요합니다.', [{ text: '확인' }]);
             }
-        } catch (error) {
-            console.error('File download error:', error);
-            Alert.alert('다운로드 실패', '사진 다운로드 중 오류가 발생했습니다.', [{ text: '확인' }]);
+        } else {
+            Alert.alert('iOS에서는 지원되지 않습니다.', '사진 저장 기능은 Android에서만 지원됩니다.', [{ text: '확인' }]);
         }
-    };
+    } catch (error) {
+        console.error('File download error:', error);
+        Alert.alert('다운로드 실패', '사진 다운로드 중 오류가 발생했습니다.', [{ text: '확인' }]);
+    }
+};
+
+
+    // const handleFileDownload = async () => {
+    //     try {
+    //         if (Platform.OS === 'android') {
+    //             const permission = await PermissionsAndroid.request(
+    //                 PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+    //                 {
+    //                     title: 'Storage Permission Required',
+    //                     message: 'This app needs access to your storage to download photos',
+    //                     buttonNeutral: 'Ask Me Later',
+    //                     buttonNegative: 'Cancel',
+    //                     buttonPositive: 'OK',
+    //                 }
+    //             );
+
+    //             if (permission === PermissionsAndroid.RESULTS.GRANTED) {
+    //                 const { preSignedUrl } = message;
+    //                 const downloadDest = `/sdcard/Download/${message.fileId}.jpg`;
+                    
+    //                 // 디렉토리가 존재하는지 확인하고, 없다면 생성
+    //                 const directoryPath = '/sdcard/Download';
+    //                 const directoryExists = await RNFS.exists(directoryPath);
+    //                 if (!directoryExists) {
+    //                     await RNFS.mkdir(directoryPath);
+    //                 }
+
+    //                 const downloadOptions = {
+    //                     fromUrl: preSignedUrl,
+    //                     toFile: downloadDest,
+    //                 };
+
+    //                 const result = await RNFS.downloadFile(downloadOptions).promise;
+    //                 if (result.statusCode === 200) {
+    //                     await MediaScanner.scanFile(downloadDest, 'image/jpeg', (err) => {
+    //                         if (err) {
+    //                             console.error('MediaScanner error:', err);
+    //                             Alert.alert('다운로드 실패', '사진 다운로드 중 오류가 발생했습니다.', [{ text: '확인' }]);
+    //                         } else {
+    //                             Alert.alert('다운로드 완료', '사진이 갤러리에 저장되었습니다.', [{ text: '확인' }]);
+    //                         }
+    //                     });
+    //                 } else {
+    //                     Alert.alert('다운로드 실패', '사진 다운로드에 실패했습니다.', [{ text: '확인' }]);
+    //                 }
+    //             } else {
+    //                 Alert.alert('권한 필요', '사진 저장 권한이 필요합니다.', [{ text: '확인' }]);
+    //             }
+    //         } else {
+    //             Alert.alert('iOS에서는 지원되지 않습니다.', '사진 저장 기능은 Android에서만 지원됩니다.', [{ text: '확인' }]);
+    //         }
+    //     } catch (error) {
+    //         console.error('File download error:', error);
+    //         Alert.alert('다운로드 실패', '사진 다운로드 중 오류가 발생했습니다.', [{ text: '확인' }]);
+    //     }
+    // };
 
 
 
