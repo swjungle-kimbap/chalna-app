@@ -5,13 +5,13 @@ import MessageBox from "../../components/Map/MessageBox";
 interface MapPrams {
   route: {
     params?: {
-      notificationId? : number;
+      notificationId? : string;
     }
   }
 }
 
 const MapScreen: React.FC<MapPrams> = ({ route }) => {
-  const { notificationId = -1 } = route.params ?? {};
+  const { notificationId = "" } = route.params ?? {};
   return (
     <>
       <AlarmButton notificationId={notificationId} />
