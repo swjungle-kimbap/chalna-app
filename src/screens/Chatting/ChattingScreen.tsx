@@ -449,49 +449,51 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                         );
                     })}
                 </ScrollView>
-                <View style={chatRoomType !== 'WAITING' ? styles.inputContainer : styles.disabledInputContainer}>
-                     {/*<TouchableOpacity onPress={handleSelectImage} style={styles.imagePickerButton}>*/}
-                     {/*       <Text style={styles.addButtonText}>+</Text>*/}
-                     {/*   </TouchableOpacity>*/}
-                    <ImageTextButton
-                        iconSource={require('../../assets/Icons/addImageIcon.png')}
-                        onPress={handleSelectImage}
-                        style={styles.imagePickerButton}
-                    >
-                    </ImageTextButton>
-                    {selectedImage && (
-                        <View style={styles.selectedImageContainer}>
-                            <Image
-                                source={{ uri: selectedImage.uri }}
-                                style={styles.selectedImage}
-                            />
-                            <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageButton}>
-                                <Text style={styles.removeImageButtonText}>×</Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                    <TextInput
-                        style={styles.input}
-                        value={messageContent}
-                        onChangeText={setMessageContent}
-                        placeholder={chatRoomType === 'WAITING' ? '5분이 지났습니다.\n대화를 이어가려면 친구요청을 보내보세요.' : ''}
-                        placeholderTextColor={'#a9a9a9'}
-                        multiline
-                        textBreakStrategy="highQuality"
-                        editable={chatRoomType !== 'WAITING'}
-                    />
-                    {chatRoomType !== 'WAITING' && (
+                {chatRoomType!=='WAITING' && (
+                    <View style={styles.inputContainer}>
+                         {/*<TouchableOpacity onPress={handleSelectImage} style={styles.imagePickerButton}>*/}
+                         {/*       <Text style={styles.addButtonText}>+</Text>*/}
+                         {/*   </TouchableOpacity>*/}
                         <ImageTextButton
-                            onPress={sendMessage}
-                            iconSource={require('../../assets/Icons/sendMsgIcon.png')}
-                            // disabled={chatRoomType === 'WAITING' || messageContent === ''}
-                            disabled={chatRoomType === 'WAITING'}
-
-                            imageStyle={{ height: 15, width: 15 }}
-                            containerStyle={{ paddingRight: 15 }}
+                            iconSource={require('../../assets/Icons/addImageIcon.png')}
+                            imageStyle={{height: 20, width: 20, marginLeft: 12}}
+                            onPress={handleSelectImage}
+                        >
+                        </ImageTextButton>
+                        {selectedImage && (
+                            <View style={styles.selectedImageContainer}>
+                                <Image
+                                    source={{ uri: selectedImage.uri }}
+                                    style={styles.selectedImage}
+                                />
+                                <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageButton}>
+                                    <Text style={styles.removeImageButtonText}>×</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+                        <TextInput
+                            style={styles.input}
+                            value={messageContent}
+                            onChangeText={setMessageContent}
+                            placeholder={chatRoomType === 'WAITING' ? '5분이 지났습니다.\n대화를 이어가려면 친구요청을 보내보세요.' : ''}
+                            placeholderTextColor={'#3b3b3b'}
+                            multiline
+                            textBreakStrategy="highQuality"
+                            editable={chatRoomType !== 'WAITING'}
                         />
-                    )}
-                </View>
+                        {chatRoomType !== 'WAITING' && (
+                            <ImageTextButton
+                                onPress={sendMessage}
+                                iconSource={require('../../assets/Icons/sendMsgIcon.png')}
+                                // disabled={chatRoomType === 'WAITING' || messageContent === ''}
+                                disabled={chatRoomType === 'WAITING'}
+
+                                imageStyle={{ height: 15, width: 15 }}
+                                containerStyle={{ paddingRight: 15 }}
+                            />
+                        )}
+                    </View>
+                )}
                 <MenuModal
                     isVisible={isModalVisible}
                     onClose={toggleModal}
@@ -558,7 +560,7 @@ const styles = StyleSheet.create({
     },
     selectedImageContainer: {
         position: 'relative',
-        marginRight: 10,
+        marginLeft: 10,
     },
     selectedImage: {
         width: 50,
