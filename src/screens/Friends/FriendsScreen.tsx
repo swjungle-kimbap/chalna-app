@@ -4,15 +4,16 @@ import Text from "../../components/common/Text";
 import Button from '../../components/common/Button'
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../interfaces";
-import {View, FlatList, Image, TextInput, StyleSheet ,TouchableOpacity} from "react-native";
+import {View, FlatList, Image, TextInput, StyleSheet ,TouchableOpacity, Modal, TouchableWithoutFeedback} from "react-native";
 import FriendCard from "../../components/FriendCard";
 import Config from "react-native-config";
 import { ActivityIndicator } from "react-native";
 import axios, { AxiosInstance } from "axios";
 import { axiosGet } from "../../axios/axios.method";
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import ImageTextButton from "../../components/common/Button";
 import {urls} from "../../axios/config";
+import friendRequestScreen from "./FriendRequestScreen";
 
 interface ApiResponse {
   status: number;
@@ -35,8 +36,9 @@ export interface Friend extends User {
 }
 
 type FriendsScreenProps = {
-  navigation: StackNavigationProp<RootStackParamList, '차단친구 목록'>
+  navigation: StackNavigationProp<RootStackParamList, '친구 목록'>
 };
+
 
 const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
@@ -45,38 +47,9 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     const [filteredData, setFilteredData] = useState<Friend[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [modalVisible, setModalVisible] = useState<boolean>(false);
 
-    // useEffect(() => {
-    //     const fetchFriends = async () => {
-    //         try {
-    //             console.log("Fetching friends data...");
-    //             const response = await axiosGet<ApiResponse>(urls.GET_FRIEND_LIST_URL);
-
-    //             console.log(response.data)
-    //             if (response.data && response.data.data && Array.isArray(response.data.data)) {
-    //                 setFriendsData(response.data.data);
-    //                 setFilteredData(response.data.data);
-    //             } else {
-    //                 console.error('응답 구조 이상:', response.data);
-    //                 setError('Unexpected response structure');
-    //             }
-    //         } catch (error) {
-    //             if (axios.isAxiosError(error)) {
-    //                 console.error('Axios error', error.message);
-    //                 setError(error.message);
-    //             } else {
-    //                 console.error('Error friends data:', error);
-    //                 setError('Unexpected error occurred');
-    //             }
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
-
-
-    //     fetchFriends();
-    // }, []);
-
+    const naviagtionProp = useNavigation();
 
     useFocusEffect(
         useCallback(() => {
@@ -146,6 +119,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
             isExpanded={item.id === expandedCardId}
             onExpand={()=> handleCardPress(item.id)}
             navigation={navigation}
+            options={'friend'}
         />);
 
     if (loading) {
@@ -169,10 +143,10 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
         <FriendsStyle>
 
             <ImageTextButton
-                    iconSource={require('../../assets/Icons/3dotsIcon.png')}
-                    imageStyle={{height:10, width:15}}
+                    iconSource={require('../../assets/Icons/cogIcon.png')}
+                    imageStyle={{height:15, width:15}}
                     style={{padding: 10, alignSelf:'flex-end', marginRight:20}}
-                    onPress={() => navigation.navigate('차단친구 목록')} />
+                    onPress={() => setModalVisible(true) } />
             <View style={styles.searchContainer}>
                 <TextInput
                     placeholder="친구 검색"
@@ -193,7 +167,29 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                 keyExtractor={(item) => item.id.toString()}
                 />
       )}
-
+            <Modal
+                visible={modalVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <TouchableWithoutFeedback onPress={()=>setModalVisible(false)}>
+                    <ModalContainer>
+                        <ModalContent style={shadowStyles}>
+                            <Button title="친구요청 목록"
+                                    style={{marginBottom: 20}}
+                                    onPress={() => {
+                                        setModalVisible(false);
+                                        navigation.navigate('Tabs', {screen: '친구요청 목록' });
+                                    }} />
+                            <Button title="차단친구 목록" onPress={() => {
+                                setModalVisible(false);
+                                navigation.navigate('Tabs', {screen: '차단친구 목록' });
+                            }} />
+                        </ModalContent>
+                    </ModalContainer>
+                </TouchableWithoutFeedback>
+            </Modal>
         </FriendsStyle>
     );
 };
@@ -202,6 +198,8 @@ const FriendsStyle = styled.View`
   background-color: #FFFFFF;
    
 `;
+
+
 
 const styles = StyleSheet.create({
     searchContainer: {
@@ -229,5 +227,41 @@ const styles = StyleSheet.create({
         paddingHorizontal: 0, // Remove horizontal padding
     },
 });
+
+const ModalContainer = styled.View`
+  flex: 1;
+  justify-content: flex-start;
+  align-items: flex-end;
+    padding-top: 85px;
+  padding-right: 20px;
+    
+    //shadow-color: #000;
+    //shadow-offset: 0,2;
+    //shadow-opacity: 0.25;
+    //shadow-radius: 3.84px;
+    elevation: 5; 
+`;
+
+const ModalContent = styled.View`
+  width: 55%;
+  padding-top: 15px;
+    padding-bottom: 15px;
+  background-color: white;
+  border-radius: 10px;
+  align-items: center;
+`;
+
+const shadowStyles = {
+    shadowColor: "#000",
+    shadowOffset: {
+        width: 0,
+        height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+
+    elevation: 5,
+};
+
 
 export default FriendsScreen;

@@ -3,7 +3,7 @@ import { View, Image, Modal, TouchableOpacity, Button, Alert } from 'react-nativ
 import styled from 'styled-components/native';
 import ImageTextButton from "../common/Button";
 import WebSocketManager from "../../utils/WebSocketManager";
-import {acceptFriendRequest, rejectFriendRequest, sendFriendRequest} from "../../service/FriendRelationService";
+import {acceptFriendRequest, rejectFriendRequest, sendFriendRequest} from "../../service/Friends/FriendRelationService";
 import Text from '../common/Text';
 import RNFS from 'react-native-fs';
 import { PermissionsAndroid, Platform } from 'react-native';
@@ -104,11 +104,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
 
                 if (permission === PermissionsAndroid.RESULTS.GRANTED) {
                     const { preSignedUrl } = message;
-        
+
                     const path = RNFS.DocumentDirectoryPath;// 다운로드 디렉토리(내부 저장소) -> 외부저장소로 변경필요
                     // const path = RNFS.ExternalStorageDirectoryPath + '/Download';
                     let downloadDest = `${path}/${message.fileId}.jpg`;
-            
+
                     console.log('다운로드 경로 : ',downloadDest);
 
                     // 디렉토리가 존재하는지 확인하고, 없다면 생성
@@ -125,10 +125,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                         }
                         // await RNFS.mkdir(path);
                     }
-                    
+
                     const downloadOptions = {
                         fromUrl: preSignedUrl, // s3 다운 경로
-                        toFile: downloadDest, // 로컬 다운 경로 
+                        toFile: downloadDest, // 로컬 다운 경로
                     };
 
                     const res = RNFS.downloadFile(downloadOptions);
@@ -137,13 +137,13 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                     const result = await res.promise;
                     console.log('result : ',result);
                     console.log('Download status code:', result.statusCode);
-        
+
                     if (result.statusCode === 200) {
                         // await RNFS.moveFile(downloadDest, `file:///sdcard/Download/${message.fileId}.jpg`);
                         // const saveToGallery = await RNFS.moveFile(downloadDest, RNFS.PicturesDirectoryPath + `/${message.fileId}.jpg`);
                         // await RNFS.scanFile(RNFS.PicturesDirectoryPath + `/${message.fileId}.jpg`);
                         await RNFS.scanFile(downloadDest);
-        
+
                         Alert.alert('다운로드 완료', '사진이 갤러리에 저장되었습니다.', [{ text: '확인' }]);
                     } else {
                         Alert.alert('다운로드 실패', '사진 다운로드에 실패했습니다.', [{ text: '확인' }]);
@@ -226,7 +226,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
 
                         <MessageBubbleContent isSelf={isSelf}>
                         {renderMessageContent()}
-               
+
 
                         </MessageBubbleContent>
                         {!isSelf && (<DateReadStatusContainer>
@@ -245,19 +245,29 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
             >
                 <ModalContainer>
                     <ModalContent>
-                        <ImageTextButton title={"닫기"} onPress={closeUserInfoModal} style={{alignSelf:'flex-end'}}/>
+                        <ImageTextButton iconSource={require('../../assets/Icons/closeIcon.png')}
+                                         imageStyle={{height: 15, width: 15}}
+                                         onPress={closeUserInfoModal} style={{alignSelf:'flex-end'}}/>
                         <ProfilePicture modal source={{uri:
                                     profilePicture ||
                                     'https://www.refugee-action.org.uk/wp-content/uploads/2016/10/anonymous-user.png' }}
                         />
                         <NameBtnContainer>
                             <Text variant="subtitle" >{username}</Text>
+                            { chatRoomType==='FRIEND'? (
+                                <Image
+                                    source={require('../../assets/Icons/friendIcon.png')}
+                                    style={{height: 18, width: 24, marginLeft:6, marginTop:7}}
+                                    resizeMode={"contain"}
+                                />
+                                ):(
                             <ImageTextButton
                                 style={{marginTop: 1, marginLeft:5}}
                                 iconSource={require('../../assets/Icons/AddFriendCircle.png')}
                                 imageStyle={{height:25, width: 25}}
                                 onPress={handleSend}
                             />
+                                )}
                         </NameBtnContainer>
                         <Text variant={"sub"} style={{size: 12, marginBottom: 10}} >{"스쳐간 횟수 or 상태메세지 표기"}</Text>
 
@@ -272,9 +282,13 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
             >
                     <FullScreenModalContainer>
                     <FullScreenModalContent>
-                        <ImageTextButton title={"닫기"} onPress={closeImageModal} style={{ alignSelf: 'flex-end' }} />
+                        <ImageTextButton iconSource={require('../../assets/Icons/closeIcon.png')}
+                                         imageStyle={{height: 15, width: 15, paddingRight:20, paddingTop: 20 }}
+                                         onPress={closeImageModal} style={{ alignSelf: 'flex-end' }} />
                         <FullScreenImage source={{ uri: message.preSignedUrl }} />
-                        <Button title="Download" onPress={handleFileDownload} />
+                        <ImageTextButton iconSource={require('../../assets/Icons/downloadIcon.png')}
+                                         imageStyle={{height: 20, width: 20}}
+                                         onPress={handleFileDownload} />
                     </FullScreenModalContent>
                 </FullScreenModalContainer>
             </Modal>
