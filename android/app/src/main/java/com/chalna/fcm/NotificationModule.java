@@ -40,4 +40,19 @@ public class NotificationModule extends ReactContextBaseJavaModule {
             promise.reject("ERROR", "Notification channels are not supported on this version of Android.");
         }
     }
+
+
+    @ReactMethod
+    public void deleteAllNotificationChannels(Promise promise) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager manager = (NotificationManager) getReactApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            List<NotificationChannel> channels = manager.getNotificationChannels();
+            for (NotificationChannel channel : channels) {
+                manager.deleteNotificationChannel(channel.getId());
+            }
+            promise.resolve(true);
+        } else {
+            promise.reject("ERROR", "Notification channels are not supported on this version of Android.");
+        }
+    }
 }
