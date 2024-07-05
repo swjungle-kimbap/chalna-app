@@ -331,7 +331,6 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                     }
 
 
-
                 } catch (error) {
                     console.error('채팅방 메세지 목록조회 실패:', error);
                 } finally {
@@ -414,7 +413,6 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                             screen: "채팅 목록",
                         }
                     });
-                    navigation.navigate("채팅 목록");
                 }}
                 showBtn={false}
                 onMenuPress={toggleModal}
@@ -452,9 +450,15 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                     })}
                 </ScrollView>
                 <View style={chatRoomType !== 'WAITING' ? styles.inputContainer : styles.disabledInputContainer}>
-                     <TouchableOpacity onPress={handleSelectImage} style={styles.imagePickerButton}>
-                            <Text style={styles.addButtonText}>+</Text>
-                        </TouchableOpacity>
+                     {/*<TouchableOpacity onPress={handleSelectImage} style={styles.imagePickerButton}>*/}
+                     {/*       <Text style={styles.addButtonText}>+</Text>*/}
+                     {/*   </TouchableOpacity>*/}
+                    <ImageTextButton
+                        iconSource={require('../../assets/Icons/addImageIcon.png')}
+                        onPress={handleSelectImage}
+                        style={styles.imagePickerButton}
+                    >
+                    </ImageTextButton>
                     {selectedImage && (
                         <View style={styles.selectedImageContainer}>
                             <Image
@@ -528,7 +532,6 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         padding: 10,
-        marginLeft: 10,
         color: '#a9a9a9',
     },
     loadingContainer: {

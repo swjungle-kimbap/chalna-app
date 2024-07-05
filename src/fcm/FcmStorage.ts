@@ -1,5 +1,5 @@
 import { setUserMMKVStorage, setMMKVObject, getMMKVObject, removeMMKVItem } from '../utils/mmkvStorage';
-import { saveChatRoomInfo, createChatRoomLocal, getChatRoomList } from '../localstorage/mmkvStorage';
+import { saveChatRoomInfo, createChatRoomLocal, getChatRoomList } from '../service/Chatting/mmkvChatStorage';
 import { ChatFCM, MatchFCM } from '../interfaces/ReceivedFCMData.type';
 import { formatDateToKoreanTime } from "../service/Chatting/DateHelpers";
 import { ChatRoomLocal } from '../interfaces/Chatting.type';
@@ -60,7 +60,7 @@ const storeChatFCM = async (newFCM: ChatFCM): Promise<void> => {
   } catch (error) {
     console.error('채팅룸 정보를 저장하는 동안 오류가 발생했습니다:', error);
   }
-  
+
   console.log(`저장한 채팅룸Id: ${newFCM.chatRoomId}, 저장한 메시지: ${newFCM.message}`);
 };
 
@@ -79,7 +79,7 @@ const storeMatchFCM = async (newFCM: MatchFCM): Promise<void> => {
       deleteMatchFCMById(newFCM.receiverId, newFCM.id);
       console.log(`Deleted ${MATCH_FCM_STORAGE} message for user ${newFCM.receiverId} after 10 minutes:`, newFCM);
     }, 10 * 60 * 1000);
-    console.log(`All ${MATCH_FCM_STORAGE} messages: `, existingMessages); 
+    console.log(`All ${MATCH_FCM_STORAGE} messages: `, existingMessages);
   } catch (error) {
     console.error(`Error storing ${MATCH_FCM_STORAGE} message for user ${newFCM.receiverId}:`, error);
   }

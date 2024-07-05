@@ -119,6 +119,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
             isExpanded={item.id === expandedCardId}
             onExpand={()=> handleCardPress(item.id)}
             navigation={navigation}
+            options={'friend'}
         />);
 
     if (loading) {
