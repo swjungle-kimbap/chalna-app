@@ -75,3 +75,8 @@ export const isRssiTrackingState = atom<boolean>({
   key: 'isRssiTracking',
   default: false,
 })
+
+export const FlyingModeState = atom<boolean>({
+  key: 'flyingMode',
+  default: false,
+})
