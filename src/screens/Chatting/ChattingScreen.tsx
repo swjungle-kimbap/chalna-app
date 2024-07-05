@@ -106,6 +106,12 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
         });
     };
 
+     // 이미지 제거 함수 추가
+     const handleRemoveImage = () => {
+        setSelectedImage(null);
+        chatMessageType.current = 'CHAT';
+    };
+
     const hadleUploadAndSend = async () => {
         console.log("선택된 이미지 : ",selectedImage);
         if (!selectedImage) {
@@ -419,11 +425,16 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                             <Text style={styles.addButtonText}>+</Text>
                         </TouchableOpacity> 
                     {selectedImage && (
-                        <Image
-                          source={{uri:selectedImage.uri}}
-                          style={{width:50, height: 50, marginRight: 10}}
-                        />
-                    )} 
+                        <View style={styles.selectedImageContainer}>
+                            <Image
+                                source={{ uri: selectedImage.uri }}
+                                style={styles.selectedImage}
+                            />
+                            <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageButton}>
+                                <Text style={styles.removeImageButtonText}>×</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
                     <TextInput
                         style={styles.input}
                         value={messageContent}
@@ -511,6 +522,30 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
     },
+    selectedImageContainer: {
+        position: 'relative',
+        marginRight: 10,
+    },
+    selectedImage: {
+        width: 50,
+        height: 50,
+    },
+    removeImageButton: {
+        position: 'absolute',
+        top: -10,
+        right: -10,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        borderRadius: 12,
+        width: 24,
+        height: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    removeImageButtonText: {
+        color: 'white',
+        fontSize: 18,
+    },
+    
 });
 
 export default ChattingScreen;
