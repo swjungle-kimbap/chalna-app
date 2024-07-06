@@ -19,6 +19,16 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
   const inputRef = useRef<TextInput>(null);
   const descriptionInputRef = useRef<TextInput>(null);
 
+  const handleCreateButton = async () => {
+    const localChat = await makeLocalChat(name, description, currentLocation)
+     if (localChat) {
+      setRefresh(prev => !prev);
+      setName("");
+      setDescription("");
+      closeModal();
+     }
+  }
+
   return (
     <Modal
       animationType="fade"
@@ -59,15 +69,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
                 />
                 <Button
                   title="이곳에 만들기"
-                  onPress={async () => {
-                    const success = await makeLocalChat(name, description, currentLocation)
-                     if (success) {
-                      setRefresh(prev => !prev);
-                      setName("");
-                      setDescription("");
-                      closeModal();
-                     }
-                  }}
+                  onPress={handleCreateButton}
                   style={{paddingVertical:3}}
                 />
               </View>

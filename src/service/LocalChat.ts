@@ -1,5 +1,5 @@
 import { axiosDelete, axiosPost } from "../axios/axios.method";
-import { JoinLocalChatResponse, SetLocalChatRequest, SetLocalChatResponse } from "../interfaces";
+import { JoinLocalChatResponse, LocalChat, SetLocalChatRequest, SetLocalChatResponse } from "../interfaces";
 import { urls } from "../axios/config";
 import { navigate } from "../navigation/RootNavigation";
 import { Alert } from "react-native";
@@ -24,7 +24,7 @@ export const joinLocalChat = async (chatRoomId) => {
   };
 }
 
-export const makeLocalChat = async (name, description, currentLocation) => {
+export const makeLocalChat = async (name, description, currentLocation) : Promise<LocalChat> => {
   if (name.length && description.length) {
     const response = await axiosPost<SetLocalChatResponse>(
       urls.SET_LOCAL_CHAT_URL, "장소 채팅 만들기", {
@@ -36,9 +36,8 @@ export const makeLocalChat = async (name, description, currentLocation) => {
     
     if (response.data.code === "201"){
       Alert.alert("채팅방 생성 완료!", "주위의 사람들과 대화를 나눠보세요!");
-      navigate("채팅", { chatRoomId: response.data.data.chatRoomId });
     }
-    return true;
+    return response.data.data;
   } else {
     Alert.alert("내용 부족", "제목과 내용을 채워주세요!",
       [{
@@ -46,7 +45,7 @@ export const makeLocalChat = async (name, description, currentLocation) => {
           style: 'cancel'
       }], { cancelable: true }
     )
-    return false;
+    return null;
   }
 }
 
@@ -62,7 +61,8 @@ export const handleCheckPermission = async (): Promise<boolean> => {
 
 
 export const localChatJoin = async (
-  name:string, description:string, chatRoomId:number, isNearby:boolean, setRefresh:Function) => {
+  name:string, description:string, chatRoomId:number, 
+  distance:number, setRefresh:Function) => {
   const granted = await handleCheckPermission();
   if (granted) {
     Alert.alert(name, description,
@@ -70,8 +70,8 @@ export const localChatJoin = async (
         {
           text: '참가',
           onPress: async () => {
-            if (isNearby){
-              joinLocalChat(chatRoomId);
+            if (distance < 0.05){
+              await joinLocalChat(chatRoomId);
               setRefresh((prev)=>!prev);
             } else 
               Alert.alert("거리 제한", "거리가 너무 멀어요 50m 이내인경우 들어 갈 수 있어요!");},
@@ -84,6 +84,17 @@ export const localChatJoin = async (
   }
 };
 
+export const ChatOut = async (chatRoomId:number, setRefresh:Function) => {
+  try {
+    await axiosDelete(urls.CHATROOM_LEAVE_URL+chatRoomId.toString());
+    removeChatRoom(chatRoomId); 
+    setRefresh((prev)=>!prev);
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
+    Alert.alert("Error", errorMessage);
+  }
+};
+
 export const localChatOut = async (name:string,chatRoomId:number, setRefresh:Function) => {
   const granted = await handleCheckPermission();
   if (granted) {
@@ -91,21 +102,12 @@ export const localChatOut = async (name:string,chatRoomId:number, setRefresh:Fun
       [
         {
           text: '들어가기',
-          onPress: async () => {navigate("채팅", { chatRoomId })},
+          onPress: () => {navigate("채팅", { chatRoomId })},
           style: 'default'
         },
         {
           text: '나가기',
-          onPress: async () => {
-            try {
-              await axiosDelete(urls.CHATROOM_LEAVE_URL+chatRoomId.toString());
-              removeChatRoom(chatRoomId); 
-              setRefresh((prev)=>!prev);
-            } catch (error) {
-              const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
-              Alert.alert("Error", errorMessage);
-            }
-          },
+          onPress: async () => await ChatOut(chatRoomId, setRefresh),
           style: 'default'
         },
       ],
@@ -126,7 +128,7 @@ export const localChatDelete = async (
       [  
         {
           text: '들어가기',
-          onPress: async () => {navigate("채팅", { chatRoomId })},
+          onPress: () => {navigate("채팅", { chatRoomId })},
           style: 'destructive'
         },
         {
@@ -134,9 +136,7 @@ export const localChatDelete = async (
           onPress: async () =>  {
             try {
               await axiosDelete(urls.DELETE_LOCAL_CHAT_URL+id.toString(), "장소 채팅 삭제");
-              await axiosDelete(urls.CHATROOM_LEAVE_URL+chatRoomId.toString());
-              removeChatRoom(chatRoomId); 
-              setRefresh((prev)=>!prev);
+              await ChatOut(chatRoomId, setRefresh);
             } catch (error) {
               const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
               Alert.alert("Error", errorMessage);

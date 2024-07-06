@@ -42,6 +42,13 @@ export interface GetLocalChatResponse {
   message: string
 }
 
+export interface LocalChatRoomData extends Position {
+  chatRoomId: number,
+  distance: number,
+  name: string,
+  description: string,
+}
+
 export interface LocalChatData {
   localChat: LocalChat,
   isOwner: boolean,
@@ -54,6 +61,7 @@ export interface LocalChat extends Position{
   name: string,
   description: string,
   chatRoomId: number,
+  distance?: number,
 }
 
 export interface SetLocalChatResponse {
@@ -77,4 +85,6 @@ export interface JoinLocalChatResponse {
 export interface SendMatchResponse {
   sendCount: number
 }
+
+
 
