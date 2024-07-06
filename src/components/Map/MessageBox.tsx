@@ -5,20 +5,21 @@ import { StyleSheet, TextInput, View, Alert, NativeModules, NativeEventEmitter, 
 import Text from '../common/Text';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { DeviceUUIDState, isRssiTrackingState, showMsgBoxState } from '../../recoil/atoms';
-import ScanNearbyAndPost, { addDevice, ScanNearbyStop } from '../../service/Bluetooth';
+import ScanNearbyAndPost, { ScanNearbyStop } from '../../service/Bluetooth';
 import showPermissionAlert from '../../utils/showPermissionAlert';
 import requestPermissions from '../../utils/requestPermissions';
 import requestBluetooth from '../../utils/requestBluetooth';
 import { PERMISSIONS } from 'react-native-permissions';
 import { isNearbyState } from "../../recoil/atoms";
-import { AxiosResponse, SavedMessageData, SendMatchResponse, SendMsgRequest } from '../../interfaces';
+import { AxiosResponse, SendMatchResponse, SendMsgRequest } from '../../interfaces';
 import { axiosPost } from '../../axios/axios.method';
 import BleButton from './BleButton';
 import { urls } from '../../axios/config';
 import useBackground from '../../hooks/useBackground';
-import { getMMKVObject, userMMKVStorage } from '../../utils/mmkvStorage';
+import {  userMMKVStorage } from '../../utils/mmkvStorage';
 import RssiTracking from './RssiTracking';
 import { useMMKVBoolean, useMMKVNumber, useMMKVString } from 'react-native-mmkv';
+import { addDevice } from '../../service/Background';
 
 interface BleScanInfo {
   advFlag: number,
@@ -40,7 +41,7 @@ const requiredPermissions = [
 const uuidSet = new Set<string>(); 
 const uuidTime = new Map(); 
 const uuidTimeoutID = new Map();
-const scanDelayedTime = 6 * 1000;
+const scanDelayedTime = 5 * 1000;
 const sendDelayedTime = 60 * 1000;
 
 const MessageBox: React.FC = ()  => {
@@ -59,10 +60,12 @@ const MessageBox: React.FC = ()  => {
   const translateY = useRef(new Animated.Value(0)).current;
   const [showTracking, setShowTracking] = useState(false);
   const [rssiMap, setRssiMap] = useState<Map<string, number>>(null);
+
+  useBackground(isScanning);
   
   useEffect(()=> {
     if (isScanning) {
-      ScanNearbyAndPost(deviceUUID, handleSetIsNearby);
+      ScanNearbyAndPost(deviceUUID);
     }
     if (isBlocked) {
       const restBlockedTime = sendDelayedTime - (Date.now() - blockedTime);
@@ -83,10 +86,10 @@ const MessageBox: React.FC = ()  => {
     });
   };
 
-  const handleSetIsNearby = (uuid: string, event:BleScanInfo, isBlocked = false) => {
+  const handleSetIsNearby = (uuid: string, rssi:number, isBlocked = false) => {
     const currentTime = new Date().getTime();
     if (isRssiTracking)
-      updateRssi(uuid, event.rssi);
+      updateRssi(uuid, rssi);
 
     setNearInfo({isNearby: true, lastMeetTime: currentTime});
     if (timeoutIdRef.current) {
@@ -99,7 +102,6 @@ const MessageBox: React.FC = ()  => {
         isNearby: false
       }));
     }, scanDelayedTime)
-    
 
     if (isBlocked) {
       if (uuidSet.size > 0) {
@@ -138,21 +140,21 @@ const MessageBox: React.FC = ()  => {
     const { BLEAdvertiser } = NativeModules;
     const eventEmitter = new NativeEventEmitter(BLEAdvertiser);
     eventEmitter.removeAllListeners('onDeviceFound');
-    eventEmitter.addListener('onDeviceFound', async (event) => {
+    eventEmitter.addListener('onDeviceFound', (event: BleScanInfo) => {
       if (event.serviceUuids) {
         for (let i = 0; i < event.serviceUuids.length; i++) {
           if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00') && event.rssi >= RSSIvalue) {
-            handleSetIsNearby(event.serviceUuids[i], event, isBlocked);
+            handleSetIsNearby(event.serviceUuids[i], event.rssi, isBlocked);
             addDevice(event.serviceUuids[i], new Date().getTime());
           }
         }
       }
     });
-  }, [isScanning, isBlocked, isRssiTracking])
+  }, [isScanning, isBlocked, isRssiTracking, handleSetIsNearby])
 
   const startScan = async () => {
     if (!isScanning) {
-      ScanNearbyAndPost(deviceUUID, handleSetIsNearby);
+      ScanNearbyAndPost(deviceUUID);
       setIsScanning(true);
     }
   };

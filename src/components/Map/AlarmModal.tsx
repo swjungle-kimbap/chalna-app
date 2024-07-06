@@ -48,7 +48,6 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
       setAlarmCnt(validAlarms.length);
     }
   }, [FCMAlarms, setFCMAlarms]);
-
   useFocusEffect(
     useCallback(() => {
       closeModal();       // 화면이 포커스를 받을 때 모달 상태 초기화

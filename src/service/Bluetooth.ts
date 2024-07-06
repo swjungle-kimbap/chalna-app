@@ -1,51 +1,14 @@
-import { NativeEventEmitter, NativeModules } from 'react-native';
+import { NativeModules } from 'react-native';
 import BLEAdvertiser from 'react-native-ble-advertiser';
-import { axiosPost } from '../axios/axios.method';
-import {urls} from "../axios/config";
-import { getMMKVObject, loginMMKVStorage, userMMKVStorage } from '../utils/mmkvStorage';
+import { userMMKVStorage } from '../utils/mmkvStorage';
 
 const APPLE_ID = 0x4c;
 const MANUF_DATA = [1, 0];
-const DelayedTime = 2 * 60 * 60 * 1000;
 
 BLEAdvertiser.setCompanyId(APPLE_ID);
 
-const sendRelationCnt = async (_uuid:string) => {
-  await axiosPost(urls.SET_RELATION_CNT_URL + '/' + _uuid, "만난 횟수 증가")
-}
-
-export const addDevice = async (_uuid: string, _date: number) => {
-  const currentTime = new Date(_date).getTime();
-  const lastMeetTime = loginMMKVStorage.getNumber(`DeviceUUID.${_uuid}`);
-  if (!lastMeetTime) {
-    loginMMKVStorage.set(`DeviceUUID.${_uuid}`, currentTime);
-    await sendRelationCnt(_uuid);
-  } else if (new Date(lastMeetTime).getTime() + DelayedTime < currentTime) {
-    loginMMKVStorage.set(`DeviceUUID.${_uuid}`, currentTime);
-    await sendRelationCnt(_uuid);
-  }
-}
-
-const ScanNearbyAndPost = (
-  uuid:string,
-  sendNearby?: Function
-) => {
-  const RSSIvalue =  userMMKVStorage.getNumber("bluetooth.rssivalue");
-
+const ScanNearbyAndPost = (uuid:string) => {
   const { BLEAdvertiser } = NativeModules;
-  const eventEmitter = new NativeEventEmitter(BLEAdvertiser);
-  eventEmitter.removeAllListeners('onDeviceFound');
-  eventEmitter.addListener('onDeviceFound', async (event) => {
-    if (event.serviceUuids) {
-      for (let i = 0; i < event.serviceUuids.length; i++) {
-        if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00') && event.rssi >= RSSIvalue) {
-          if (sendNearby)
-            sendNearby(event.serviceUuids[i], event);
-          await addDevice(event.serviceUuids[i], new Date().getTime());
-        }
-      }
-    }
-  });
 
   const advertiseMode = userMMKVStorage.getNumber("bluetooth.advertiseMode");
   const txPowerLevel =  userMMKVStorage.getNumber("bluetooth.txPowerLevel");

@@ -20,8 +20,8 @@ const BluetoothSettingScreen: React.FC = () => {
   const setDefaultSetting = () => {
     setAdvertiseMode(1);
     setTxPowerLevel(2);
-    setScanMode(1);
-    setNumberOfMatches(3);
+    setScanMode(2);
+    setNumberOfMatches(2);
     setRSSIvalue(-100);
     setIsRssiTracking(false);
   }
