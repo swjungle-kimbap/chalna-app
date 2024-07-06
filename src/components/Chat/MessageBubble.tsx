@@ -388,7 +388,6 @@ async function requestExternalStoragePermission() {
                         <ImageTextButton iconSource={require('../../assets/Icons/closeIcon.png')}
                                          imageStyle={{height: 15, width: 15, paddingRight:20, paddingTop: 20 }}
                                          onPress={closeImageModal} style={{ alignSelf: 'flex-end' }} />
-<!--                         <FullScreenImage source={{ uri: message.preSignedUrl }} /> -->
                             <Image
                             source={{ uri: resizedImageUri.current }}
                             // source={{uri: message.preSignedUrl}}
