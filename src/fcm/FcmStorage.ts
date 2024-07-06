@@ -1,5 +1,5 @@
 import { setUserMMKVStorage, setMMKVObject, getMMKVObject, removeMMKVItem } from '../utils/mmkvStorage';
-import { saveChatRoomInfo, createChatRoomLocal, getChatRoomList } from '../localstorage/mmkvStorage';
+import { saveChatRoomInfo, createChatRoomLocal, getChatRoomList } from '../service/Chatting/mmkvChatStorage';
 import { ChatFCM, MatchFCM } from '../interfaces/ReceivedFCMData.type';
 import { formatDateToKoreanTime } from "../service/Chatting/DateHelpers";
 import { ChatRoomLocal } from '../interfaces/Chatting.type';

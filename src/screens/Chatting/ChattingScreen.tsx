@@ -309,7 +309,6 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                             screen: "채팅 목록",
                         }
                     });
-                    navigation.navigate("채팅 목록");
                 }}
                 showBtn={false}
                 onMenuPress={toggleModal}

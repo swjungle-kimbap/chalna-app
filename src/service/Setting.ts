@@ -68,8 +68,8 @@ export const initUserSetting = () => {
       JSON.stringify({doNotDisturbStart: new Date().toString(), doNotDisturbEnd: new Date().toString()}));
     userMMKVStorage.set('bluetooth.advertiseMode', 1);
     userMMKVStorage.set('bluetooth.txPowerLevel', 2);
-    userMMKVStorage.set('bluetooth.scanMode', 1);
-    userMMKVStorage.set('bluetooth.numberOfMatches', 3);
+    userMMKVStorage.set('bluetooth.scanMode', 2);
+    userMMKVStorage.set('bluetooth.numberOfMatches', 2);
     userMMKVStorage.set('bluetooth.rssivalue', -100);
     userMMKVStorage.set('matchFCMStorage', JSON.stringify([]));
   }
