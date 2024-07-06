@@ -377,5 +377,6 @@ out.log
 env
 
 # End of https://www.toptal.com/developers/gitignore/api/nextjs,java,reactnative,react
+
 .vscode/launch.json
 .vscode/c_cpp_properties.json
