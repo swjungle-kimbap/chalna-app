@@ -1,10 +1,32 @@
 import messaging from '@react-native-firebase/messaging';
+import { PermissionsAndroid } from 'react-native';
 import PushNotification from 'react-native-push-notification';
 import { AppRegistry, Platform } from 'react-native';
-import { handleFCMMessage, showLocalNotification, createNotification, handleFCMClick } from './FcmHandler';
-import { getFCMChannels } from './FcmAlarm';
+import { handleFCMMessage, handleFCMClick } from './FcmHandler';
+import { getFCMChannels } from './FcmChannel';
+
+export const DEFAULT_CHANNEL_ID = "chalna_default_channel";
+export const DEFAULT_CHANNEL_NAME = "chalna";
 
 class FcmConfig {
+  async requestNotificationPermission() {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+      {
+        title: "Notification Permission",
+        message: "This app needs access to your notifications.",
+        buttonNeutral: "Ask Me Later",
+        buttonNegative: "Cancel",
+        buttonPositive: "OK"
+      }
+    );
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      console.log("You can use the notifications");
+    } else {
+      console.log("Notification permission denied");
+    }
+  }
+  
 	// 유저 권한 확인
   async requestUserPermission() {
     const authStatus = await messaging().requestPermission();
@@ -87,18 +109,18 @@ class FcmConfig {
       requestPermissions: Platform.OS === 'ios',
     });
 
-    getFCMChannels();
     // 채널 생성 (안드로이드 8.0부터 default 채널 필요)
     PushNotification.createChannel(
       {
-        channelId: "chalna_default_channel", // 채널 ID
-        channelName: "jooyoung2", // 채널 이름
+        channelId: DEFAULT_CHANNEL_ID, // 채널 ID
+        channelName: "chalna", // 채널 이름
         channelDescription: "A default channel", // (optional) default: undefined.
         importance: 4, // (optional) default: 4. Int value of the Android notification importance
-        vibrate: false, // (optional) default: true. Creates the default vibration pattern if true.
       },
       (created) => console.log(`createChannel returned '${created}'`) // (optional) callback returns whether the channel was created, false means it already existed.
     );
+
+    getFCMChannels();
   }
 }
 
