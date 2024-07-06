@@ -74,8 +74,8 @@ const LoginScreen: React.FC = () => {
 
     const autoLogin = async () => {
       try {
-        const lastLocation: Position | null = getMMKVObject<Position>('lastLocation');
-        if (lastLocation) setLocation(lastLocation);
+        const lastLocation = loginMMKVStorage.getString('lastLocation');
+        if (lastLocation) setLocation(JSON.parse(lastLocation));
 
         await initializeFCMToken();
         await initializeDeviceUUID();

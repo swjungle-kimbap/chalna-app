@@ -34,6 +34,7 @@
     "react-native-ble-advertiser": "^0.0.17",
     "react-native-bluetooth-client": "^0.1.12",
     "react-native-config": "^1.5.2",
+    "react-native-date-picker": "^5.0.4",
     "react-native-geolocation-service": "^5.3.1",
     "react-native-image-picker": "^7.1.2",
     "react-native-mmkv": "^2.12.2",

@@ -3684,6 +3684,7 @@ __metadata:
     react-native-ble-advertiser: ^0.0.17
     react-native-bluetooth-client: ^0.1.12
     react-native-config: ^1.5.2
+    react-native-date-picker: ^5.0.4
     react-native-geolocation-service: ^5.3.1
     react-native-image-picker: ^7.1.2
     react-native-mmkv: ^2.12.2
@@ -9215,6 +9216,16 @@ __metadata:
     react-native-windows:
       optional: true
   checksum: fc777546557704629f7aabdd2cf24decdea666ba90975602523103ed0a26a358f2f23241cae2aed646b82784e657cc01ecf7b6df2d5524d6b0ea3edfa9054d7f
+  languageName: node
+  linkType: hard
+
+"react-native-date-picker@npm:^5.0.4":
+  version: 5.0.4
+  resolution: "react-native-date-picker@npm:5.0.4"
+  peerDependencies:
+    react: ">= 17.0.1"
+    react-native: ">= 0.64.3"
+  checksum: 67db7fba5de613c61a70b5b9274daef8c7d3b6f6cdc5a6063eb61126d4df43252c501c2cb78ebda37fb0997ccb0994e949976d0fb395453580019923100e03ad
   languageName: node
   linkType: hard
 
