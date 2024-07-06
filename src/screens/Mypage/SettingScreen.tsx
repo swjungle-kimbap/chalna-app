@@ -58,13 +58,13 @@ const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
   const handleAlarmSound = (value) => {
     setAlarmSound(value)
     setDefaultMMKVBoolean('mypage.alarmSound', value); 
-    axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {AlarmSound: value});
+    axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {alarmSound: value});
   }
   
   const handleAlarmVibration = (value) => {
     setAlarmVibration(value)
     setDefaultMMKVBoolean('mypage.alarmVibration', value);
-    axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {AlarmVibratio: value});
+    axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {alarmVibration: value});
   }
 
   return (
