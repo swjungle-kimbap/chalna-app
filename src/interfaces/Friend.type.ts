@@ -1,7 +1,13 @@
 
 export type friend = {
     id: number,
+    message?: string | null,
     username: string,
-    message?: string,
-    profileImageUrl?: string
+    // profileImageUrl?: string
+}
+
+export type friendAPIResponse = {
+    status: number;
+    message: string;
+    data: friend[];
 }

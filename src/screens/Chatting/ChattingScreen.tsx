@@ -188,6 +188,11 @@ const ChattingScreen = () => {
                         parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
                         parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt);
 
+                        // 메세지 렌더링 & 저장 & 스크롤 업데이트
+                        setMessages((prevMessages) => [ ...prevMessages, parsedMessage]);
+                        flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                        saveChatMessages(chatRoomId, [parsedMessage]);
+
                         // 친구가 되었으면 채팅방 정보 다시 로드
                         if (parsedMessage.type === 'FRIEND_REQUEST' && parsedMessage.content === '친구가 되었습니다!\n대화를 이어가보세요.') {
                             updateRoomInfo();
@@ -197,11 +202,6 @@ const ChattingScreen = () => {
                         if (parsedMessage.type === 'TIMEOUT' && chatRoomType !== 'FRIEND') {
                             setChatRoomType('WAITING');
                         }
-
-                        // 메세지 렌더링 & 저장 & 스크롤 업데이트
-                        setMessages((prevMessages) => [ ...prevMessages, parsedMessage]);
-                        saveChatMessages(chatRoomId, [parsedMessage]);
-                        flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
 
                     } else {
                         // 저장 안할 메세지
