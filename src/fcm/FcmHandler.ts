@@ -1,14 +1,22 @@
 import PushNotification from 'react-native-push-notification';
 import { storeFCM } from './FcmStorage'
 import { navigate } from '../navigation/RootNavigation';
+import { checkFCMSettings } from './FcmAlarm';
+import { DEFAULT_CHANNEL_ID } from './FcmConfig';
+import { getFCMChannels } from './FcmChannel';
 
 // FCM Message 처리
 const handleFCMMessage = (remoteMessage) => {
-  // 저장
-  storeFCM(remoteMessage);
-  // 모든 메시지는 Notification으로 변환하여 알림 디스플레이함!
+  const additionalData = remoteMessage.data.additionalData ? 
+                      JSON.parse(remoteMessage.data.additionalData) : {};
+
+  console.log("oh my god!!!!!!!!", checkFCMSettings(remoteMessage.data, additionalData)); 
+    // 모든 메시지는 Notification으로 변환하여 알림 디스플레이함!
   const { title, body, isMatch } = createNotification(remoteMessage.data);
   showLocalNotification(title, body, isMatch, remoteMessage.data);
+  
+  // 저장
+  storeFCM(remoteMessage);
 }
 
 // 공통 알림 생성 함수
@@ -23,13 +31,12 @@ const createNotification = (data) => {
 
 // 로컬 알림 표시 함수
 const showLocalNotification = (title: string, body: string, isMatch: boolean, data: any) => {
+  console.log(getFCMChannels());
   let notificationOptions: any = {
     channelId: "chalna_default_channel", // channelId 추가    
     title: title,
     message: body,
     data: data,
-    playSound: true,
-    soundName: 'default',
     importance: 'high',
   };
 
