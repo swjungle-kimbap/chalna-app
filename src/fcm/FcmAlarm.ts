@@ -1,37 +1,27 @@
-import { userMMKVStorage } from "../utils/mmkvStorage";
-import { NativeModules } from 'react-native';
-const { NotificationModule } = NativeModules;
+import { setUserMMKVStorage, loginMMKVStorage, userMMKVStorage } from "../utils/mmkvStorage";
+
+
+export const checkFCMSettings = (data, additionalData):boolean => {
+  const userSettings = getUserAlarmSettings();
+  if (userSettings.isAlarm === false) return false;
+
+  return true;
+}
 
 // 알림 설정 가져오기
 export const getUserAlarmSettings = () => {
-  const isAlarm = userMMKVStorage.getBoolean('mypage.isAlarm') || false;
-  const alarmSound = userMMKVStorage.getBoolean('mypage.alarmSound') || false;
-  const alarmVibration = userMMKVStorage.getBoolean('mypage.alarmVibration') || false;
+  const receiverId = loginMMKVStorage.getString("currentUserId");
 
-  console.log("User Alarm Settings:", { isAlarm, alarmSound, alarmVibration });
+  setUserMMKVStorage(receiverId);
+
+  const isAlarm = userMMKVStorage.getBoolean('mypage.isAlarm') || false;
+  const isChatAlarm = userMMKVStorage.getBoolean('mypage.isChatAlarm') || false;
+  const isMatchAlarm = userMMKVStorage.getBoolean('mypage.isMatchAlarm') || false;
+
+  console.log("User Alarm Settings:", { isAlarm, isChatAlarm, isMatchAlarm });
   return {
     isAlarm,
-    alarmSound,
-    alarmVibration
-  }
+    isChatAlarm,
+    isMatchAlarm
+  };
 }
-
-export const getFCMChannels = () => {
-  NotificationModule.getNotificationChannels()
-  .then((channels) => {
-    console.log('Notification Channels:', channels);
-  })
-  .catch((error) => {
-    console.error('Error fetching channels:', error);
-  });
-}
-
-export const deleteAllFCMChannels = () => {
-  NotificationModule.deleteAllNotificationChannels()
-    .then((result) => {
-      console.log('All Notification Channels deleted:', result);
-    })
-    .catch((error) => {
-      console.error('Error deleting channels:', error);
-    });
-};
