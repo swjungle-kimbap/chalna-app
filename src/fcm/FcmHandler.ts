@@ -2,20 +2,24 @@ import PushNotification from 'react-native-push-notification';
 import { storeFCM } from './FcmStorage'
 import { navigate } from '../navigation/RootNavigation';
 import { DEFAULT_CHANNEL_ID, DEFAULT_CHANNEL_NAME } from './FcmChannel';
-import { checkMyPageSettings } from './FcmAlarm';
+import { checkMyPageSettings, checkKeywordSettings, checkMessageForKeywords } from './FcmAlarm';
 
 // FCM Message 처리
 const handleFCMMessage = (remoteMessage) => {
 
-  const result = checkMyPageSettings(remoteMessage.data);
-  
-  if (result) {
-    // 모든 메시지는 Notification으로 변환하여 알림 디스플레이함!
-    const { title, body, isMatch } = createNotification(remoteMessage.data);
-    showLocalNotification(title, body, isMatch, remoteMessage.data);
+  if (remoteMessage.data.fcmType === 'match' && checkKeywordSettings()) {
+    handleMatchKeyword(remoteMessage);
+  } 
+  else {
+    const result = checkMyPageSettings(remoteMessage.data);
+    if (result) {
+      // 모든 메시지는 Notification으로 변환하여 알림 디스플레이함!
+      const { title, body, isMatch } = createNotification(remoteMessage.data);
+      showLocalNotification(title, body, isMatch, remoteMessage.data);
+    }
+    // 저장
+    storeFCM(remoteMessage);
   }
-  // 저장
-  storeFCM(remoteMessage);
 }
 
 // 공통 알림 생성 함수
@@ -87,6 +91,18 @@ const handleFCMClick = (notification: any) => {
   } else {
     console.log('Notification data is undefined');
   }  
+}
+
+const handleMatchKeyword = (remoteMessage) => {
+  const data = remoteMessage.data;
+
+  if (!checkMessageForKeywords(data.additionalData.receiverId, data.message)) return;
+
+  if (checkMyPageSettings(data)) {
+    const { title, body, isMatch } = createNotification(data);
+    showLocalNotification(title, body, isMatch, data);
+  }
+  storeFCM(remoteMessage);
 }
 
 export { handleFCMMessage, createNotification, showLocalNotification, handleFCMClick };
