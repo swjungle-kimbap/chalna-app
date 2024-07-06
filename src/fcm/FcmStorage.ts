@@ -4,6 +4,9 @@ import { ChatFCM, MatchFCM } from '../interfaces/ReceivedFCMData.type';
 import { formatDateToKoreanTime } from "../service/Chatting/DateHelpers";
 import { ChatRoomLocal } from '../interfaces/Chatting.type';
 
+export let DEFAULT_CHANNEL_ID = "chalna_default_channel";
+export const DEFAULT_CHANNEL_NAME = "chalna";
+
 const MATCH_FCM_STORAGE = "matchFCMStorage";
 
 const convertTimestampToKoreanTime = (timestamp: number): string => {
@@ -33,6 +36,7 @@ export const storeFCM = async (remoteMessage): Promise<void> => {
         message: data.message,
         senderId: data.senderId,
         receiverId: additionalData.receiverId,
+        overlapCount: additionalData.overlapCount,
         createdAt: sentTime
       };
       await storeMatchFCM(newMatchFCM);
