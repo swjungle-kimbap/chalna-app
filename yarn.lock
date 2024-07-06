@@ -3841,6 +3841,7 @@ __metadata:
     react-native-bluetooth-client: ^0.1.12
     react-native-config: ^1.5.2
     react-native-date-picker: ^5.0.4
+    react-native-fast-image: ^8.6.3
     react-native-fs: ^2.20.0
     react-native-geolocation-service: ^5.3.1
     react-native-gesture-handler: ^2.17.1
@@ -9428,6 +9429,16 @@ __metadata:
     react: ">= 17.0.1"
     react-native: ">= 0.64.3"
   checksum: 67db7fba5de613c61a70b5b9274daef8c7d3b6f6cdc5a6063eb61126d4df43252c501c2cb78ebda37fb0997ccb0994e949976d0fb395453580019923100e03ad
+  languageName: node
+  linkType: hard
+
+"react-native-fast-image@npm:^8.6.3":
+  version: 8.6.3
+  resolution: "react-native-fast-image@npm:8.6.3"
+  peerDependencies:
+    react: ^17 || ^18
+    react-native: ">=0.60.0"
+  checksum: 29289cb6b2eae0983c8922b22e2d9de3be07322bb7991c5def19f95eadefaedb0e308ff0b38cc1d0444e8bd4fe94a7621a99a2d3d9298100bcb60b3144677234
   languageName: node
   linkType: hard
 
