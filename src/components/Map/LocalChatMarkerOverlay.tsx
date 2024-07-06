@@ -39,19 +39,19 @@ const LocalChatMarkerOverlay = () => {
   }, [currentLocation]);
 
   const fetchLocalChatList = async () => {
-    if (currentLocation) {
-      const localChatReqeustBody = {
-        params: {
-          latitude: currentLocation.latitude,
-          longitude: currentLocation.longitude,
-          distance: 400,
-        }
-      } as AxiosRequestConfig;
-      const response = await axiosGet<GetLocalChatResponse>(
-        urls.GET_LOCAL_CHAT_URL, "주변 장소 채팅 조회", localChatReqeustBody, false);
-      if (response.data.data)
-        setLocalChatList(response.data.data);
-    }
+    // if (currentLocation) {
+    //   const localChatReqeustBody = {
+    //     params: {
+    //       latitude: currentLocation.latitude,
+    //       longitude: currentLocation.longitude,
+    //       distance: 400,
+    //     }
+    //   } as AxiosRequestConfig;
+    //   const response = await axiosGet<GetLocalChatResponse>(
+    //     urls.GET_LOCAL_CHAT_URL, "주변 장소 채팅 조회", localChatReqeustBody, false);
+    //   if (response.data.data)
+    //     setLocalChatList(response.data.data);
+    // }
   };
 
   useEffect(() => {

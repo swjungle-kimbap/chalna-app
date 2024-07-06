@@ -24,13 +24,14 @@
 
   <uses-permission android:name="android.permission.INTERNET" />
   <!--file system-->
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-  <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+ <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.WRITE_MEDIA_IMAGES" />
 
   <uses-permission android:name="android.permission.CAMERA" />
-
-    <!-- <application android:requestLegacyExternalStorage="true"> -->
+   <uses-permission android:name="android.permission.IMAGES" />
+   <!-- android:requestLegacyExternalStorage="true" -->
 
   <application
     android:name=".MainApplication"
@@ -39,6 +40,7 @@
     android:roundIcon="@mipmap/ic_launcher_round"
     android:allowBackup="true"
     android:theme="@style/AppTheme"
+  
    >
     <!-- kakao login android:allowBackup="true" -->
     <meta-data
