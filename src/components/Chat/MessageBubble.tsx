@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Image, Modal, TouchableOpacity, Button, Alert, Linking } from 'react-native';
 import styled from 'styled-components/native';
 import ImageTextButton from "../common/Button";
@@ -12,7 +12,6 @@ import CameraRoll from '@react-native-camera-roll/camera-roll';
 import { NativeModules } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import ImageResizer from 'react-native-image-resizer';
-import Exif from 'react-native-exif';
 
 interface MessageBubbleProps {
     message: any;
@@ -40,54 +39,17 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     const [isDisabled, setIsDisabled] = useState(chatRoomType === 'FRIEND');
     const [modalVisible, setModalVisible] = useState(false);
     const [imageModalVisible, setImageModalVisible] = useState(false);
-
-
-    const [resizedImageUri, setResizedImageUri] = useState(null);
-
-    const getRotation = (orientation) => {
-        switch (orientation) {
-            case 1: return 0;
-            case 3: return 180;
-            case 6: return 90;
-            case 8: return 270;
-            default: return 0;
-        }
-    };
+    const resizedImageUri = useRef(message.preSignedUrl)
 
     const resizeImage = async (uri) => {
         try {
-            // EXIF 데이터에서 이미지 방향 읽기
-            Exif.getExif(uri, async (error, exifData) => {
-                console.log("resizeImage");
-                let rotation = 0;
-                if (!error && exifData) {
-                    const orientation = exifData.Orientation || 1;
-                    rotation = getRotation(orientation);
-                }
-
-                // 이미지 리사이즈 및 회전
-                try {
-                    const response = await ImageResizer.createResizedImage(uri, 800, 800, 'JPEG', 80, rotation);
-                    setResizedImageUri(response.uri);
-                } catch (resizeError) {
-                    console.error('Image resizing error:', resizeError);
-                } 
-     
-            });
+            console.log("resizeImage")
+            const response = await ImageResizer.createResizedImage(uri, 800, 800, 'JPEG', 80);
+            resizedImageUri.current = response.uri;
         } catch (err) {
-            console.error('EXIF reading error:', err);
-    
+            console.error(err);
         }
     };
-
-    // const resizeImage = async (uri) => {
-    //     try {
-    //         const response = await ImageResizer.createResizedImage(uri, 800, 800, 'JPEG', 80);
-    //         setResizedImageUri(response.uri);
-    //     } catch (err) {
-    //         console.error(err);
-    //     }
-    // };
 
 
 
@@ -126,8 +88,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
         setModalVisible(false);
     };
 
-    const openImageModal = () => {
-        resizeImage(message.preSignedUrl)
+    const openImageModal = async () => {
+        await resizeImage(message.preSignedUrl)
         setImageModalVisible(true);
     }
 
@@ -398,12 +360,14 @@ async function requestExternalStoragePermission() {
                 visible={imageModalVisible}
                 onRequestClose={closeImageModal}
             >
-                    <FullScreenModalContainer>
+                <FullScreenModalContainer>
                     <FullScreenModalContent>
                         <ImageTextButton title={"닫기"} onPress={closeImageModal} style={{ alignSelf: 'flex-end' }} />
-                        {/* <FullScreenImage source={{ uri: message.preSignedUrl }} /> */}
-                        <FullScreenImage source={{ uri: resizedImageUri }} />
-                        
+                        <Image
+                            source={{ uri: resizedImageUri.current }}
+                            // source={{uri: message.preSignedUrl}}
+                            style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
+                        />
                         <Button title="Download" onPress={handleFileDownload} />
                     </FullScreenModalContent>
                 </FullScreenModalContainer>
