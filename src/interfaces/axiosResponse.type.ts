@@ -38,12 +38,19 @@ export interface MatchDeleteResponse {
 
 export interface GetLocalChatResponse {
   code: string,
-  data: LocalChat[],
+  data: LocalChatData[],
   message: string
+}
+
+export interface LocalChatData {
+  localChat: LocalChat,
+  isOwner: boolean,
+  isJoined: boolean,
 }
 
 export interface LocalChat extends Position{
   id: number,
+  ownerId: number,
   name: string,
   description: string,
   chatRoomId: number,

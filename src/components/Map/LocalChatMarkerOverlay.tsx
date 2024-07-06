@@ -1,7 +1,7 @@
-import { localChatTapHandler } from "../../service/LocalChat";
+import { localChatDelete, localChatJoin, localChatOut, localChatTapHandler } from "../../service/LocalChat";
 import { NaverMapMarkerOverlay } from "@mj-studio/react-native-naver-map";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { GetLocalChatResponse, LocalChat } from '../../interfaces';
+import { GetLocalChatResponse, LocalChat, LocalChatData } from '../../interfaces';
 import { axiosGet } from "../../axios/axios.method";
 import {urls} from "../../axios/config";
 import { AxiosRequestConfig } from "axios";
@@ -16,17 +16,19 @@ const LocalChatDelayedTime = 60 * 1000;
 const LocalChatMarkerOverlay = () => {
   const currentLocation = useRecoilValue<Position>(locationState);
   const [joinedLocalChatList, setJoinedLocalChatList] = useRecoilState(JoinedLocalChatListState);
-  const [localChatList, setLocalChatList] = useState<Array<LocalChat>>([]);
+  const [localChatList, setLocalChatList] = useState<LocalChatData[]>([]);
   const locationRef = useRef(currentLocation);
   const [locationMoved, setLocationMoved] = useState(currentLocation);
   const beforeLocationRef = useRef(currentLocation);
   const [locationUpdate, setLocationUpdate] = useState(currentLocation);
   const updatedLocationRef = useRef(currentLocation);
-  const getRefresh = useRecoilValue(getLocalChatRefreshState);
+  const [refresh, setRefresh] = useRecoilState(getLocalChatRefreshState);
 
   useEffect(() => {
     const MovedDistance = calDistance(beforeLocationRef.current, currentLocation);
     const MovedUpdatedDistance = calDistance(updatedLocationRef.current, currentLocation);
+    console.log({MovedDistance});
+    console.log({MovedUpdatedDistance});
     if (MovedDistance > 0.2) {
       beforeLocationRef.current = currentLocation;
       setLocationMoved(currentLocation);
@@ -56,7 +58,7 @@ const LocalChatMarkerOverlay = () => {
 
   useEffect(() => {
     fetchLocalChatList();
-  }, [locationMoved, getRefresh])
+  }, [locationMoved, refresh])
 
   useFocusEffect(
     useCallback(() => {
@@ -69,32 +71,68 @@ const LocalChatMarkerOverlay = () => {
   );
 
   const renderMarkers = useMemo(() => {
-    return localChatList.map((item) => {
-      const distance = calDistance(locationUpdate, {latitude: item.latitude, longitude: item.longitude});
+    return localChatList.map((item:LocalChatData) => {
+      const localChat = item.localChat;
+      if (item.isOwner) {
+        return (
+          <NaverMapMarkerOverlay
+            key={localChat.id}
+            latitude={localChat.latitude}
+            longitude={localChat.longitude}
+            onTap={() => localChatDelete(localChat.name, localChat.chatRoomId, localChat.id, setRefresh)}
+            image={require('../../assets/Icons/LocalChatIcon.png')}
+            tintColor='#3955E5'
+            width={40}
+            height={40}
+            caption={{text:localChat.name}}
+            isHideCollidedMarkers={true}
+          />
+        )
+      }
+
+      if (item.isJoined) {
+        return (
+          <NaverMapMarkerOverlay
+            key={localChat.id}
+            latitude={localChat.latitude}
+            longitude={localChat.longitude}
+            onTap={() => localChatOut(localChat.name, localChat.chatRoomId, setRefresh)}
+            image={require('../../assets/Icons/LocalChatIcon.png')}
+            tintColor='#67DBFF'
+            width={40}
+            height={40}
+            isHideCollidedMarkers={true}
+          />
+        )
+      }
+
+      const distance = calDistance(locationUpdate, {latitude: localChat.latitude, longitude: localChat.longitude});
       if (distance > 0.05) {
         return (
           <NaverMapMarkerOverlay
-            key={item.id}
-            latitude={item.latitude}
-            longitude={item.longitude}
-            onTap={() => localChatTapHandler(item.name, item.description, item.chatRoomId, false)}
+            key={localChat.id}
+            latitude={localChat.latitude}
+            longitude={localChat.longitude}
+            onTap={() => localChatJoin(localChat.name, localChat.description, localChat.chatRoomId, false, setRefresh)}
             image={require('../../assets/Icons/LocalChatIcon.png')}
             tintColor='gray'
             width={40}
             height={40}
+            isHideCollidedMarkers={true}
           />
         );
       } else {
         return (
           <NaverMapMarkerOverlay
-            key={item.id}
-            latitude={item.latitude}
-            longitude={item.longitude}
-            onTap={() => localChatTapHandler(item.name, item.description, item.chatRoomId, true)}
+            key={localChat.id}
+            latitude={localChat.latitude}
+            longitude={localChat.longitude}
+            onTap={() => localChatJoin(localChat.name, localChat.description, localChat.chatRoomId, true, setRefresh)}
             image={require('../../assets/Icons/LocalChatIcon.png')}
             tintColor='lightgreen'
             width={40}
             height={40}
+            isHideCollidedMarkers={true}
           />
         );
       }
