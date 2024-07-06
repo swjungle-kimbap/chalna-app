@@ -10,12 +10,12 @@ import RoundBox from "../../components/common/RoundBox";
 import Button from "../../components/common/Button";
 import { SignUpByWithKakao, logIn } from "../../service/kakaoLoginSignup";
 import { navigate } from "../../navigation/RootNavigation";
-import {  getKeychain, setKeychain } from "../../utils/keychain";
 import requestPermissions from "../../utils/requestPermissions";
 import { PERMISSIONS } from "react-native-permissions";
 import messaging from '@react-native-firebase/messaging';
 import uuid from 'react-native-uuid'
 import { LogBox } from 'react-native';
+import { loginMMKVStorage } from "../../utils/mmkvStorage";
 LogBox.ignoreLogs(['new NativeEventEmitter']); 
 
 const LoginScreen: React.FC = () => {
@@ -35,12 +35,12 @@ const LoginScreen: React.FC = () => {
         if (!hasPermission) {
           return null;
         } else {
-          const storedToken = await getKeychain('fcmToken');
+          const storedToken = loginMMKVStorage.getString('fcmToken');
           if (!storedToken) {
             const token = await messaging().getToken();
             fcmTokenRef.current = token;
             console.log('New FCM Token:', token);
-            await setKeychain('fcmToken', token);
+            loginMMKVStorage.set('fcmToken', token);
           } else {
             fcmTokenRef.current = storedToken;
           }
@@ -52,12 +52,11 @@ const LoginScreen: React.FC = () => {
 
     const initializeDeviceUUID = async () => {
       try {
-        //await deleteKeychain('deviceUUID'); // test
-        const UUID = await getKeychain('deviceUUID');
+        const UUID = loginMMKVStorage.getString('deviceUUID');
         if (!UUID) {
           const newDeviceUUID: string = uuid.v4().slice(0, -2) + '00' as string;
           deviceUUIDRef.current = newDeviceUUID;
-          await setKeychain('deviceUUID', newDeviceUUID);
+          loginMMKVStorage.set('deviceUUID', newDeviceUUID);
           console.log("DeviceUUID:", newDeviceUUID);
         } else {
           deviceUUIDRef.current = UUID;
@@ -70,7 +69,7 @@ const LoginScreen: React.FC = () => {
     };
 
     const getLoginToken = async () => {
-      loginTokenRef.current = await getKeychain('loginToken');
+      loginTokenRef.current = loginMMKVStorage.getString('loginToken');
     };
 
     const autoLogin = async () => {
@@ -98,7 +97,7 @@ const LoginScreen: React.FC = () => {
     autoLogin();
     return () => messaging().onTokenRefresh(async (token: string) => {
       console.log('FCM Token refreshed:', token);
-      await setKeychain('fcmToken', token);
+      loginMMKVStorage.set('fcmToken', token);
     });
   }, []);
 

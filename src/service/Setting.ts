@@ -1,9 +1,9 @@
 import { Alert } from "react-native";
 import { axiosPost } from "../axios/axios.method";
-import { deleteKeychain } from "../utils/keychain";
 import { navigate } from "../navigation/RootNavigation";
 import { urls } from "../axios/config";
 import { LogoutResponse } from "../interfaces";
+import { loginMMKVStorage } from "../utils/mmkvStorage";
 
 export const logoutAlert = () => {
   Alert.alert("로그아웃", "로그아웃 하시겠습니까?",
@@ -13,9 +13,9 @@ export const logoutAlert = () => {
         onPress: async () => {
           try {
             await axiosPost<LogoutResponse>(urls.LOGOUT_URL);
-            deleteKeychain("loginToken");
-            deleteKeychain("accessToken");
-            deleteKeychain("refreshToken");
+            loginMMKVStorage.delete("loginToken");
+            loginMMKVStorage.delete("accessToken");
+            loginMMKVStorage.delete("refreshToken");
             navigate("로그인")
           } catch (e) {
             console.error("로그 아웃 중 오류 발생:", e);

@@ -1,61 +1,57 @@
-import {MMKV} from "react-native-mmkv";
+import Config from "react-native-config";
+import {MMKV, MMKVConfiguration} from "react-native-mmkv";
 
-const mmkvStorage = new MMKV({id:'mmkvStorage'});
+const FILE_DIRECTORY = '/data/data/com.chalna/files';
 
-export const setMMKVString =  (key: string, value: string) => {
-    try {
-        mmkvStorage.set(key, value);
-        console.log(`${key} stored ${value} in MMKV`);
-    } catch (e) {
-        console.log(`Error storing ${key} key: `, e);
-    }
+const LoginMMKVConfig: MMKVConfiguration = {
+    id:'loginInfo',
+    path: FILE_DIRECTORY + '/login/',
+    encryptionKey: Config.encryptionKey
+};
+export const loginMMKVStorage = new MMKV(LoginMMKVConfig)
+
+export let userMMKVStorage: MMKV | null = null;
+
+export const setUserMMKVStorage = (userId:string) => {
+    userMMKVStorage = new MMKV({
+        id: `user_${userId}`,
+        path: FILE_DIRECTORY + `/users/user_${userId}`,
+    });
+    console.log(`MMKV storage set to user_${userId}`);
+};
+
+export const setMMKVString = (key: string, value: string) => {
+    userMMKVStorage.set(key, value);
+    console.log(`${key} stored ${value} in MMKV`);
 };
 
 export const setMMKVObject = <T>(key: string, value: T) => {
-    try {
-        const jsonValue = JSON.stringify(value);
-        mmkvStorage.set(key, jsonValue);
-        console.log(`${key} stored in MMKV`);
-    } catch (e) {
-        console.log(`Error storing ${key} key: `, e);
-    }
+    const jsonValue = JSON.stringify(value);
+    userMMKVStorage.set(key, jsonValue);
+    console.log(`${key} stored in MMKV`);
 };
 
 export const getMMKVString = (key: string):string|null => {
-    try {
-        const value = mmkvStorage.getString(key);
-        if (value === null) {
-            console.log(`${key} is not stored in MMKV`);
-            return null;
-        }
-        console.log(`Using stored ${key} : ${value} in MMKV`);
-        return value;
-    } catch (e) {
-        console.log(`Error retrieving ${key} key: `, e);
+    const value = userMMKVStorage.getString(key);
+    if (value === null) {
+        console.log(`${key} is not stored in MMKV`);
         return null;
     }
+    console.log(`Using stored ${key} : ${value} in MMKV`);
+    return value;
 };
 
 export const getMMKVObject = <T>(key: string): T | null => {
-    try {
-        const jsonValue = mmkvStorage.getString(key);
-        if (jsonValue != null) {
-            console.log(`Using stored ${key} : ${jsonValue} in MMKV`);
-            return JSON.parse(jsonValue);
-        }
-        console.log(`${key} is not stored in MMKV`);
-        return null;
-    } catch (e) {
-        console.log(`Error retrieving ${key} key: `, e);
-        return null;
+    const jsonValue = userMMKVStorage.getString(key);
+    if (jsonValue != null) {
+        console.log(`Using stored ${key} : ${jsonValue} in MMKV`);
+        return JSON.parse(jsonValue);
     }
+    console.log(`${key} is not stored in MMKV`);
+    return null;
 };
 
 export const removeMMKVItem = (key: string) => {
-    try {
-        mmkvStorage.delete(key);
-        console.log(`Removed ${key} completely in MMKV`);
-    } catch (e) {
-        console.log(`Error removing ${key} key: `, e);
-    }
+    userMMKVStorage.delete(key);
+    console.log(`Removed ${key} completely in MMKV`);
 };

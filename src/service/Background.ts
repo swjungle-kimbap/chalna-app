@@ -1,6 +1,6 @@
 import BackgroundService from 'react-native-background-actions';
 import ScanNearbyAndPost from './Bluetooth'
-import { getKeychain } from '../utils/keychain';
+import { loginMMKVStorage } from '../utils/mmkvStorage';
 
 const backgroundBLE = async (args:any) => {
   const { uuid } = args;
@@ -10,7 +10,7 @@ const backgroundBLE = async (args:any) => {
 };
 
 export const startBackgroundService = async () => {
-  const deviceUUID = await getKeychain('deviceUUID');
+  const deviceUUID = loginMMKVStorage.getString('deviceUUID');
 
   if (!deviceUUID) {
     console.error('deviceUUID is not available');
