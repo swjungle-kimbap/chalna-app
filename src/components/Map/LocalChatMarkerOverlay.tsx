@@ -93,7 +93,7 @@ const LocalChatMarkerOverlay = () => {
         setJoinedLocalChatList(updatedLocalChatRoomData);
       }
     }
-    console.log('updated!!');
+    //console.log('updated!!');
   };
 
   useEffect(() => {

@@ -24,10 +24,14 @@
 
   <uses-permission android:name="android.permission.INTERNET" />
   <!--file system-->
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-  <uses-permission android:name="android.permission.CAMERA" />
+ <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.WRITE_MEDIA_IMAGES" />
+
+  <uses-permission android:name="android.permission.CAMERA" />
+   <uses-permission android:name="android.permission.IMAGES" />
+   <!-- android:requestLegacyExternalStorage="true" -->
 
   <application
     android:name=".MainApplication"
@@ -35,7 +39,9 @@
     android:icon="@mipmap/ic_launcher"
     android:roundIcon="@mipmap/ic_launcher_round"
     android:allowBackup="true"
-    android:theme="@style/AppTheme">
+    android:theme="@style/AppTheme"
+  
+   >
     <!-- kakao login android:allowBackup="true" -->
     <meta-data
     android:name="com.kakao.sdk.AppKey"
@@ -55,6 +61,7 @@
       android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
       android:launchMode="singleTask"
       android:windowSoftInputMode="adjustResize"
+      android:requestLegacyExternalStorage="true"
       android:exported="true">
       <intent-filter>
           <action android:name="android.intent.action.MAIN" />
@@ -78,6 +85,8 @@
         <data android:host="oauth" android:scheme="kakao${KAKAO_NATIVE_APP_KEY}" />
       </intent-filter>
     </activity>
+
+
     <!-- react-native-background-actions -->
     <service android:name="com.asterinet.react.bgactions.RNBackgroundActionsTask" android:foregroundServiceType="shortService"/>
 

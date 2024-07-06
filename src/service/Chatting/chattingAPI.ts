@@ -11,7 +11,9 @@ export const fetchChatRoomList=async():Promise<ChatRoom[]|any>=>{
         const response = await axiosGet<{ data: { list: ChatRoom[] } }>(
             urls.CHATROOM_LIST_URL,
         );
+        console.log('response from api: ', response.data.data);
         return response.data.data
+
     } catch (error) {
         console.error(error);
     }
@@ -48,8 +50,10 @@ export const deleteChat = async (navigation: any, chatRoomId:string):Promise<boo
                                 await axiosDelete(
                                     urls.CHATROOM_LEAVE_URL+`${chatRoomId}`
                                 );
-                                Alert.alert("채팅방 삭제 완료", "채팅 목록 화면으로 돌아갑니다.");
-                                navigation.navigate('채팅 목록');
+                                Alert.alert("채팅방 삭제 완료");
+                                if (navigation!=='none'){
+                                    navigation.navigate('채팅 목록');
+                                }
                                 return true;
                             } catch (error) {
                                 const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
@@ -59,3 +63,4 @@ export const deleteChat = async (navigation: any, chatRoomId:string):Promise<boo
                         }}]
     );
 };
+

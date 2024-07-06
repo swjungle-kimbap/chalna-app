@@ -15,6 +15,8 @@ import messaging from '@react-native-firebase/messaging';
 import uuid from 'react-native-uuid'
 import { LogBox } from 'react-native';
 import { getMMKVObject, loginMMKVStorage, setMMKVObject, setUserMMKVStorage } from "../../utils/mmkvStorage";
+import { setDefaultMMKVString } from "../../utils/mmkvStorage";
+
 LogBox.ignoreLogs(['new NativeEventEmitter']); 
 
 const LoginScreen: React.FC = () => {
@@ -74,6 +76,7 @@ const LoginScreen: React.FC = () => {
           const loginResponse = await logIn(loginTokenRef.current, deviceUUIDRef.current, fcmTokenRef.current);
           if (loginResponse) {
             setUserMMKVStorage(loginResponse.id.toString());
+            setDefaultMMKVString('currentUserId', loginResponse.id.toString()); // 기본 저장소에 현재 사용자 ID 설정
             const newUserInfo = getMMKVObject<LoginResponse>("mypage.userInfo");
             if (newUserInfo)
               setUserInfo(newUserInfo);

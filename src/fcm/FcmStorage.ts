@@ -1,5 +1,5 @@
 import { setUserMMKVStorage, setMMKVObject, getMMKVObject, removeMMKVItem } from '../utils/mmkvStorage';
-import { saveChatRoomInfo, createChatRoomLocal, getChatRoomList } from '../localstorage/mmkvStorage';
+import { saveChatRoomInfo, createChatRoomLocal, getChatRoomList } from '../service/Chatting/mmkvChatStorage';
 import { ChatFCM, MatchFCM } from '../interfaces/ReceivedFCMData.type';
 import { formatDateToKoreanTime } from "../service/Chatting/DateHelpers";
 import { ChatRoomLocal } from '../interfaces/Chatting.type';
@@ -33,7 +33,8 @@ export const storeFCM = async (remoteMessage): Promise<void> => {
         message: data.message,
         senderId: data.senderId,
         receiverId: additionalData.receiverId,
-        createdAt: sentTime
+        createdAt: sentTime,
+        overlapCount: additionalData.overlapCount,
       };
       await storeMatchFCM(newMatchFCM);
       break;
@@ -99,4 +100,3 @@ export const removeAllMatchFCM = async (receiverId: string): Promise<void> => {
   removeMMKVItem(MATCH_FCM_STORAGE);
   console.log(`Removed all messages in ${MATCH_FCM_STORAGE} for user ${receiverId}`);
 };
-
