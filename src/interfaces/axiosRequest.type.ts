@@ -14,9 +14,8 @@ export interface SignUpRequest {
 }
 
 export interface SendMsgRequest {
-  receiverDeviceId : string,
+  deviceIdList : string[],
   message: string,
-  interestTag: string[],
 }
 
 export interface GetLocalChatRequest extends Position {

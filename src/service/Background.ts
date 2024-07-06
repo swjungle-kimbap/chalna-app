@@ -10,7 +10,7 @@ const backgroundBLE = async (args:any) => {
 };
 
 export const startBackgroundService = async () => {
-  const deviceUUID = loginMMKVStorage.getString('deviceUUID');
+  const deviceUUID = loginMMKVStorage.getString('login.deviceUUID');
 
   if (!deviceUUID) {
     console.error('deviceUUID is not available');

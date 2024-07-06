@@ -11,7 +11,6 @@ export interface Position {
   
 export interface SavedMessageData {
   msgText: string,
-  selectedTag: string,
   isScanning: boolean,
   isBlocked: boolean,
   blockedTime: number,
