@@ -1,4 +1,10 @@
-import { defaultMMKVStorage } from '../utils/mmkvStorage';
+import { SavedKeywords } from "../interfaces";
+import { defaultMMKVStorage, 
+  getDefaultMMKVString,
+  setUserMMKVStorage,
+  getMMKVBoolean,
+  getMMKVObject
+} from '../utils/mmkvStorage';
 
 // 기본 푸시 알림, 채팅 알림, 인연 알림 on/off 기능
 export const checkMyPageSettings = (data:any):boolean => {
@@ -14,6 +20,29 @@ export const checkMyPageSettings = (data:any):boolean => {
   return true;
 }
 
+export const checkKeywordSettings = (): boolean => {
+  const currentUserId = getDefaultMMKVString('currentUserId');
+  const isKeywordAlarm = getIsKeywordAlarm(currentUserId);
+
+  if (isKeywordAlarm) return true;
+  else return false;
+}
+
+export const getIsKeywordAlarm = (userId: string): boolean => {
+  setUserMMKVStorage(userId);
+  const isKeywordAlarm = getMMKVBoolean('mypage.isKeywordAlarm');
+  console.log(`mypage.isKeywordAlarm: ${isKeywordAlarm}`);
+  return isKeywordAlarm ?? false;
+};
+
+// mypage.savedKeywords 값을 가져오는 함수
+export const getSavedKeywords = (userId: string): SavedKeywords | null => {
+  setUserMMKVStorage(userId);
+  const savedKeywords = getMMKVObject<SavedKeywords>('mypage.savedKeywords');
+  console.log(`mypage.savedKeywords: ${JSON.stringify(savedKeywords)}`);
+  return savedKeywords;
+};
+
 
 export const getMyPageSettings = () => {
   const isAlarm = defaultMMKVStorage.getBoolean('mypage.isAlarm') ?? true; // 기본값 설정
@@ -28,3 +57,21 @@ export const getAlarmSettings = () => {
   const alarmVibration = defaultMMKVStorage.getBoolean('mypage.alarmVibration') ?? true; // 기본값 설정
   return { alarmSound, alarmVibration };
 };
+
+// 메시지에 키워드가 포함되어 있는지 확인하는 함수
+export const checkMessageForKeywords = (userId: string, message: string): boolean => {
+  const savedKeywords = getSavedKeywords(userId);
+  if (savedKeywords && savedKeywords.interestKeyword) {
+    for (const keyword of savedKeywords.interestKeyword) {
+      if (message.includes(keyword)) {
+        console.log(`Message contains keyword: ${keyword}`);
+        return true;
+      }
+    }
+    return false;
+  } 
+  else {
+    console.log('No saved keywords, so all messages are allowed');
+    return true;
+  }
+}
