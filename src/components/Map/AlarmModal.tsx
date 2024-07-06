@@ -26,30 +26,28 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
 
   useEffect(() => {
     let ignoreflg = false;
-    if (FCMAlarms){
-      setFCMAlarms(() => FCMAlarms.filter((alarm) => {
-        if (ignoreflg)
-          return true;
+    if (FCMAlarms) {
+      const validAlarms = FCMAlarms.filter((alarm) => {
+        if (ignoreflg) return true;
         const [year, month, day, hour, minute, second] = alarm.createdAt.split(/[\s.:]+/).map(Number);
         const createdTime = new Date(year, month - 1, day, hour, minute, second);
-        const deleteRestTime = createdTime.getTime() + 5 * 60 * 1000 - Date.now(); 
+        const deleteRestTime = createdTime.getTime() + 5 * 60 * 1000 - Date.now();
         console.log(createdTime, deleteRestTime);
-  
+
         if (deleteRestTime > 0) {
           setTimeout(() => {
-            setFCMAlarms((prevAlarms) => prevAlarms.filter(item => item.id !== alarm.id));
+            setFCMAlarms((prevAlarms) => prevAlarms?.filter(item => item.id !== alarm.id));
           }, deleteRestTime);
-    
+
           ignoreflg = true
           return true;
-        } 
+        }
         return false;
-      }));
-      setAlarmCnt(FCMAlarms.length);
+      });
+      setFCMAlarms(validAlarms);
+      setAlarmCnt(validAlarms.length);
     }
-    
-  }, [FCMAlarms]);
-  
+  }, [FCMAlarms, setFCMAlarms]);
   useFocusEffect(
     useCallback(() => {
       closeModal();       // 화면이 포커스를 받을 때 모달 상태 초기화

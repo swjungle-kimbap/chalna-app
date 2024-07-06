@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
-import { View, Image, Modal, TouchableOpacity, Button } from 'react-native';
+import { View, Image, Modal, TouchableOpacity, Button, Alert } from 'react-native';
 import styled from 'styled-components/native';
 import ImageTextButton from "../common/Button";
 import WebSocketManager from "../../utils/WebSocketManager";
-import {acceptFriendRequest, rejectFriendRequest, sendFriendRequest} from "../../service/FriendRelationService";
+import {acceptFriendRequest, rejectFriendRequest, sendFriendRequest} from "../../service/Friends/FriendRelationService";
 import Text from '../common/Text';
+import RNFS from 'react-native-fs';
+import { PermissionsAndroid, Platform } from 'react-native';
+import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import CameraRoll from '@react-native-camera-roll/camera-roll';
+import { NativeModules } from 'react-native';
+import RNFetchBlob from 'rn-fetch-blob';
 
 interface MessageBubbleProps {
-    message: string;
+    message: any;
     datetime: string;
     isSelf: boolean;
     type?: string;
@@ -31,6 +37,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     const formattedTime = datetime;
     const [isDisabled, setIsDisabled] = useState(chatRoomType === 'FRIEND');
     const [modalVisible, setModalVisible] = useState(false);
+    const [imageModalVisible, setImageModalVisible] = useState(false);
 
     const handleAccept = async () => {
         const response = await acceptFriendRequest(chatRoomId);
@@ -67,17 +74,113 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
         setModalVisible(false);
     };
 
+    const openImageModal = () => {
+        setImageModalVisible(true);
+    }
+
+    const closeImageModal = () => {
+        setImageModalVisible(false);
+    }
+
+
+    const handleFileDownload = async () => {
+        try {
+            if (Platform.OS === 'android') {
+                const permission = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                    {
+                        title: 'Storage Permission Required',
+                        message: 'This app needs access to your storage to download photos',
+                        buttonNeutral: 'Ask Me Later',
+                        buttonNegative: 'Cancel',
+                        buttonPositive: 'OK',
+                    }
+                );
+                const writeGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
+                if (!writeGranted) {
+                    console.log('쓰기권한 없음');
+                    return;
+                }
+
+                if (permission === PermissionsAndroid.RESULTS.GRANTED) {
+                    const { preSignedUrl } = message;
+
+                    const path = RNFS.DocumentDirectoryPath;// 다운로드 디렉토리(내부 저장소) -> 외부저장소로 변경필요
+                    // const path = RNFS.ExternalStorageDirectoryPath + '/Download';
+                    let downloadDest = `${path}/${message.fileId}.jpg`;
+
+                    console.log('다운로드 경로 : ',downloadDest);
+
+                    // 디렉토리가 존재하는지 확인하고, 없다면 생성
+                    const directoryExists = await RNFS.exists(path);
+                    console.log("exists", directoryExists)
+                    if (!directoryExists) {
+                        try {
+                            await RNFS.mkdir(path, { NSURLIsExcludedFromBackupKey: true });
+                            console.log("디렉토리 생성 완료", path)
+                        } catch (error) {
+                            console.error('디렉토리 생성 오류: ', error);
+                            Alert.alert('디렉토리 생성 오류', '디렉토리 생성에 실패했습니다.', [{ text: '확인' }]);
+                            return;
+                        }
+                        // await RNFS.mkdir(path);
+                    }
+
+                    const downloadOptions = {
+                        fromUrl: preSignedUrl, // s3 다운 경로
+                        toFile: downloadDest, // 로컬 다운 경로
+                    };
+
+                    const res = RNFS.downloadFile(downloadOptions);
+                    console.log('Download result:', res);
+
+                    const result = await res.promise;
+                    console.log('result : ',result);
+                    console.log('Download status code:', result.statusCode);
+
+                    if (result.statusCode === 200) {
+                        // await RNFS.moveFile(downloadDest, `file:///sdcard/Download/${message.fileId}.jpg`);
+                        // const saveToGallery = await RNFS.moveFile(downloadDest, RNFS.PicturesDirectoryPath + `/${message.fileId}.jpg`);
+                        // await RNFS.scanFile(RNFS.PicturesDirectoryPath + `/${message.fileId}.jpg`);
+                        await RNFS.scanFile(downloadDest);
+
+                        Alert.alert('다운로드 완료', '사진이 갤러리에 저장되었습니다.', [{ text: '확인' }]);
+                    } else {
+                        Alert.alert('다운로드 실패', '사진 다운로드에 실패했습니다.', [{ text: '확인' }]);
+                    }
+                } else {
+                    Alert.alert('권한 필요', '사진 저장 권한이 필요합니다.', [{ text: '확인' }]);
+                }
+            } else {
+                Alert.alert('iOS에서는 지원되지 않습니다.', '사진 저장 기능은 Android에서만 지원됩니다.', [{ text: '확인' }]);
+            }
+        } catch (error) {
+            console.error('File download error:', error);
+            Alert.alert('다운로드 실패', '사진 다운로드 중 오류가 발생했습니다.', [{ text: '확인' }]);
+        }
+    };
+
+
+
+
     const renderMessageContent = () => {
         if (typeof message === 'string') {
             return <Text variant="sub" style={{ color: "#444444" }}>{message}</Text>;
         } else if (type === 'FILE' && message.preSignedUrl) {
             console.log(message.preSignedUrl);
             return (
+
+                <TouchableOpacity onPress={openImageModal}>
+
                 <Image
                     source={{ uri: message.preSignedUrl }}
                     style={{ width: 200, height: 200, borderRadius: 10 }}
                 />
+
+                </TouchableOpacity>
             );
+
+
         } else if (typeof message === 'object') {
             // Handle other object types if necessary
             return <Text variant="sub" style={{ color: "#444444" }}>{JSON.stringify(message)}</Text>;
@@ -85,6 +188,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
             return null;
         }
     };
+
 
     // const hasNewline = message.includes('\n');
 
@@ -111,28 +215,27 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                     <AnnouncementMessageBubble style={{backgroundColor: '#c0c0c0'}}>
                         <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
                     </AnnouncementMessageBubble>
-                ) : type==='CHAT'? (
+
+                ) : (
+
                     <MessageContainer isSelf={isSelf} showProfileTime={showProfileTime}>
                         {isSelf && (<DateReadStatusContainer>
                                 <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt}</ReadStatus>
                                 {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
                         </DateReadStatusContainer>)}
-                        <MessageBubbleContent>
-                            {renderMessageContent()}
-                            {/*isSelf={isSelf} hasNewline={hasNewline}>*/}
-                            {/*<Text variant="sub" style={{color:"#444444"}}>{message}</Text>*/}
+
+                        <MessageBubbleContent isSelf={isSelf}>
+                        {renderMessageContent()}
+
+
                         </MessageBubbleContent>
                         {!isSelf && (<DateReadStatusContainer>
                             <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt}</ReadStatus>
                             {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
                         </DateReadStatusContainer>)}
                     </MessageContainer>
-                ) : (
-                    <MessageContainer>
-                        message
-                    </MessageContainer>
                 )
-                }
+            }
             </BubbleContainer>
             <Modal
                 animationType="slide"
@@ -142,24 +245,52 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
             >
                 <ModalContainer>
                     <ModalContent>
-                        <ImageTextButton title={"닫기"} onPress={closeUserInfoModal} style={{alignSelf:'flex-end'}}/>
+                        <ImageTextButton iconSource={require('../../assets/Icons/closeIcon.png')}
+                                         imageStyle={{height: 15, width: 15}}
+                                         onPress={closeUserInfoModal} style={{alignSelf:'flex-end'}}/>
                         <ProfilePicture modal source={{uri:
                                     profilePicture ||
                                     'https://www.refugee-action.org.uk/wp-content/uploads/2016/10/anonymous-user.png' }}
                         />
                         <NameBtnContainer>
                             <Text variant="subtitle" >{username}</Text>
+                            { chatRoomType==='FRIEND'? (
+                                <Image
+                                    source={require('../../assets/Icons/friendIcon.png')}
+                                    style={{height: 18, width: 24, marginLeft:6, marginTop:7}}
+                                    resizeMode={"contain"}
+                                />
+                                ):(
                             <ImageTextButton
                                 style={{marginTop: 1, marginLeft:5}}
                                 iconSource={require('../../assets/Icons/AddFriendCircle.png')}
                                 imageStyle={{height:25, width: 25}}
                                 onPress={handleSend}
                             />
+                                )}
                         </NameBtnContainer>
                         <Text variant={"sub"} style={{size: 12, marginBottom: 10}} >{"스쳐간 횟수 or 상태메세지 표기"}</Text>
 
                     </ModalContent>
                 </ModalContainer>
+            </Modal>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={imageModalVisible}
+                onRequestClose={closeImageModal}
+            >
+                    <FullScreenModalContainer>
+                    <FullScreenModalContent>
+                        <ImageTextButton iconSource={require('../../assets/Icons/closeIcon.png')}
+                                         imageStyle={{height: 15, width: 15, paddingRight:20, paddingTop: 20 }}
+                                         onPress={closeImageModal} style={{ alignSelf: 'flex-end' }} />
+                        <FullScreenImage source={{ uri: message.preSignedUrl }} />
+                        <ImageTextButton iconSource={require('../../assets/Icons/downloadIcon.png')}
+                                         imageStyle={{height: 20, width: 20}}
+                                         onPress={handleFileDownload} />
+                    </FullScreenModalContent>
+                </FullScreenModalContainer>
             </Modal>
         </Container>
     );
@@ -277,6 +408,28 @@ const ModalContent = styled.View`
 const CloseModalButton = styled(Text)`
     font-size: 16px;
     color: #5A5A5A;
+`;
+
+const FullScreenModalContainer = styled.View`
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.9);
+`;
+
+const FullScreenModalContent = styled.View`
+    width: 90%;
+    height: 90%;
+    background-color: white;
+    padding: 10px;
+    border-radius: 10px;
+    align-items: center;
+`;
+
+const FullScreenImage = styled.Image`
+    width: 100%;
+    height: 80%;
+    resize-mode: contain;
 `;
 
 export default MessageBubble;
