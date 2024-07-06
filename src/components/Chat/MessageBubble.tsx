@@ -101,14 +101,21 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                     console.log('쓰기권한 없음');
                     return;
                 }
-
+                       
                 if (permission === PermissionsAndroid.RESULTS.GRANTED) {
                     const { preSignedUrl } = message;
         
-                    const path = RNFS.DocumentDirectoryPath;// 다운로드 디렉토리(내부 저장소) -> 외부저장소로 변경필요
-                    // const path = RNFS.ExternalStorageDirectoryPath + '/Download';
-                    let downloadDest = `${path}/${message.fileId}.jpg`;
-            
+                   // const path = RNFS.DocumentDirectoryPath;// 다운로드 디렉토리(내부 저장소) -> 외부저장소로 변경필요
+        
+                    //  const path = `${RNFS.ExternalStorageDirectoryPath}/Download`;
+          
+                //    const path = '/data/data/com.chalna/pictures'; -> 여기에는 저장이 됨. (내부저장소)
+                 //  const path = '/sdcard/Android/data/com.chalna';-> 여기에는 저장이 됨.
+                   const path = '/sdcard/DICIM/Camera';
+
+                   let downloadDest = `${path}/${message.fileId}.png`;
+                    
+                    console.log('저장소 : ', path);
                     console.log('다운로드 경로 : ',downloadDest);
 
                     // 디렉토리가 존재하는지 확인하고, 없다면 생성
@@ -123,13 +130,13 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                             Alert.alert('디렉토리 생성 오류', '디렉토리 생성에 실패했습니다.', [{ text: '확인' }]);
                             return;
                         }
-                        // await RNFS.mkdir(path);
                     }
                     
                     const downloadOptions = {
                         fromUrl: preSignedUrl, // s3 다운 경로
                         toFile: downloadDest, // 로컬 다운 경로 
                     };
+                    console.log('s3 다운로드 경로 :',preSignedUrl);
 
                     const res = RNFS.downloadFile(downloadOptions);
                     console.log('Download result:', res);
@@ -139,13 +146,36 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                     console.log('Download status code:', result.statusCode);
         
                     if (result.statusCode === 200) {
+
+                         // 사진첩에 저장 경로 설정
+                        //  const picturesPath = RNFS.PicturesDirectoryPath + `/${message.fileId}.jpg`;
                         // await RNFS.moveFile(downloadDest, `file:///sdcard/Download/${message.fileId}.jpg`);
                         // const saveToGallery = await RNFS.moveFile(downloadDest, RNFS.PicturesDirectoryPath + `/${message.fileId}.jpg`);
                         // await RNFS.scanFile(RNFS.PicturesDirectoryPath + `/${message.fileId}.jpg`);
-                        await RNFS.scanFile(downloadDest);
-        
-                        Alert.alert('다운로드 완료', '사진이 갤러리에 저장되었습니다.', [{ text: '확인' }]);
-                    } else {
+
+                        const fileName = `${message.fileId}.jpg`;
+    
+    
+                        try {
+                            // await RNFS.moveFile(downloadDest, picturesPath);
+                            // console.log('파일 이동 완료:', picturesPath);
+            
+                            // await RNFS.scanFile(picturesPath);
+                            // console.log('파일 스캔 완료:', picturesPath);
+
+                            await RNFS.scanFile(downloadDest);
+            
+                            Alert.alert('다운로드 완료', '사진이 갤러리에 저장되었습니다.', [{ text: '확인' }]);
+                        } catch (moveError) {
+                            console.error('파일 이동/스캔 오류:', moveError);
+                            Alert.alert('파일 이동 오류', '사진 이동에 실패했습니다.', [{ text: '확인' }]);
+                        }
+    
+                    } else if (result.statusCode === 403) {
+                        Alert.alert('다운로드 실패', '사진이 만료되었습니다.', [{ text: '확인' }]);
+
+                    }
+                    else {
                         Alert.alert('다운로드 실패', '사진 다운로드에 실패했습니다.', [{ text: '확인' }]);
                     }
                 } else {
