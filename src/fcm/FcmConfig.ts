@@ -89,11 +89,8 @@ class FcmConfig {
       requestPermissions: Platform.OS === 'ios',
     });
 
-    getFCMChannels();
     deleteAllFCMChannels();
-
     updateDefaultFCMChannel();
-    
     getFCMChannels();
   }
 }
