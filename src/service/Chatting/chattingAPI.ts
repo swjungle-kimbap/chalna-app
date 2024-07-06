@@ -50,7 +50,7 @@ export const deleteChat = async (navigation: any, chatRoomId:string):Promise<boo
                                 await axiosDelete(
                                     urls.CHATROOM_LEAVE_URL+`${chatRoomId}`
                                 );
-                                Alert.alert("채팅방 삭제 완료", "채팅 목록 화면으로 돌아갑니다.");
+                                Alert.alert("채팅방 삭제 완료");
                                 if (navigation!=='none'){
                                     navigation.navigate('채팅 목록');
                                 }

@@ -1,44 +1,37 @@
-import React, { useState, useEffect,useRef, useCallback } from 'react';
-import styled from "styled-components/native";
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { View, FlatList, TextInput, StyleSheet, TouchableOpacity, Modal, TouchableWithoutFeedback, ActivityIndicator, Image } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import styled from 'styled-components/native';
 import Text from "../../components/common/Text";
-import Button from '../../components/common/Button'
+import Button from '../../components/common/Button';
+import FriendCard from "../../components/FriendCard";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../interfaces";
-import {View, FlatList, Image, TextInput, StyleSheet ,TouchableOpacity, Modal, TouchableWithoutFeedback} from "react-native";
-import FriendCard from "../../components/FriendCard";
-import Config from "react-native-config";
-import { ActivityIndicator } from "react-native";
-import axios, { AxiosInstance } from "axios";
 import { axiosGet } from "../../axios/axios.method";
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import { urls } from "../../axios/config";
 import ImageTextButton from "../../components/common/Button";
-import {urls} from "../../axios/config";
-import friendRequestScreen from "./FriendRequestScreen";
+import {getKoreanInitials} from '../../service/Friends/KoreanInitials';
 
 interface ApiResponse {
-  status: number;
-  message: string;
-  data: {
-    friends: Friend[];
-  };
+    status: number;
+    message: string;
+    data: Friend[];
 }
 
-export interface User {
+interface User {
     id: number;
     username: string;
     message: string;
 }
 
-// Friend 인터페이스
-export interface Friend extends User {
+interface Friend extends User {
     profileImage: string;
-    status: number; // 1: 친구, 2: 차단친구, 3: 인연, 4: 기타
+    status: number;
 }
 
 type FriendsScreenProps = {
-  navigation: StackNavigationProp<RootStackParamList, '친구 목록'>
+    navigation: StackNavigationProp<RootStackParamList, '친구 목록'>
 };
-
 
 const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
@@ -49,96 +42,59 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     const [error, setError] = useState<string | null>(null);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
 
-    const naviagtionProp = useNavigation();
-
     useFocusEffect(
         useCallback(() => {
-        const fetchFriends = async () => {
-            try {
+            const fetchFriends = async () => {
+                setLoading(true);
+                try {
+                    const response = await axiosGet<ApiResponse>(urls.GET_FRIEND_LIST_URL);
+                    console.log("friend api response: ", response.data.data);
+                    setFriendsData(response.data.data);
+                    setFilteredData(response.data.data); // Initially setting filteredData to all friends
+                } catch (error) {
+                    setError('Failed to fetch friends');
+                } finally {
+                    setLoading(false);
+                }
+            };
 
-            console.log("Fetching friends data...");
-            const response = await axiosGet<ApiResponse>(urls.GET_FRIEND_LIST_URL);
-            console.log("Response received:", response.data);
-            if (response.data && response.data.data && Array.isArray(response.data.data)) {
-                setFriendsData(response.data.data);
-                setFilteredData(response.data.data);
-            } else {
-                console.error('Unexpected response structure:', response.data);
-                setError('Unexpected response structure');
-            }
-
-            } catch (error) {
-            if (axios.isAxiosError(error)) {
-                console.error('Axios error', error.message);
-                setError(error.message);
-            } else {
-                console.error('Error friends data:', error);
-                setError('Unexpected error occurred');
-            }
-            } finally {
-            setLoading(false);
-            }
-        };
-
-        fetchFriends();
+            fetchFriends();
         }, [])
     );
 
-
-    const handleCardPress = (cardId: number) => {
-        if(expandedCardId===cardId){
-            setExpandedCardId(null);
+    useMemo(() => {
+        const trimmedQuery = searchQuery.replace(/\s+/g, '');
+        if (!trimmedQuery) {
+            setFilteredData(friendsData);
         } else {
-            setExpandedCardId(cardId);
+            const filtered = friendsData.filter(({ username, message }) =>
+                (username &&  getKoreanInitials(username).includes(trimmedQuery)) ||
+                (message && getKoreanInitials(message).includes(trimmedQuery))
+            );
+            setFilteredData(filtered);
         }
-    }
+    }, [friendsData, searchQuery]);
+
+    const handleCardPress = useCallback((cardId: number) => {
+        setExpandedCardId(prevId => prevId === cardId ? null : cardId);
+    }, []);
 
     const handleSearch = (query: string) => {
         setSearchQuery(query);
-        if (query === '') {
-          setFilteredData(friendsData);
-        }
-      }
-
-    const handleSearchButtonPress = () => {
-    const trimmedQuery = searchQuery.replace(/\s+/g, ''); // 공백 제거
-    if (trimmedQuery === '') {
-        setFilteredData(friendsData);
-        return;
-    }
-    const filtered = friendsData.filter(user =>
-        (user.username && user.username.includes(trimmedQuery)) ||
-        (user.message && user.message.includes(trimmedQuery))
-    );
-    setFilteredData(filtered);
     };
 
-    const renderFriendCard = ({item}: {item: Friend}) => (
+    const renderFriendCard = useCallback(({ item }: { item: Friend }) => (
         <FriendCard
             user={item}
             isExpanded={item.id === expandedCardId}
-            onExpand={()=> handleCardPress(item.id)}
+            onExpand={() => handleCardPress(item.id)}
             navigation={navigation}
             options={'friend'}
-        />);
+        />
+    ), [expandedCardId, navigation]);
 
-    if (loading) {
-            return (
-                <FriendsStyle>
-                    <ActivityIndicator size="large" color="#0000ff" />
-                </FriendsStyle>
-            );
-    }
-
-    if (error) {
-        return (
-            <FriendsStyle>
-                <Text>친구 목록을 불러오는 중 오류가 발생했습니다: {error}</Text>
-            </FriendsStyle>
-        );
-    }
-
-
+    if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
+    if (error) return <Text>Error loading friends: {error}</Text>;
     return (
         <FriendsStyle>
 
@@ -154,7 +110,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                     onChangeText={handleSearch}
                     style={styles.searchInput}
                 />
-            <TouchableOpacity onPress={handleSearchButtonPress}>
+            <TouchableOpacity>
                 <Image source={require('../../assets/Icons/SearchIcon.png')} style={styles.searchIcon} />
                 </TouchableOpacity>
             </View>
@@ -196,7 +152,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
 
 const FriendsStyle = styled.View`
   background-color: #FFFFFF;
-   
+
 `;
 
 
@@ -234,12 +190,7 @@ const ModalContainer = styled.View`
   align-items: flex-end;
     padding-top: 85px;
   padding-right: 20px;
-    
-    //shadow-color: #000;
-    //shadow-offset: 0,2;
-    //shadow-opacity: 0.25;
-    //shadow-radius: 3.84px;
-    elevation: 5; 
+    elevation: 5;
 `;
 
 const ModalContent = styled.View`
