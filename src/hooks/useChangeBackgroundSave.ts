@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { AppStateStatus, AppState } from "react-native";
 import { setAsyncString, setAsyncObject } from "../utils/asyncStorage";
+import { setMMKVObject } from "../utils/mmkvStorage";
 
 const useChangeBackgroundSave = <T>(key: string, saveData: T) => {
   const handleAppStateChange = useCallback(
@@ -8,9 +9,9 @@ const useChangeBackgroundSave = <T>(key: string, saveData: T) => {
       if (nextAppState === 'background') {
         console.log(saveData, "savedData in saving");
         if (typeof saveData === 'string') {
-          await setAsyncString(key, saveData);
+          setMMKVObject(key, saveData);
         } else {
-          await setAsyncObject<T>(key, saveData);
+          setMMKVObject<T>(key, saveData);
         }
       }
     },

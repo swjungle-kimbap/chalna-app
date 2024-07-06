@@ -19,6 +19,7 @@ import BleButton from './BleButton';
 import { urls } from '../../axios/config';
 import useBackground from '../../hooks/useBackground';
 import { useFocusEffect } from '@react-navigation/core';
+import { getMMKVObject } from '../../utils/mmkvStorage';
 
 const tags = ['상담', '질문', '대화', '만남'];
 
@@ -51,7 +52,7 @@ const MessageBox: React.FC = ()  => {
   const sendCountsRef = useRef(0);
 
   const fetchSavedData = async () => {
-    const savedData = await getAsyncObject<SavedMessageData>("savedMessageData");
+    const savedData = await getMMKVObject<SavedMessageData>("savedMessageData");
     console.log(savedData, "in messagebox");
     if (savedData?.msgText) setMsgText(savedData.msgText);
     if (savedData?.selectedTag) setSelectedTag(savedData.selectedTag);

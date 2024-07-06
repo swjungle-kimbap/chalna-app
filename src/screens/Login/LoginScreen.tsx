@@ -5,7 +5,7 @@ import { endBackgroundService } from "../../service/Background";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { DeviceUUIDState, locationState, userInfoState } from "../../recoil/atoms";
 import { getAsyncObject } from "../../utils/asyncStorage";
-import { Position } from "../../interfaces";
+import { LoginResponse, Position } from "../../interfaces";
 import RoundBox from "../../components/common/RoundBox";
 import Button from "../../components/common/Button";
 import { SignUpByWithKakao, logIn } from "../../service/kakaoLoginSignup";
@@ -15,7 +15,7 @@ import { PERMISSIONS } from "react-native-permissions";
 import messaging from '@react-native-firebase/messaging';
 import uuid from 'react-native-uuid'
 import { LogBox } from 'react-native';
-import { loginMMKVStorage } from "../../utils/mmkvStorage";
+import { getMMKVObject, loginMMKVStorage, setMMKVObject, setUserMMKVStorage } from "../../utils/mmkvStorage";
 LogBox.ignoreLogs(['new NativeEventEmitter']); 
 
 const LoginScreen: React.FC = () => {
@@ -35,7 +35,7 @@ const LoginScreen: React.FC = () => {
         if (!hasPermission) {
           return null;
         } else {
-          const storedToken = loginMMKVStorage.getString('fcmToken');
+          const storedToken = loginMMKVStorage.getString('login.fcmToken');
           if (!storedToken) {
             const token = await messaging().getToken();
             fcmTokenRef.current = token;
@@ -52,7 +52,7 @@ const LoginScreen: React.FC = () => {
 
     const initializeDeviceUUID = async () => {
       try {
-        const UUID = loginMMKVStorage.getString('deviceUUID');
+        const UUID = loginMMKVStorage.getString('login.deviceUUID');
         if (!UUID) {
           const newDeviceUUID: string = uuid.v4().slice(0, -2) + '00' as string;
           deviceUUIDRef.current = newDeviceUUID;
@@ -74,7 +74,7 @@ const LoginScreen: React.FC = () => {
 
     const autoLogin = async () => {
       try {
-        const lastLocation: Position | null = await getAsyncObject<Position>('lastLocation');
+        const lastLocation: Position | null = getMMKVObject<Position>('lastLocation');
         if (lastLocation) setLocation(lastLocation);
 
         await initializeFCMToken();
@@ -84,7 +84,14 @@ const LoginScreen: React.FC = () => {
         if (loginTokenRef.current && deviceUUIDRef.current && fcmTokenRef.current) {
           const loginResponse = await logIn(loginTokenRef.current, deviceUUIDRef.current, fcmTokenRef.current);
           if (loginResponse) {
-            setUserInfo(loginResponse);
+            setUserMMKVStorage(loginResponse.id.toString());
+            const newUserInfo = getMMKVObject<LoginResponse>("mypage.userInfo");
+            if (newUserInfo)
+              setUserInfo(newUserInfo);
+            else {
+              setUserInfo(loginResponse);
+              setMMKVObject<LoginResponse>("mypage.userInfo", loginResponse);
+            }
             navigate("로그인 성공");
           }
         }
@@ -106,11 +113,17 @@ const LoginScreen: React.FC = () => {
       const loginResponse = await SignUpByWithKakao(deviceUUIDRef.current, fcmTokenRef.current);
       if (loginResponse) {
         await Alert.alert("로그인 완료!", "환영합니다~🎉 \n메세지를 작성한뒤 인연 보내기를 눌러보세요!");
-        setUserInfo(loginResponse);
-      }
-       
-      if (loginResponse)
+        setUserMMKVStorage(loginResponse.id.toString());
+        const newUserInfo = getMMKVObject<LoginResponse>("mypage.userInfo");
+        if (newUserInfo)
+          setUserInfo(newUserInfo);
+        else {
+          setUserInfo(loginResponse);
+          setMMKVObject<LoginResponse>("mypage.userInfo", loginResponse);
+        }
         navigate("로그인 성공");
+      }
+
 
     } catch {
       console.log("로그인 실패");
