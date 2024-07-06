@@ -1,10 +1,20 @@
-// ChattingScreen.tsx
-import React, {useEffect, useState, useCallback, useRef, useMemo} from 'react';
-import { View, TextInput, ScrollView, StyleSheet, ActivityIndicator, Keyboard, AppState, AppStateStatus,  TouchableOpacity , Text as RNText, Image} from 'react-native';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import {
+    View,
+    TextInput,
+    StyleSheet,
+    ActivityIndicator,
+    Keyboard,
+    AppState,
+    AppStateStatus,
+    TouchableOpacity,
+    Image,
+    FlatList
+} from 'react-native';
 import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRecoilValue } from "recoil";
 import { userInfoState } from "../../recoil/atoms";
-import {LoginResponse, User} from "../../interfaces";
+import { LoginResponse, User } from "../../interfaces";
 import { SWRConfig } from 'swr';
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
 import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
@@ -31,19 +41,18 @@ import {
     removeChatRoom,
     saveChatRoomInfo, decrementUnreadCountBeforeTimestamp, resetUnreadCountForChatRoom
 } from '../../service/Chatting/mmkvChatStorage';
-import {getMMKVString, setMMKVString, getMMKVObject, setMMKVObject, removeMMKVItem, loginMMKVStorage} from "../../utils/mmkvStorage";
-import {IMessage} from "@stomp/stompjs";
+import { getMMKVString, setMMKVString, getMMKVObject, setMMKVObject, removeMMKVItem, loginMMKVStorage } from "../../utils/mmkvStorage";
+import { IMessage } from "@stomp/stompjs";
 import { launchImageLibrary } from 'react-native-image-picker'; // Import ImagePicker
 import { axiosPost } from '../../axios/axios.method';
-import {urls} from "../../axios/config";
+import { urls } from "../../axios/config";
 import { AxiosResponse } from "axios";
 import { FileResponse } from "../../interfaces";
 import RNFS from "react-native-fs";
 
-
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
-const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
+const ChattingScreen = () => {
     const route = useRoute<ChattingScreenRouteProp>();
     const { chatRoomId } = route.params;
     const navigation = useNavigation();
@@ -63,36 +72,29 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
 
     useBackToScreen("로그인 성공", { screen: "채팅목록", params: { screen: "채팅 목록" } });
 
-    const scrollViewRef = useRef<ScrollView>(null);
+    const flatListRef = useRef<FlatList<directedChatMessage>>(null);
 
-    // const memoizedMessages = useMemo(() => {
-    //     return messages.map(msg => ({
-    //         ...msg,
-    //         isSelf: msg.senderId === currentUserId,
-    //         formatedTime: formatDateToKoreanTime(msg.createdAt)
-    //     }));
-    // }, [messages, currentUserId]);
+    // const scrollViewRef = useRef<ScrollView>(null);
 
     const updateRoomInfo = async () => {
-            const responseData: chatroomInfoAndMsg = await fetchChatRoomContent(chatRoomId, currentUserId);
-            if (responseData) {
-                const usernames = responseData.members
-                    .filter((member: chatRoomMember) => member.memberId !== currentUserId)
-                    .map((member: chatRoomMember) => member.username);
+        const responseData: chatroomInfoAndMsg = await fetchChatRoomContent(chatRoomId, currentUserId);
+        if (responseData) {
+            const usernames = responseData.members
+                .filter((member: chatRoomMember) => member.memberId !== currentUserId)
+                .map((member: chatRoomMember) => member.username);
 
-                setChatRoomType(responseData.type);
-                setMembers(responseData.members);
-                setUsername(usernames.join(', '));
+            setChatRoomType(responseData.type);
+            setMembers(responseData.members);
+            setUsername(usernames.join(', ')); // for chatroom title
 
-                const chatRoomInfo: ChatRoomLocal = {
-                    id: parseInt(chatRoomId, 10),
-                    type: responseData.type,
-                    members: responseData.members
-                }
-                saveChatRoomInfo(chatRoomInfo);
+            const chatRoomInfo: ChatRoomLocal = {
+                id: parseInt(chatRoomId, 10),
+                type: responseData.type,
+                members: responseData.members
             }
+            saveChatRoomInfo(chatRoomInfo);
+        }
     };
-
 
     const handleSelectImage = () => {
         launchImageLibrary({ mediaType: 'photo', includeBase64: false }, (response) => {
@@ -108,97 +110,78 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
         });
     };
 
-     // 이미지 제거 함수 추가
-     const handleRemoveImage = () => {
+    // 이미지 제거 함수 추가
+    const handleRemoveImage = () => {
         setSelectedImage(null);
         chatMessageType.current = 'CHAT';
     };
 
-    const hadleUploadAndSend = async () => {
-        console.log("선택된 이미지 : ",selectedImage);
+    const handleUploadAndSend = async () => {
+        console.log("선택된 이미지 : ", selectedImage);
         if (!selectedImage) {
             sendMessage();
             return;
         }
-        // const uri = response.assets[0].uri; // assets 여러개 중 0번방 꺼
         const { uri, fileName, fileSize, type: contentType } = selectedImage;
 
         // 선택된 이미지 서버로 전송
         try {
             console.log("파일 서버로 전송중..");
-            const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}${chatRoomId}`,"파일 업로드",{
+            const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}${chatRoomId}`, "파일 업로드", {
                 fileName,
                 fileSize,
                 contentType
-        });
+            });
 
-        console.log("콘텐츠 타입 :",selectedImage.type);
+            console.log("콘텐츠 타입 :", selectedImage.type);
 
-        console.log("서버로 받은 데이터 : ", JSON.stringify(metadataResponse?.data?.data));
-        const { fileId, presignedUrl } = metadataResponse?.data?.data;
+            console.log("서버로 받은 데이터 : ", JSON.stringify(metadataResponse?.data?.data));
+            const { fileId, presignedUrl } = metadataResponse?.data?.data;
 
-        // 프리사인드 URL을 사용하여 S3에 파일 업로드
-        const file = await fetch(uri);
-        const blob = await file.blob();
-          const uploadResponse = await fetch(presignedUrl, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': selectedImage.type
-          },
-          body: blob
-        });
+            // 프리사인드 URL을 사용하여 S3에 파일 업로드
+            const file = await fetch(uri);
+            const blob = await file.blob();
+            const uploadResponse = await fetch(presignedUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': selectedImage.type
+                },
+                body: blob
+            });
 
-        if (uploadResponse.ok) {
-            console.log('S3 파일에 업로드 성공');
-            console.log('S3 업로드하고 진짜 자기 파일 url : ',uploadResponse.url);
+            if (uploadResponse.ok) {
+                console.log('S3 파일에 업로드 성공');
+                console.log('S3 업로드하고 진짜 자기 파일 url : ', uploadResponse.url);
 
-            // 업로드된 파일 URL을 소켓 ?? 에 전송
-            const content = {
-                fileId: fileId,
-                fileUrl: uploadResponse.url
+                // 업로드된 파일 URL을 소켓 ?? 에 전송
+                const content = {
+                    fileId: fileId,
+                    fileUrl: uploadResponse.url
+                }
+                console.log("fileId랑 진짜 자기 파일 url : ", content)
+                WebSocketManager.sendMessage(chatRoomId, content, 'FILE');
+
+                console.log('소켓에 전송 완료');
+                setSelectedImage(null);
+
+            } else {
+                console.log('실패');
             }
-            console.log("fileId랑 진짜 자기 파일 url : ", content)
-            WebSocketManager.sendMessage(chatRoomId, content, 'FILE');
 
-            console.log('소켓에 전송 완료');
-            setSelectedImage(null);
-
-        } else {
-            console.log('실패');
-        }
-
-        chatMessageType.current = "CHAT"
+            chatMessageType.current = "CHAT"
 
         } catch (error) {
             console.error('Error 메시지: ', error);
         }
     };
 
-
-    // update unread count
-    // const updateUnreadCount = (timestamp: string) => {
-    //     setMessages((prevMessages) => {
-    //         const updatedMessages = prevMessages.map(msg => {
-    //             if (msg.createdAt >= timestamp) {
-    //                 return { ...msg, unreadCount: (msg.unreadCount || 0) - 1 };
-    //             }
-    //             return msg;
-    //         });
-    //         saveChatMessages(chatRoomId, updatedMessages);
-    //         console.log('========= ON USER ENTER ===========' +
-    //             'update chat msg: ',updatedMessages);
-    //         return updatedMessages;
-    //     });
-    // }
-
-    // Set up WebSocket connection and message handling
     const setupWebSocket = async () => {
         try {
             const accessToken = loginMMKVStorage.getString('login.accessToken');
             WebSocketManager.connect(chatRoomId, accessToken, (message: IMessage) => {
                 console.log('Received message: ' + message.body);
                 try {
-                    const parsedMessage:directedChatMessage = JSON.parse(message.body);
+                    const parsedMessage: directedChatMessage = JSON.parse(message.body);
                     // 저장할 메세지
                     if (parsedMessage.type !== 'USER_ENTER' && parsedMessage.content) {
 
@@ -211,37 +194,31 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                         }
 
                         // TIMEOUT 메세지 왔을 때 채팅방타입 친구가 아니면 타입변경
-                        if (parsedMessage.type==='TIMEOUT' && chatRoomType !== 'FRIEND'){
-                                setChatRoomType('WAITING');
+                        if (parsedMessage.type === 'TIMEOUT' && chatRoomType !== 'FRIEND') {
+                            setChatRoomType('WAITING');
                         }
 
-                        // 이미 친구인데 타임아웃 메세지가 오는경우 가 아닌경우에만 메세지 화면에 렌더
-                        if( !(parsedMessage.type==='TIMEOUT' && chatRoomType==='FRIEND')) {
-                            setMessages((prevMessages) => [...prevMessages, parsedMessage]);
-                            saveChatMessages(chatRoomId, [parsedMessage])
-                            scrollViewRef.current?.scrollToEnd({animated: true});
-                        }
-
+                        // 메세지 렌더링 & 저장 & 스크롤 업데이트
+                        setMessages((prevMessages) => [ ...prevMessages, parsedMessage]);
+                        saveChatMessages(chatRoomId, [parsedMessage]);
+                        flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
 
                     } else {
-                    // 저장 안할 메세지
-
-                        if (parsedMessage.type==='USER_ENTER'){
+                        // 저장 안할 메세지
+                        if (parsedMessage.type === 'USER_ENTER') {
                             const lastLeaveAt = parsedMessage.content.lastLeaveAt;
                             console.log('user enter since ', lastLeaveAt);
-                            decrementUnreadCountBeforeTimestamp(chatRoomId, lastLeaveAt);
-                            const fetchMessages = async () => {
-                                const fetchedMessages = await getChatMessages(chatRoomId);
-                                setMessages(fetchedMessages || []);
-                            };
+                                decrementUnreadCountBeforeTimestamp(chatRoomId, lastLeaveAt); // readCount update
+                                 // load again
+                                 const fetchMessages = async () => {
+                                     const fetchedMessages = await getChatMessages(chatRoomId);
+                                     setMessages(fetchedMessages || []);
+                                 };
+                                 fetchMessages();
                         }
-
                     }
                 } catch (error) {
                     console.log(error);
-
-
-
                 }
             });
         } catch (error) {
@@ -249,7 +226,6 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
         }
     };
 
-    // Keyboard handling
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', handleKeyboardDidShow);
         const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', handleKeyboardDidHide);
@@ -260,14 +236,15 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
     }, []);
 
     const handleKeyboardDidShow = () => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
+        // scrollViewRef.current?.scrollToEnd({ animated: true });
+        flatListRef.current?.scrollToEnd({ animated: true });
     };
 
     const handleKeyboardDidHide = () => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
+        // scrollViewRef.current?.scrollToEnd({ animated: true });
+        flatListRef.current?.scrollToEnd({ animated: true });
     };
 
-    // Handle app state changes
     useEffect(() => {
         const handleAppStateChange = (nextAppState: AppStateStatus) => {
             if (nextAppState === 'background' || nextAppState === 'inactive') {
@@ -283,23 +260,18 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
     }, []);
 
 
-    // Focus effect to fetch initial messages and set up WebSocket
+
     useFocusEffect(
         useCallback(() => {
             const fetchMessages = async () => {
                 try {
                     setLoading(true);
-                    //onetime 지우기
-
-                    // 로컬 스토리지에서 채팅가져와 렌더링하기
                     const storedMessages = await getChatMessages(chatRoomId);
-                    // console.log("Get Messages from LocalStorage: ", storedMessages);
                     if (storedMessages) {
                         console.log("저장된 메세지 렌더링");
                         setMessages(storedMessages);
                     }
 
-                    // 채팅방 정보 & 그동안 못받은 메세지 가져오기
                     const responseData = await fetchChatRoomContent(chatRoomId, currentUserId);
                     if (responseData) {
                         const usernames = responseData.members
@@ -311,12 +283,10 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                             formatedTime: formatDateToKoreanTime(msg.createdAt)
                         }));
 
-                        //채팅방 정보 받아오기: 렌더링용
-                        setChatRoomType(responseData.type); //채팅방 타입 업데이트
-                        setMembers(responseData.members); //멤버정보 업데이트
-                        setUsername(usernames.join(', ')); //title 수정하기
+                        setChatRoomType(responseData.type);
+                        setMembers(responseData.members);
+                        setUsername(usernames.join(', '));
 
-                        // 채팅방 정보 저장 필요
                         const chatRoomInfo: ChatRoomLocal = {
                             id: parseInt(chatRoomId, 10),
                             type: responseData.type,
@@ -324,18 +294,16 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                         }
                         saveChatRoomInfo(chatRoomInfo);
 
-                        // 메세지 렌더링 & 저장
-                        setMessages((prevMessages) => [...prevMessages, ... fetchedMessages]);
+                        setMessages((prevMessages) => [...prevMessages, ...fetchedMessages]);
+                        // flatListRef.current?.scrollToEnd({ animated: true });
                         console.log("api 호출 채팅데이터: ", fetchedMessages);
-                        saveChatMessages(chatRoomId, fetchedMessages); // Save new messages to MMKV
+                        saveChatMessages(chatRoomId, fetchedMessages);
                     }
-
-
                 } catch (error) {
                     console.error('채팅방 메세지 목록조회 실패:', error);
                 } finally {
                     console.log("로딩 끝");
-                    setLoading(false); //Text string must be rendered within a text component
+                    setLoading(false);
                 }
             };
 
@@ -345,10 +313,10 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
             return () => {
                 console.log("loose focus");
                 WebSocketManager.disconnect();
-                resetUnreadCountForChatRoom(Number(chatRoomId));
             };
         }, [chatRoomId, currentUserId])
     );
+
 
 
     const sendMessage = () => {
@@ -357,12 +325,10 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
         else if (chatMessageType.current == 'CHAT') {
             WebSocketManager.sendMessage(chatRoomId, messageContent, 'CHAT');
             setMessageContent('');
-        }else {
-            hadleUploadAndSend();
+        } else {
+            handleUploadAndSend();
         }
     };
-
-
 
     const toggleModal = () => {
         setIsModalVisible(!isModalVisible);
@@ -379,14 +345,13 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
         }
     };
 
-    // Memoized map of memberId to username
     const memberIdToUsernameMap = useMemo(() => {
         const map = new Map<number, string>();
         members.forEach(member => {
             map.set(member.memberId, member.username);
         });
         return map;
-    },[members]);
+    }, [members]);
 
     const getUsernameBySenderId = (senderId: number) => {
         return memberIdToUsernameMap.get(senderId) || '익명의 하마';
@@ -399,7 +364,6 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
             </View>
         );
     }
-
 
     return (
         <SWRConfig value={{}}>
@@ -421,42 +385,38 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
             />
             <Text>{chatRoomType}: {WebSocketManager.isConnected() ? 'Connected' : ' - '} </Text>
             <View style={styles.container}>
-                <ScrollView
-                    contentContainerStyle={styles.scrollView}
-                    ref={scrollViewRef}
-                    onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
-                >
-                    {Array.isArray(messages) && messages.map((msg, index) => {
-                        const showProfile = index === 0 || messages[index - 1].senderId !== msg.senderId;
-                        const showTime = index === 0 || messages[index - 1].formatedTime !== msg.formatedTime;
+                        <FlatList
+                    data={messages.slice().reverse()} // Reverse the order of messages
+                    keyExtractor={(item, index) => `${item.id}-${index}`}
+                    renderItem={({ item, index }) => {
+                        const showProfile = index === 0 || messages[index - 1].senderId !== item.senderId;
+                        const showTime = index === 0 || messages[index - 1].formatedTime !== item.formatedTime;
 
                         return (
                             <MessageBubble
-                                key={index}
-                                message={msg.content}
-                                datetime={msg.formatedTime}
-                                isSelf={msg.isSelf}
-                                type={msg.type}
-                                unreadCnt={msg.unreadCount}
+                                message={item.content}
+                                datetime={item.formatedTime}
+                                isSelf={item.isSelf}
+                                type={item.type}
+                                unreadCnt={item.unreadCount}
                                 chatRoomId={Number(chatRoomId)}
                                 otherId={otherIdRef.current}
                                 chatRoomType={chatRoomType}
-                                profilePicture={msg.isSelf ? '' : 'https://img.freepik.com/premium-photo/full-frame-shot-rippled-water_1048944-5521428.jpg?size=626&ext=jpg&ga=GA1.1.2034235092.1718206967&semt=ais_user'}
-                                username={getUsernameBySenderId(msg.senderId)}
+                                profilePicture={item.isSelf ? '' : 'https://img.freepik.com/premium-photo/full-frame-shot-rippled-water_1048944-5521428.jpg?size=626&ext=jpg&ga=GA1.1.2034235092.1718206967&semt=ais_user'}
+                                username={getUsernameBySenderId(item.senderId)}
                                 showProfileTime={showProfile || showTime}
-                                // onFileDownload={msg.type==='FILE' ? () => handleFileDownload(msg.id):undefined}
                             />
                         );
-                    })}
-                </ScrollView>
-                {chatRoomType!=='WAITING' && (
+                    }}
+                    ref={flatListRef}
+                    inverted
+                    onContentSizeChange={() => flatListRef.current?.scrollToOffset({ animated: true, offset: 0 })}
+                />
+                {chatRoomType !== 'WAITING' && (
                     <View style={styles.inputContainer}>
-                         {/*<TouchableOpacity onPress={handleSelectImage} style={styles.imagePickerButton}>*/}
-                         {/*       <Text style={styles.addButtonText}>+</Text>*/}
-                         {/*   </TouchableOpacity>*/}
                         <ImageTextButton
                             iconSource={require('../../assets/Icons/addImageIcon.png')}
-                            imageStyle={{height: 20, width: 20, marginLeft: 12}}
+                            imageStyle={{ height: 20, width: 20, marginLeft: 12 }}
                             onPress={handleSelectImage}
                         >
                         </ImageTextButton>
@@ -475,7 +435,7 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                             style={styles.input}
                             value={messageContent}
                             onChangeText={setMessageContent}
-                            placeholder={chatRoomType === 'WAITING' ? '5분이 지났습니다.\n대화를 이어가려면 친구요청을 보내보세요.' : ''}
+                            placeholder={''}
                             placeholderTextColor={'#3b3b3b'}
                             multiline
                             textBreakStrategy="highQuality"
@@ -485,9 +445,7 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                             <ImageTextButton
                                 onPress={sendMessage}
                                 iconSource={require('../../assets/Icons/sendMsgIcon.png')}
-                                // disabled={chatRoomType === 'WAITING' || messageContent === ''}
                                 disabled={chatRoomType === 'WAITING'}
-
                                 imageStyle={{ height: 15, width: 15 }}
                                 containerStyle={{ paddingRight: 15 }}
                             />
@@ -553,7 +511,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-      addButtonText: {
+    addButtonText: {
         color: 'black',
         fontSize: 24,
         fontWeight: 'bold',
@@ -581,7 +539,6 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 18,
     },
-
 });
 
 export default ChattingScreen;
