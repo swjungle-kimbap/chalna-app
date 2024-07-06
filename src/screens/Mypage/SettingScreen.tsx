@@ -8,6 +8,7 @@ import { axiosPatch } from "../../axios/axios.method";
 import { urls } from "../../axios/config";
 import { userMMKVStorage } from "../../utils/mmkvStorage";
 import { useMMKVBoolean } from "react-native-mmkv";
+import { updateFCMChannel } from "../../fcm/FcmChannel";
 
 type SettingScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, '키워드 알림 설정' | '방해금지 시간 설정'>
@@ -17,7 +18,7 @@ const MoveButtonUrl ='../../assets/buttons/MoveButton.png'
 
 const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
   const [isAlarm, setIsAlarm] = useMMKVBoolean('mypage.isAlarm', userMMKVStorage);
-  const [isFriendAlarm, setIsFriendAlarm] = useMMKVBoolean('mypage.isFriendAlarm', userMMKVStorage);
+  const [isChatAlarm, setIsChatAlarm] = useMMKVBoolean('mypage.isChatAlarm', userMMKVStorage);
   const [isMatchAlarm, setIsMatchAlarm] = useMMKVBoolean('mypage.isMatchAlarm', userMMKVStorage);
   const [alarmSound, setAlarmSound] = useMMKVBoolean('mypage.alarmSound', userMMKVStorage);
   const [alarmVibration, setAlarmVibration] = useMMKVBoolean('mypage.alarmVibration', userMMKVStorage);
@@ -35,9 +36,9 @@ const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
     axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {isAlarm: value});
   }
 
-  const handleIsFriendAlarm = (value) => {
-    setIsFriendAlarm(value)
-    axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {isFriendAlarm: value});
+  const handleIsChatAlarm = (value) => {
+    setIsChatAlarm(value)
+    axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {isChatAlarm: value});
   }
 
   const handleIsMatchAlarm = (value) => {
@@ -47,12 +48,14 @@ const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
 
   const handleAlarmSound = (value) => {
     setAlarmSound(value)
-    axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {AlarmSound: value});
+    axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {alarmSound: value});
+    updateFCMChannel(value, alarmVibration);
   }
   
   const handleAlarmVibration = (value) => {
     setAlarmVibration(value)
-    axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {AlarmVibratio: value});
+    axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {alarmVibration: value});
+    updateFCMChannel(alarmSound, value);
   }
 
   return (
@@ -62,8 +65,8 @@ const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
           <Toggle value={isAlarm} toggleHandler={handleIsAlarm} /> 
         </InlineButton>
         <View style={styles.inlineButtons}>
-          <InlineButton text="친구 알림 설정" textstyle={{paddingTop: 3}} horizon='none'>
-            <Toggle isdisable={isdisable} value={isFriendAlarm} toggleHandler={handleIsFriendAlarm} /> 
+          <InlineButton text="채팅 알림 설정" textstyle={{paddingTop: 3}} horizon='none'>
+            <Toggle isdisable={isdisable} value={isChatAlarm} toggleHandler={handleIsChatAlarm} /> 
           </InlineButton>
           <InlineButton text="인연 알림 설정" textstyle={{paddingTop: 3}} horizon='none'>
             <Toggle isdisable={isdisable} value={isMatchAlarm} toggleHandler={handleIsMatchAlarm} /> 
