@@ -10,10 +10,8 @@ import { userMMKVStorage } from "../../utils/mmkvStorage";
 import { useMMKVBoolean } from "react-native-mmkv";
 import { useRecoilState } from "recoil";
 import { FlyingModeState } from "../../recoil/atoms";
-import { 
-  setDefaultMMKVBoolean, 
-  defaultMMKVStorage 
-} from "../../utils/mmkvStorage";
+import { setDefaultMMKVBoolean } from "../../utils/mmkvStorage";
+import { updateFCMChannel } from "../../fcm/FcmChannel";
 
 type SettingScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, '키워드 알림 설정' | '방해금지 시간 설정'>
@@ -59,12 +57,14 @@ const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
     setAlarmSound(value)
     setDefaultMMKVBoolean('mypage.alarmSound', value); 
     axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {alarmSound: value});
+    updateFCMChannel(value, alarmVibration);
   }
   
   const handleAlarmVibration = (value) => {
     setAlarmVibration(value)
     setDefaultMMKVBoolean('mypage.alarmVibration', value);
     axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {alarmVibration: value});
+    updateFCMChannel(alarmSound, value);
   }
 
   return (
