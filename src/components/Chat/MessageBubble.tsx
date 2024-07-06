@@ -3,7 +3,7 @@ import { View, Image, Modal, TouchableOpacity, Button, Alert, Linking } from 're
 import styled from 'styled-components/native';
 import ImageTextButton from "../common/Button";
 import WebSocketManager from "../../utils/WebSocketManager";
-import {acceptFriendRequest, rejectFriendRequest, sendFriendRequest} from "../../service/FriendRelationService";
+import {acceptFriendRequest, rejectFriendRequest, sendFriendRequest} from "../../service/Friends/FriendRelationService";
 import Text from '../common/Text';
 import RNFS from 'react-native-fs';
 import { PermissionsAndroid, Platform } from 'react-native';
@@ -241,7 +241,6 @@ async function requestExternalStoragePermission() {
                     try {
                         await RNFS.scanFile(downloadDest);
                         console.log('파일 스캔 완료');
-        
                         Alert.alert('다운로드 완료', '사진이 갤러리에 저장되었습니다.', [{ text: '확인' }]);
                     } catch (moveError) {
                         console.error('파일 이동/스캔 오류:', moveError);
@@ -327,7 +326,7 @@ async function requestExternalStoragePermission() {
 
                         <MessageBubbleContent isSelf={isSelf}>
                         {renderMessageContent()}
-               
+
 
                         </MessageBubbleContent>
                         {!isSelf && (<DateReadStatusContainer>
@@ -346,19 +345,29 @@ async function requestExternalStoragePermission() {
             >
                 <ModalContainer>
                     <ModalContent>
-                        <ImageTextButton title={"닫기"} onPress={closeUserInfoModal} style={{alignSelf:'flex-end'}}/>
+                        <ImageTextButton iconSource={require('../../assets/Icons/closeIcon.png')}
+                                         imageStyle={{height: 15, width: 15}}
+                                         onPress={closeUserInfoModal} style={{alignSelf:'flex-end'}}/>
                         <ProfilePicture modal source={{uri:
                                     profilePicture ||
                                     'https://www.refugee-action.org.uk/wp-content/uploads/2016/10/anonymous-user.png' }}
                         />
                         <NameBtnContainer>
                             <Text variant="subtitle" >{username}</Text>
+                            { chatRoomType==='FRIEND'? (
+                                <Image
+                                    source={require('../../assets/Icons/friendIcon.png')}
+                                    style={{height: 18, width: 24, marginLeft:6, marginTop:7}}
+                                    resizeMode={"contain"}
+                                />
+                                ):(
                             <ImageTextButton
                                 style={{marginTop: 1, marginLeft:5}}
                                 iconSource={require('../../assets/Icons/AddFriendCircle.png')}
                                 imageStyle={{height:25, width: 25}}
                                 onPress={handleSend}
                             />
+                                )}
                         </NameBtnContainer>
                         <Text variant={"sub"} style={{size: 12, marginBottom: 10}} >{"스쳐간 횟수 or 상태메세지 표기"}</Text>
 
@@ -375,13 +384,19 @@ async function requestExternalStoragePermission() {
             >
                 <FullScreenModalContainer>
                     <FullScreenModalContent>
-                        <ImageTextButton title={"닫기"} onPress={closeImageModal} style={{ alignSelf: 'flex-end' }} />
-                        <Image
+
+                        <ImageTextButton iconSource={require('../../assets/Icons/closeIcon.png')}
+                                         imageStyle={{height: 15, width: 15, paddingRight:20, paddingTop: 20 }}
+                                         onPress={closeImageModal} style={{ alignSelf: 'flex-end' }} />
+<!--                         <FullScreenImage source={{ uri: message.preSignedUrl }} /> -->
+                            <Image
                             source={{ uri: resizedImageUri.current }}
                             // source={{uri: message.preSignedUrl}}
                             style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
                         />
-                        <Button title="Download" onPress={handleFileDownload} />
+                        <ImageTextButton iconSource={require('../../assets/Icons/downloadIcon.png')}
+                                         imageStyle={{height: 20, width: 20}}
+                                         onPress={handleFileDownload} />
                     </FullScreenModalContent>
                 </FullScreenModalContainer>
             </Modal>

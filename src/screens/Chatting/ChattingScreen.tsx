@@ -118,18 +118,18 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
         console.log("선택된 이미지 : ",selectedImage);
         if (!selectedImage) {
             sendMessage();
-            return; 
+            return;
         }
         // const uri = response.assets[0].uri; // assets 여러개 중 0번방 꺼
         const { uri, fileName, fileSize, type: contentType } = selectedImage;
-        
+
         // 선택된 이미지 서버로 전송
         try {
             console.log("파일 서버로 전송중..");
             const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}${chatRoomId}`,"파일 업로드",{
                 fileName,
                 fileSize,
-                contentType 
+                contentType
         });
 
         console.log("콘텐츠 타입 :",selectedImage.type);
@@ -147,7 +147,7 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
           },
           body: blob
         });
-    
+
         if (uploadResponse.ok) {
             console.log('S3 파일에 업로드 성공');
             console.log('S3 업로드하고 진짜 자기 파일 url : ',uploadResponse.url);
@@ -158,7 +158,7 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                 fileUrl: uploadResponse.url
             }
             console.log("fileId랑 진짜 자기 파일 url : ", content)
-            WebSocketManager.sendMessage(chatRoomId, content, 'FILE');            
+            WebSocketManager.sendMessage(chatRoomId, content, 'FILE');
 
             console.log('소켓에 전송 완료');
             setSelectedImage(null);
@@ -166,7 +166,7 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
         } else {
             console.log('실패');
         }
-        
+
         chatMessageType.current = "CHAT"
 
         } catch (error) {
@@ -201,26 +201,31 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                     const parsedMessage:directedChatMessage = JSON.parse(message.body);
                     // 저장할 메세지
                     if (parsedMessage.type !== 'USER_ENTER' && parsedMessage.content) {
-                        parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
-                        parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt)
 
+                        parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
+                        parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt);
+
+                        // 친구가 되었으면 채팅방 정보 다시 로드
                         if (parsedMessage.type === 'FRIEND_REQUEST' && parsedMessage.content === '친구가 되었습니다!\n대화를 이어가보세요.') {
                             updateRoomInfo();
                         }
 
-                        // 5분 지났으면 채팅방 타입 다시로드
-                        if (parsedMessage.type === 'TIMEOUT' && parsedMessage.senderId === 0 && chatRoomType !== 'FRIEND') {
-                            setChatRoomType('WAITING');
+                        // TIMEOUT 메세지 왔을 때 채팅방타입 친구가 아니면 타입변경
+                        if (parsedMessage.type==='TIMEOUT' && chatRoomType !== 'FRIEND'){
+                                setChatRoomType('WAITING');
                         }
 
-                        setMessages((prevMessages) => [...prevMessages, parsedMessage]);
-                        console.log("setMessage", parsedMessage)
-                        saveChatMessages(chatRoomId, [parsedMessage])
-                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                        // 이미 친구인데 타임아웃 메세지가 오는경우 가 아닌경우에만 메세지 화면에 렌더
+                        if( !(parsedMessage.type==='TIMEOUT' && chatRoomType==='FRIEND')) {
+                            setMessages((prevMessages) => [...prevMessages, parsedMessage]);
+                            saveChatMessages(chatRoomId, [parsedMessage])
+                            scrollViewRef.current?.scrollToEnd({animated: true});
+                        }
 
-                    }
+
+                    } else {
                     // 저장 안할 메세지
-                    else {
+
                         if (parsedMessage.type==='USER_ENTER'){
                             const lastLeaveAt = parsedMessage.content.lastLeaveAt;
                             console.log('user enter since ', lastLeaveAt);
@@ -326,7 +331,6 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                     }
 
 
-
                 } catch (error) {
                     console.error('채팅방 메세지 목록조회 실패:', error);
                 } finally {
@@ -348,7 +352,7 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
 
 
     const sendMessage = () => {
-        if (chatRoomType === 'WAITING') 
+        if (chatRoomType === 'WAITING')
             return;
         else if (chatMessageType.current == 'CHAT') {
             WebSocketManager.sendMessage(chatRoomId, messageContent, 'CHAT');
@@ -357,8 +361,6 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
             hadleUploadAndSend();
         }
     };
-
-    
 
 
 
@@ -411,7 +413,6 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                             screen: "채팅 목록",
                         }
                     });
-                    navigation.navigate("채팅 목록");
                 }}
                 showBtn={false}
                 onMenuPress={toggleModal}
@@ -448,43 +449,51 @@ const ChattingScreen = (factory: () => T, deps: React.DependencyList) => {
                         );
                     })}
                 </ScrollView>
-                <View style={chatRoomType !== 'WAITING' ? styles.inputContainer : styles.disabledInputContainer}>
-                     <TouchableOpacity onPress={handleSelectImage} style={styles.imagePickerButton}>
-                            <Text style={styles.addButtonText}>+</Text>
-                        </TouchableOpacity> 
-                    {selectedImage && (
-                        <View style={styles.selectedImageContainer}>
-                            <Image
-                                source={{ uri: selectedImage.uri }}
-                                style={styles.selectedImage}
-                            />
-                            <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageButton}>
-                                <Text style={styles.removeImageButtonText}>×</Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                    <TextInput
-                        style={styles.input}
-                        value={messageContent}
-                        onChangeText={setMessageContent}
-                        placeholder={chatRoomType === 'WAITING' ? '5분이 지났습니다.\n대화를 이어가려면 친구요청을 보내보세요.' : ''}
-                        placeholderTextColor={'#a9a9a9'}
-                        multiline
-                        textBreakStrategy="highQuality"
-                        editable={chatRoomType !== 'WAITING'}
-                    />
-                    {chatRoomType !== 'WAITING' && (
+                {chatRoomType!=='WAITING' && (
+                    <View style={styles.inputContainer}>
+                         {/*<TouchableOpacity onPress={handleSelectImage} style={styles.imagePickerButton}>*/}
+                         {/*       <Text style={styles.addButtonText}>+</Text>*/}
+                         {/*   </TouchableOpacity>*/}
                         <ImageTextButton
-                            onPress={sendMessage}
-                            iconSource={require('../../assets/Icons/sendMsgIcon.png')}
-                            // disabled={chatRoomType === 'WAITING' || messageContent === ''}
-                            disabled={chatRoomType === 'WAITING'}
-
-                            imageStyle={{ height: 15, width: 15 }}
-                            containerStyle={{ paddingRight: 15 }}
+                            iconSource={require('../../assets/Icons/addImageIcon.png')}
+                            imageStyle={{height: 20, width: 20, marginLeft: 12}}
+                            onPress={handleSelectImage}
+                        >
+                        </ImageTextButton>
+                        {selectedImage && (
+                            <View style={styles.selectedImageContainer}>
+                                <Image
+                                    source={{ uri: selectedImage.uri }}
+                                    style={styles.selectedImage}
+                                />
+                                <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageButton}>
+                                    <Text style={styles.removeImageButtonText}>×</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+                        <TextInput
+                            style={styles.input}
+                            value={messageContent}
+                            onChangeText={setMessageContent}
+                            placeholder={chatRoomType === 'WAITING' ? '5분이 지났습니다.\n대화를 이어가려면 친구요청을 보내보세요.' : ''}
+                            placeholderTextColor={'#3b3b3b'}
+                            multiline
+                            textBreakStrategy="highQuality"
+                            editable={chatRoomType !== 'WAITING'}
                         />
-                    )}
-                </View>
+                        {chatRoomType !== 'WAITING' && (
+                            <ImageTextButton
+                                onPress={sendMessage}
+                                iconSource={require('../../assets/Icons/sendMsgIcon.png')}
+                                // disabled={chatRoomType === 'WAITING' || messageContent === ''}
+                                disabled={chatRoomType === 'WAITING'}
+
+                                imageStyle={{ height: 15, width: 15 }}
+                                containerStyle={{ paddingRight: 15 }}
+                            />
+                        )}
+                    </View>
+                )}
                 <MenuModal
                     isVisible={isModalVisible}
                     onClose={toggleModal}
@@ -525,7 +534,6 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         padding: 10,
-        marginLeft: 10,
         color: '#a9a9a9',
     },
     loadingContainer: {
@@ -552,7 +560,7 @@ const styles = StyleSheet.create({
     },
     selectedImageContainer: {
         position: 'relative',
-        marginRight: 10,
+        marginLeft: 10,
     },
     selectedImage: {
         width: 50,
@@ -573,7 +581,7 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 18,
     },
-    
+
 });
 
 export default ChattingScreen;

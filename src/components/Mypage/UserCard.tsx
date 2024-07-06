@@ -1,6 +1,6 @@
 import FontTheme from '../../styles/FontTheme';
 import Button from "../../components/common/Button"
-import { StyleSheet, View, Text  } from "react-native";
+import { StyleSheet, View, Text , Alert , Modal, TouchableOpacity} from "react-native";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { userInfoState } from "../../recoil/atoms";
 import { useState } from 'react';
@@ -9,14 +9,23 @@ import { LoginResponse } from '../../interfaces';
 import { axiosPatch } from '../../axios/axios.method';
 import { urls } from '../../axios/config';
 import { setMMKVObject } from '../../utils/mmkvStorage';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { AxiosResponse } from "axios";
+import { FileResponse } from "../../interfaces";
+import FastImage, { Source } from 'react-native-fast-image';
+import RNFS from 'react-native-fs';
 
 const DefaultImgUrl = '../../assets/images/anonymous.png';
 const editButtonUrl ='../../assets/buttons/EditButton.png'
+const photoIconUrl = '../../assets/Icons/PhotoIcon.png'; // 사진 아이콘
+
 
 const UserCard = () => {
   const [userInfo, setUserInfo] = useRecoilState<LoginResponse>(userInfoState);
   const [showNameEditModal, setShowNameEditModal] = useState<boolean>(false);
   const [showStatusEditModal, setShowStatusEditModal] = useState<boolean>(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
 
   const setUsername = (username) => {
     const newUseInfo = {...userInfo, username};
@@ -30,6 +39,89 @@ const UserCard = () => {
     axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", {message});
     setMMKVObject<LoginResponse>("mypage.userInfo", newUseInfo);
   }
+  const handleImagePicker = () => {
+    launchImageLibrary({ mediaType: 'photo' }, (response) => {
+      if (response.didCancel) {
+        console.log('이미지 선택 취소');
+      } else if (response.errorMessage) {
+        console.log('ImagePicker error: ', response.errorMessage);
+      } else {
+        const source = { uri: response.assets[0].uri };
+        setSelectedImage(source);
+        handleUploadAndSend(response.assets[0]);
+      }
+    });
+  };
+  const handleUploadAndSend = async (image) => {
+    if (!image) return;
+
+    const { uri, fileName, fileSize, type: contentType } = image;
+
+    try {
+      const metadataResponse = await axiosPatch<AxiosResponse<FileResponse>>(`${urls.USER_INFO_PROFILEIMG_URL}`, "프로필 업로드", {
+        fileName,
+        fileSize,
+        contentType
+      });
+
+      const { fileId, presignedUrl } = metadataResponse?.data?.data;
+
+      // s3에 업로드
+      const file = await fetch(uri);
+      const blob = await file.blob();
+      const uploadResponse = await fetch(presignedUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': contentType
+        },
+        body: blob
+      });
+
+      if (uploadResponse.ok) {
+        const fileUrl = presignedUrl.split('?')[0];
+        await downloadAndStoreImage(fileUrl);
+      } else {
+        Alert.alert('실패', '이미지 업로드에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const downloadAndStoreImage = async (url) => {
+    try {
+      const timestamp = new Date().getTime();
+      const localFilePath = `${RNFS.DocumentDirectoryPath}/profile_image_${timestamp}.jpg`; // 앱 내부 저장소 
+      const downloadResult = await RNFS.downloadFile({
+        fromUrl: url,
+        toFile: localFilePath,
+      }).promise;
+      console.log(localFilePath);
+      if (downloadResult.statusCode === 200) {
+
+        // 기존 이미지 삭제 (프로필 이미지는 한 번만) -- 이거하니깐 기본이미지로 변경할 때 변경 안 됨
+        // const previousImagePath = userInfo.profileImageUrl?.replace('file://', '');
+        // if (previousImagePath) {
+        //   await RNFS.unlink(previousImagePath);
+        // }                                                                                  
+  
+        setUserInfo({ ...userInfo, profileImageUrl: `file://${localFilePath}` });
+        axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", { profileImageUrl: `file://${localFilePath}` });
+        setMMKVObject<LoginResponse>("mypage.userInfo", { ...userInfo, profileImageUrl: `file://${localFilePath}` });
+      } else {
+        Alert.alert('실패', '이미지 다운로드에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Image download error: ', error);
+      Alert.alert('실패', '이미지 다운로드 중 오류가 발생했습니다.');
+    }
+  };
+
+  const resetToDefaultImage = () => {
+    setUserInfo({ ...userInfo, profileImageUrl: DefaultImgUrl });
+    axiosPatch(urls.USER_INFO_EDIT_URL, "프로필 이미지 기본으로 변경", { profileImageUrl: DefaultImgUrl });
+    setMMKVObject<LoginResponse>("mypage.userInfo", { ...userInfo, profileImageUrl: DefaultImgUrl });
+  };
 
   return (
   <>
@@ -39,13 +131,27 @@ const UserCard = () => {
       modalVisible={showStatusEditModal} closeModal={() => setShowStatusEditModal(false)}/>)}
     <View style={styles.myProfileContainer}>
       <View style={styles.headerText}>
-        <Text style={styles.text}>내 프로필</Text>
+        <Text style={styles.text}>내 프로필</Text>    
       </View>
       <View style={styles.header}>
-        <Button 
-          iconSource={userInfo.profileImageUrl ? require(DefaultImgUrl) : require(DefaultImgUrl)} 
-          imageStyle={styles.avatar} 
-        />
+      <View style={styles.avatarContainer}>
+          {userInfo.profileImageUrl !== DefaultImgUrl ? (            
+                <TouchableOpacity onPress={() => setModalVisible(true)}>
+                  <FastImage
+                  style={styles.avatar}
+                  source={{uri: userInfo.profileImageUrl, priority: FastImage.priority.normal } as Source}
+                  resizeMode={FastImage.resizeMode.cover}
+                  />
+                </TouchableOpacity>
+              ): (
+                <Button iconSource={require(DefaultImgUrl)} onPress={handleImagePicker} imageStyle={styles.avatar} /> 
+              )}
+            <Button
+              iconSource={require(photoIconUrl)}
+              imageStyle={styles.photoIcon}
+              onPress={handleImagePicker}
+            />
+          </View>
         <View>
           <View style={styles.username}>
             <Text style={styles.text}>{userInfo.username}</Text>
@@ -65,6 +171,27 @@ const UserCard = () => {
         </View>
       </View>
     </View>
+    <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <FastImage
+              style={styles.fullScreenImage}
+              source={{ uri: userInfo.profileImageUrl, priority: FastImage.priority.normal }}
+              resizeMode={FastImage.resizeMode.contain}
+            />
+            <Button title="기본 이미지로 변경" onPress={() => {
+              resetToDefaultImage();
+              setModalVisible(false)
+            }}/>
+            <Button title="닫기" onPress={() => setModalVisible(false)} />
+          </View>
+        </View>
+      </Modal>
   </>
   );
 }
@@ -105,6 +232,34 @@ const styles = StyleSheet.create({
     color: '#979797',
     fontFamily: FontTheme.fonts.sub, 
     paddingRight: 6,
+  },
+  photoIcon: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 24,
+    height: 24,
+  },
+  avatarContainer: {
+    position: 'relative',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  fullScreenImage: {
+    width: '100%',
+    height: 300,
+    marginBottom: 20,
   },
 });
 

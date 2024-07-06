@@ -15,6 +15,7 @@ interface FriendCardProps {
     isExpanded: boolean;
     onExpand: ()=> void;
     navigation: StackNavigationProp<RootStackParamList, '채팅'>;
+    options: 'friend' | 'blocked' | 'requested'
 }
 
 interface ApiResponse {
@@ -29,7 +30,7 @@ interface ApiResponse {
     };
   }
 
-const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, navigation}) => {
+const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, navigation, options}) => {
     const [friendsList, setFriendsList] = useRecoilState(FriendsListState);
 
     const handlePress = () => {
@@ -57,7 +58,19 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
     const handleBlockFriend = (id) => {
         const filteredFriendsList = friendsList.filter(item => item.id !== id)
         setFriendsList(filteredFriendsList);
+        axiosPost(urls.BLOCK_FRIEND_URL+id, "친구 차단");
+    }
+
+    const handleDeleteFriend = (id) => {
+        const filteredFriendsList = friendsList.filter(item => item.id !== id)
+        setFriendsList(filteredFriendsList);
         axiosPost(urls.DELETE_FRIEND_URL+id, "친구 삭제");
+    }
+
+    const handleUnblockFriend = (id) => {
+        const filteredFriendsList = friendsList.filter(item => item.id !== id)
+        setFriendsList(filteredFriendsList);
+        axiosPost(urls.UNBLOCK_FRIEND_URL+id, "친구 차단 해제");
     }
 
     return (
@@ -73,10 +86,27 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
                 {isExpanded && (
                     <View style={styles.expandedContainer}>
                         {/* <Text style={styles.additionalInfo}>Additional information about {user.username}</Text> */}
-                        <View style={styles.btnContainer}>
-                            <Button title="대화하기" onPress={handleChat}  />
-                            <Button title="차단하기" onPress={()=> {handleBlockFriend(user.id)}} />
-                        </View>
+                        { options==='friend' && (
+                            <View style={styles.btnContainer}>
+                                <Button title="대화하기" onPress={handleChat}  />
+                                <Button title="차단하기" onPress={()=> {handleBlockFriend(user.id)}} />
+                            </View>
+                        )}
+                        { options==='blocked' && (
+                            <View style={styles.btnContainer}>
+                                <Button title="차단해제" onPress={()=> {handleUnblockFriend(user.id)}}  />
+                                <Button title="삭제하기" onPress={()=> {handleDeleteFriend(user.id)}} />
+                            </View>
+                        )}
+                        {/*{ options==='requested' && (*/}
+                        {/*    <View style={styles.btnContainer}>*/}
+                        {/*        <Button title="요청 수락" onPress={handleAccept}  />*/}
+                        {/*        <Button title="거절 하기" onPress={()=> {handleReject(user.id)} />*/}
+                        {/*    </View>*/}
+                        {/*)}*/}
+
+
+
                     </View>
                 )}
             </RoundBox>

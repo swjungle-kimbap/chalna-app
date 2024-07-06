@@ -85,7 +85,7 @@ const KeywordSelectScreen: React.FC = ({}) => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.background}>
         <View style={styles.mypage}>
-          <InlineButton text="키워드 알림 설정" textstyle={{ paddingTop: 10 }} horizon="bottom">
+          <InlineButton text="인연 키워드 설정" textstyle={{ paddingTop: 10 }} horizon="bottom">
             <Toggle value={isKeywordAlarm} toggleHandler={handleIsKeywordAlarm} />
           </InlineButton>
           {isKeywordAlarm && (
@@ -96,7 +96,7 @@ const KeywordSelectScreen: React.FC = ({}) => {
                   <Button
                     title="  💬"
                     onPress={() => {
-                      Alert.alert("선호 키워드 설정", "인연 메세지에서 설정된 키워드가 포함된 알림만 받아요!");
+                      Alert.alert("선호 키워드 설정", "키워드가 포함된 인연 메시지만 받을 수 있어요!");
                     }}
                   />
                 </Text>
