@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Image, Modal, TouchableOpacity, Button, Alert } from 'react-native';
+import { View, Image, Modal, TouchableOpacity, Button, Alert, Linking } from 'react-native';
 import styled from 'styled-components/native';
 import ImageTextButton from "../common/Button";
 import WebSocketManager from "../../utils/WebSocketManager";
@@ -11,6 +11,8 @@ import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import CameraRoll from '@react-native-camera-roll/camera-roll';
 import { NativeModules } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
+import ImageResizer from 'react-native-image-resizer';
+import Exif from 'react-native-exif';
 
 interface MessageBubbleProps {
     message: any;
@@ -38,6 +40,56 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     const [isDisabled, setIsDisabled] = useState(chatRoomType === 'FRIEND');
     const [modalVisible, setModalVisible] = useState(false);
     const [imageModalVisible, setImageModalVisible] = useState(false);
+
+
+    const [resizedImageUri, setResizedImageUri] = useState(null);
+
+    const getRotation = (orientation) => {
+        switch (orientation) {
+            case 1: return 0;
+            case 3: return 180;
+            case 6: return 90;
+            case 8: return 270;
+            default: return 0;
+        }
+    };
+
+    const resizeImage = async (uri) => {
+        try {
+            // EXIF 데이터에서 이미지 방향 읽기
+            Exif.getExif(uri, async (error, exifData) => {
+                console.log("resizeImage");
+                let rotation = 0;
+                if (!error && exifData) {
+                    const orientation = exifData.Orientation || 1;
+                    rotation = getRotation(orientation);
+                }
+
+                // 이미지 리사이즈 및 회전
+                try {
+                    const response = await ImageResizer.createResizedImage(uri, 800, 800, 'JPEG', 80, rotation);
+                    setResizedImageUri(response.uri);
+                } catch (resizeError) {
+                    console.error('Image resizing error:', resizeError);
+                } 
+     
+            });
+        } catch (err) {
+            console.error('EXIF reading error:', err);
+    
+        }
+    };
+
+    // const resizeImage = async (uri) => {
+    //     try {
+    //         const response = await ImageResizer.createResizedImage(uri, 800, 800, 'JPEG', 80);
+    //         setResizedImageUri(response.uri);
+    //     } catch (err) {
+    //         console.error(err);
+    //     }
+    // };
+
+
 
     const handleAccept = async () => {
         const response = await acceptFriendRequest(chatRoomId);
@@ -75,136 +127,166 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     };
 
     const openImageModal = () => {
+        resizeImage(message.preSignedUrl)
         setImageModalVisible(true);
     }
 
     const closeImageModal = () => {
         setImageModalVisible(false);
     }
-
-
-    const handleFileDownload = async () => {
+    
+    // 10이하 버전의 권한
+    async function requestLegacyExternalStoragePermission() {
         try {
             if (Platform.OS === 'android') {
-                const permission = await PermissionsAndroid.request(
-                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                const readGranted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
                     {
                         title: 'Storage Permission Required',
-                        message: 'This app needs access to your storage to download photos',
+                        message: 'This app needs access to your storage to read photos.',
                         buttonNeutral: 'Ask Me Later',
                         buttonNegative: 'Cancel',
                         buttonPositive: 'OK',
                     }
                 );
-                // 읽기 권한 요청
-                const readPermission = await PermissionsAndroid.request(
-                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-                {
-                    title: 'Storage Permission Required',
-                    message: 'This app needs access to your storage to read photos',
-                    buttonNeutral: 'Ask Me Later',
-                    buttonNegative: 'Cancel',
-                    buttonPositive: 'OK',
-                }
-            );
-                const readGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE);
-                const writeGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
-                if (!writeGranted || !readGranted) {
-                    console.log('필요한 권한이 없습니다.');
-                    return;
-                }
-                       
-                if (permission === PermissionsAndroid.RESULTS.GRANTED && readPermission === PermissionsAndroid.RESULTS.GRANTED) {
-                    const { preSignedUrl } = message;
-        
-                   // const path = RNFS.DocumentDirectoryPath;// 다운로드 디렉토리(내부 저장소) -> 외부저장소로 변경필요
-        
-                    //  const path = `${RNFS.ExternalStorageDirectoryPath}/Download`;
-          
-                //    const path = '/data/data/com.chalna/pictures'; -> 여기에는 저장이 됨. (내부저장소)
-                 //  const path = '/sdcard/Android/data/com.chalna';-> 여기에는 저장이 됨.
-                //    const path = '/sdcard/DCIM/Camera';
-                   const path = `${RNFS.ExternalStorageDirectoryPath}/DCIM/Camera`;
-
-                   let downloadDest = `${path}/${message.fileId}.png`;
-                    
-                    console.log('저장소 : ', path);
-                    console.log('다운로드 경로 : ',downloadDest);
-
-                    // 디렉토리가 존재하는지 확인하고, 없다면 생성
-                    const directoryExists = await RNFS.exists(path);
-                    console.log("exists", directoryExists)
-                    if (!directoryExists) {
-                        try {
-                            await RNFS.mkdir(path, { NSURLIsExcludedFromBackupKey: true });
-                            console.log("디렉토리 생성 완료", path)
-                        } catch (error) {
-                            console.error('디렉토리 생성 오류: ', error);
-                            Alert.alert('디렉토리 생성 오류', '디렉토리 생성에 실패했습니다.', [{ text: '확인' }]);
-                            return;
-                        }
-                    }
-                    
-                    const downloadOptions = {
-                        fromUrl: preSignedUrl, // s3 다운 경로
-                        toFile: downloadDest, // 로컬 다운 경로 
-                    };
-                    console.log('s3 다운로드 경로 :',preSignedUrl);
-
-                    const res = RNFS.downloadFile(downloadOptions);
-                    console.log('Download result:', res);
-
-                    const result = await res.promise;
-                    console.log('result : ',result);
-                    console.log('Download status code:', result.statusCode);
-        
-                    if (result.statusCode === 200) {
-
-                         // 사진첩에 저장 경로 설정
-                        //  const picturesPath = RNFS.PicturesDirectoryPath + `/${message.fileId}.jpg`;
-                        // await RNFS.moveFile(downloadDest, `file:///sdcard/Download/${message.fileId}.jpg`);
-                        // const saveToGallery = await RNFS.moveFile(downloadDest, RNFS.PicturesDirectoryPath + `/${message.fileId}.jpg`);
-                        // await RNFS.scanFile(RNFS.PicturesDirectoryPath + `/${message.fileId}.jpg`);
-
-                        const fileName = `${message.fileId}.jpg`;
-    
-    
-                        try {
-                            // await RNFS.moveFile(downloadDest, picturesPath);
-                            // console.log('파일 이동 완료:', picturesPath);
-            
-                            // await RNFS.scanFile(picturesPath);
-                            // console.log('파일 스캔 완료:', picturesPath);
-
-                            await RNFS.scanFile(downloadDest);
-            
-                            Alert.alert('다운로드 완료', '사진이 갤러리에 저장되었습니다.', [{ text: '확인' }]);
-                        } catch (moveError) {
-                            console.error('파일 이동/스캔 오류:', moveError);
-                            Alert.alert('파일 이동 오류', '사진 이동에 실패했습니다.', [{ text: '확인' }]);
-                        }
-    
-                    } else if (result.statusCode === 403) {
-                        Alert.alert('다운로드 실패', '사진이 만료되었습니다.', [{ text: '확인' }]);
-
-                    }
-                    else {
-                        Alert.alert('다운로드 실패', '사진 다운로드에 실패했습니다.', [{ text: '확인' }]);
-                    }
+                if (readGranted === PermissionsAndroid.RESULTS.GRANTED) {
+                    console.log('Storage permissions granted');
+                    return true;
                 } else {
-                    Alert.alert('권한 필요', '사진 저장 권한이 필요합니다.', [{ text: '확인' }]);
+                    console.log('Storage permissions denied');
+                    return false;
                 }
             } else {
-                Alert.alert('iOS에서는 지원되지 않습니다.', '사진 저장 기능은 Android에서만 지원됩니다.', [{ text: '확인' }]);
+                return true; // iOS에서 권한 요청은 별도로 처리
             }
+        } catch (err) {
+            console.warn(err);
+            return false;
+        }
+    }
+
+
+    // Android 11 이상 버전의 권한 요청
+async function requestExternalStoragePermission() {
+    try {
+        if (Platform.OS === 'android') {
+            if (Number(Platform.Version) >= 30) { // Android 11(R) 이상
+                console.log(Number(Platform.Version));
+                const readGranted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+                    {
+                        title: 'Storage Permission Required',
+                        message: 'This app needs access to your storage to read photos.',
+                        buttonNeutral: 'Ask Me Later',
+                        buttonNegative: 'Cancel',
+                        buttonPositive: 'OK',
+                    }
+                );
+                const manageGranted = (readGranted === PermissionsAndroid.RESULTS.GRANTED);
+                if (!manageGranted) {
+                    Alert.alert(
+                        'Storage Permission Required',
+                        'This app needs access to manage all files on your device. Please grant this permission in the settings.',
+                        [
+                            {
+                                text: 'Cancel',
+                                style: 'cancel',
+                            },
+                            {
+                                text: 'OK',
+                                onPress: () => Linking.openSettings(),
+                            },
+                        ],
+                    );
+                    return false;
+                }
+                return true;
+            } else { // Android 10(Q) 이하
+                return await requestLegacyExternalStoragePermission();
+            }
+        } else {
+            return true; // iOS에서 권한 요청은 별도로 처리
+        }
+    } catch (err) {
+        console.warn(err);
+        return false;
+    }
+}
+
+
+
+    const handleFileDownload = async () => {
+        try {
+                // 권한 요청
+                const hasPermission = await requestExternalStoragePermission();
+                if (!hasPermission) {
+                    Alert.alert('권한 오류', '외부 저장소 접근 권한이 필요합니다.', [{ text: '확인' }]);
+                    return;
+                }
+                
+            
+                const { preSignedUrl } = message;
+
+                const path = `${RNFS.ExternalStorageDirectoryPath}/DCIM/Camera`; // 저장소
+
+                //  const version = Number(Platform.Version);
+                //  const path = version >= 30 
+                //      ? `${RNFS.ExternalStorageDirectoryPath}/Pictures/Chalna` 
+                //      : `${RNFS.ExternalStorageDirectoryPath}/DCIM/Camera`; // 저장소 경로 설정
+
+                let downloadDest = `${path}/chalna_${message.fileId}_${Date.now()}_sd.jpg`; // 다운로드 경로
+
+                // 디렉토리가 존재하는지 확인하고, 없다면 생성
+                const directoryExists = await RNFS.exists(path);
+                console.log("exists", directoryExists)
+                if (!directoryExists) {
+                    try {
+                        await RNFS.mkdir(path, { NSURLIsExcludedFromBackupKey: true });
+                        console.log("디렉토리 생성 완료", path)
+                    } catch (error) {
+                        console.error('디렉토리 생성 오류: ', error);
+                        Alert.alert('디렉토리 생성 오류', '디렉토리 생성에 실패했습니다.', [{ text: '확인' }]);
+                        return;
+                    }
+                }
+                
+                const downloadOptions = {
+                    fromUrl: preSignedUrl, // s3 다운 경로
+                    toFile: downloadDest, // 로컬 다운 경로 
+                };
+                console.log('s3 다운로드 경로 :',preSignedUrl);
+
+                const res = RNFS.downloadFile(downloadOptions);
+                console.log('Download result:', res);
+
+                const result = await res.promise;
+                console.log('result : ',result);
+                console.log('Download status code:', result.statusCode);
+    
+                if (result.statusCode === 200) {
+                    try {
+                        await RNFS.scanFile(downloadDest);
+                        console.log('파일 스캔 완료');
+        
+                        Alert.alert('다운로드 완료', '사진이 갤러리에 저장되었습니다.', [{ text: '확인' }]);
+                    } catch (moveError) {
+                        console.error('파일 이동/스캔 오류:', moveError);
+                        Alert.alert('파일 이동 오류', '사진 이동에 실패했습니다.', [{ text: '확인' }]);
+                    }
+
+                } else if (result.statusCode === 403) {
+                    Alert.alert('다운로드 실패', '사진이 만료되었습니다.', [{ text: '확인' }]);
+
+                }
+                else {
+                    Alert.alert('다운로드 실패', '사진 다운로드에 실패했습니다.', [{ text: '확인' }]);
+                }
+        
         } catch (error) {
             console.error('File download error:', error);
             Alert.alert('다운로드 실패', '사진 다운로드 중 오류가 발생했습니다.', [{ text: '확인' }]);
         }
     };
-
-
-
 
     const renderMessageContent = () => {
         if (typeof message === 'string') {
@@ -232,9 +314,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
         }
     };
 
+    
+
 
     // const hasNewline = message.includes('\n');
-
+    
     return (
         <Container isSelf={isSelf} notChat={type!=='CHAT' && type!=='FILE'}>
             {!isSelf && showProfileTime && type==='CHAT' && (
@@ -246,7 +330,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                 {!isSelf && showProfileTime && username && type==='CHAT' && <Username variant="subBold">{username}</Username>}
                 {type === 'FRIEND_REQUEST' ? (
                     <AnnouncementMessageBubble>
-                        <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
+                        <Text variant="sub" style={{color:"#444444"}}>{message.preSignedUrl}</Text>
                         {!isSelf && message === '친구 요청을 보냈습니다.' && (
                             <ButtonContainer>
                                 <ImageTextButton title='수락' onPress={handleAccept} disabled={isDisabled} />
@@ -307,6 +391,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                     </ModalContent>
                 </ModalContainer>
             </Modal>
+
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -316,7 +401,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                     <FullScreenModalContainer>
                     <FullScreenModalContent>
                         <ImageTextButton title={"닫기"} onPress={closeImageModal} style={{ alignSelf: 'flex-end' }} />
-                        <FullScreenImage source={{ uri: message.preSignedUrl }} />
+                        {/* <FullScreenImage source={{ uri: message.preSignedUrl }} /> */}
+                        <FullScreenImage source={{ uri: resizedImageUri }} />
+                        
                         <Button title="Download" onPress={handleFileDownload} />
                     </FullScreenModalContent>
                 </FullScreenModalContainer>
