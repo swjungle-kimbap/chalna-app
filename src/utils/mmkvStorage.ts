@@ -56,8 +56,22 @@ export const removeMMKVItem = (key: string) => {
     console.log(`Removed ${key} completely in MMKV`);
 };
 
+// Boolean 값 가져오는 함수 추가
+export const getMMKVBoolean = (key: string): boolean | null => {
+    const value = userMMKVStorage.getBoolean(key);
+    if (value === undefined) {
+        console.log(`${key} is not stored in MMKV`);
+        return null;
+    }
+    console.log(`Using stored ${key} : ${value} in MMKV`);
+    return value;
+};
+
 
 // 기본 저장소에서 가져오는 함수들 추가
+export const getCurrentUserId = (): string => {
+    return defaultMMKVStorage.getString('currentUserId') ?? '';
+}
 
 // 기본 MMKV 저장소
 export const defaultMMKVStorage = new MMKV();
