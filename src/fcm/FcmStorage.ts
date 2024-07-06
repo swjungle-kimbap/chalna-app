@@ -4,9 +4,6 @@ import { ChatFCM, MatchFCM } from '../interfaces/ReceivedFCMData.type';
 import { formatDateToKoreanTime } from "../service/Chatting/DateHelpers";
 import { ChatRoomLocal } from '../interfaces/Chatting.type';
 
-export let DEFAULT_CHANNEL_ID = "chalna_default_channel";
-export const DEFAULT_CHANNEL_NAME = "chalna";
-
 const MATCH_FCM_STORAGE = "matchFCMStorage";
 
 const convertTimestampToKoreanTime = (timestamp: number): string => {
@@ -36,8 +33,8 @@ export const storeFCM = async (remoteMessage): Promise<void> => {
         message: data.message,
         senderId: data.senderId,
         receiverId: additionalData.receiverId,
+        createdAt: sentTime,
         overlapCount: additionalData.overlapCount,
-        createdAt: sentTime
       };
       await storeMatchFCM(newMatchFCM);
       break;
@@ -64,7 +61,7 @@ const storeChatFCM = async (newFCM: ChatFCM): Promise<void> => {
   } catch (error) {
     console.error('채팅룸 정보를 저장하는 동안 오류가 발생했습니다:', error);
   }
-
+  
   console.log(`저장한 채팅룸Id: ${newFCM.chatRoomId}, 저장한 메시지: ${newFCM.message}`);
 };
 
@@ -83,7 +80,7 @@ const storeMatchFCM = async (newFCM: MatchFCM): Promise<void> => {
       deleteMatchFCMById(newFCM.receiverId, newFCM.id);
       console.log(`Deleted ${MATCH_FCM_STORAGE} message for user ${newFCM.receiverId} after 10 minutes:`, newFCM);
     }, 10 * 60 * 1000);
-    console.log(`All ${MATCH_FCM_STORAGE} messages: `, existingMessages);
+    console.log(`All ${MATCH_FCM_STORAGE} messages: `, existingMessages); 
   } catch (error) {
     console.error(`Error storing ${MATCH_FCM_STORAGE} message for user ${newFCM.receiverId}:`, error);
   }
@@ -103,4 +100,3 @@ export const removeAllMatchFCM = async (receiverId: string): Promise<void> => {
   removeMMKVItem(MATCH_FCM_STORAGE);
   console.log(`Removed all messages in ${MATCH_FCM_STORAGE} for user ${receiverId}`);
 };
-
