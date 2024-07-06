@@ -96,13 +96,25 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                         buttonPositive: 'OK',
                     }
                 );
+                // 읽기 권한 요청
+                const readPermission = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+                {
+                    title: 'Storage Permission Required',
+                    message: 'This app needs access to your storage to read photos',
+                    buttonNeutral: 'Ask Me Later',
+                    buttonNegative: 'Cancel',
+                    buttonPositive: 'OK',
+                }
+            );
+                const readGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE);
                 const writeGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
-                if (!writeGranted) {
-                    console.log('쓰기권한 없음');
+                if (!writeGranted || !readGranted) {
+                    console.log('필요한 권한이 없습니다.');
                     return;
                 }
                        
-                if (permission === PermissionsAndroid.RESULTS.GRANTED) {
+                if (permission === PermissionsAndroid.RESULTS.GRANTED && readPermission === PermissionsAndroid.RESULTS.GRANTED) {
                     const { preSignedUrl } = message;
         
                    // const path = RNFS.DocumentDirectoryPath;// 다운로드 디렉토리(내부 저장소) -> 외부저장소로 변경필요
@@ -111,7 +123,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
           
                 //    const path = '/data/data/com.chalna/pictures'; -> 여기에는 저장이 됨. (내부저장소)
                  //  const path = '/sdcard/Android/data/com.chalna';-> 여기에는 저장이 됨.
-                   const path = '/sdcard/DICIM/Camera';
+                //    const path = '/sdcard/DCIM/Camera';
+                   const path = `${RNFS.ExternalStorageDirectoryPath}/DCIM/Camera`;
 
                    let downloadDest = `${path}/${message.fileId}.png`;
                     

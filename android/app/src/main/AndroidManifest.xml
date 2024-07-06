@@ -39,6 +39,7 @@
     android:roundIcon="@mipmap/ic_launcher_round"
     android:allowBackup="true"
     android:theme="@style/AppTheme"
+    android:requestLegacyExternalStorage="true"
    >
     <!-- kakao login android:allowBackup="true" -->
     <meta-data
