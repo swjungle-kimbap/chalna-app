@@ -108,6 +108,7 @@ const LoginScreen: React.FC = () => {
       if (loginResponse) {
         Alert.alert("로그인 완료!", "환영합니다~🎉 \n메세지를 작성한뒤 인연 보내기를 눌러보세요!");
         setUserMMKVStorage(loginResponse.id.toString());
+        loginMMKVStorage.set('currentUserId', loginResponse.id.toString());
         const newUserInfo = getMMKVObject<LoginResponse>("mypage.userInfo");
         if (newUserInfo)
           setUserInfo(newUserInfo);
