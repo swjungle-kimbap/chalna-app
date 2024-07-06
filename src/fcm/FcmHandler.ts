@@ -2,14 +2,20 @@ import PushNotification from 'react-native-push-notification';
 import { storeFCM } from './FcmStorage'
 import { navigate } from '../navigation/RootNavigation';
 import { DEFAULT_CHANNEL_ID, DEFAULT_CHANNEL_NAME } from './FcmChannel';
+import { checkMyPageSettings } from './FcmAlarm';
 
 // FCM Message 처리
 const handleFCMMessage = (remoteMessage) => {
+
+  const result = checkMyPageSettings(remoteMessage.data);
+  
+  if (result) {
+    // 모든 메시지는 Notification으로 변환하여 알림 디스플레이함!
+    const { title, body, isMatch } = createNotification(remoteMessage.data);
+    showLocalNotification(title, body, isMatch, remoteMessage.data);
+  }
   // 저장
   storeFCM(remoteMessage);
-  // 모든 메시지는 Notification으로 변환하여 알림 디스플레이함!
-  const { title, body, isMatch } = createNotification(remoteMessage.data);
-  showLocalNotification(title, body, isMatch, remoteMessage.data);
 }
 
 // 공통 알림 생성 함수

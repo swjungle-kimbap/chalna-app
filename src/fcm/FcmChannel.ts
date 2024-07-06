@@ -1,7 +1,8 @@
 import PushNotification from 'react-native-push-notification';
 import { NativeModules } from 'react-native';
+import { getAlarmSettings } from './FcmAlarm';
 import uuid from 'react-native-uuid';
-import { defaultMMKVStorage } from '../utils/mmkvStorage';
+
 
 const { NotificationModule } = NativeModules;
 
@@ -10,11 +11,7 @@ export const DEFAULT_CHANNEL_NAME = "chalna";
 
 const channelOptions = {};
 
-export const getAlarmSettings = () => {
-  const alarmSound = defaultMMKVStorage.getBoolean('mypage.alarmSound') ?? true; // 기본값 설정
-  const alarmVibration = defaultMMKVStorage.getBoolean('mypage.alarmVibration') ?? true; // 기본값 설정
-  return { alarmSound, alarmVibration };
-};
+
 
 export const getFCMChannels = () => {
   NotificationModule.getNotificationChannels()
