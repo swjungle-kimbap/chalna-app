@@ -72,13 +72,36 @@ export const removeChatRoom = (chatRoomId: number) => {
 
 
 
+// // Save chat messages for a specific chat room
+// export const saveChatMessages = (chatRoomId: string, newMessages: directedChatMessage[]) => {
+//     console.log('save chat message');
+//     const existingMessages = getChatMessages(chatRoomId) || [];
+//     const updatedMessages = [...existingMessages, ...newMessages];
+//     userMMKVStorage.set(`chatMessages_${chatRoomId}`, JSON.stringify(updatedMessages));
+// };
+
 // Save chat messages for a specific chat room
 export const saveChatMessages = (chatRoomId: string, newMessages: directedChatMessage[]) => {
     console.log('save chat message');
     const existingMessages = getChatMessages(chatRoomId) || [];
-    const updatedMessages = [...existingMessages, ...newMessages];
+
+    // Create a map of existing messages by id for quick lookup
+    const messageMap = new Map<number, directedChatMessage>();
+    existingMessages.forEach(message => {
+        messageMap.set(message.id, message);
+    });
+
+    // Update or add new messages
+    newMessages.forEach(newMessage => {
+        messageMap.set(newMessage.id, newMessage);
+    });
+
+    // Convert map back to array
+    const updatedMessages = Array.from(messageMap.values());
+
     userMMKVStorage.set(`chatMessages_${chatRoomId}`, JSON.stringify(updatedMessages));
 };
+
 
 // Retrieve chat messages for a specific chat room
 export const getChatMessages = (chatRoomId: string): directedChatMessage[] | null => {

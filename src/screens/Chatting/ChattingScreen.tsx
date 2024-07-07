@@ -210,7 +210,7 @@ const ChattingScreen = () => {
                         parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt);
 
                         // 메세지 렌더링 & 저장 & 스크롤 업데이트
-                        setMessages((prevMessages) => [ ...prevMessages, parsedMessage]);
+                        setMessages((prevMessages) => (prevMessages ? [...prevMessages, parsedMessage] : [parsedMessage]));
                         if (isUserAtBottom.current) {
                             flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
                         } else {
