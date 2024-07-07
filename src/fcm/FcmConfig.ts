@@ -1,7 +1,7 @@
 import messaging from '@react-native-firebase/messaging';
 import PushNotification from 'react-native-push-notification';
 import { AppRegistry, Platform } from 'react-native';
-import { getFCMChannels, deleteAllFCMChannels, updateDefaultFCMChannel } from './FcmChannel';
+import { getFCMChannels, createDefaultFCMChannel } from './FcmChannel';
 import { handleFCMMessage, handleFCMClick } from './FcmHandler';
 
 
@@ -89,8 +89,7 @@ class FcmConfig {
       requestPermissions: Platform.OS === 'ios',
     });
 
-    deleteAllFCMChannels();
-    updateDefaultFCMChannel();
+    createDefaultFCMChannel();
     getFCMChannels();
   }
 }

@@ -75,6 +75,7 @@ const ChattingScreen = () => {
     useBackToScreen("로그인 성공", { screen: "채팅목록", params: { screen: "채팅 목록" } });
 
     const flatListRef = useRef<FlatList<directedChatMessage>>(null);
+    const isUserAtBottom = useRef(true);
 
     // const scrollViewRef = useRef<ScrollView>(null);
 
@@ -255,13 +256,15 @@ const ChattingScreen = () => {
     }, []);
 
     const handleKeyboardDidShow = () => {
-        // scrollViewRef.current?.scrollToEnd({ animated: true });
-        flatListRef.current?.scrollToEnd({ animated: true });
+        if (isUserAtBottom.current) {
+            flatListRef.current?.scrollToEnd({ animated: true });
+        }
     };
 
     const handleKeyboardDidHide = () => {
-        // scrollViewRef.current?.scrollToEnd({ animated: true });
-        flatListRef.current?.scrollToEnd({ animated: true });
+        if (isUserAtBottom.current) {
+            flatListRef.current?.scrollToEnd({ animated: true });
+        }
     };
 
     useEffect(() => {
@@ -323,7 +326,6 @@ const ChattingScreen = () => {
                             console.log("api 호출 채팅데이터: ", fetchedMessages);
                             saveChatMessages(chatRoomId, fetchedMessages);
                         }
-                
                     }
                 } catch (error) {
                     console.error('채팅방 메세지 목록조회 실패:', error);
@@ -384,6 +386,12 @@ const ChattingScreen = () => {
         return memberIdToUsernameMap.get(senderId) || '익명의 하마';
     }
 
+    const handleScroll = (event) => {
+        const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+        const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+        isUserAtBottom.current = isAtBottom;
+    }
+
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -395,7 +403,8 @@ const ChattingScreen = () => {
     return (
         <SWRConfig value={{}}>
             <CustomHeader
-                title={username}
+                // title={username}
+                titleSmall = {username}
                 subtitle={'안내문구 출력용'}
                 onBackPress={() => {
                     navigate("로그인 성공", {
@@ -412,33 +421,42 @@ const ChattingScreen = () => {
             />
             <Text>{chatRoomType}: {WebSocketManager.isConnected() ? 'Connected' : ' - '} </Text>
             <View style={styles.container}>
-                        <FlatList
-                    data={messages?.slice().reverse()} // Reverse the order of messages
-                    keyExtractor={(item, index) => `${item.id}-${index}`}
-                    renderItem={({ item, index }) => {
-                        const showProfile = index === 0 || messages[index - 1].senderId !== item.senderId;
-                        const showTime = index === 0 || messages[index - 1].formatedTime !== item.formatedTime;
+                <View style={styles.scrollView}>
+                    <FlatList
+                        data={messages?.slice().reverse()} // Reverse the order of messages
+                        keyExtractor={(item, index) => `${item.id}-${index}`}
+                        renderItem={({ item, index }) => {
+                            const showProfile = index === 0 || !messages[index - 1] || messages[index - 1].senderId !== item.senderId;
+                            const showTime = index === 0 || !messages[index - 1] || messages[index - 1].formatedTime !== item.formatedTime;
+                            const showProfileTime = showProfile || showTime;
 
-                        return (
-                            <MessageBubble
-                                message={item.content}
-                                datetime={item.formatedTime}
-                                isSelf={item.isSelf}
-                                type={item.type}
-                                unreadCnt={item.unreadCount}
-                                chatRoomId={Number(chatRoomId)}
-                                otherId={otherIdRef.current}
-                                chatRoomType={chatRoomType}
-                                profilePicture={item.isSelf ? '' : 'https://img.freepik.com/premium-photo/full-frame-shot-rippled-water_1048944-5521428.jpg?size=626&ext=jpg&ga=GA1.1.2034235092.1718206967&semt=ais_user'}
-                                username={getUsernameBySenderId(item.senderId)}
-                                showProfileTime={showProfile || showTime}
-                            />
-                        );
-                    }}
-                    ref={flatListRef}
-                    inverted
-                    onContentSizeChange={() => flatListRef.current?.scrollToOffset({ animated: true, offset: 0 })}
-                />
+                            return (
+                                <MessageBubble
+                                    message={item.content}
+                                    datetime={item.formatedTime}
+                                    isSelf={item.isSelf}
+                                    type={item.type}
+                                    unreadCnt={item.unreadCount}
+                                    chatRoomId={Number(chatRoomId)}
+                                    otherId={otherIdRef.current}
+                                    chatRoomType={chatRoomType}
+                                    profilePicture={item.isSelf ? '' : 'https://img.freepik.com/premium-photo/full-frame-shot-rippled-water_1048944-5521428.jpg?size=626&ext=jpg&ga=GA1.1.2034235092.1718206967&semt=ais_user'}
+                                    username={getUsernameBySenderId(item.senderId)}
+                                    showProfileTime={showProfileTime}
+                                />
+                            );
+                        }}
+                        ref={flatListRef}
+                        inverted
+                        onContentSizeChange={() => {
+                            if (isUserAtBottom.current) {
+                                flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                            }
+                        }}
+                        onScroll={handleScroll}
+                        // onContentSizeChange={() => flatListRef.current?.scrollToOffset({ animated: true, offset: 0 })}
+                    />
+                </View>
                 {chatRoomType !== 'WAITING' && (
                     <View style={styles.inputContainer}>
                         <ImageTextButton
@@ -493,12 +511,14 @@ const ChattingScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingHorizontal: 20,
+        // paddingHorizontal: 10,
+        paddingHorizontal: 10,
     },
     scrollView: {
-        flexGrow: 1,
+        flex: 1,
+        flexDirection: 'column',
         justifyContent: 'flex-start',
-        alignItems: 'center',
+        // alignItems: 'flex-start',
         paddingTop: 10,
     },
     inputContainer: {
@@ -511,10 +531,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         marginTop: 10,
-        marginBottom: 15,
+        marginBottom: 10,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.25,
         shadowRadius: 5,
+        minHeight: 50,
     },
     input: {
         flex: 1,
