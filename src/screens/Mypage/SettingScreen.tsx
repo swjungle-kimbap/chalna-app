@@ -8,8 +8,8 @@ import { axiosPatch } from "../../axios/axios.method";
 import { urls } from "../../axios/config";
 import { userMMKVStorage } from "../../utils/mmkvStorage";
 import { useMMKVBoolean } from "react-native-mmkv";
-import { useRecoilState } from "recoil";
-import { FlyingModeState } from "../../recoil/atoms";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { DeveloperModeState, FlyingModeState } from "../../recoil/atoms";
 import { setDefaultMMKVBoolean } from "../../utils/mmkvStorage";
 import { updateFCMChannel } from "../../fcm/FcmChannel";
 
@@ -26,6 +26,7 @@ const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
   const [alarmSound, setAlarmSound] = useMMKVBoolean('mypage.alarmSound', userMMKVStorage);
   const [alarmVibration, setAlarmVibration] = useMMKVBoolean('mypage.alarmVibration', userMMKVStorage);
   const [flyingMode, setFlyingMode] = useRecoilState(FlyingModeState);
+  const developMode = useRecoilValue(DeveloperModeState);
   const [isdisable , setIsdisable] = useState(false);
   
   useEffect(() => {
@@ -107,9 +108,11 @@ const SettingScreen: React.FC<SettingScreenProps> = ({navigation}) => {
             <Image source={require(MoveButtonUrl)} />
           </View>
         </InlineButton>
-        <InlineButton text="슈퍼맨 모드" textstyle={{paddingTop: 10}} horizon='top'>
-          <Toggle value={flyingMode} toggleHandler={(value)=>setFlyingMode(value)} /> 
-        </InlineButton>
+        {developMode && (
+          <InlineButton text="슈퍼맨 모드" textstyle={{paddingTop: 10}} horizon='top'>
+            <Toggle value={flyingMode} toggleHandler={(value)=>setFlyingMode(value)} /> 
+          </InlineButton>
+        )}
       </View>
     </View>
   );

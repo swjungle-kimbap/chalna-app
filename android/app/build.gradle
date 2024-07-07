@@ -73,6 +73,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
 
 project.ext.env = new Properties()
 file('../../env/.env').withInputStream { project.ext.env.load(it) }
+project.ext.defaultEnvFile = "../env/.env"
 
 android {
     ndkVersion rootProject.ext.ndkVersion
@@ -105,9 +106,9 @@ android {
         }
         release {
             storeFile file('my-upload-key.keystore')
-            storePassword 'dlekqls222'
-            keyAlias 'my-key-alias'
-            keyPassword 'dlekqls222'
+            storePassword project.ext.env['RELEASE_STORE_PASSWORD']
+            keyAlias project.ext.env['KEYALIAS']
+            keyPassword project.ext.env['KEYPASSWORD']
         }
     }
     buildTypes {

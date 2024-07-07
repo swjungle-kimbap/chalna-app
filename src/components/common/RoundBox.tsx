@@ -27,7 +27,7 @@ const RoundBox: React.FC<RoundBoxProps> = ({
   const containerStyle = StyleSheet.flatten([
     styles.container,
     {
-      width: height,
+      width: width,
       height: height,
       borderRadius: radius,
       backgroundColor: color,
