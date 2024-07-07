@@ -7,13 +7,11 @@ import requestPermissions from "../utils/requestPermissions";
 import showPermissionAlert from "../utils/showPermissionAlert";
 import { PERMISSIONS } from "react-native-permissions";
 import { removeChatRoom } from './Chatting/mmkvChatStorage';
-import { calDistance } from "../utils/calDistance";
 
 const requiredPermissions = [PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION];
 
-export const joinLocalChat = async (localChat:LocalChat, currentLocation:Position, setRefresh: Function) => {
+export const joinLocalChat = async (localChat:LocalChat, distance:number, setRefresh: Function) => {
     try {
-      const distance = calDistance(currentLocation, {latitude: localChat.latitude, longitude: localChat.longitude});
       if (distance < 0.05){
         await axiosPost<JoinLocalChatResponse>(
           urls.JOIN_LOCAL_CHAT_URL + localChat.id.toString(), "장소 채팅 참여");
@@ -62,14 +60,14 @@ export const handleCheckPermission = async (): Promise<boolean> => {
 };
 
 
-export const localChatJoin = async (localChat:LocalChat, currentLocation:Position, setRefresh:Function) => {
+export const localChatJoin = async (localChat:LocalChat, distance:number, setRefresh:Function) => {
   const granted = await handleCheckPermission();
   if (granted) {
     Alert.alert(localChat.name, localChat.description,
       [
         {
           text: '참가',
-          onPress: async () => {await joinLocalChat(localChat, currentLocation, setRefresh)},
+          onPress: async () => {await joinLocalChat(localChat, distance, setRefresh)},
           style: 'default'
         },
         { text: '취소', style: 'cancel'}
@@ -107,14 +105,14 @@ export const ChatOut = async (chatRoomId:number, setRefresh:Function) => {
   }
 };
 
-export const localChatOut = async (localChat:LocalChat, currentLocation:Position, setRefresh:Function) => {
+export const localChatOut = async (localChat:LocalChat, distance:number, setRefresh:Function) => {
   const granted = await handleCheckPermission();
   if (granted) {
     Alert.alert(localChat.name, "이미 들어간 채팅방입니다! 나가시겠습니까?",
       [
         {
           text: '들어가기',
-          onPress: async () => {await joinLocalChat(localChat, currentLocation, setRefresh)},
+          onPress: async () => {await joinLocalChat(localChat, distance, setRefresh)},
           style: 'default'
         },
         {
@@ -128,14 +126,14 @@ export const localChatOut = async (localChat:LocalChat, currentLocation:Position
   }
 };
 
-export const localChatDelete = async (localChat:LocalChat, currentLocation:Position, setRefresh: Function) => {
+export const localChatDelete = async (localChat:LocalChat, distance:number, setRefresh: Function) => {
   const granted = await handleCheckPermission();
   if (granted) {
     Alert.alert(localChat.name, "내가 생성한 채팅방입니다! 삭제 하시겠습니까?",
       [  
         {
           text: '들어가기',
-          onPress: () => {joinLocalChat(localChat, currentLocation, setRefresh)},
+          onPress: () => {joinLocalChat(localChat, distance, setRefresh)},
           style: 'destructive'
         },
         {
