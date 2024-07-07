@@ -21,20 +21,30 @@ const convertTimestampToKoreanTime = (timestamp: number): string => {
   return new Intl.DateTimeFormat('ko-KR', options).format(date);
 };
 
+const FCMMessageParse = (message:string) => {
+  const messageObject = JSON.parse(message);
+  if (messageObject.contentType === 'MESSAGE') {
+    return { messageData: messageObject.content, imageUrl:''};
+  }
+
+  return { messageData: "이미지", imageUrl: messageObject.content};
+}
+
 export const storeFCM = async (remoteMessage): Promise<void> => {
-  const sentTime = convertTimestampToKoreanTime(remoteMessage.sentTime);
   const data = remoteMessage.data;
+  const { messageData, imageUrl } = FCMMessageParse(data.message);
   const additionalData = JSON.parse(data.additionalData);
 
   switch (data.fcmType) {
     case 'match':
       const newMatchFCM: MatchFCM = {
         id: additionalData.notificationId,
-        message: data.message,
+        message: messageData,
         senderId: data.senderId,
         receiverId: additionalData.receiverId,
-        createdAt: sentTime,
+        createdAt: remoteMessage.sentTime,
         overlapCount: additionalData.overlapCount,
+        image: imageUrl
       };
       await storeMatchFCM(newMatchFCM);
       break;
