@@ -79,11 +79,25 @@ export const localChatJoin = async (localChat:LocalChat, currentLocation:Positio
   }
 };
 
-export const ChatOut = async (chatRoomId:number, setRefresh:Function) => {
+export const ChatDisconnectOut = async (chatRoomId:number, setRefresh:Function) => {
   try {
     const response = await axiosDelete<AxiosResponse<string>>(urls.CHATROOM_LEAVE_URL+chatRoomId.toString());
     if (response?.data?.data === "성공")
       Alert.alert("로컬 채팅 종료", "거리가 멀어져 채팅방과 연결이 종료가 되었습니다!");
+
+    removeChatRoom(chatRoomId); 
+    setRefresh((prev)=>!prev);
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
+    Alert.alert("Error", errorMessage);
+  }
+};
+
+export const ChatOut = async (chatRoomId:number, setRefresh:Function) => {
+  try {
+    const response = await axiosDelete<AxiosResponse<string>>(urls.CHATROOM_LEAVE_URL+chatRoomId.toString());
+    if (response?.data?.data === "성공")
+      Alert.alert("로컬 채팅 종료", "채팅방을 성공적으로 나갔습니다.");
 
     removeChatRoom(chatRoomId); 
     setRefresh((prev)=>!prev);
