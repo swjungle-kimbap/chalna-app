@@ -1,12 +1,11 @@
 import PushNotification from 'react-native-push-notification';
 import { NativeModules } from 'react-native';
-import { getAlarmSettings } from './FcmAlarm';
+import { getDefaultMMKVString, setDefaultMMKVString } from '../utils/mmkvStorage';
 import uuid from 'react-native-uuid';
 
 
 const { NotificationModule } = NativeModules;
 
-export let DEFAULT_CHANNEL_ID = "chalna_default_channel";
 export const DEFAULT_CHANNEL_NAME = "chalna";
 
 const channelOptions = {};
@@ -27,20 +26,19 @@ export const getFCMChannels = (): Promise<void> => {
   });
 };
 
-export const createFCMChannel = (soundSet: boolean, vibrateSet: boolean): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    DEFAULT_CHANNEL_ID = uuid.v4().toString();
+export const createFCMChannel = (channelIdValue:string, description:string, soundSet: boolean, vibrateSet: boolean): Promise<void> => {
+  return new Promise((resolve) => {
     const options = {
-      channelId: DEFAULT_CHANNEL_ID, // 채널 ID
+      channelId: channelIdValue, // 채널 ID
       channelName: DEFAULT_CHANNEL_NAME, // 채널 이름
-      channelDescription: "A default channel " + DEFAULT_CHANNEL_ID, // (optional) default: undefined.
+      channelDescription: description, // (optional) default: undefined.
       importance: 4,
       priority: 'high',
       playSound: soundSet,
       soundName: soundSet ? 'default' : null, // 소리 설정
       vibrate: vibrateSet
     };
-    channelOptions[DEFAULT_CHANNEL_ID] = options;
+    channelOptions[channelIdValue] = options;
 
     PushNotification.createChannel(
       options,
@@ -51,47 +49,9 @@ export const createFCMChannel = (soundSet: boolean, vibrateSet: boolean): Promis
             console.log('Channel IDs:', channelIds);
 
             // 생성된 채널의 옵션들을 출력
-            console.log('Created channel options:', channelOptions[DEFAULT_CHANNEL_ID]);
+            console.log('Created channel options:', channelOptions[channelIdValue]);
             resolve();
           });
-        } else {
-          reject(new Error('Failed to create channel'));
-        }
-      }
-    );
-  });
-};
-
-
-
-export const createDefaultFCMChannel = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    DEFAULT_CHANNEL_ID = uuid.v4().toString();
-    const options = {
-      channelId: DEFAULT_CHANNEL_ID, // 채널 ID
-      channelName: DEFAULT_CHANNEL_NAME, // 채널 이름
-      channelDescription: "A default channel " + DEFAULT_CHANNEL_ID, // (optional) default: undefined.
-      importance: 4,
-      priority: 'high',
-      playSound: true,
-      soundName: 'default', // 소리 설정
-    };
-    channelOptions[DEFAULT_CHANNEL_ID] = options;
-
-    PushNotification.createChannel(
-      options,
-      (created) => {
-        console.log(`createChannel returned '${created}'`);
-        if (created) {
-          PushNotification.getChannels((channelIds) => {
-            console.log('Channel IDs:', channelIds);
-
-            // 생성된 채널의 옵션들을 출력
-            console.log('Created channel options:', channelOptions[DEFAULT_CHANNEL_ID]);
-            resolve();
-          });
-        } else {
-          reject(new Error('Failed to create channel'));
         }
       }
     );
@@ -101,27 +61,26 @@ export const createDefaultFCMChannel = (): Promise<void> => {
 
 // 채널 업데이트 함수
 export const updateFCMChannel = async (soundSet: boolean, vibrateSet: boolean) => {
-  const DEFAULT_CHANNEL_ID_backup = DEFAULT_CHANNEL_ID
   try {
-    await createFCMChannel(soundSet, vibrateSet);
-    deleteFCMChannel(DEFAULT_CHANNEL_ID_backup);
     getFCMChannels();
-    console.log('FCM 채널 업데이트 완료');
+
+    if (soundSet && vibrateSet) {
+      setDefaultMMKVString('channelId', 'chalna1');
+    } else if (!soundSet && vibrateSet) {
+      setDefaultMMKVString('channelId', 'chalna2');
+    } else if (soundSet && !vibrateSet) {
+      setDefaultMMKVString('channelId', 'chalna3');
+    } else {
+      setDefaultMMKVString('channelId', 'chalna4');
+    }
+
+    const channelId = getDefaultMMKVString('channelId');
+
+    console.log('채널 Id가 변경되었습니다. : ', channelId);
   } catch (error) {
     console.error('FCM 채널 업데이트 중 오류 발생:', error);
   }
 };
-
-export const updateDefaultFCMChannel = async() => {
-  const { alarmSound, alarmVibration } = getAlarmSettings();
-  try {
-    await createFCMChannel(alarmSound, alarmVibration);
-    deleteAllFCMChannels();
-    console.log('FCM 채널 업데이트 완료');
-  } catch (error) {
-    console.error('FCM 채널 업데이트 중 오류 발생:', error);
-  }
-}
 
 // 쓰지마!
 export const deleteAllFCMChannels = () => {

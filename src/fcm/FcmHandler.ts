@@ -1,11 +1,14 @@
 import PushNotification from 'react-native-push-notification';
 import { storeFCM } from './FcmStorage'
-import RNFS from 'react-native-fs';
 import { navigate } from '../navigation/RootNavigation';
-import { DEFAULT_CHANNEL_ID, DEFAULT_CHANNEL_NAME } from './FcmChannel';
+import { DEFAULT_CHANNEL_NAME, getFCMChannels } from './FcmChannel';
 import { checkMyPageSettings, checkKeywordSettings, checkMessageForKeywords } from './FcmAlarm';
+import { getDefaultMMKVString } from '../utils/mmkvStorage';
+import { get } from 'http';
 
-// FCM Message 처리
+
+const channelIdValue = getDefaultMMKVString('channelId');
+
 const handleFCMMessage = async (remoteMessage) => {
   if (checkMyPageSettings(remoteMessage.data) || remoteMessage.notification) {
     const { title, body, isMatch, isImage, imageUrl } = await createNotification(remoteMessage);
@@ -21,6 +24,7 @@ const handleFCMMessage = async (remoteMessage) => {
   storeFCM(remoteMessage);
 };
 
+
 // 공통 알림 생성 함수
 const createNotification = async (remoteMessage) => {
   const { title, body, isNotification, isMatch, imageUrl } = handleFCMType(remoteMessage);
@@ -31,13 +35,13 @@ const createNotification = async (remoteMessage) => {
     return { title, body, isMatch, isImage: true, imageUrl };
   }
 
-  return { title, body, isMatch, isImage: false, localImagePath: null };
+  return { title, body, isMatch, isImage: false, imageUrl: null };
 };
 
 // 로컬 알림 표시 함수
 const showLocalNotification = (title: string, body: string, isMatch: boolean, data: any) => {
   let notificationOptions: any = {
-    channelId: DEFAULT_CHANNEL_ID,
+    channelId: channelIdValue,
     channelName: DEFAULT_CHANNEL_NAME,
     title: title,
     message: body,
@@ -49,18 +53,11 @@ const showLocalNotification = (title: string, body: string, isMatch: boolean, da
   if (isMatch) {
     notificationOptions = {
       ...notificationOptions,
-      actions: [
-        {
-          id: 'accept',
-          title: '수락',
-        },
-        {
-          id: 'reject',
-          title: '거절',
-        }
-      ],
+      actions: '["수락", "거절"]',
     };
   }
+
+  console.log("Notification Options: ", notificationOptions);
 
   PushNotification.localNotification(notificationOptions);
 }
@@ -69,7 +66,7 @@ const showLocalNotification = (title: string, body: string, isMatch: boolean, da
 // 로컬 이미지 알림 함수
 const showLocalNotificationImage = (title:string, body:string, isMatch:boolean, imageUrl:string, data:any) => {
   let notificationOptions: any = {
-    channelId: DEFAULT_CHANNEL_ID,
+    channelId: channelIdValue,
     channelName: DEFAULT_CHANNEL_NAME,
     title: title,
     message: body,
@@ -83,16 +80,7 @@ const showLocalNotificationImage = (title:string, body:string, isMatch:boolean, 
   if (isMatch) {
     notificationOptions = {
       ...notificationOptions,
-      actions: [
-        {
-          id: 'accept',
-          title: '수락',
-        },
-        {
-          id: 'reject',
-          title: '거절',
-        }
-      ],
+      actions: '["수락", "거절"]',
     };
   }
 
@@ -138,6 +126,17 @@ const handleFCMType = (remoteMessage) => {
   }
 };
 
+
+const FCMDataType = (data) => {
+  const additionalData = data.additionalData ? JSON.parse(data.additionalData) : {};
+
+  const title = data.fcmType === 'match' ? "인연으로부터 메시지가 도착했습니다." : `${additionalData.senderName || 'Unknown'}`;
+  const body = data.message || "No message";
+  const imageUrl = additionalData.imageUrl || null;
+
+  return { title, body, isNotification: false, isMatch: data.fcmType === "match", imageUrl };
+};
+
 const FCMNotificationType = (notification) => {
   const title = notification.title || "No title";
   const body = notification.body || "No body";
@@ -145,16 +144,6 @@ const FCMNotificationType = (notification) => {
   console.log(title, body, imageUrl);
   return { title, body, isNotification: true, isMatch: false, imageUrl };
 };
-
-const FCMDataType = (data) => {
-  const additionalData = data.additionalData ? JSON.parse(data.additionalData) : {};
-  const title = data.fcmType === 'match' ? "인연으로부터 메시지가 도착했습니다." : `Message from ${data.senderId || 'Unknown'}`;
-  const body = data.message || "No message";
-  const imageUrl = additionalData.imageUrl || null;
-
-  return { title, body, isNotification: false, isMatch: data.fcmType === "match", imageUrl };
-};
-
 
 // const handleMatchKeyword = (remoteMessage) => {
 //   const data = remoteMessage.data;
