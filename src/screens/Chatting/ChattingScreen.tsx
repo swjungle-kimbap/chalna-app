@@ -76,6 +76,8 @@ const ChattingScreen = () => {
 
     const flatListRef = useRef<FlatList<directedChatMessage>>(null);
     const isUserAtBottom = useRef(true);
+    const [showScrollToEndButton, setShowScrollToEndButton] = useState(false);
+
 
     // const scrollViewRef = useRef<ScrollView>(null);
 
@@ -102,11 +104,11 @@ const ChattingScreen = () => {
     const handleSelectImage = () => {
         launchImageLibrary({ mediaType: 'photo', includeBase64: false }, (response) => {
             if (response.didCancel) {
-                console.log('User cancelled image picker');
+                console.log('이미지 선택 취소');
             } else if (response.errorMessage) {
                 console.log('ImagePicker Error: ', response.errorMessage);
             } else if (response.assets && response.assets.length > 0) {
-                console.log("handleSelectImage")
+                console.log("이미지 선택 완료")
                 setSelectedImage(response.assets[0]);
                 chatMessageType.current = 'FILE';
             }
@@ -130,7 +132,7 @@ const ChattingScreen = () => {
         // 선택된 이미지 서버로 전송
         try {
             console.log("파일 서버로 전송중..");
-            const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}${chatRoomId}`, "파일 업로드", {
+            const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}`, "파일 업로드", {
                 fileName,
                 fileSize,
                 contentType
@@ -140,6 +142,7 @@ const ChattingScreen = () => {
 
             console.log("서버로 받은 데이터 : ", JSON.stringify(metadataResponse?.data?.data));
             const { fileId, presignedUrl } = metadataResponse?.data?.data;
+
 
         // 이미지를 리사이징
         const resizedImage = await ImageResizer.createResizedImage(
@@ -208,8 +211,13 @@ const ChattingScreen = () => {
                         parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt);
 
                         // 메세지 렌더링 & 저장 & 스크롤 업데이트
-                        setMessages((prevMessages) => [ ...prevMessages, parsedMessage]);
-                        flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                        setMessages((prevMessages) => (prevMessages ? [...prevMessages, parsedMessage] : [parsedMessage]));
+                        if (isUserAtBottom.current) {
+                            flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                            setShowScrollToEndButton(false);
+                        } else {
+                            setShowScrollToEndButton(true);
+                        }
                         saveChatMessages(chatRoomId, [parsedMessage]);
 
                         // 친구가 되었으면 채팅방 정보 다시 로드
@@ -255,12 +263,14 @@ const ChattingScreen = () => {
     }, []);
 
     const handleKeyboardDidShow = () => {
+        setShowScrollToEndButton(false);
         if (isUserAtBottom.current) {
             flatListRef.current?.scrollToEnd({ animated: true });
         }
     };
 
     const handleKeyboardDidHide = () => {
+        setShowScrollToEndButton(false);
         if (isUserAtBottom.current) {
             flatListRef.current?.scrollToEnd({ animated: true });
         }
@@ -316,7 +326,6 @@ const ChattingScreen = () => {
                         saveChatRoomInfo(chatRoomInfo);
 
                         if (fetchedMessages && fetchedMessages.length > 0) {
-
                             if(messages && messages.length > 0) {
                                 setMessages((prevMessages) => [...prevMessages, ...fetchedMessages]);
                             } else {
@@ -346,7 +355,6 @@ const ChattingScreen = () => {
             };
         }, [chatRoomId, currentUserId])
     );
-
 
 
     const sendMessage = () => {
@@ -391,7 +399,16 @@ const ChattingScreen = () => {
         const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
         const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
         isUserAtBottom.current = isAtBottom;
+        if (isAtBottom) {
+            setShowScrollToEndButton(false);
+        }
     }
+
+    const scrollToBottom = () => {
+        flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+        setShowScrollToEndButton(false);
+    };
+
 
     if (loading) {
         return (
@@ -427,9 +444,20 @@ const ChattingScreen = () => {
                         data={messages?.slice().reverse()} // Reverse the order of messages
                         keyExtractor={(item, index) => `${item.id}-${index}`}
                         renderItem={({ item, index }) => {
-                            const showProfile = index === 0 || !messages[index - 1] || messages[index - 1].senderId !== item.senderId;
-                            const showTime = index === 0 || !messages[index - 1] || messages[index - 1].formatedTime !== item.formatedTime;
-                            const showProfileTime = showProfile || showTime;
+                            const reverseIndex = messages.length - 1 - index;
+
+                            // Ensure showProfileTime is true for the first five items in the original order
+                            const showProfileTime = reverseIndex < 5 ||
+                                (!messages[reverseIndex - 1] || messages[reverseIndex - 1].senderId !== item.senderId) ||
+                                (!messages[reverseIndex - 1] || messages[reverseIndex - 1].formatedTime !== item.formatedTime);
+
+                            //
+                            // const showProfileTime = index < 5 ||
+                            //     (!messages[index - 1] || messages[index - 1].senderId !== item.senderId) ||
+                            //     (!messages[index - 1] || messages[index - 1].formatedTime !== item.formatedTime);
+                            // const showProfile = index === 0 || !messages[index - 1] || messages[index - 1].senderId !== item.senderId;
+                            // const showTime = index === 0 || !messages[index - 1] || messages[index - 1].formatedTime !== item.formatedTime;
+                            // const showProfileTime = showProfile || showTime;
 
                             return (
                                 <MessageBubble
@@ -452,12 +480,19 @@ const ChattingScreen = () => {
                         onContentSizeChange={() => {
                             if (isUserAtBottom.current) {
                                 flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                            } else {
+                                setShowScrollToEndButton(true);
                             }
                         }}
                         onScroll={handleScroll}
                         // onContentSizeChange={() => flatListRef.current?.scrollToOffset({ animated: true, offset: 0 })}
                     />
                 </View>
+                {showScrollToEndButton && (
+                    <TouchableOpacity style={styles.scrollToEndButton} onPress={scrollToBottom}>
+                        <Text style={styles.scrollToEndButtonText}>New Message</Text>
+                    </TouchableOpacity>
+                )}
                 {chatRoomType !== 'WAITING' && (
                     <View style={styles.inputContainer}>
                         <ImageTextButton
@@ -503,6 +538,7 @@ const ChattingScreen = () => {
                     onClose={toggleModal}
                     menu1={'채팅방 나가기'}
                     onMenu1={handleMenu1Action}
+                    members={members}
                 />
             </View>
         </SWRConfig>
@@ -516,10 +552,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     scrollView: {
-        flex: 1,
         flexDirection: 'column',
         justifyContent: 'flex-start',
-        // alignItems: 'flex-start',
+        flex: 1,
         paddingTop: 10,
     },
     inputContainer: {
@@ -587,6 +622,18 @@ const styles = StyleSheet.create({
     removeImageButtonText: {
         color: 'white',
         fontSize: 18,
+    },
+    scrollToEndButton: {
+        position: 'absolute',
+        right: 10,
+        bottom: 70,
+        backgroundColor: '#007bff',
+        padding: 10,
+        borderRadius: 20,
+    },
+    scrollToEndButtonText: {
+        color: 'white',
+        fontSize: 14,
     },
 });
 

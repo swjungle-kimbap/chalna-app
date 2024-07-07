@@ -58,14 +58,8 @@ const ChattingListScreen = ({ navigation }) => {
             }
         };
 
-        // const storedChatRooms = getChatRoomList();
-        // if (storedChatRooms) {
-        //     setChatRooms(storedChatRooms);
-        //     setLoading(false);
-        // } else {
-            // }
-            fetchChatRooms();
-        
+        fetchChatRooms();
+
 
         if (isFocused) {
             startPolling();

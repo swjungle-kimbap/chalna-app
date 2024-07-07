@@ -304,7 +304,7 @@ async function requestExternalStoragePermission() {
                 {!isSelf && showProfileTime && username && type==='CHAT' && <Username variant="subBold">{username}</Username>}
                 {type === 'FRIEND_REQUEST' ? (
                     <AnnouncementMessageBubble>
-                        <Text variant="sub" style={{color:"#444444"}}>{message.preSignedUrl}</Text>
+                        <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
                         {!isSelf && message === '친구 요청을 보냈습니다.' && (
                             <ButtonContainer>
                                 <ImageTextButton title='수락' onPress={handleAccept} disabled={isDisabled} />

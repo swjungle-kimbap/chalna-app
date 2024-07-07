@@ -40,7 +40,9 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
                 onPress={() => navigation.navigate('채팅', { chatRoomId })}
                 style={[
                     styles.card,
-                    chatRoomType === 'FRIEND' ? styles.friendCard : chatRoomType === 'MATCH' ? styles.matchCard : styles.waitCard
+                    chatRoomType === 'FRIEND' ? styles.friendCard :
+                        chatRoomType === 'MATCH' ? styles.matchCard :
+                            chatRoomType==='LOCAL'? styles.localCard :styles.waitCard
                 ]} // Conditional styles
             >
                 <View style={styles.row}>
@@ -91,6 +93,9 @@ const styles = StyleSheet.create({
     },
     waitCard: {
         backgroundColor:'#ececec'
+    },
+    localCard: {
+        backgroundColor: '#d5ead6'
     },
     header: {
         flexDirection: 'row',
@@ -156,6 +161,7 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
     },
+
 });
 
 export default ChatRoomCard;
