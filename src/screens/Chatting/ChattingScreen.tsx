@@ -214,6 +214,7 @@ const ChattingScreen = () => {
                         setMessages((prevMessages) => (prevMessages ? [...prevMessages, parsedMessage] : [parsedMessage]));
                         if (isUserAtBottom.current) {
                             flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                            setShowScrollToEndButton(false);
                         } else {
                             setShowScrollToEndButton(true);
                         }
@@ -443,9 +444,20 @@ const ChattingScreen = () => {
                         data={messages?.slice().reverse()} // Reverse the order of messages
                         keyExtractor={(item, index) => `${item.id}-${index}`}
                         renderItem={({ item, index }) => {
-                            const showProfile = index === 0 || !messages[index - 1] || messages[index - 1].senderId !== item.senderId;
-                            const showTime = index === 0 || !messages[index - 1] || messages[index - 1].formatedTime !== item.formatedTime;
-                            const showProfileTime = showProfile || showTime;
+                            const reverseIndex = messages.length - 1 - index;
+
+                            // Ensure showProfileTime is true for the first five items in the original order
+                            const showProfileTime = reverseIndex < 5 ||
+                                (!messages[reverseIndex - 1] || messages[reverseIndex - 1].senderId !== item.senderId) ||
+                                (!messages[reverseIndex - 1] || messages[reverseIndex - 1].formatedTime !== item.formatedTime);
+
+                            //
+                            // const showProfileTime = index < 5 ||
+                            //     (!messages[index - 1] || messages[index - 1].senderId !== item.senderId) ||
+                            //     (!messages[index - 1] || messages[index - 1].formatedTime !== item.formatedTime);
+                            // const showProfile = index === 0 || !messages[index - 1] || messages[index - 1].senderId !== item.senderId;
+                            // const showTime = index === 0 || !messages[index - 1] || messages[index - 1].formatedTime !== item.formatedTime;
+                            // const showProfileTime = showProfile || showTime;
 
                             return (
                                 <MessageBubble
@@ -540,10 +552,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     scrollView: {
-        flex: 1,
         flexDirection: 'column',
         justifyContent: 'flex-start',
-        // alignItems: 'flex-start',
+        flex: 1,
         paddingTop: 10,
     },
     inputContainer: {
@@ -614,15 +625,15 @@ const styles = StyleSheet.create({
     },
     scrollToEndButton: {
         position: 'absolute',
-        right: 20,
-        bottom: 80,
+        right: 10,
+        bottom: 70,
         backgroundColor: '#007bff',
         padding: 10,
         borderRadius: 20,
     },
     scrollToEndButtonText: {
         color: 'white',
-        fontSize: 16,
+        fontSize: 14,
     },
 });
 
