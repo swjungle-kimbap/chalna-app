@@ -102,11 +102,11 @@ const ChattingScreen = () => {
     const handleSelectImage = () => {
         launchImageLibrary({ mediaType: 'photo', includeBase64: false }, (response) => {
             if (response.didCancel) {
-                console.log('User cancelled image picker');
+                console.log('이미지 선택 취소');
             } else if (response.errorMessage) {
                 console.log('ImagePicker Error: ', response.errorMessage);
             } else if (response.assets && response.assets.length > 0) {
-                console.log("handleSelectImage")
+                console.log("이미지 선택 완료")
                 setSelectedImage(response.assets[0]);
                 chatMessageType.current = 'FILE';
             }
@@ -130,7 +130,7 @@ const ChattingScreen = () => {
         // 선택된 이미지 서버로 전송
         try {
             console.log("파일 서버로 전송중..");
-            const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}${chatRoomId}`, "파일 업로드", {
+            const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}`, "파일 업로드", {
                 fileName,
                 fileSize,
                 contentType
@@ -140,6 +140,7 @@ const ChattingScreen = () => {
 
             console.log("서버로 받은 데이터 : ", JSON.stringify(metadataResponse?.data?.data));
             const { fileId, presignedUrl } = metadataResponse?.data?.data;
+
 
         // 이미지를 리사이징
         const resizedImage = await ImageResizer.createResizedImage(
@@ -316,7 +317,6 @@ const ChattingScreen = () => {
                         saveChatRoomInfo(chatRoomInfo);
 
                         if (fetchedMessages && fetchedMessages.length > 0) {
-
                             if(messages && messages.length > 0) {
                                 setMessages((prevMessages) => [...prevMessages, ...fetchedMessages]);
                             } else {
@@ -346,7 +346,6 @@ const ChattingScreen = () => {
             };
         }, [chatRoomId, currentUserId])
     );
-
 
 
     const sendMessage = () => {
