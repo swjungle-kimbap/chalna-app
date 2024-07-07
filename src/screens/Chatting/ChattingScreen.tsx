@@ -76,6 +76,8 @@ const ChattingScreen = () => {
 
     const flatListRef = useRef<FlatList<directedChatMessage>>(null);
     const isUserAtBottom = useRef(true);
+    const [showScrollToEndButton, setShowScrollToEndButton] = useState(false);
+
 
     // const scrollViewRef = useRef<ScrollView>(null);
 
@@ -209,7 +211,11 @@ const ChattingScreen = () => {
 
                         // 메세지 렌더링 & 저장 & 스크롤 업데이트
                         setMessages((prevMessages) => [ ...prevMessages, parsedMessage]);
-                        flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                        if (isUserAtBottom.current) {
+                            flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                        } else {
+                            setShowScrollToEndButton(true);
+                        }
                         saveChatMessages(chatRoomId, [parsedMessage]);
 
                         // 친구가 되었으면 채팅방 정보 다시 로드
@@ -255,12 +261,14 @@ const ChattingScreen = () => {
     }, []);
 
     const handleKeyboardDidShow = () => {
+        setShowScrollToEndButton(false);
         if (isUserAtBottom.current) {
             flatListRef.current?.scrollToEnd({ animated: true });
         }
     };
 
     const handleKeyboardDidHide = () => {
+        setShowScrollToEndButton(false);
         if (isUserAtBottom.current) {
             flatListRef.current?.scrollToEnd({ animated: true });
         }
@@ -391,7 +399,16 @@ const ChattingScreen = () => {
         const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
         const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
         isUserAtBottom.current = isAtBottom;
+        if (isAtBottom) {
+            setShowScrollToEndButton(false);
+        }
     }
+
+    const scrollToBottom = () => {
+        flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+        setShowScrollToEndButton(false);
+    };
+
 
     if (loading) {
         return (
@@ -452,12 +469,19 @@ const ChattingScreen = () => {
                         onContentSizeChange={() => {
                             if (isUserAtBottom.current) {
                                 flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                            } else {
+                                setShowScrollToEndButton(true);
                             }
                         }}
                         onScroll={handleScroll}
                         // onContentSizeChange={() => flatListRef.current?.scrollToOffset({ animated: true, offset: 0 })}
                     />
                 </View>
+                {showScrollToEndButton && (
+                    <TouchableOpacity style={styles.scrollToEndButton} onPress={scrollToBottom}>
+                        <Text style={styles.scrollToEndButtonText}>New Message</Text>
+                    </TouchableOpacity>
+                )}
                 {chatRoomType !== 'WAITING' && (
                     <View style={styles.inputContainer}>
                         <ImageTextButton
@@ -503,6 +527,7 @@ const ChattingScreen = () => {
                     onClose={toggleModal}
                     menu1={'채팅방 나가기'}
                     onMenu1={handleMenu1Action}
+                    members={members}
                 />
             </View>
         </SWRConfig>
@@ -587,6 +612,18 @@ const styles = StyleSheet.create({
     removeImageButtonText: {
         color: 'white',
         fontSize: 18,
+    },
+    scrollToEndButton: {
+        position: 'absolute',
+        right: 20,
+        bottom: 80,
+        backgroundColor: '#007bff',
+        padding: 10,
+        borderRadius: 20,
+    },
+    scrollToEndButtonText: {
+        color: 'white',
+        fontSize: 16,
     },
 });
 
