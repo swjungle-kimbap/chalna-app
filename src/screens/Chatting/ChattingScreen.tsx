@@ -297,34 +297,16 @@ const ChattingScreen = () => {
             const fetchMessages = async () => {
                 try {
                     setLoading(true);
-                    const storedMessages = await getChatMessages(chatRoomId);
-                    if (storedMessages) {
-                        console.log("저장된 메세지 렌더링");
-                        setMessages(storedMessages);
-                    }
 
                     const responseData = await fetchChatRoomContent(chatRoomId, currentUserId);
                     if (responseData) {
-                        const usernames = responseData.members
-                            .filter((member: chatRoomMember) => member.memberId !== currentUserId)
-                            .map((member: chatRoomMember) => member.username);
+                        // 메세지 형식 붙이기
                         const fetchedMessages: directedChatMessage[] = (responseData.messages || []).map((msg: ChatMessage) => ({
                             ...msg,
                             isSelf: msg.senderId === currentUserId,
                             formatedTime: formatDateToKoreanTime(msg.createdAt)
                         }));
-
-                        setChatRoomType(responseData.type);
-                        setMembers(responseData.members);
-                        setUsername(usernames.join(', '));
-
-                        const chatRoomInfo: ChatRoomLocal = {
-                            id: parseInt(chatRoomId, 10),
-                            type: responseData.type,
-                            members: responseData.members
-                        }
-                        saveChatRoomInfo(chatRoomInfo);
-
+                        // 메세지 저장
                         if (fetchedMessages && fetchedMessages.length > 0) {
                             if(messages && messages.length > 0) {
                                 setMessages((prevMessages) => [...prevMessages, ...fetchedMessages]);
@@ -335,10 +317,34 @@ const ChattingScreen = () => {
                             console.log("api 호출 채팅데이터: ", fetchedMessages);
                             saveChatMessages(chatRoomId, fetchedMessages);
                         }
+
+                        // 채팅방 정보 저장 & 로드
+                        const usernames = responseData.members
+                            .filter((member: chatRoomMember) => member.memberId !== currentUserId)
+                            .map((member: chatRoomMember) => member.username);
+
+                        setChatRoomType(responseData.type);
+                        setMembers(responseData.members);
+                        setUsername(usernames.join(', '));
+
+                        // 채팅 메세지 로드
+                        const storedMessages = await getChatMessages(chatRoomId);
+                        setMessages(storedMessages);
+                        console.log("저장된 메세지 렌더링")
+
+                        // 채팅방 정보 저장
+                        const chatRoomInfo: ChatRoomLocal = {
+                            id: parseInt(chatRoomId, 10),
+                            type: responseData.type,
+                            members: responseData.members
+                        }
+                        saveChatRoomInfo(chatRoomInfo);
+
                     }
                 } catch (error) {
                     console.error('채팅방 메세지 목록조회 실패:', error);
                 } finally {
+
                     console.log("로딩 끝");
                     setLoading(false);
                 }
@@ -351,7 +357,7 @@ const ChattingScreen = () => {
                 console.log("loose focus");
                 WebSocketManager.disconnect();
                 setMessages(null)
-                resetUnreadCountForChatRoom(Number(chatRoomId));
+                // resetUnreadCountForChatRoom(Number(chatRoomId));
             };
         }, [chatRoomId, currentUserId])
     );
@@ -397,7 +403,8 @@ const ChattingScreen = () => {
 
     const handleScroll = (event) => {
         const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-        const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+        const buffer = 500; // Increase the buffer to make it more generous
+        const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - buffer;
         isUserAtBottom.current = isAtBottom;
         if (isAtBottom) {
             setShowScrollToEndButton(false);
@@ -451,13 +458,6 @@ const ChattingScreen = () => {
                                 (!messages[reverseIndex - 1] || messages[reverseIndex - 1].senderId !== item.senderId || messages[reverseIndex -1].type==='FRIEND_REQUEST') ||
                                 (!messages[reverseIndex - 1] || messages[reverseIndex - 1].formatedTime !== item.formatedTime);
 
-                            //
-                            // const showProfileTime = index < 5 ||
-                            //     (!messages[index - 1] || messages[index - 1].senderId !== item.senderId) ||
-                            //     (!messages[index - 1] || messages[index - 1].formatedTime !== item.formatedTime);
-                            // const showProfile = index === 0 || !messages[index - 1] || messages[index - 1].senderId !== item.senderId;
-                            // const showTime = index === 0 || !messages[index - 1] || messages[index - 1].formatedTime !== item.formatedTime;
-                            // const showProfileTime = showProfile || showTime;
 
                             return (
                                 <MessageBubble
