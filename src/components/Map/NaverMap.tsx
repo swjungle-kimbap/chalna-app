@@ -2,7 +2,7 @@ import { NaverMapView, NaverMapMarkerOverlay, NaverMapCircleOverlay, NaverMapVie
 import { FlyingModeState, isNearbyState, showMsgBoxState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useEffect, useRef } from "react";
-import Geolocation from "react-native-geolocation-service";
+import Geolocation, { GeoError } from "react-native-geolocation-service";
 import { Alert, LogBox } from "react-native";
 import { openSettings, PERMISSIONS } from "react-native-permissions";
 import { IsNearbyState } from "../../recoil/atomtypes";
@@ -13,8 +13,11 @@ import { Position } from '../../interfaces';
 import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
 import requestPermissions from "../../utils/requestPermissions";
 import ArrowButton from "./ArrowButton";
+import KalmanFilter from 'kalmanjs'
 
 LogBox.ignoreLogs(['Called stopObserving with existing subscriptions.'])
+const latkfilter = new KalmanFilter();
+const longkfilter = new KalmanFilter();
 
 export const NaverMap: React.FC = ({}) => {
   const [currentLocation, setCurrentLocation] = useRecoilState<Position>(locationState);
@@ -33,23 +36,37 @@ export const NaverMap: React.FC = ({}) => {
         watchId.current = Geolocation.watchPosition(
           (position) => {
             const { latitude, longitude } = position.coords;
-            setCurrentLocation({ latitude, longitude });
-            //console.log(position.coords);
+            const filteredLatitude = latkfilter.filter(latitude);
+            const filteredlongitude = longkfilter.filter(longitude);
+            setCurrentLocation({ latitude:filteredLatitude, longitude:filteredlongitude });
+            console.log({ latitude:filteredLatitude, longitude:filteredlongitude });
           },
-          (e) => {
-            Alert.alert(
-              "GPS 필요",
-              "GPS가 필요한 서비스 입니다. GPS를 켜주세요",
-              [
-                { text: "설정", onPress: () => openSettings()},
-                { text: "취소", onPress: () => {}, style: "cancel" } // 지도 채팅방 나가기, 지도 정보 확인 불가
-              ]
-            );
+          (e:GeoError) => {
+            if (e.code === 1) {
+              Alert.alert(
+                "위치 권한 필요",
+                "위치 권한이 필요한 서비스입니다.",
+                [
+                  { text: "설정", onPress: () => openSettings()},
+                  { text: "취소", onPress: () => {}, style: "cancel" } 
+                ]
+              );
+            }
+            if (e.code === 2) {
+              Alert.alert(
+                "GPS  필요",
+                "GPS가 필요한 서비스 입니다. GPS를 켜주세요",
+                [
+                  { text: "설정", onPress: () => openSettings()},
+                  { text: "취소", onPress: () => {}, style: "cancel" } 
+                ]
+              );
+            }
           },
           { 
             accuracy: { android: "high" },
             interval: 3000,
-            distanceFilter: 1,
+            distanceFilter: 3,
             enableHighAccuracy: true,
             showLocationDialog: true,
           }
