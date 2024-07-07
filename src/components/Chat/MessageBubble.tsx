@@ -262,7 +262,7 @@ async function requestExternalStoragePermission() {
     };
 
     const renderMessageContent = () => {
-        if (typeof message === 'string') {
+        if (typeof message === 'string' && message) {
             return <Text variant="sub" style={{ color: "#444444" }}>{message}</Text>;
         } else if (type === 'FILE' && message.preSignedUrl) {
             console.log(message.preSignedUrl);
