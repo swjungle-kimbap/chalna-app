@@ -1,7 +1,7 @@
-import { ChatOut, localChatDelete, localChatJoin, localChatOut, localChatTapHandler } from "../../service/LocalChat";
+import { ChatOut, localChatDelete, localChatJoin, localChatOut } from "../../service/LocalChat";
 import { NaverMapMarkerOverlay } from "@mj-studio/react-native-naver-map";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { GetLocalChatResponse, LocalChat, LocalChatData, LocalChatRoomData } from '../../interfaces';
+import { GetLocalChatResponse, LocalChatData, LocalChatRoomData } from '../../interfaces';
 import { axiosGet } from "../../axios/axios.method";
 import {urls} from "../../axios/config";
 import { AxiosRequestConfig } from "axios";
@@ -35,7 +35,6 @@ const LocalChatMarkerOverlay = () => {
     if (MovedUpdatedDistance > 0.01) {
       updatedLocationRef.current = currentLocation;
       setLocationUpdate(currentLocation);
-      //console.log({joinedLocalChatList})
       const updateLocalChatRoom = async () => {
         const updatedLocalChatRoomData = await Promise.all(joinedLocalChatList.map(async (item) => {
           const distance = calDistance(currentLocation, {latitude: item.latitude, longitude: item.longitude});
@@ -52,6 +51,7 @@ const LocalChatMarkerOverlay = () => {
         setJoinedLocalChatList(updatedLocalChatRoomData.filter(item => item !== null));
       }
       updateLocalChatRoom();
+      //console.log({joinedLocalChatList})
     }
   }, [currentLocation]);
 
@@ -113,7 +113,6 @@ const LocalChatMarkerOverlay = () => {
   const renderMarkers = useMemo(() => {
     return localChatList.map((item:LocalChatData) => {
       const localChat = item.localChat;
-      const distance = calDistance(locationUpdate, {latitude: localChat.latitude, longitude: localChat.longitude});
 
       if (item.isOwner) {
         return (
@@ -121,7 +120,7 @@ const LocalChatMarkerOverlay = () => {
             key={localChat.id}
             latitude={localChat.latitude}
             longitude={localChat.longitude}
-            onTap={() => localChatDelete(localChat.name, localChat.chatRoomId, localChat.id, setRefresh)}
+            onTap={() => localChatDelete(localChat, currentLocation,setRefresh)}
             image={require('../../assets/Icons/LocalChatIcon.png')}
             tintColor='#3955E5'
             width={40}
@@ -138,7 +137,7 @@ const LocalChatMarkerOverlay = () => {
             key={localChat.id}
             latitude={localChat.latitude}
             longitude={localChat.longitude}
-            onTap={() => localChatOut(localChat.name, localChat.chatRoomId, setRefresh)}
+            onTap={() => localChatOut(localChat, currentLocation, setRefresh)}
             image={require('../../assets/Icons/LocalChatIcon.png')}
             tintColor='#67DBFF'
             width={40}
@@ -153,10 +152,9 @@ const LocalChatMarkerOverlay = () => {
           key={localChat.id}
           latitude={localChat.latitude}
           longitude={localChat.longitude}
-          onTap={() => localChatJoin(localChat.name, localChat.description, 
-                  localChat.chatRoomId, distance, setRefresh)}
+          onTap={() => localChatJoin(localChat, currentLocation, setRefresh)}
           image={require('../../assets/Icons/LocalChatIcon.png')}
-          tintColor={distance > 0.05 ? 'gray' : 'lightgreen'}
+          tintColor={localChat.distance > 0.05 ? 'gray' : 'lightgreen'}
           width={40}
           height={40}
           isHideCollidedMarkers={true}
