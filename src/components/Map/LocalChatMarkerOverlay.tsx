@@ -1,4 +1,4 @@
-import { ChatOut, localChatDelete, localChatJoin, localChatOut } from "../../service/LocalChat";
+import { ChatDisconnectOut, localChatDelete, localChatJoin, localChatOut } from "../../service/LocalChat";
 import { NaverMapMarkerOverlay } from "@mj-studio/react-native-naver-map";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { GetLocalChatResponse, LocalChatData, LocalChatRoomData } from '../../interfaces';
@@ -39,7 +39,7 @@ const LocalChatMarkerOverlay = () => {
         const updatedLocalChatRoomData = await Promise.all(joinedLocalChatList.map(async (item) => {
           const distance = calDistance(currentLocation, {latitude: item.latitude, longitude: item.longitude});
           if (distance >= 0.08) {
-            await ChatOut(item.chatRoomId, setRefresh);
+            await ChatDisconnectOut(item.chatRoomId, setRefresh);
             return null;
           }
           return {

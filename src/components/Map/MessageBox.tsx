@@ -1,4 +1,4 @@
-import  React, { useState, useEffect, useRef, useCallback } from 'react';
+import  React, { useState, useEffect, useRef } from 'react';
 import RoundBox from '../common/RoundBox';
 import Button from '../common/Button';
 import { StyleSheet, TextInput, View, Alert, NativeModules, NativeEventEmitter, Animated, AppStateStatus, AppState ,  Image, TouchableOpacity, LogBox  } from 'react-native';
@@ -20,6 +20,7 @@ import {  userMMKVStorage } from '../../utils/mmkvStorage';
 import RssiTracking from './RssiTracking';
 import { useMMKVBoolean, useMMKVNumber, useMMKVString } from 'react-native-mmkv';
 import { addDevice } from '../../service/Background';
+import KalmanFilter from 'kalmanjs'
 import { launchImageLibrary } from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 
@@ -51,6 +52,7 @@ const requiredPermissions = [
 const uuidSet = new Set<string>(); 
 const uuidTime = new Map(); 
 const uuidTimeoutID = new Map();
+const kFileters = new Map();
 const scanDelayedTime = 5 * 1000;
 const sendDelayedTime = 60 * 1000;
 
@@ -64,7 +66,6 @@ const MessageBox: React.FC = ()  => {
   const [isBlocked, setIsBlocked] = useMMKVBoolean("map.isBlocked", userMMKVStorage);
   const [blockedTime, setBlockedTime] = useMMKVNumber("map.blockedTime", userMMKVStorage);
   const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
-  
   const sendCountsRef = useRef(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
@@ -153,15 +154,24 @@ const MessageBox: React.FC = ()  => {
     const eventEmitter = new NativeEventEmitter(BLEAdvertiser);
     eventEmitter.removeAllListeners('onDeviceFound');
     eventEmitter.addListener('onDeviceFound', (event: BleScanInfo) => {
-      if (event.serviceUuids) {
         for (let i = 0; i < event.serviceUuids.length; i++) {
-          if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00') && event.rssi >= RSSIvalue) {
-            handleSetIsNearby(event.serviceUuids[i], event.rssi, isBlocked);
+          if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00')) {
+            if (isRssiTracking) {
+              let kf = kFileters[event.serviceUuids[i]];
+              if (!kf) {
+                kFileters[event.serviceUuids[i]] = new KalmanFilter();
+                kf = kFileters[event.serviceUuids[i]];
+              }
+              const filterdRSSI = kf.filter(event.rssi)
+              if (filterdRSSI < RSSIvalue) return;
+              handleSetIsNearby(event.serviceUuids[i], filterdRSSI, isBlocked);
+            } else {
+              handleSetIsNearby(event.serviceUuids[i], event.rssi, isBlocked);
+            }
             addDevice(event.serviceUuids[i], new Date().getTime());
           }
         }
-      }
-    });
+      })
   }, [isScanning, isBlocked, isRssiTracking, handleSetIsNearby])
 
   const startScan = async () => {
