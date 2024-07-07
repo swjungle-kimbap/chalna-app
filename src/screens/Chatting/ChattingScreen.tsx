@@ -312,10 +312,17 @@ const ChattingScreen = () => {
                         }
                         saveChatRoomInfo(chatRoomInfo);
 
-                        setMessages((prevMessages) => [...prevMessages, ...fetchedMessages]);
-                        // flatListRef.current?.scrollToEnd({ animated: true });
-                        console.log("api 호출 채팅데이터: ", fetchedMessages);
-                        saveChatMessages(chatRoomId, fetchedMessages);
+                        if (fetchedMessages && fetchedMessages.length > 0) {
+
+                            if(messages && messages.length > 0) {
+                                setMessages((prevMessages) => [...prevMessages, ...fetchedMessages]);
+                            } else {
+                                setMessages(fetchedMessages)
+                            }
+                            // flatListRef.current?.scrollToEnd({ animated: true });
+                            console.log("api 호출 채팅데이터: ", fetchedMessages);
+                            saveChatMessages(chatRoomId, fetchedMessages);    
+                        }
                     }
                 } catch (error) {
                     console.error('채팅방 메세지 목록조회 실패:', error);
@@ -406,7 +413,7 @@ const ChattingScreen = () => {
             <Text>{chatRoomType}: {WebSocketManager.isConnected() ? 'Connected' : ' - '} </Text>
             <View style={styles.container}>
                         <FlatList
-                    data={messages.slice().reverse()} // Reverse the order of messages
+                    data={messages?.slice().reverse()} // Reverse the order of messages
                     keyExtractor={(item, index) => `${item.id}-${index}`}
                     renderItem={({ item, index }) => {
                         const showProfile = index === 0 || messages[index - 1].senderId !== item.senderId;
