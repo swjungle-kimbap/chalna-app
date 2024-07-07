@@ -3832,6 +3832,7 @@ __metadata:
     eslint: ^8.19.0
     immutability-helper: ^3.1.1
     jest: ^29.6.3
+    kalmanjs: ^1.1.0
     prettier: 2.8.8
     react: "*"
     react-native: 0.74.1
@@ -7897,6 +7898,13 @@ __metadata:
     object.assign: ^4.1.4
     object.values: ^1.1.6
   checksum: f4b05fa4d7b5234230c905cfa88d36dc8a58a6666975a3891429b1a8cdc8a140bca76c297225cb7a499fad25a2c052ac93934449a2c31a44fc9edd06c773780a
+  languageName: node
+  linkType: hard
+
+"kalmanjs@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "kalmanjs@npm:1.1.0"
+  checksum: 458ed6b3ac91c9cac1f072daa62c79b4e4bc5b5ff3749b61fcfcab042bb388e81267d8f61274358c8fa637e403e2ab1608489170220e65a6b1dd393a7ff5da65
   languageName: node
   linkType: hard
 

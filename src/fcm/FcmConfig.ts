@@ -1,8 +1,10 @@
 import messaging from '@react-native-firebase/messaging';
 import PushNotification from 'react-native-push-notification';
 import { AppRegistry, Platform } from 'react-native';
-import { getFCMChannels, createDefaultFCMChannel } from './FcmChannel';
+import { getFCMChannels, createFCMChannel, updateFCMChannel } from './FcmChannel';
 import { handleFCMMessage, handleFCMClick } from './FcmHandler';
+import { setDefaultMMKVString } from '../utils/mmkvStorage';
+import { getAlarmSettings } from './FcmAlarm';
 
 
 
@@ -89,7 +91,14 @@ class FcmConfig {
       requestPermissions: Platform.OS === 'ios',
     });
 
-    createDefaultFCMChannel();
+    createFCMChannel('chalna1', 'chalna sound on, vibration on', true, true);
+    createFCMChannel('chalna2', 'chalna sound off, vibration on', false, true);
+    createFCMChannel('chalna3', 'chalna sound on, vibration off', true, false);
+    createFCMChannel('chalna4', 'chalna sound off, vibration off', false, false);
+
+    const { alarmSound, alarmVibration } = getAlarmSettings();
+    updateFCMChannel(alarmSound, alarmVibration);
+
     getFCMChannels();
   }
 }

@@ -48,7 +48,7 @@ export const storeFCM = async (remoteMessage): Promise<void> => {
         messageType: additionalData.messageType === "ALARM" ? "CHAT" : additionalData.messageType,
         createdAt: remoteMessage.sentTime
       };
-      await storeChatFCM(newChatFCM);
+      //await storeChatFCM(newChatFCM);
       break;
     default:
       console.error('Unknown fcmType:', data.fcmType);
@@ -75,12 +75,6 @@ const storeMatchFCM = async (newFCM: MatchFCM): Promise<void> => {
     console.log(`Stored ${MATCH_FCM_STORAGE} message for user ${newFCM.receiverId}:`, newFCM);
     console.log(`All ${MATCH_FCM_STORAGE} messages: `, existingMessages);
 
-    // 10분 뒤에 메시지 삭제
-    setTimeout(() => {
-      deleteMatchFCMById(newFCM.receiverId, newFCM.id);
-      console.log(`Deleted ${MATCH_FCM_STORAGE} message for user ${newFCM.receiverId} after 10 minutes:`, newFCM);
-    }, 10 * 60 * 1000);
-    console.log(`All ${MATCH_FCM_STORAGE} messages: `, existingMessages); 
   } catch (error) {
     console.error(`Error storing ${MATCH_FCM_STORAGE} message for user ${newFCM.receiverId}:`, error);
   }
