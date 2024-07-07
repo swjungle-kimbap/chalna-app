@@ -3,7 +3,7 @@ import { FlyingModeState, isNearbyState, showMsgBoxState } from "../../recoil/at
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useEffect, useRef } from "react";
 import Geolocation from "react-native-geolocation-service";
-import { Alert } from "react-native";
+import { Alert, LogBox } from "react-native";
 import { openSettings, PERMISSIONS } from "react-native-permissions";
 import { IsNearbyState } from "../../recoil/atomtypes";
 import LocalChatButton from "./LocalChatButton";
@@ -13,6 +13,8 @@ import { Position } from '../../interfaces';
 import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
 import requestPermissions from "../../utils/requestPermissions";
 import ArrowButton from "./ArrowButton";
+
+LogBox.ignoreLogs(['Called stopObserving with existing subscriptions.'])
 
 export const NaverMap: React.FC = ({}) => {
   const [currentLocation, setCurrentLocation] = useRecoilState<Position>(locationState);

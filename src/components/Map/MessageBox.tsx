@@ -1,7 +1,7 @@
 import  React, { useState, useEffect, useRef, useCallback } from 'react';
 import RoundBox from '../common/RoundBox';
 import Button from '../common/Button';
-import { StyleSheet, TextInput, View, Alert, NativeModules, NativeEventEmitter, Animated, AppStateStatus, AppState } from 'react-native';
+import { StyleSheet, TextInput, View, Alert, NativeModules, NativeEventEmitter, Animated, AppStateStatus, AppState, LogBox } from 'react-native';
 import Text from '../common/Text';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { DeviceUUIDState, isRssiTrackingState, showMsgBoxState } from '../../recoil/atoms';
@@ -21,6 +21,14 @@ import RssiTracking from './RssiTracking';
 import { useMMKVBoolean, useMMKVNumber, useMMKVString } from 'react-native-mmkv';
 import { addDevice } from '../../service/Background';
 
+const ignorePatterns = [
+  /No task registered for key shortService\d+/,
+];
+
+// 패턴에 맞는 로그 메시지를 무시
+ignorePatterns.forEach(pattern => {
+  LogBox.ignoreLogs([pattern.source]);
+});
 interface BleScanInfo {
   advFlag: number,
   companyId: number,
