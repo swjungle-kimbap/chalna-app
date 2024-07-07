@@ -1,5 +1,5 @@
 import { atom } from "recoil";
-import { LoginResponse, Position } from "../interfaces";
+import { LocalChatRoomData, LoginResponse, Position } from "../interfaces";
 import { IsNearbyState } from "./atomtypes";
 import { Friend } from "../screens/Friends/FriendsScreen";
 
@@ -46,7 +46,7 @@ export const FriendsListState = atom<Friend[]>({
   default: []
 })
 
-export const JoinedLocalChatListState = atom({
+export const JoinedLocalChatListState = atom<LocalChatRoomData[]>({
   key: 'JoinedLocalChatList',
   default: []
 })

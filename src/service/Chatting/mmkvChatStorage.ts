@@ -46,6 +46,7 @@ export const saveChatRoomInfo = (chatRoom: ChatRoomLocal) => {
     }
 };
 
+
 // Retrieve a single chat room info
 export const getChatRoomInfo = (chatRoomId: number): ChatRoomLocal | null => {
     console.log('getChatRoomInfo');
@@ -71,7 +72,6 @@ export const removeChatRoom = (chatRoomId: number) => {
 
 
 
-
 // Save chat messages for a specific chat room
 export const saveChatMessages = (chatRoomId: string, newMessages: directedChatMessage[]) => {
     console.log('save chat message');
@@ -86,6 +86,8 @@ export const getChatMessages = (chatRoomId: string): directedChatMessage[] | nul
     const messagesString = userMMKVStorage.getString(`chatMessages_${chatRoomId}`);
     return messagesString ? JSON.parse(messagesString) : null;
 };
+
+
 
 // Retrieve the last inserted message for a specific chat room
 export const getLastInsertedMessage = (chatRoomId: string): directedChatMessage | null => {

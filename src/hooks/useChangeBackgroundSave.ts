@@ -6,7 +6,6 @@ const useChangeBackgroundSave = <T>(key: string, saveData: T) => {
   const handleAppStateChange = useCallback(
     async (nextAppState: AppStateStatus) => {
       if (nextAppState === 'background') {
-        console.log(saveData, "savedData in saving");
         if (typeof saveData === 'string') {
           setMMKVString(key, saveData);
         } else {

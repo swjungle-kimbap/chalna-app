@@ -108,7 +108,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     const closeImageModal = () => {
         setImageModalVisible(false);
     }
-    
+
     // 10이하 버전의 권한
     async function requestLegacyExternalStoragePermission() {
         try {
@@ -197,15 +197,15 @@ async function requestExternalStoragePermission() {
                     Alert.alert('권한 오류', '외부 저장소 접근 권한이 필요합니다.', [{ text: '확인' }]);
                     return;
                 }
-                
-            
+
+
                 const { preSignedUrl } = message;
 
                 const path = `${RNFS.ExternalStorageDirectoryPath}/DCIM/Camera`; // 저장소
 
                 //  const version = Number(Platform.Version);
-                //  const path = version >= 30 
-                //      ? `${RNFS.ExternalStorageDirectoryPath}/Pictures/Chalna` 
+                //  const path = version >= 30
+                //      ? `${RNFS.ExternalStorageDirectoryPath}/Pictures/Chalna`
                 //      : `${RNFS.ExternalStorageDirectoryPath}/DCIM/Camera`; // 저장소 경로 설정
 
                 let downloadDest = `${path}/chalna_${message.fileId}_${Date.now()}_sd.jpg`; // 다운로드 경로
@@ -223,10 +223,10 @@ async function requestExternalStoragePermission() {
                         return;
                     }
                 }
-                
+
                 const downloadOptions = {
                     fromUrl: preSignedUrl, // s3 다운 경로
-                    toFile: downloadDest, // 로컬 다운 경로 
+                    toFile: downloadDest, // 로컬 다운 경로
                 };
                 console.log('s3 다운로드 경로 :',preSignedUrl);
 
@@ -236,7 +236,7 @@ async function requestExternalStoragePermission() {
                 const result = await res.promise;
                 console.log('result : ',result);
                 console.log('Download status code:', result.statusCode);
-    
+
                 if (result.statusCode === 200) {
                     try {
                         await RNFS.scanFile(downloadDest);
@@ -254,7 +254,7 @@ async function requestExternalStoragePermission() {
                 else {
                     Alert.alert('다운로드 실패', '사진 다운로드에 실패했습니다.', [{ text: '확인' }]);
                 }
-        
+
         } catch (error) {
             console.error('File download error:', error);
             Alert.alert('다운로드 실패', '사진 다운로드 중 오류가 발생했습니다.', [{ text: '확인' }]);
@@ -273,6 +273,7 @@ async function requestExternalStoragePermission() {
                 <Image
                     source={{ uri: message.preSignedUrl }}
                     style={{ width: 200, height: 200, borderRadius: 10 }}
+                    resizeMode={"contain"}
                 />
 
                 </TouchableOpacity>
@@ -287,11 +288,11 @@ async function requestExternalStoragePermission() {
         }
     };
 
-    
+
 
 
     // const hasNewline = message.includes('\n');
-    
+
     return (
         <Container isSelf={isSelf} notChat={type!=='CHAT' && type!=='FILE'}>
             {!isSelf && showProfileTime && type==='CHAT' && (
@@ -320,17 +321,16 @@ async function requestExternalStoragePermission() {
 
                     <MessageContainer isSelf={isSelf} showProfileTime={showProfileTime}>
                         {isSelf && (<DateReadStatusContainer>
-                                <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt}</ReadStatus>
+                                <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt>0? unreadCnt:''}</ReadStatus>
                                 {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
                         </DateReadStatusContainer>)}
 
                         <MessageBubbleContent isSelf={isSelf}>
                         {renderMessageContent()}
 
-
                         </MessageBubbleContent>
                         {!isSelf && (<DateReadStatusContainer>
-                            <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt}</ReadStatus>
+                            <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt>0? unreadCnt:''}</ReadStatus>
                             {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
                         </DateReadStatusContainer>)}
                     </MessageContainer>

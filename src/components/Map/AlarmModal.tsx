@@ -33,7 +33,6 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
         const createdTime = new Date(year, month - 1, day, hour, minute, second);
         const deleteRestTime = createdTime.getTime() + 5 * 60 * 1000 - Date.now();
         console.log(createdTime, deleteRestTime);
-
         if (deleteRestTime > 0) {
           setTimeout(() => {
             setFCMAlarms((prevAlarms) => prevAlarms?.filter(item => item.id !== alarm.id));

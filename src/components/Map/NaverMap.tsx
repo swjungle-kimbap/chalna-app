@@ -32,7 +32,7 @@ export const NaverMap: React.FC = ({}) => {
           (position) => {
             const { latitude, longitude } = position.coords;
             setCurrentLocation({ latitude, longitude });
-            console.log(position.coords);
+            //console.log(position.coords);
           },
           (e) => {
             Alert.alert(
@@ -69,7 +69,7 @@ export const NaverMap: React.FC = ({}) => {
   }, [flyingMode]);
   
   const cameraMove = (newLocation) => {
-    mapViewRef.current.animateCameraTo({...newLocation, zoom:16});
+    mapViewRef.current.animateCameraTo({...newLocation});
   };
 
   return (

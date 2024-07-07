@@ -15,9 +15,19 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const currentLocation = useRecoilValue(locationState);
-  const [postSuccess, setPostSuccess] = useRecoilState(getLocalChatRefreshState);
+  const [refresh, setRefresh] = useRecoilState(getLocalChatRefreshState);
   const inputRef = useRef<TextInput>(null);
   const descriptionInputRef = useRef<TextInput>(null);
+
+  const handleCreateButton = async () => {
+    const localChat = await makeLocalChat(name, description, currentLocation)
+     if (localChat) {
+      setRefresh(prev => !prev);
+      setName("");
+      setDescription("");
+      closeModal();
+     }
+  }
 
   return (
     <Modal
@@ -33,7 +43,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
             <TouchableWithoutFeedback>
               <View style={styles.inputBox}>
                 <Text style={styles.titleText}>Local Chatting <Button title='💬' onPress={
-                  () => {Alert.alert("장소 대화방","현재 위치에서 주위 사람들과의 대화방을 만들어 보세요!")}
+                  () => {Alert.alert("장소 대화방","현재 위치에서 주위 사람들과의 대화방을 만들어 보세요! 50m 이내의 사람들만 참여할 수 있어요!")}
                 }/></Text>
                 <Text style={styles.subText} variant='sub'>제목</Text>
                 <TextInput
@@ -59,14 +69,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
                 />
                 <Button
                   title="이곳에 만들기"
-                  onPress={() => {const success = makeLocalChat(name, description, currentLocation)
-                     if (success) {
-                      setPostSuccess(!postSuccess);
-                      setName("");
-                      setDescription("");
-                      closeModal();
-                     }
-                  }}
+                  onPress={handleCreateButton}
                   style={{paddingVertical:3}}
                 />
               </View>

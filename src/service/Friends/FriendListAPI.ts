@@ -1,15 +1,14 @@
 import {axiosGet} from '../../axios/axios.method'; // Adjust the path as necessary
 import {urls} from "../../axios/config";
-import {friend} from "../../interfaces/Friend.type";
+import {friend, friendAPIResponse} from "../../interfaces/Friend.type";
 
 
-export const fetchFriendList = async ():Promise<friend[]|null> => {
-
-    const response = await axiosGet(
-        urls.GET_FRIEND_LIST_URL,
-        "친구목록 조회 실패"
+export const fetchFriendList = async ():Promise<friend[]> => {
+    const response = await axiosGet<friendAPIResponse>(
+        urls.GET_FRIEND_LIST_URL
     )
-    return response.data.data.friends
+    console.log("response data: ", response.data.data);
+    return response.data.data
 }
 
 export const fetchFriendRelation = async (otherId: number):Promise<friend|null> => {
