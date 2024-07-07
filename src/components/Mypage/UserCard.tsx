@@ -1,7 +1,7 @@
 import FontTheme from '../../styles/FontTheme';
 import Button from "../../components/common/Button"
 import { StyleSheet, View, Text , Alert , Modal, TouchableOpacity} from "react-native";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState } from "recoil";
 import { userInfoState } from "../../recoil/atoms";
 import { useState } from 'react';
 import EditModal from './EditModal';
@@ -14,6 +14,7 @@ import { AxiosResponse } from "axios";
 import { FileResponse } from "../../interfaces";
 import FastImage, { Source } from 'react-native-fast-image';
 import RNFS from 'react-native-fs';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 const DefaultImgUrl = '../../assets/images/anonymous.png';
 const editButtonUrl ='../../assets/buttons/EditButton.png'
@@ -134,23 +135,24 @@ const UserCard = () => {
         <Text style={styles.text}>내 프로필</Text>    
       </View>
       <View style={styles.header}>
-      <View style={styles.avatarContainer}>
+        <View style={styles.avatarContainer}>
           {userInfo.profileImageUrl !== DefaultImgUrl ? (            
-                <TouchableOpacity onPress={() => setModalVisible(true)}>
-                  <FastImage
-                  style={styles.avatar}
-                  source={{uri: userInfo.profileImageUrl, priority: FastImage.priority.normal } as Source}
-                  resizeMode={FastImage.resizeMode.cover}
-                  />
-                </TouchableOpacity>
-              ): (
-                <Button iconSource={require(DefaultImgUrl)} onPress={handleImagePicker} imageStyle={styles.avatar} /> 
-              )}
-            <Button
+            <TouchableOpacity onPress={() => setModalVisible(true)}>
+              <FastImage
+              style={styles.avatar}
+              source={{uri: userInfo.profileImageUrl, priority: FastImage.priority.normal } as Source}
+              resizeMode={FastImage.resizeMode.cover}
+              />
+            </TouchableOpacity>
+            ): (
+            <>
+              <Button iconSource={require(DefaultImgUrl)} onPress={handleImagePicker} imageStyle={styles.avatar} /> 
+              <Button
               iconSource={require(photoIconUrl)}
               imageStyle={styles.photoIcon}
               onPress={handleImagePicker}
-            />
+              />
+          </>)}
           </View>
         <View>
           <View style={styles.username}>
@@ -172,26 +174,29 @@ const UserCard = () => {
       </View>
     </View>
     <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <FastImage
-              style={styles.fullScreenImage}
-              source={{ uri: userInfo.profileImageUrl, priority: FastImage.priority.normal }}
-              resizeMode={FastImage.resizeMode.contain}
-            />
-            <Button title="기본 이미지로 변경" onPress={() => {
-              resetToDefaultImage();
-              setModalVisible(false)
-            }}/>
-            <Button title="닫기" onPress={() => setModalVisible(false)} />
-          </View>
+      animationType="fade"
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => setModalVisible(false)}
+      > 
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <FastImage
+            style={styles.fullScreenImage}
+            source={{ uri: userInfo.profileImageUrl, priority: FastImage.priority.normal }}
+            resizeMode={FastImage.resizeMode.contain}
+          />
         </View>
-      </Modal>
+        <View style={styles.buttonContainer}>
+          <Button title="다른 이미지 선택" onPress={handleImagePicker} titleStyle={styles.Button} />
+          <Button title="기본 이미지로 변경" onPress={() => {
+            resetToDefaultImage();
+            setModalVisible(false);
+          }} titleStyle={styles.Button} />
+        </View>
+        <Button title="닫기" onPress={() => setModalVisible(false)} titleStyle={styles.closeButton} />
+      </View>
+    </Modal>
   </>
   );
 }
@@ -243,11 +248,11 @@ const styles = StyleSheet.create({
   avatarContainer: {
     position: 'relative',
   },
-  modalContainer: {
+  modalOverlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',  
+    alignItems: 'center',
   },
   modalContent: {
     width: '80%',
@@ -259,7 +264,19 @@ const styles = StyleSheet.create({
   fullScreenImage: {
     width: '100%',
     height: 300,
-    marginBottom: 20,
+  },
+  closeButton: {
+    fontSize: 15,
+    color: '#fff',
+  },
+  buttonContainer: {
+    flexDirection: 'row', 
+    justifyContent: 'space-evenly'
+  },
+  Button:{
+    fontSize: 15,
+    color: '#fff',
+    padding: 20,
   },
 });
 
