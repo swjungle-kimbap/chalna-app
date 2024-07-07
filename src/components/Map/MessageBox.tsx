@@ -1,7 +1,7 @@
 import  React, { useState, useEffect, useRef, useCallback } from 'react';
 import RoundBox from '../common/RoundBox';
 import Button from '../common/Button';
-import { StyleSheet, TextInput, View, Alert, NativeModules, NativeEventEmitter, Animated, AppStateStatus, AppState } from 'react-native';
+import { StyleSheet, TextInput, View, Alert, NativeModules, NativeEventEmitter, Animated, AppStateStatus, AppState ,  Image, TouchableOpacity } from 'react-native';
 import Text from '../common/Text';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { DeviceUUIDState, isRssiTrackingState, showMsgBoxState } from '../../recoil/atoms';
@@ -11,7 +11,7 @@ import requestPermissions from '../../utils/requestPermissions';
 import requestBluetooth from '../../utils/requestBluetooth';
 import { PERMISSIONS } from 'react-native-permissions';
 import { isNearbyState } from "../../recoil/atoms";
-import { AxiosResponse, SendMatchResponse, SendMsgRequest } from '../../interfaces';
+import { AxiosResponse, SendMatchResponse, SendMsgRequest, FileResponse } from '../../interfaces';
 import { axiosPost } from '../../axios/axios.method';
 import BleButton from './BleButton';
 import { urls } from '../../axios/config';
@@ -20,6 +20,8 @@ import {  userMMKVStorage } from '../../utils/mmkvStorage';
 import RssiTracking from './RssiTracking';
 import { useMMKVBoolean, useMMKVNumber, useMMKVString } from 'react-native-mmkv';
 import { addDevice } from '../../service/Background';
+import { launchImageLibrary } from 'react-native-image-picker';
+import ImageResizer from 'react-native-image-resizer';
 
 interface BleScanInfo {
   advFlag: number,
@@ -60,6 +62,8 @@ const MessageBox: React.FC = ()  => {
   const translateY = useRef(new Animated.Value(0)).current;
   const [showTracking, setShowTracking] = useState(false);
   const [rssiMap, setRssiMap] = useState<Map<string, number>>(null);
+
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useBackground(isScanning);
   
@@ -194,11 +198,100 @@ const MessageBox: React.FC = ()  => {
       }));
     }
   };
+
+  const handleSelectImage = () => {
+    launchImageLibrary({mediaType: 'photo', includeBase64: false}, (response) => {
+      if (response.didCancel) {
+          console.log('이미지 선택 취소');
+      } else if (response.errorMessage) {
+        console.log('error : ', response.errorMessage);
+      } else if (response.assets && response.assets.length > 0 ) {
+        console.log('이미지 선택 완료')
+        setSelectedImage(response.assets[0]);
+      }
+    })
+  }
+
+  const uploadImageToS3 = async () => {
+    console.log('선택된 이미지 :', selectedImage);
+    // 유효성 검사 추가하기 
+    if(!selectedImage) {
+      return null;
+    }
+    const { uri, fileName, fileSize, type: contentType} = selectedImage;
+    
+    // 서버로 전송해서 업로드 프리사인드 url 받아오기
+    try {
+      const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}`, "파일 업로드", {
+        fileName,
+        fileSize,
+        contentType
+    });
+    console.log("서버로 받은 데이터 : ", JSON.stringify(metadataResponse?.data?.data));
+    const {fileId, presignedUrl} = metadataResponse?.data?.data;
+
+    // 이미지 리사이징 
+    const resizedImage = await ImageResizer.createResizedImage(
+      uri,
+      1500, // 너비를 500으로 조정
+      1500, // 높이를 500으로 조정
+      'JPEG', // 이미지 형식
+      100, // 품질 (0-100)
+      0, // 회전 (회전이 필요하면 EXIF 데이터에 따라 수정 가능)
+      null,
+      true,
+      { onlyScaleDown: true }
+  );
+
+    const resizedUri = resizedImage.uri;
+
+    const file = await fetch(resizedUri);
+    const blob = await file.blob();
+    const uploadResponse = await fetch(presignedUrl, {
+      headers: {'Content-Type': selectedImage.type},
+      method: 'PUT',
+      body: blob
+    })
+
+    if (uploadResponse.ok) {
+      console.log('인연 보내기 : s3 파일에 업로드 성공')
+      const uploadedUrl = presignedUrl.split('?')[0]; 
+      const isValidUrl = await checkUrlValidity(uploadedUrl);
+      if (isValidUrl) {
+        console.log('S3 파일에 업로드 성공');
+        // const content =  {uploadedUrl, fileId};
+        return fileId; // 업로드된 파일의 URL,fileId 반환
+      } else {
+        Alert.alert('실패', '업로드된 이미지 URL이 유효하지 않습니다.');
+        return null;
+      }
+    } else {
+      Alert.alert('실패', '이미지 업로드에 실패했습니다.');
+      return null;
+    }
+    } catch (error) {
+      console.error('인연보내기 사진 error :' ,error);
+      Alert.alert('실패', '이미지 업로드 중 오류가 발생했습니다.');
+      return null;
+    }
+  };
+
+
+  const checkUrlValidity = async (url) => {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.ok;
+    } catch (error) {
+      console.error('URL 유효성 검사 오류:', error);
+      return false;
+    }
+  };
   
-  const sendMsg = async ( uuids:Set<string>) => {
+  const sendMsg = async ( uuids:Set<string> ,fileId : number ) => {
     const response = await axiosPost<AxiosResponse<SendMatchResponse>>(urls.SEND_MSG_URL, "인연 보내기", {
       deviceIdList: Array.from(uuids),
       message: msgText,
+      fileId: fileId
     } as SendMsgRequest)
     sendCountsRef.current = response.data.data.sendCount;
   }  
@@ -223,8 +316,15 @@ const MessageBox: React.FC = ()  => {
     } else if (!nearInfo.isNearby || !uuidSet) {
       Alert.alert('주위 인연이 없습니다.', '새로운 인연을 만나기 전까지 기다려주세요!');
     } else {
-      await sendMsg(uuidSet);
+      // let imageUrl = null;
+      let fileId = null;
 
+      if (selectedImage) {
+        fileId = await uploadImageToS3();
+      }
+      await sendMsg(uuidSet, fileId );
+
+      setSelectedImage(null);
       setIsBlocked(true);
       setBlockedTime(Date.now());
       setTimeout(() => {
@@ -235,11 +335,19 @@ const MessageBox: React.FC = ()  => {
     }
   }
 
+    // 이미지 제거 함수 추가
+    const handleRemoveImage = () => {
+      setSelectedImage(null);
+    };
+
   const checkvalidInput = () => {
     if (!isScanning && msgText.length < 5) {
       Alert.alert('내용을 더 채워 주세요', '5글자 이상 입력해 주세요!');
       return false;
-    } else {
+    } else if (msgText.length == 0 && selectedImage ) {
+      return true;
+    }
+    else {
       return true;
     }
   };
@@ -308,13 +416,33 @@ const MessageBox: React.FC = ()  => {
               <View style={styles.titleContainer}>
                 <Text variant='title' style={styles.title}>인연 메세지 <Button title='💬' onPress={() => {
                   Alert.alert("인연 메세지 작성",`${sendDelayedTime/(60 * 1000)}분에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요! 메세지를 받기 위해 블루투스 버튼을 켜주세요`)}
-                }/> </Text>
+                }/> 
+                <Button title='  🖼️' onPress={()=>{handleSelectImage()}}/> 
+                </Text>
               </View>
-              <TextInput value={msgText} style={[styles.textInput, { color: '#333' }]}
+              <View style={styles.textInputContainer}>
+                {selectedImage && (
+                  <View style={styles.selectedImageContainer}>
+                    <Image source={{ uri: selectedImage.uri }} style={styles.selectedImage} />
+                    <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageButton}>
+                      <Text style={styles.removeImageButtonText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+                <TextInput
+                  value={msgText}
+                  // style={styles.textInput}
+                  style={[styles.textInput, selectedImage && styles.textInputWithImage]}
                   onChange={(event) => {setMsgText(event.nativeEvent.text);}}
-                  />
+                  placeholder="메세지를 입력하세요"
+                  placeholderTextColor="#333"
+                  editable={!selectedImage} 
+                />
+            </View>
               <Button title={'보내기'} variant='main' titleStyle={{color: isScanning ? '#000': '#979797'}}
                 onPress={() => handleSendingMessage()}/>
+
+                
             </RoundBox>
           </View>
       ) : (
@@ -369,10 +497,13 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 10,
     borderColor: '#000',
-    color: '#FFF',
+    color: '#333',
     borderWidth: 1,
     borderRadius: 10,
     marginBottom: 10,
+  },
+  textInputWithImage: {
+    paddingLeft: 70, // 이미지 오른쪽에 텍스트가 올 수 있도록 패딩 추가
   },
   buttonContainer: {
     width: '75%',
@@ -381,7 +512,39 @@ const styles = StyleSheet.create({
     right: 10,
     zIndex: 2,
     borderTopWidth: 2,
-  }
+  },
+  selectedImageContainer: {
+    position:  'absolute',
+    left: 10, 
+    top: 10,
+    marginLeft: 10,
+    zIndex: 1,
+  },
+  selectedImage: {
+      width: 50,
+      height: 50,
+  },
+  removeImageButton: {
+      position: 'absolute',
+      top: -10,
+      right: -10,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      borderRadius: 12,
+      width: 24,
+      height: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+  },
+  removeImageButtonText: {
+      color: 'white',
+      fontSize: 18,
+  },
+  textInputContainer: {
+    position: 'relative',
+    width: '100%',
+    marginBottom: 10,
+  },
+
 });
 
 export default MessageBox;
