@@ -449,7 +449,7 @@ const ChattingScreen = () => {
 
                             // Ensure showProfileTime is true for the first five items in the original order
                             const showProfileTime = reverseIndex < 5 ||
-                                (!messages[reverseIndex - 1] || messages[reverseIndex - 1].senderId !== item.senderId) ||
+                                (!messages[reverseIndex - 1] || messages[reverseIndex - 1].senderId !== item.senderId || messages[reverseIndex -1].type==='FRIEND_REQUEST') ||
                                 (!messages[reverseIndex - 1] || messages[reverseIndex - 1].formatedTime !== item.formatedTime);
 
                             //
