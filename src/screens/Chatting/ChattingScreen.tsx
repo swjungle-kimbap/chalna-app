@@ -49,6 +49,8 @@ import { urls } from "../../axios/config";
 import { AxiosResponse } from "axios";
 import { FileResponse } from "../../interfaces";
 import RNFS from "react-native-fs";
+import ImageResizer from 'react-native-image-resizer';
+
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -138,16 +140,32 @@ const ChattingScreen = () => {
             console.log("서버로 받은 데이터 : ", JSON.stringify(metadataResponse?.data?.data));
             const { fileId, presignedUrl } = metadataResponse?.data?.data;
 
-            // 프리사인드 URL을 사용하여 S3에 파일 업로드
-            const file = await fetch(uri);
-            const blob = await file.blob();
-            const uploadResponse = await fetch(presignedUrl, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': selectedImage.type
-                },
-                body: blob
-            });
+        // 이미지를 리사이징
+        const resizedImage = await ImageResizer.createResizedImage(
+            uri,
+            1500, // 너비를 500으로 조정
+            1500, // 높이를 500으로 조정
+            'JPEG', // 이미지 형식
+            100, // 품질 (0-100)
+            0, // 회전 (회전이 필요하면 EXIF 데이터에 따라 수정 가능)
+            null,
+            true,
+            { onlyScaleDown: true }
+        );
+
+        const resizedUri = resizedImage.uri;
+
+
+        // 프리사인드 URL을 사용하여 S3에 파일 업로드
+        const file = await fetch(resizedUri);
+        const blob = await file.blob();
+          const uploadResponse = await fetch(presignedUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': selectedImage.type
+          },
+          body: blob
+        });
 
             if (uploadResponse.ok) {
                 console.log('S3 파일에 업로드 성공');
@@ -313,6 +331,8 @@ const ChattingScreen = () => {
             return () => {
                 console.log("loose focus");
                 WebSocketManager.disconnect();
+                setMessages(null)
+                resetUnreadCountForChatRoom(Number(chatRoomId));
             };
         }, [chatRoomId, currentUserId])
     );

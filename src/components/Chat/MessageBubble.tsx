@@ -43,27 +43,27 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     const [imageModalVisible, setImageModalVisible] = useState(false);
     const resizedImageUri = useRef(message.preSignedUrl)
 
-    const resizeImage = async (uri) => {
-        try {
-            console.log("resizeImage")
+    // const resizeImage = async (uri) => {
+    //     try {
+    //         console.log("resizeImage")
 
-            const response = await ImageResizer.createResizedImage(
-                uri, //이미지 파일의 경로 또는 base64 인코딩된 이미지 문자열
-                500,
-                500,
-                'JPEG', //JPEG, PNG or WEBP
-                100, //0~100 화질 설정
-                90, // iOS에서 회전은 90도의 배수로 제한
-                null,
-                true,
-                { onlyScaleDown: true },
-              ); // Returns a Promise
-            resizedImageUri.current = response.uri;
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
+    //         const response = await ImageResizer.createResizedImage(
+    //             uri, //이미지 파일의 경로 또는 base64 인코딩된 이미지 문자열
+    //             500,
+    //             500,
+    //             'JPEG', //JPEG, PNG or WEBP 
+    //             100, //0~100 화질 설정
+    //             90, // iOS에서 회전은 90도의 배수로 제한
+    //             null,
+    //             true,
+    //             { onlyScaleDown: true },
+    //           ); // Returns a Promise
+    //         resizedImageUri.current = response.uri;
+    //     } catch (err) {
+    //         console.error(err);
+    //     }
+    // };
+    
 
     const handleAccept = async () => {
         const response = await acceptFriendRequest(chatRoomId);
@@ -101,7 +101,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     };
 
     const openImageModal = async () => {
-        await resizeImage(message.preSignedUrl)
+        // await resizeImage(message.preSignedUrl)
         setImageModalVisible(true);
     }
 
@@ -389,8 +389,8 @@ async function requestExternalStoragePermission() {
                                          imageStyle={{height: 15, width: 15, paddingRight:20, paddingTop: 20 }}
                                          onPress={closeImageModal} style={{ alignSelf: 'flex-end' }} />
                             <Image
-                            source={{ uri: resizedImageUri.current }}
-                            // source={{uri: message.preSignedUrl}}
+                            // source={{ uri: resizedImageUri.current }}
+                            source={{uri: message.preSignedUrl}}
                             style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
                         />
                         <ImageTextButton iconSource={require('../../assets/Icons/downloadIcon.png')}
