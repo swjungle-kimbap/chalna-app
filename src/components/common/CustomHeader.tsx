@@ -3,7 +3,8 @@ import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Text from './Text';
 
 interface HeaderProps {
-    title: string;
+    title?: string;
+    titleSmall?:string;
     subtitle?: string;
     onBackPress?: () => void;
     onMenuPress?: () => void;
@@ -13,7 +14,7 @@ interface HeaderProps {
     showBtn?:boolean; // Btn이 필요한 조건 받는 상태값
 }
 
-const CustomHeader: React.FC<HeaderProps> = ({ title, subtitle, onBackPress, onMenuPress, onBtnPress, showBtn, useNav, useMenu }) => {
+const CustomHeader: React.FC<HeaderProps> = ({ title,titleSmall, subtitle, onBackPress, onMenuPress, onBtnPress, showBtn, useNav, useMenu }) => {
     return (
         <View style={styles.headerContainer}>
             {onBtnPress!==null && useNav && (
@@ -22,7 +23,8 @@ const CustomHeader: React.FC<HeaderProps> = ({ title, subtitle, onBackPress, onM
                 </TouchableOpacity>)
             }
             <View style={styles.titleContainer}>
-                <Text variant='subtitle' children={title} />
+                {title && <Text variant='subtitle' children={title} />}
+                {titleSmall && <Text variant='mainBold' children={titleSmall} />}
                 {subtitle && <Text variant='sub'>{subtitle}</Text>}
             </View>
             <View style={styles.rightIcons}>

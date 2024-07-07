@@ -51,7 +51,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     //             uri, //이미지 파일의 경로 또는 base64 인코딩된 이미지 문자열
     //             500,
     //             500,
-    //             'JPEG', //JPEG, PNG or WEBP 
+    //             'JPEG', //JPEG, PNG or WEBP
     //             100, //0~100 화질 설정
     //             90, // iOS에서 회전은 90도의 배수로 제한
     //             null,
@@ -63,7 +63,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     //         console.error(err);
     //     }
     // };
-    
+
 
     const handleAccept = async () => {
         const response = await acceptFriendRequest(chatRoomId);
@@ -412,10 +412,10 @@ const Container = styled.View<{ isSelf: boolean , notChat: boolean}>`
 `;
 
 const ProfilePicture = styled.Image<{ modal?: boolean }>`
-    width: ${({ modal }) => (modal ? '100px' : '34px')};
-    height: ${({ modal }) => (modal ? '100px' : '34px')};
+    width: ${({ modal }) => (modal ? '100px' : '32px')};
+    height: ${({ modal }) => (modal ? '100px' : '32px')};
     border-radius: ${({ modal }) => (modal ? '50px' : '20px')};
-    margin-right: ${({ modal }) => (modal ? '0' : '10px')};
+    margin-right: ${({ modal }) => (modal ? '0' : '5px')};
     margin-left: ${({ modal }) => (modal ? '0' : '2px')};
     margin-top: ${({ modal }) => (modal ? '0' : '5px')};
 `;
@@ -431,7 +431,7 @@ const MessageContainer = styled.View<{ isSelf: boolean; hasNewline: boolean; sho
     flex-wrap: wrap;
     max-width: ${({ hasNewline, isSelf }) => (isSelf && hasNewline ? '82%' : !isSelf && hasNewline? '78%' : 'auto')};
     justify-content: ${({ isSelf }) => (isSelf ? 'flex-end' : 'flex-start')};
-    margin-left: ${({ isSelf, showProfileTime }) => (!isSelf && !showProfileTime ? '46px' : '0px')}; 
+    margin-left: ${({ isSelf, showProfileTime }) => (!isSelf && !showProfileTime ? '39px' : '0px')}; 
 `; //bottom margin-left : profile pic length
 
 
