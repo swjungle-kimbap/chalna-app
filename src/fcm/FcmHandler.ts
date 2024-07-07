@@ -131,11 +131,20 @@ const FCMDataType = (data) => {
   const additionalData = data.additionalData ? JSON.parse(data.additionalData) : {};
 
   const title = data.fcmType === 'match' ? "인연으로부터 메시지가 도착했습니다." : `${additionalData.senderName || 'Unknown'}`;
-  const body = data.message || "No message";
-  const imageUrl = additionalData.imageUrl || null;
+  
+  const { body, imageUrl } = FCMMessageParse(data.message);
 
   return { title, body, isNotification: false, isMatch: data.fcmType === "match", imageUrl };
 };
+
+const FCMMessageParse = (message:string) => {
+  const messageObject = JSON.parse(message);
+  if (messageObject.contentType === 'MESSAGE') {
+    return { body: messageObject.content, imageUrl:null}
+  }
+
+  return { body: "이미지", imageUrl: messageObject.content};
+}
 
 const FCMNotificationType = (notification) => {
   const title = notification.title || "No title";
