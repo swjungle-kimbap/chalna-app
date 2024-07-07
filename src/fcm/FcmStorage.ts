@@ -49,15 +49,15 @@ export const storeFCM = async (remoteMessage): Promise<void> => {
       await storeMatchFCM(newMatchFCM);
       break;
     case 'chat':
-      const newChatFCM: ChatFCM = {
-        chatRoomId: additionalData.chatRoomId,
-        senderId: data.senderId,
-        message: data.message,
-        senderName: additionalData.senderName,
-        chatRoomType: additionalData.chatRoomType,
-        messageType: additionalData.messageType === "ALARM" ? "CHAT" : additionalData.messageType,
-        createdAt: remoteMessage.sentTime
-      };
+      // const newChatFCM: ChatFCM = {
+      //   chatRoomId: additionalData.chatRoomId,
+      //   senderId: data.senderId,
+      //   message: data.message,
+      //   senderName: additionalData.senderName,
+      //   chatRoomType: additionalData.chatRoomType,
+      //   messageType: additionalData.messageType === "ALARM" ? "CHAT" : additionalData.messageType,
+      //   createdAt: remoteMessage.sentTime
+      // };
       //await storeChatFCM(newChatFCM);
       break;
     default:
