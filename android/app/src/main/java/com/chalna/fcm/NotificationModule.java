@@ -71,6 +71,23 @@ public class NotificationModule extends ReactContextBaseJavaModule {
 			}
 	}
 
+	// 채널 삭제 함수
+	@ReactMethod
+	public void deleteNotificationChannel(String channelId, Promise promise) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+					NotificationManager manager = (NotificationManager) getReactApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+					NotificationChannel channel = manager.getNotificationChannel(channelId);
+					if (channel != null) {
+							manager.deleteNotificationChannel(channelId);
+							promise.resolve(true);
+					} else {
+							promise.reject("ERROR", "Channel not found");
+					}
+			} else {
+					promise.reject("ERROR", "Notification channels are not supported on this version of Android.");
+			}
+	}
+
 
 	private void createNotificationChannel(boolean soundSet, boolean vibrateSet) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
