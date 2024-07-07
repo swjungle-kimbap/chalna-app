@@ -34,6 +34,11 @@ const MenuModal: React.FC<MenuModalProps> = ({ title, isVisible, onClose,
             animationOut="slideOutRight"
         >
             <View style={styles.modalContent}>
+                <ImageTextButton
+                    IconSource = {require('../../assets/Icons/closeIcon.png')}
+                    imageStyle={{ height: 15, width: 15}}
+                    onPress={onClose} />
+
                 <TitleText>{titleContent}</TitleText>
                 <ImageTextButton title={menu1} onPress={onMenu1}  style={{marginBottom:20, marginTop:20}} />
                 {menu2 && <ImageTextButton title={menu2} onPress={onMenu2} style={{marginBottom:20}} />}
@@ -41,7 +46,7 @@ const MenuModal: React.FC<MenuModalProps> = ({ title, isVisible, onClose,
 
                 {members && <MemberList members={members}/>}
 
-                <ImageTextButton title="닫기" onPress={onClose} />
+
             </View>
         </Modal>
     );

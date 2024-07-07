@@ -32,11 +32,15 @@ const MemberList: React.FC<MemberListProps> = ({ members }) => {
                             style={styles.profilePicture}
                         />}
                         <Text style={styles.memberText}>{item.username}</Text>
-                        {item.memberId !==currentUserId && (
+                        {item.memberId !==currentUserId ? (
                             <ImageTextButton
                                 iconSource={require('../../assets/Icons/addFriendIcon.png')}
-                                imageStyle={{height: 18, width: 18, marginTop:2, marginLeft: 10}}
+                                imageStyle={{height: 18, width: 18, marginTop:2}}
                             />
+                        ): (
+                            <View Style = {styles.badgeContainer} >
+                                <Text Style={styles.badgeText}>나</Text>
+                            </View>
                         )}
                     </View>
                 )}
@@ -64,7 +68,25 @@ const styles = StyleSheet.create({
     },
     memberText: {
         fontSize: 16,
+        marginRight: 10,
     },
+
+    badgeContainer: {
+        backgroundColor: '#303136', // Customize the color as needed
+        borderRadius: 12,
+        width: 20,
+        height: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginLeft: 10,
+        marginTop: 2,
+    },
+    badgeText: {
+        color: 'white',
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+
 });
 
 export default MemberList;
