@@ -14,12 +14,21 @@ import { axiosDelete, axiosPatch, axiosPost } from "../../axios/axios.method";
 import { urls } from "../../axios/config";
 import { getMMKVObject, setMMKVObject, userMMKVStorage } from "../../utils/mmkvStorage";
 import { useMMKVBoolean } from "react-native-mmkv";
+import { useSetRecoilState } from "recoil";
+import { DeveloperModeState } from "../../recoil/atoms";
+import Config from "react-native-config";
 
 const KeywordSelectScreen: React.FC = ({}) => {
   const [isKeywordAlarm, setIsKeywordAlarm] = useMMKVBoolean('mypage.isKeywordAlarm', userMMKVStorage);
   const [keyword, setKeyword] = useState<string>("");
   const [keywordList, setKeywordList] = useState<string[]>([]);
   const inputRef = useRef<TextInput>(null);
+  const setDevelopMode = useSetRecoilState(DeveloperModeState);
+
+  useEffect(()=> {
+    if (keyword === Config.DEVELOPMODE)
+      setDevelopMode(true);
+  }, [keyword])
 
   useEffect(() => {
     const savedKeywords = getMMKVObject<SavedKeywords>("mypage.savedKeywords");
