@@ -48,7 +48,7 @@ export const storeFCM = async (remoteMessage): Promise<void> => {
         messageType: additionalData.messageType === "ALARM" ? "CHAT" : additionalData.messageType,
         createdAt: remoteMessage.sentTime
       };
-      await storeChatFCM(newChatFCM);
+      //await storeChatFCM(newChatFCM);
       break;
     default:
       console.error('Unknown fcmType:', data.fcmType);
