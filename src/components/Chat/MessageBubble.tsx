@@ -388,9 +388,9 @@ async function requestExternalStoragePermission() {
                     <FullScreenModalContent>
 
                         <ImageTextButton iconSource={require('../../assets/Icons/closeIcon.png')}
-                                         imageStyle={{height: 15, width: 15, paddingRight:20, paddingTop: 20 }}
+                                         imageStyle={{height: 15, width: 15, marginRight:10, marginTop: 10 }}
                                          onPress={closeImageModal} style={{ alignSelf: 'flex-end' }} />
-                            <Image
+                        <Image
                             // source={{ uri: resizedImageUri.current }}
                             source={{uri: message.preSignedUrl}}
                             style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
@@ -398,6 +398,7 @@ async function requestExternalStoragePermission() {
                         <ImageTextButton iconSource={require('../../assets/Icons/downloadIcon.png')}
                                          imageStyle={{height: 20, width: 20}}
                                          onPress={handleFileDownload} />
+
                     </FullScreenModalContent>
                 </FullScreenModalContainer>
             </Modal>
