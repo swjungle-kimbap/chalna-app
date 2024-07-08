@@ -21,7 +21,7 @@ interface MessageBubbleProps {
     isSelf: boolean;
     type?: string;
     unreadCnt?: number;
-    otherId: number;
+    senderId: number;
     chatRoomId: number;
     chatRoomType: string;
     profilePicture?: string;
@@ -32,7 +32,7 @@ interface MessageBubbleProps {
 
 const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                                                          message, datetime, isSelf, type, unreadCnt,
-                                                         otherId, chatRoomId, chatRoomType,
+                                                         senderId, chatRoomId, chatRoomType,
                                                          profilePicture, username, showProfileTime, onFileDownload
                                                      }) => {
     // const date = new Date(datetime);
@@ -64,9 +64,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     //     }
     // };
 
+    console.log('senderId ', senderId);
 
     const handleAccept = async () => {
-        const response = await acceptFriendRequest(otherId);
+        const response = await acceptFriendRequest(senderId);
         console.log('수락 요청 응답: ',response);
         if (response === true) {
             WebSocketManager.sendMessage(String(chatRoomId), "친구가 되었습니다!\n대화를 이어가보세요.", 'FRIEND_REQUEST');
@@ -75,7 +76,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     };
 
     const handleReject = async () => {
-        const response = await rejectFriendRequest(otherId);
+        const response = await rejectFriendRequest(senderId);
         console.log('거절 요청 응답: ',response);
         if (response === true) {
             WebSocketManager.sendMessage(String(chatRoomId), "인연이 스쳐갔습니다.", 'FRIEND_REQUEST');
@@ -84,7 +85,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     };
 
     const handleSend = async () =>{
-        const response = await sendFriendRequest(otherId);
+        const response = await sendFriendRequest(senderId);
         console.log('친구요청 응답 출력', response);
         if (response === true) {
             WebSocketManager.sendMessage(chatRoomId, "친구 요청을 보냈습니다.", 'FRIEND_REQUEST');

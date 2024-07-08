@@ -71,7 +71,6 @@ const ChattingScreen = () => {
     const [selectedImage, setSelectedImage] = useState<any>(null);
     const chatRoomIdRef = useRef<string>(chatRoomId)
 
-    const otherIdRef = useRef<number | null>(null);
     const chatMessageType = useRef('CHAT');
 
     useBackToScreen("로그인 성공", { screen: "채팅목록", params: { screen: "채팅 목록" } });
@@ -481,7 +480,6 @@ const ChattingScreen = () => {
 
                             return (
                                 <>
-
                                     <MessageBubble
                                         message={item.content}
                                         datetime={item.formatedTime}
@@ -489,7 +487,7 @@ const ChattingScreen = () => {
                                         type={item.type}
                                         unreadCnt={item.unreadCount}
                                         chatRoomId={Number(chatRoomId)}
-                                        otherId={otherIdRef.current}
+                                        senderId={item.senderId}
                                         chatRoomType={chatRoomType}
                                         profilePicture={item.isSelf ? '' : 'https://img.freepik.com/premium-photo/full-frame-shot-rippled-water_1048944-5521428.jpg?size=626&ext=jpg&ga=GA1.1.2034235092.1718206967&semt=ais_user'}
                                         username={getUsernameBySenderId(item.senderId)}

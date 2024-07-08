@@ -23,12 +23,8 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
 
     const handleSend = async (otherId: number) =>{
         const response = await sendFriendRequest(otherId);
-        console.log('친구요청 응답 출력', response);
         if (response === true) {
-            console.log("친구요청 성공")
             if (chatRoomType!=='LOCAL'){ // 매치 1:1 채팅일 때만 채팅방에 친구요청 메세지 전송
-                console.log("메세지 전송까지 들어옴")
-                console.log('chatroomID ',chatRoomId);
                 WebSocketManager.sendMessage(chatRoomId, "친구 요청을 보냈습니다.", 'FRIEND_REQUEST');
             }
             // 친구추가 버튼 없애기 버튼 or 요청중 상태 나타내는 것 추가
