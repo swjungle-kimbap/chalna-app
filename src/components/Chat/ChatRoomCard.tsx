@@ -47,8 +47,10 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
             >
                 <View style={styles.row}>
                     <Image
-                        source={require('../../assets/images/anonymous.png')} // Replace with your image path
-                        style={styles.image}
+                        source={ //chatRoomType!=='LOCAL'?
+                            require('../../assets/images/anonymous.png')}
+                            // : require('../../assets/images/localChatRoom.png')} // Replace with your image path
+                        style={ styles.image }
                     />
                     <View style={styles.content}>
                         <View style={styles.header}>
@@ -150,6 +152,7 @@ const styles = StyleSheet.create({
         marginLeft:5,
         width: 45,
         height: 45,
+        // borderRadius: 25,
     },
     deleteButton: {
         backgroundColor: 'red',
@@ -161,6 +164,13 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
     },
+    // localChatIcon:{
+    //     marginHorizontal: 16,
+    //     marginTop: 10,
+    //     marginBottom: 15,
+    //     width: 21,
+    //     height: 20,
+    // }
 
 });
 

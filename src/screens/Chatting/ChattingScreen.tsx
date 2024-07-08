@@ -175,13 +175,13 @@ const ChattingScreen = () => {
                 console.log('S3 파일에 업로드 성공');
                 console.log('S3 업로드하고 진짜 자기 파일 url : ', uploadResponse.url);
 
-                // 업로드된 파일 URL을 소켓 ?? 에 전송
-                const content = {
-                    fileId: fileId,
-                    fileUrl: uploadResponse.url
-                }
-                console.log("fileId랑 진짜 자기 파일 url : ", content)
-                WebSocketManager.sendMessage(chatRoomId, content, 'FILE');
+                // // 업로드된 파일 URL을 소켓 ?? 에 전송
+                // const content = {
+                //     fileId: fileId,
+                //     fileUrl: uploadResponse.url
+                // }
+                console.log("파일 id : ", fileId)
+                WebSocketManager.sendMessage(chatRoomId, fileId, 'FILE');
 
                 console.log('소켓에 전송 완료');
                 setSelectedImage(null);
@@ -489,8 +489,12 @@ const ChattingScreen = () => {
                     />
                 </View>
                 {showScrollToEndButton && (
+                    // <ImageTextButton
+                    //     iconSource={require('../../assets/Icons/scrollDown.png')}
+                    //     imageStyle={{ height: 15, width: 15 }}
+                    // />
                     <TouchableOpacity style={styles.scrollToEndButton} onPress={scrollToBottom}>
-                        <Text style={styles.scrollToEndButtonText}>New Message</Text>
+                        <Text style={styles.scrollToEndButtonText}>⌄</Text>
                     </TouchableOpacity>
                 )}
                 {chatRoomType !== 'WAITING' && (
