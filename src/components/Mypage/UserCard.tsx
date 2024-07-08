@@ -6,12 +6,12 @@ import { userInfoState } from "../../recoil/atoms";
 import { useState } from 'react';
 import EditModal from './EditModal';
 import { LoginResponse } from '../../interfaces';
-import { axiosPatch } from '../../axios/axios.method';
+import { axiosGet, axiosPatch } from '../../axios/axios.method';
 import { urls } from '../../axios/config';
 import { setMMKVObject } from '../../utils/mmkvStorage';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { AxiosResponse } from "axios";
-import { FileResponse } from "../../interfaces";
+import { FileResponse, DownloadFileResponse } from "../../interfaces";
 import FastImage, { Source } from 'react-native-fast-image';
 import RNFS from 'react-native-fs';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
@@ -79,9 +79,21 @@ const UserCard = () => {
       });
 
       if (uploadResponse.ok) {
-        const fileUrl = presignedUrl.split('?')[0];
-        await downloadAndStoreImage(fileUrl);
+
+        try {
+          const downloadResponse = await axiosGet<AxiosResponse<DownloadFileResponse>>(`${urls.FILE_DOWNLOAD_URL}${fileId}`,"프로필 다운로드" );
+
+          const { presignedUrl }= downloadResponse?.data?.data;
+          await downloadAndStoreImage(presignedUrl);
+
+        }catch(error) {
+          console.error(error);
+        }
+        // const fileUrl = presignedUrl.split('?')[0];
+        // await downloadAndStoreImage(fileUrl);
+
       } else {
+        console.log('이미지상태:',uploadResponse.status);
         Alert.alert('실패', '이미지 업로드에 실패했습니다.');
       }
     } catch (error) {
@@ -90,26 +102,23 @@ const UserCard = () => {
   };
 
   const downloadAndStoreImage = async (url) => {
+    // console.log('s3 다운',url);
     try {
       const timestamp = new Date().getTime();
       const localFilePath = `${RNFS.DocumentDirectoryPath}/profile_image_${timestamp}.jpg`; // 앱 내부 저장소 
       const downloadResult = await RNFS.downloadFile({
-        fromUrl: url,
-        toFile: localFilePath,
+        fromUrl: url, 
+        toFile: localFilePath, // 로컬다운경로 
       }).promise;
       console.log(localFilePath);
-      if (downloadResult.statusCode === 200) {
 
-        // 기존 이미지 삭제 (프로필 이미지는 한 번만) -- 이거하니깐 기본이미지로 변경할 때 변경 안 됨
-        // const previousImagePath = userInfo.profileImageUrl?.replace('file://', '');
-        // if (previousImagePath) {
-        //   await RNFS.unlink(previousImagePath);
-        // }                                                                                  
-  
+      if (downloadResult.statusCode === 200) {
+                                                                           
         setUserInfo({ ...userInfo, profileImageUrl: `file://${localFilePath}` });
         axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", { profileImageUrl: `file://${localFilePath}` });
         setMMKVObject<LoginResponse>("mypage.userInfo", { ...userInfo, profileImageUrl: `file://${localFilePath}` });
       } else {
+        console.log(downloadResult.statusCode);
         Alert.alert('실패', '이미지 다운로드에 실패했습니다.');
       }
     } catch (error) {
@@ -123,7 +132,7 @@ const UserCard = () => {
     axiosPatch(urls.USER_INFO_EDIT_URL, "프로필 이미지 기본으로 변경", { profileImageUrl: DefaultImgUrl });
     setMMKVObject<LoginResponse>("mypage.userInfo", { ...userInfo, profileImageUrl: DefaultImgUrl });
   };
-
+  console.log({profileImageUrl : userInfo.profileImageUrl})
   return (
   <>
     {showNameEditModal && (<EditModal value={userInfo.username} setValue={setUsername} maxLength={10}
@@ -136,7 +145,7 @@ const UserCard = () => {
       </View>
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
-          {userInfo.profileImageUrl !== DefaultImgUrl ? (            
+          {userInfo.profileImageUrl !== DefaultImgUrl && userInfo.profileImageUrl ? (            
             <TouchableOpacity onPress={() => setModalVisible(true)}>
               <FastImage
               style={styles.avatar}

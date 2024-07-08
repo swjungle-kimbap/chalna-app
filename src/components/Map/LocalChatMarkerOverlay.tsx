@@ -143,6 +143,7 @@ const LocalChatMarkerOverlay = () => {
             tintColor='#67DBFF'
             width={40}
             height={40}
+            caption={{text:localChat.name}}
             isHideCollidedMarkers={true}
           />
         )
@@ -158,6 +159,7 @@ const LocalChatMarkerOverlay = () => {
           tintColor={distance > 0.05 ? 'gray' : 'lightgreen'}
           width={40}
           height={40}
+          caption={{text:localChat.name}}
           isHideCollidedMarkers={true}
         />
       );

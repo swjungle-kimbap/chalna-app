@@ -27,7 +27,7 @@ const FCMMessageParse = (message:string) => {
     return { messageData: messageObject.content, imageUrl:''};
   }
 
-  return { messageData: "이미지", imageUrl: messageObject.content};
+  return { messageData: "사진", imageUrl: messageObject.content};
 }
 
 export const storeFCM = async (remoteMessage): Promise<void> => {
