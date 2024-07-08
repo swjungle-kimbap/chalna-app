@@ -49,13 +49,13 @@ const styles = StyleSheet.create({
         top: 0,
         left: 0,
         right: 0,
-        height: 60,
+        height: 56,
         backgroundColor: '#fff',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         // paddingHorizontal: 10,
-        // elevation: 4,
+        elevation: 4,
         zIndex: 1000, // Ensure the header is above other elements
     },
     iconButton: {

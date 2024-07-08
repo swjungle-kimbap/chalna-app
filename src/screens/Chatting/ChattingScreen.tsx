@@ -460,7 +460,7 @@ const ChattingScreen = () => {
                 useNav={true}
                 useMenu={true}
             />
-            <Text>{chatRoomType}: {WebSocketManager.isConnected() ? 'Connected' : ' - '} </Text>
+            {/*<Text>{chatRoomType}: {WebSocketManager.isConnected() ? 'Connected' : ' - '} </Text>*/}
             <View style={styles.container}>
                 <View style={styles.scrollView}>
                     <FlatList
@@ -582,7 +582,7 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         justifyContent: 'flex-start',
         flex: 1,
-        paddingTop: 10,
+        paddingTop: 5,
     },
     inputContainer: {
         verticalAlign: 'top',
