@@ -57,7 +57,7 @@ type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string 
 
 const ChattingScreen = () => {
     const route = useRoute<ChattingScreenRouteProp>();
-    const { chatRoomId } = route.params;
+    let { chatRoomId } = route.params;
     const navigation = useNavigation();
 
     const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
@@ -69,6 +69,7 @@ const ChattingScreen = () => {
     const [username, setUsername] = useState<string>('');
     const [members, setMembers] = useState<chatRoomMember[]>([]);
     const [selectedImage, setSelectedImage] = useState<any>(null);
+    const chatRoomIdRef = useRef<string>(chatRoomId)
 
     const otherIdRef = useRef<number | null>(null);
     const chatMessageType = useRef('CHAT');
@@ -103,6 +104,7 @@ const ChattingScreen = () => {
     };
 
     const handleSelectImage = () => {
+        chatRoomIdRef.current = chatRoomId
         launchImageLibrary({ mediaType: 'photo', includeBase64: false }, (response) => {
             if (response.didCancel) {
                 console.log('이미지 선택 취소');
@@ -278,6 +280,7 @@ const ChattingScreen = () => {
             if (nextAppState === 'background' || nextAppState === 'inactive') {
                 WebSocketManager.disconnect();
             } else {
+                chatRoomId = chatRoomIdRef.current
                 setupWebSocket();
             }
         };
