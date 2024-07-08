@@ -57,6 +57,14 @@ export const withdrawlAlert = () => {
 export const initUserSetting = () => {
   const isinitialized = userMMKVStorage.getBoolean('mypage.isAlarm');
   if (isinitialized === undefined) {
+    userMMKVStorage.set('map.isScanning', false);
+    userMMKVStorage.set('map.isBlocked', false);
+    userMMKVStorage.set('map.blockedTime', 0);
+    userMMKVStorage.set('map.selectedTag', "텍스트");
+    userMMKVStorage.set('map.msgText', "");
+    userMMKVStorage.set("map.imageUrl", ""); 
+    userMMKVStorage.set("map.fileId", 0); 
+    userMMKVStorage.set("map.image.ContentType", ""); 
     userMMKVStorage.set('mypage.isAlarm', true);
     userMMKVStorage.set('mypage.isFriendAlarm', true);
     userMMKVStorage.set('mypage.isMatchAlarm', true);

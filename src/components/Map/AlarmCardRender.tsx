@@ -6,6 +6,7 @@ import { axiosPost } from '../../axios/axios.method';
 import { navigate } from '../../navigation/RootNavigation';
 import {urls} from "../../axios/config";
 import { MatchFCM } from '../../interfaces/ReceivedFCMData.type';
+import FastImage from 'react-native-fast-image';
 
 export interface AlaramItemProps{
   item: MatchFCM;
@@ -30,13 +31,19 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
       <Text style={styles.alarmCnt}>{`${item.overlapCount}번 스쳐간 인연입니다.`}</Text>
       {expandedCardId === item.id ? (
         <>
-          <Text
+          {
+            item.image ? 
+            <FastImage
+            style={styles.fullScreenImage}
+            source={{ uri: item.image, priority: FastImage.priority.normal }}
+            resizeMode={FastImage.resizeMode.contain}
+          />
+          : <Text
             numberOfLines={5}
             ellipsizeMode="tail"
-            style={styles.alarmContent}
-          >
-            {item.message}
-          </Text>
+            style={styles.alarmContent}>{item.message}</Text>
+          }
+          
           <View style={styles.btnContainer}>
             <Button style={{flex:1}} variant="sub" title="대화하기"
               onPress={async () => {handleAcceptButton(item.id)}} />
@@ -59,6 +66,10 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
 };
 
 const styles = StyleSheet.create({
+  fullScreenImage: {
+    width: '100%',
+    height: 200,
+  },
    modalContent: {
     width: '100%',
     padding: 13,
