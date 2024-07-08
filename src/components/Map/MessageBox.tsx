@@ -23,6 +23,7 @@ import { addDevice } from '../../service/Background';
 import KalmanFilter from 'kalmanjs'
 import { launchImageLibrary } from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
+import FastImage from 'react-native-fast-image';
 
 const ignorePatterns = [
   /No task registered for key shortService\d+/,
@@ -42,6 +43,8 @@ interface BleScanInfo {
   serviceUuids: string[],
   txPower: number,
 }
+
+const tags = ['텍스트', '사진'];
 
 const requiredPermissions = [
   PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
@@ -71,9 +74,10 @@ const MessageBox: React.FC = ()  => {
   const translateY = useRef(new Animated.Value(0)).current;
   const [showTracking, setShowTracking] = useState(false);
   const [rssiMap, setRssiMap] = useState<Map<string, number>>(null);
-
+  const [selectedTag, setSelectedTag] = useMMKVString("map.selectedTag", userMMKVStorage); 
+  const [imageUrl, setImageUrl] = useMMKVString("map.imageUrl", userMMKVStorage); 
+  const [fileId, setFileId] = useMMKVNumber("map.fileId", userMMKVStorage); 
   const [selectedImage, setSelectedImage] = useState(null);
-
   useBackground(isScanning);
   
   useEffect(()=> {
@@ -218,6 +222,7 @@ const MessageBox: React.FC = ()  => {
   };
 
   const handleSelectImage = () => {
+    setFileId(0);
     launchImageLibrary({mediaType: 'photo', includeBase64: false}, (response) => {
       if (response.didCancel) {
           console.log('이미지 선택 취소');
@@ -226,7 +231,7 @@ const MessageBox: React.FC = ()  => {
       } else if (response.assets && response.assets.length > 0 ) {
         console.log('이미지 선택 완료')
         setSelectedImage(response.assets[0]);
-        setMsgText('');
+        setImageUrl(response.assets[0].uri);
       }
     })
   }
@@ -282,6 +287,7 @@ const MessageBox: React.FC = ()  => {
       if (isValidUrl) {
         console.log('S3 파일에 업로드 성공');
         // const content =  {uploadedUrl, fileId};
+        setFileId(fileId);
         return fileId; // 업로드된 파일의 URL,fileId 반환
       } else {
         Alert.alert('실패', '업로드된 이미지 URL이 유효하지 않습니다.');
@@ -297,32 +303,69 @@ const MessageBox: React.FC = ()  => {
       return null;
     }
   };
-
-
-  const checkUrlValidity = async (url) => {
-    try {
-      const response = await fetch(url, { method: 'HEAD' });
-      return response.ok;
-    } catch (error) {
-      console.error('URL 유효성 검사 오류:', error);
-      return false;
-    }
-  };
   
-  const sendMsg = async ( uuids:Set<string> ,fileId : number ) => {
-    const response = await axiosPost<AxiosResponse<SendMatchResponse>>(urls.SEND_MSG_URL, "인연 보내기", {
-      deviceIdList: Array.from(uuids),
-      content: msgText ? msgText : fileId.toString(),
-      contentType: msgText ? 'MESSAGE' : 'FILE'
-    } as SendMsgRequest)
-    sendCountsRef.current = response.data.data.sendCount;
+  const sendMsg = async ( uuids:Set<string>, fileId : number ) => {
+    let response = null;
+    if (selectedTag ==='텍스트') {
+      response = await axiosPost<AxiosResponse<SendMatchResponse>>(urls.SEND_MSG_URL, "인연 보내기", {
+        deviceIdList: Array.from(uuids),
+        content: msgText,
+        contentType: 'MESSAGE'
+      } as SendMsgRequest)
+    } else {
+      response = await axiosPost<AxiosResponse<SendMatchResponse>>(urls.SEND_MSG_URL, "인연 보내기", {
+        deviceIdList: Array.from(uuids),
+        content: fileId.toString(),
+        contentType: 'FILE'
+      } as SendMsgRequest)
+    }
+    sendCountsRef.current = response?.data?.data?.sendCount;
   }  
 
   const handleSendingMessage = async () => {
-    const checkValid = await checkvalidInput();
-    if (!checkValid) {
-      return ;
-    } else if (!isScanning) {
+    const validState = checkValid();
+    if (!validState) {
+      return;
+    }
+    console.log(fileId);
+    let updateFileId = fileId;
+    if (!updateFileId) {
+      updateFileId = await uploadImageToS3();
+      setFileId(updateFileId);
+    }
+    await sendMsg(uuidSet, updateFileId);
+    fadeInAndMoveUp();
+    setShowMsgBox(false);
+    if (sendCountsRef.current === 0)
+      return;
+    setIsBlocked(true);
+    setBlockedTime(Date.now());
+    setTimeout(() => {
+      setIsBlocked(false);
+    }, sendDelayedTime);
+  }
+  
+  // 이미지 제거 함수 추가
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImageUrl('');
+    setFileId(0);
+  };
+
+  const checkValid = () => {
+    if (selectedTag ==='사진'){
+      if (!imageUrl){
+        Alert.alert('사진 없음', '사진을 선택해 주세요!');
+        return false
+      }
+    } else {
+      if (msgText.length < 5) {
+        Alert.alert('내용을 더 채워 주세요', '5글자 이상 입력해 주세요!');
+        return false;
+      } 
+    }
+
+    if (!isScanning) {
       Alert.alert('주위 인연을 만날 수 없습니다.', '블루투스 버튼을 켜고 새로운 인연을 만나기 전까지 기다려주세요!',
         [
           {
@@ -333,45 +376,16 @@ const MessageBox: React.FC = ()  => {
         ],
         {cancelable: true,},
       );
+      return false
     } else if (isBlocked) {
       Alert.alert('잠시 기다려 주세요', '인연 메세지는 1분에 1번씩 보낼 수 있어요!');
+      return false
     } else if (!nearInfo.isNearby || !uuidSet) {
       Alert.alert('주위 인연이 없습니다.', '새로운 인연을 만나기 전까지 기다려주세요!');
-    } else {
-      let fileId = null;
-
-      if (selectedImage) {
-        fileId = await uploadImageToS3();
-      }
-      await sendMsg(uuidSet, fileId );
-      fadeInAndMoveUp();
-      setShowMsgBox(false);
-      if (sendCountsRef.current === 0)
-        return 
-      setSelectedImage(null);
-      setIsBlocked(true);
-      setBlockedTime(Date.now());
-      setTimeout(() => {
-        setIsBlocked(false);
-      }, sendDelayedTime);
+      return false
     }
-  }
-
-    // 이미지 제거 함수 추가
-    const handleRemoveImage = () => {
-      setSelectedImage(null);
-    };
-
-  const checkvalidInput = () => {
-    if (!isScanning && msgText.length < 5) {
-      Alert.alert('내용을 더 채워 주세요', '5글자 이상 입력해 주세요!');
-      return false;
-    } else if (msgText.length == 0 && selectedImage ) {
-      return true;
-    }
-    else {
-      return true;
-    }
+  
+    return true;
   };
 
   const fadeInAndMoveUp = () => {
@@ -427,9 +441,8 @@ const MessageBox: React.FC = ()  => {
             opacity: fadeAnim,
             transform: [{ translateY: translateY }],
           }
-        ]}
-      >
-        <Text variant='sub'>{sendCountsRef.current !== 0 ? `${sendCountsRef.current}명에게 인연 메세지를 보냈습니다.` : `이미 메세지를 보낸 대상입니다.`}</Text>
+        ]}>
+        <Text variant='sub'>{sendCountsRef.current !== 0 ? `${sendCountsRef.current}명에게 인연 메세지를 보냈습니다.` : `메세지를 보낼 수 없는 대상입니다.`}</Text>
       </Animated.View>
       {showMsgBox ? (
           <View style={styles.msgcontainer} >
@@ -439,32 +452,44 @@ const MessageBox: React.FC = ()  => {
                 <Text variant='title' style={styles.title}>인연 메세지 <Button title='💬' onPress={() => {
                   Alert.alert("인연 메세지 작성",`${sendDelayedTime/(60 * 1000)}분에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요! 메세지를 받기 위해 블루투스 버튼을 켜주세요`)}
                 }/> 
-                <Button title='  🖼️' onPress={()=>{handleSelectImage()}}/> 
                 </Text>
+                {tags.map((tag) => (
+                  <Button titleStyle={[styles.tagText, selectedTag === tag && styles.selectedTag]} 
+                    variant='sub' title={`#${tag}`}  onPress={() => setSelectedTag(tag)} 
+                    key={tag} activeOpacity={0.6} />
+                ))}
               </View>
               <View style={styles.textInputContainer}>
-                {selectedImage && (
-                  <View style={styles.selectedImageContainer}>
-                    <Image source={{ uri: selectedImage.uri }} style={styles.selectedImage} />
-                    <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageButton}>
-                      <Text style={styles.removeImageButtonText}>×</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-                <TextInput
+                {selectedTag === "텍스트" ? (
+                  <TextInput
                   value={msgText}
-                  // style={styles.textInput}
-                  style={[styles.textInput, selectedImage && styles.textInputWithImage]}
+                  style={styles.textInput}
                   onChange={(event) => { setMsgText(event.nativeEvent.text);}}
                   placeholder="메세지를 입력하세요"
                   placeholderTextColor="#333"
                   editable={!selectedImage} 
                 />
+                ): (
+                  <View style={[styles.ImageBox, {height:imageUrl? 150 : 50}]}>
+                    {imageUrl ? (
+                      <>
+                      <FastImage
+                        style={styles.fullScreenImage}
+                        source={{ uri: imageUrl, priority: FastImage.priority.normal }}
+                        resizeMode={FastImage.resizeMode.contain}
+                      />
+                      <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageButton}>
+                        <Text style={styles.removeImageButtonText}>×</Text>
+                      </TouchableOpacity>
+                      </>
+                    ) : (
+                      <Button title='사진을 추가해주세요🖼️' onPress={()=>{handleSelectImage()}}/> 
+                    )}
+                  </View>
+                )}
             </View>
               <Button title={'보내기'} variant='main' titleStyle={{color: isScanning ? '#000': '#979797'}}
                 onPress={() => handleSendingMessage()}/>
-
-                
             </RoundBox>
           </View>
       ) : (
@@ -478,6 +503,27 @@ const MessageBox: React.FC = ()  => {
 };
 
 const styles = StyleSheet.create({
+  fullScreenImage: {
+    width: '100%',
+    height: 150,
+  },
+  ImageBox: {
+    height: 150,
+    width: '100%',
+    padding: 10,
+    justifyContent:'center',
+    borderColor: '#000',
+    color: '#333',
+    borderWidth: 1,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  tagText:{
+    paddingTop: 15,
+  },
+  selectedTag: {
+    color: '#000', 
+  },
   TVButton: {
     position: 'absolute',
     alignItems: 'center',
@@ -534,13 +580,6 @@ const styles = StyleSheet.create({
     right: 10,
     zIndex: 2,
     borderTopWidth: 2,
-  },
-  selectedImageContainer: {
-    position:  'absolute',
-    left: 10, 
-    top: 10,
-    marginLeft: 10,
-    zIndex: 1,
   },
   selectedImage: {
       width: 50,
