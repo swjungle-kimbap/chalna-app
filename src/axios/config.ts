@@ -53,5 +53,7 @@ export const urls = {
     DELETE_LOCAL_CHAT_URL: getFullUrl(Config.LOCAL_CHAT_SET_PATH),
     JOIN_LOCAL_CHAT_URL: getFullUrl(Config.LOCAL_CHAT_SET_PATH),
 
-    FILE_UPLOAD_URL: getFullUrl(Config.FILE_UPLOAD_PATH)
+    FILE_UPLOAD_URL: getFullUrl(Config.FILE_UPLOAD_PATH),
+    FILE_DOWNLOAD_URL: getFullUrl(Config.FILE_DOWNLOAD_PATH)
+    
 };

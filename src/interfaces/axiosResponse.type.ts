@@ -87,6 +87,10 @@ export interface FileResponse {
   presignedUrl:string
 }
 
+export interface DownloadFileResponse {
+  presignedUrl:string
+}
+
 export interface SendMatchResponse {
   sendCount: number
 }
