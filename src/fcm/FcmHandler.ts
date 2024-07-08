@@ -50,12 +50,12 @@ const showLocalNotification = (title: string, body: string, isMatch: boolean, da
     priority: 'high',
   };
 
-  if (isMatch) {
-    notificationOptions = {
-      ...notificationOptions,
-      actions: '["수락", "거절"]',
-    };
-  }
+  // if (isMatch) {
+  //   notificationOptions = {
+  //     ...notificationOptions,
+  //     actions: '["수락", "거절"]',
+  //   };
+  // }
 
   console.log("Notification Options: ", notificationOptions);
 
@@ -77,12 +77,12 @@ const showLocalNotificationImage = (title:string, body:string, isMatch:boolean, 
     priority: 'high',
   };
 
-  if (isMatch) {
-    notificationOptions = {
-      ...notificationOptions,
-      actions: '["수락", "거절"]',
-    };
-  }
+  // if (isMatch) {
+  //   notificationOptions = {
+  //     ...notificationOptions,
+  //     actions: '["수락", "거절"]',
+  //   };
+  // }
 
   PushNotification.localNotification(notificationOptions);
 }
@@ -103,6 +103,7 @@ const handleFCMClick = (notification: any) => {
           screen: "지도",
           params: { notificationId: additionalData.notificationId }
         });
+        console.log("매치 화면으로 이동 ", additionalData.notificationId);
         break;
       case 'chat':
         // 예: 채팅 화면으로 이동
