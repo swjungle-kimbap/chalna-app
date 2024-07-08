@@ -344,15 +344,16 @@ const MessageBox: React.FC = ()  => {
         fileId = await uploadImageToS3();
       }
       await sendMsg(uuidSet, fileId );
-
+      fadeInAndMoveUp();
+      setShowMsgBox(false);
+      if (sendCountsRef.current === 0)
+        return 
       setSelectedImage(null);
       setIsBlocked(true);
       setBlockedTime(Date.now());
       setTimeout(() => {
         setIsBlocked(false);
       }, sendDelayedTime);
-      fadeInAndMoveUp();
-      setShowMsgBox(false);
     }
   }
 
@@ -428,7 +429,7 @@ const MessageBox: React.FC = ()  => {
           }
         ]}
       >
-        <Text variant='sub'>{sendCountsRef.current}명에게 인연 메세지를 보냈습니다.</Text>
+        <Text variant='sub'>{sendCountsRef.current !== 0 ? `${sendCountsRef.current}명에게 인연 메세지를 보냈습니다.` : `이미 메세지를 보낸 대상입니다.`}</Text>
       </Animated.View>
       {showMsgBox ? (
           <View style={styles.msgcontainer} >
