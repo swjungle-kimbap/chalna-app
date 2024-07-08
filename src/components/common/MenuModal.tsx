@@ -19,10 +19,13 @@ interface MenuModalProps {
     menu3?: string;
     onMenu3?: () => void;
     members?: chatRoomMember[];
+    chatRoomId: number,
+    chatRoomType: string,
 }
 
 const MenuModal: React.FC<MenuModalProps> = ({ title, isVisible, onClose,
-                                                 menu1, onMenu1, menu2, onMenu2, menu3, onMenu3, members }) => {
+                                                 menu1, onMenu1, menu2, onMenu2, menu3, onMenu3,
+                                                 members, chatRoomId, chatRoomType }) => {
     // This could be further refactored to use an array of menu items if the pattern grows
     const titleContent = title===null? "메뉴":title;
     return (
@@ -45,7 +48,6 @@ const MenuModal: React.FC<MenuModalProps> = ({ title, isVisible, onClose,
                 {menu3 && <ImageTextButton title={menu3} onPress={onMenu3}  style={{marginBottom:20}}/>}
 
                 {members && <MemberList members={members}/>}
-
 
             </View>
         </Modal>
