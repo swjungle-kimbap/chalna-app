@@ -66,7 +66,7 @@ export const initUserSetting = () => {
     userMMKVStorage.set("map.fileId", 0); 
     userMMKVStorage.set("map.image.ContentType", ""); 
     userMMKVStorage.set('mypage.isAlarm', true);
-    userMMKVStorage.set('mypage.isFriendAlarm', true);
+    userMMKVStorage.set('mypage.isChatAlarm', true);
     userMMKVStorage.set('mypage.isMatchAlarm', true);
     userMMKVStorage.set('mypage.alarmSound', true);
     userMMKVStorage.set('mypage.alarmVibration', true);

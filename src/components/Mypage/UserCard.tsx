@@ -123,7 +123,7 @@ const UserCard = () => {
     axiosPatch(urls.USER_INFO_EDIT_URL, "프로필 이미지 기본으로 변경", { profileImageUrl: DefaultImgUrl });
     setMMKVObject<LoginResponse>("mypage.userInfo", { ...userInfo, profileImageUrl: DefaultImgUrl });
   };
-
+  console.log({profileImageUrl : userInfo.profileImageUrl})
   return (
   <>
     {showNameEditModal && (<EditModal value={userInfo.username} setValue={setUsername} maxLength={10}
@@ -136,7 +136,7 @@ const UserCard = () => {
       </View>
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
-          {userInfo.profileImageUrl !== DefaultImgUrl ? (            
+          {userInfo.profileImageUrl !== DefaultImgUrl && userInfo.profileImageUrl ? (            
             <TouchableOpacity onPress={() => setModalVisible(true)}>
               <FastImage
               style={styles.avatar}
