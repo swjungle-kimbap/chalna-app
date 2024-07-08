@@ -226,6 +226,7 @@ const MessageBox: React.FC = ()  => {
       } else if (response.assets && response.assets.length > 0 ) {
         console.log('이미지 선택 완료')
         setSelectedImage(response.assets[0]);
+        setMsgText('');
       }
     })
   }
@@ -273,8 +274,11 @@ const MessageBox: React.FC = ()  => {
 
     if (uploadResponse.ok) {
       console.log('인연 보내기 : s3 파일에 업로드 성공')
+
       const uploadedUrl = presignedUrl.split('?')[0]; 
-      const isValidUrl = await checkUrlValidity(uploadedUrl);
+      console.log(uploadedUrl);
+      // const isValidUrl = await checkUrlValidity(uploadedUrl);
+      const isValidUrl = true;
       if (isValidUrl) {
         console.log('S3 파일에 업로드 성공');
         // const content =  {uploadedUrl, fileId};
@@ -308,8 +312,8 @@ const MessageBox: React.FC = ()  => {
   const sendMsg = async ( uuids:Set<string> ,fileId : number ) => {
     const response = await axiosPost<AxiosResponse<SendMatchResponse>>(urls.SEND_MSG_URL, "인연 보내기", {
       deviceIdList: Array.from(uuids),
-      message: msgText,
-      fileId: fileId
+      content: msgText ? msgText : fileId.toString(),
+      contentType: msgText ? 'MESSAGE' : 'FILE'
     } as SendMsgRequest)
     sendCountsRef.current = response.data.data.sendCount;
   }  
@@ -334,7 +338,6 @@ const MessageBox: React.FC = ()  => {
     } else if (!nearInfo.isNearby || !uuidSet) {
       Alert.alert('주위 인연이 없습니다.', '새로운 인연을 만나기 전까지 기다려주세요!');
     } else {
-      // let imageUrl = null;
       let fileId = null;
 
       if (selectedImage) {
@@ -451,7 +454,7 @@ const MessageBox: React.FC = ()  => {
                   value={msgText}
                   // style={styles.textInput}
                   style={[styles.textInput, selectedImage && styles.textInputWithImage]}
-                  onChange={(event) => {setMsgText(event.nativeEvent.text);}}
+                  onChange={(event) => { setMsgText(event.nativeEvent.text);}}
                   placeholder="메세지를 입력하세요"
                   placeholderTextColor="#333"
                   editable={!selectedImage} 

@@ -3,8 +3,8 @@ import Toggle from "../../components/common/Toggle";
 import { StyleSheet, View } from "react-native";
 import { userMMKVStorage } from "../../utils/mmkvStorage";
 import { useMMKVNumber } from "react-native-mmkv";
-import { isRssiTrackingState } from "../../recoil/atoms";
-import { useRecoilState } from "recoil";
+import { DeveloperModeState, isRssiTrackingState } from "../../recoil/atoms";
+import { useRecoilState, useRecoilValue } from "recoil";
 import Slider from '@react-native-community/slider';
 import Text from "../../components/common/Text";
 import Button from "../../components/common/Button";
@@ -16,6 +16,7 @@ const BluetoothSettingScreen: React.FC = () => {
   const [numberOfMatches, setNumberOfMatches] = useMMKVNumber('bluetooth.numberOfMatches', userMMKVStorage);
   const [RSSIvalue, setRSSIvalue] = useMMKVNumber('bluetooth.rssivalue', userMMKVStorage);
   const [isRssiTracking, setIsRssiTracking] = useRecoilState(isRssiTrackingState);
+  const developMode = useRecoilValue(DeveloperModeState);
 
   const setDefaultSetting = () => {
     setAdvertiseMode(1);
@@ -110,25 +111,29 @@ const BluetoothSettingScreen: React.FC = () => {
             />
           </InlineButton>
         </View>
-        <Text>RSSI 값이 높아지면 탐지 하는 범위가 줄어듭니다.</Text>
-        <InlineButton text="RSSI 보기" textstyle={{paddingVertical: 20}} horizon='none'>
-          <Toggle value={isRssiTracking} toggleHandler={(value)=> setIsRssiTracking(value)} /> 
-        </InlineButton>
-        {isRssiTracking && (
-          <InlineButton text="RSSI value" textstyle={{paddingTop: 3}} horizon='bottom'>
-            <Slider
-              style={{ width: 200, height: 40 }}
-              minimumValue={-100}
-              maximumValue={-60}
-              step={5}
-              value={RSSIvalue}
-              onValueChange={value => setRSSIvalue(value)}
-              tapToSeek
-              minimumTrackTintColor="#3EB297"
-              maximumTrackTintColor="#000000"
-            />
-            <Text>{RSSIvalue}</Text>
+        { developMode && (
+          <>
+          <Text>RSSI 값이 높아지면 탐지 하는 범위가 줄어듭니다.</Text>
+          <InlineButton text="RSSI 보기" textstyle={{paddingVertical: 20}} horizon='none'>
+            <Toggle value={isRssiTracking} toggleHandler={(value)=> setIsRssiTracking(value)} /> 
           </InlineButton>
+          {isRssiTracking && (
+            <InlineButton text="RSSI value" textstyle={{paddingTop: 3}} horizon='bottom'>
+              <Slider
+                style={{ width: 200, height: 40 }}
+                minimumValue={-100}
+                maximumValue={-60}
+                step={5}
+                value={RSSIvalue}
+                onValueChange={value => setRSSIvalue(value)}
+                tapToSeek
+                minimumTrackTintColor="#3EB297"
+                maximumTrackTintColor="#000000"
+              />
+              <Text>{RSSIvalue}</Text>
+            </InlineButton>
+          )}
+          </>
         )}
       </View>
     </View>

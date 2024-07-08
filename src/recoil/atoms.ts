@@ -80,3 +80,8 @@ export const FlyingModeState = atom<boolean>({
   key: 'flyingMode',
   default: false,
 })
+
+export const DeveloperModeState = atom<boolean>({
+  key: 'DeveloperMode',
+  default: false,
+})

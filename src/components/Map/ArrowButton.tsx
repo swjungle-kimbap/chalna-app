@@ -31,11 +31,6 @@ const ArrowButton = ({cameraMove}) => {
     return newLocation;
   };
 
-  const handlePressIn = (direction) => {
-    const newLocation = move(1, direction);
-    setCurrentLocation(newLocation);
-    cameraMove(newLocation);
-  };
   const handleLongPress = (direction) => {
     let index = 1;
     intervalRef.current = setInterval(()=> {
@@ -54,12 +49,11 @@ const ArrowButton = ({cameraMove}) => {
         <View style={styles.dpadRow}>
           <View style={styles.placeholder} />
           <TouchableOpacity
-            onPress={() => handlePressIn('up')}
             onLongPress={() => handleLongPress('up')}
             onPressOut={handlePressOut}
             delayLongPress={0}
             style={styles.dpadButton}
-            activeOpacity={0.9}
+            activeOpacity={0.6}
           >
             <Text style={styles.dpadText}>↑</Text>
           </TouchableOpacity>
@@ -67,23 +61,21 @@ const ArrowButton = ({cameraMove}) => {
         </View>
         <View style={styles.dpadRow}>
           <TouchableOpacity
-            onPress={() => handlePressIn('left')}
             onLongPress={() => handleLongPress('left')}
             onPressOut={handlePressOut}
             delayLongPress={0}
             style={styles.dpadButton}
-            activeOpacity={0.9} 
+            activeOpacity={0.6} 
           >
             <Text style={styles.dpadText}>←</Text>
           </TouchableOpacity>
           <View style={styles.placeholder} />
           <TouchableOpacity
-            onPress={() => handlePressIn('right')}
             onLongPress={() => handleLongPress('right')}
             onPressOut={handlePressOut}
             delayLongPress={0}
             style={styles.dpadButton}
-            activeOpacity={0.9}
+            activeOpacity={0.6}
           >
             <Text style={styles.dpadText}>→</Text>
           </TouchableOpacity>
@@ -91,12 +83,11 @@ const ArrowButton = ({cameraMove}) => {
         <View style={styles.dpadRow}>
           <View style={styles.placeholder} />
           <TouchableOpacity
-            onPress={() => handlePressIn('down')}
             onLongPress={() => handleLongPress('down')}
             onPressOut={handlePressOut}
             delayLongPress={0}
             style={styles.dpadButton}
-            activeOpacity={0.9}
+            activeOpacity={0.6}
           >
             <Text style={styles.dpadText}>↓</Text>
           </TouchableOpacity>

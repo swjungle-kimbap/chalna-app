@@ -39,7 +39,7 @@ export const NaverMap: React.FC = ({}) => {
             const filteredLatitude = latkfilter.filter(latitude);
             const filteredlongitude = longkfilter.filter(longitude);
             setCurrentLocation({ latitude:filteredLatitude, longitude:filteredlongitude });
-            console.log({ latitude:filteredLatitude, longitude:filteredlongitude });
+            //console.log({ latitude:filteredLatitude, longitude:filteredlongitude });
           },
           (e:GeoError) => {
             if (e.code === 1) {

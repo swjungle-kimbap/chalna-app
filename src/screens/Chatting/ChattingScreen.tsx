@@ -175,12 +175,8 @@ const ChattingScreen = () => {
                 console.log('S3 파일에 업로드 성공');
                 console.log('S3 업로드하고 진짜 자기 파일 url : ', uploadResponse.url);
 
-                // // 업로드된 파일 URL을 소켓 ?? 에 전송
-                // const content = {
-                //     fileId: fileId,
-                //     fileUrl: uploadResponse.url
-                // }
-                console.log("파일 id : ", fileId)
+                // 업로드된 파일 URL을 소켓 ?? 에 전송
+
                 WebSocketManager.sendMessage(chatRoomId, fileId, 'FILE');
 
                 console.log('소켓에 전송 완료');
@@ -308,12 +304,6 @@ const ChattingScreen = () => {
                         }));
                         // 메세지 저장
                         if (fetchedMessages && fetchedMessages.length > 0) {
-                            if(messages && messages.length > 0) {
-                                setMessages((prevMessages) => [...prevMessages, ...fetchedMessages]);
-                            } else {
-                                setMessages(fetchedMessages)
-                            }
-                            // flatListRef.current?.scrollToEnd({ animated: true });
                             console.log("api 호출 채팅데이터: ", fetchedMessages);
                             saveChatMessages(chatRoomId, fetchedMessages);
                         }

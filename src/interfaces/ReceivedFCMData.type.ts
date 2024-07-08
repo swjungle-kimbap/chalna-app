@@ -6,6 +6,7 @@ export interface ChatFCM {
   chatRoomType: string;
   messageType: string;
   createdAt: string;
+  image: string;
 }
 
 export interface MatchFCM {
@@ -13,6 +14,7 @@ export interface MatchFCM {
   senderId: string,
   receiverId: string,
   message: string,
-  createdAt: string
+  createdAt: number,
   overlapCount: string,
+  image: string;
 }

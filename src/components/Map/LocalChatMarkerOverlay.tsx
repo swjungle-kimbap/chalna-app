@@ -113,6 +113,7 @@ const LocalChatMarkerOverlay = () => {
   const renderMarkers = useMemo(() => {
     return localChatList.map((item:LocalChatData) => {
       const localChat = item.localChat;
+      const distance = calDistance(currentLocation, {latitude: localChat.latitude, longitude: localChat.longitude});
 
       if (item.isOwner) {
         return (
@@ -120,9 +121,9 @@ const LocalChatMarkerOverlay = () => {
             key={localChat.id}
             latitude={localChat.latitude}
             longitude={localChat.longitude}
-            onTap={() => localChatDelete(localChat, currentLocation,setRefresh)}
+            onTap={() => localChatDelete(localChat, distance,setRefresh)}
             image={require('../../assets/Icons/LocalChatIcon.png')}
-            tintColor='#3955E5'
+            tintColor={item.isJoined || distance > 0.05 ? '#3955E5' : 'lightgreen'}
             width={40}
             height={40}
             caption={{text:localChat.name}}
@@ -137,7 +138,7 @@ const LocalChatMarkerOverlay = () => {
             key={localChat.id}
             latitude={localChat.latitude}
             longitude={localChat.longitude}
-            onTap={() => localChatOut(localChat, currentLocation, setRefresh)}
+            onTap={() => localChatOut(localChat, distance, setRefresh)}
             image={require('../../assets/Icons/LocalChatIcon.png')}
             tintColor='#67DBFF'
             width={40}
@@ -146,15 +147,15 @@ const LocalChatMarkerOverlay = () => {
           />
         )
       }
-
+      
       return (
         <NaverMapMarkerOverlay
           key={localChat.id}
           latitude={localChat.latitude}
           longitude={localChat.longitude}
-          onTap={() => localChatJoin(localChat, currentLocation, setRefresh)}
+          onTap={() => localChatJoin(localChat, distance, setRefresh)}
           image={require('../../assets/Icons/LocalChatIcon.png')}
-          tintColor={localChat.distance > 0.05 ? 'gray' : 'lightgreen'}
+          tintColor={distance > 0.05 ? 'gray' : 'lightgreen'}
           width={40}
           height={40}
           isHideCollidedMarkers={true}
