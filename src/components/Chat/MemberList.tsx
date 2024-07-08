@@ -20,6 +20,7 @@ const MemberList: React.FC<MemberListProps> = ({ members }) => {
 
     return (
         <View style={styles.container}>
+            <Text> 참여자 목록</Text>
             <FlatList
                 data={sortedMembers}
                 keyExtractor={(item) => item.memberId.toString()}
@@ -67,8 +68,9 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     memberText: {
-        fontSize: 16,
+        fontSize: 14,
         marginRight: 10,
+        color: 	'#222222',
     },
 
     badgeContainer: {
