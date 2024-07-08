@@ -18,16 +18,16 @@ export const formatDateToKoreanTime = (dateString: string) => {
     return new Intl.DateTimeFormat('ko-KR', options).format(date);
 };
 
-export const convertChatDateFormat = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const options: Intl.DateTimeFormatOptions ={
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: 'Asia/Seoul'
+export const formatDateHeader = (dateString: string): string => {
+    const options: Intl.DateTimeFormatOptions = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
     };
-    return new Intl.DateTimeFormat('ko-KR', options).format(date);
+    return new Date(dateString).toLocaleDateString('ko-KR', options);
 };
+
 
 export const convertChatRoomDateFormat = (timestamp: string): string => {
     const date = new Date(timestamp);

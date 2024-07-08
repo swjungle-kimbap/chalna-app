@@ -32,7 +32,7 @@ import {
     ChatRoomLocal,
     chatroomInfoAndMsg
 } from "../../interfaces/Chatting.type";
-import { formatDateToKoreanTime } from "../../service/Chatting/DateHelpers";
+import { formatDateToKoreanTime, formatDateHeader } from "../../service/Chatting/DateHelpers";
 import Text from '../../components/common/Text';
 import {
     saveChatMessages,
@@ -50,6 +50,7 @@ import { AxiosResponse } from "axios";
 import { FileResponse } from "../../interfaces";
 import RNFS from "react-native-fs";
 import ImageResizer from 'react-native-image-resizer';
+import DateHeader from '../../components/Chat/DateHeader';
 
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
@@ -441,28 +442,35 @@ const ChattingScreen = () => {
                         data={messages?.slice().reverse()} // Reverse the order of messages
                         keyExtractor={(item, index) => `${item.id}-${index}`}
                         renderItem={({ item, index }) => {
+                            // show profile(image & name)
                             const reverseIndex = messages.length - 1 - index;
-
-                            // Ensure showProfileTime is true for the first five items in the original order
                             const showProfileTime = reverseIndex < 5 ||
                                 (!messages[reverseIndex - 1] || messages[reverseIndex - 1].senderId !== item.senderId || messages[reverseIndex -1].type==='FRIEND_REQUEST') ||
                                 (!messages[reverseIndex - 1] || messages[reverseIndex - 1].formatedTime !== item.formatedTime);
 
+                            // show date header
+                            const previousMessage = messages[reverseIndex - 1];
+                            const showDateHeader = !previousMessage || new Date(item.createdAt).toDateString() !== new Date(previousMessage.createdAt).toDateString();
 
                             return (
-                                <MessageBubble
-                                    message={item.content}
-                                    datetime={item.formatedTime}
-                                    isSelf={item.isSelf}
-                                    type={item.type}
-                                    unreadCnt={item.unreadCount}
-                                    chatRoomId={Number(chatRoomId)}
-                                    otherId={otherIdRef.current}
-                                    chatRoomType={chatRoomType}
-                                    profilePicture={item.isSelf ? '' : 'https://img.freepik.com/premium-photo/full-frame-shot-rippled-water_1048944-5521428.jpg?size=626&ext=jpg&ga=GA1.1.2034235092.1718206967&semt=ais_user'}
-                                    username={getUsernameBySenderId(item.senderId)}
-                                    showProfileTime={showProfileTime}
-                                />
+                                <>
+
+                                    <MessageBubble
+                                        message={item.content}
+                                        datetime={item.formatedTime}
+                                        isSelf={item.isSelf}
+                                        type={item.type}
+                                        unreadCnt={item.unreadCount}
+                                        chatRoomId={Number(chatRoomId)}
+                                        otherId={otherIdRef.current}
+                                        chatRoomType={chatRoomType}
+                                        profilePicture={item.isSelf ? '' : 'https://img.freepik.com/premium-photo/full-frame-shot-rippled-water_1048944-5521428.jpg?size=626&ext=jpg&ga=GA1.1.2034235092.1718206967&semt=ais_user'}
+                                        username={getUsernameBySenderId(item.senderId)}
+                                        showProfileTime={showProfileTime}
+                                    />
+                                    {showDateHeader && <DateHeader date={formatDateHeader(item.createdAt)} />}
+
+                                </>
                             );
                         }}
                         ref={flatListRef}
