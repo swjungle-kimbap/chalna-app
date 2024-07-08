@@ -223,15 +223,17 @@ const ChattingScreen = () => {
                         parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
                         parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt);
 
+                        if(!(chatRoomType ==='FRIEND' && parsedMessage.type==='TIMEOUT')){
                         // 메세지 렌더링 & 저장 & 스크롤 업데이트
-                        setMessages((prevMessages) => (prevMessages ? [...prevMessages, parsedMessage] : [parsedMessage]));
-                        if (isUserAtBottom.current) {
-                            flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
-                            setShowScrollToEndButton(false);
-                        } else {
-                            setShowScrollToEndButton(true);
+                            setMessages((prevMessages) => (prevMessages ? [...prevMessages, parsedMessage] : [parsedMessage]));
+                            if (isUserAtBottom.current) {
+                                flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                                setShowScrollToEndButton(false);
+                            } else {
+                                setShowScrollToEndButton(true);
+                            }
+                            saveChatMessages(chatRoomId, [parsedMessage]);
                         }
-                        saveChatMessages(chatRoomId, [parsedMessage]);
 
                         // 친구가 되었으면 채팅방 정보 다시 로드
                         if (parsedMessage.type === 'FRIEND_REQUEST'  && parsedMessage.content.includes('친구가 되었습니다!')) {
