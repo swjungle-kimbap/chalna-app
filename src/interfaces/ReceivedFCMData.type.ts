@@ -16,4 +16,5 @@ export interface MatchFCM {
   message: string,
   createdAt: number,
   overlapCount: string,
+  image: string;
 }
