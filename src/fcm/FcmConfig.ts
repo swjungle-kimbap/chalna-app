@@ -67,10 +67,10 @@ class FcmConfig {
           handleFCMClick(notification);
         }
 
-        if (notification.action === 'accept') {
+        if (notification.action === '수락') {
           console.log('수락 버튼 눌림');
           // 수락 버튼 눌렀을 때의 로직 추가
-        } else if (notification.action === 'reject') {
+        } else if (notification.action === '거절') {
           console.log('거절 버튼 눌림');
           // 거절 버튼 눌렀을 때의 로직 추가
         }
