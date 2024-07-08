@@ -58,8 +58,15 @@ const ChattingListScreen = ({ navigation }) => {
             }
         };
 
-        fetchChatRooms();
+        // fetchChatRooms();
 
+        const delayedFetchChatRooms = () => {
+            setTimeout(() => {
+                fetchChatRooms();
+            }, 500); // 0.5초 딜레이를 적용합니다.
+        };
+
+        delayedFetchChatRooms()
 
         if (isFocused) {
             startPolling();
