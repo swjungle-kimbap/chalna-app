@@ -41,9 +41,9 @@ export const isNearbyState = atom<IsNearbyState>({
   }
 })
 
-export const FriendsListState = atom<Friend[]>({
+export const FriendsMapState = atom<Map<number, Friend>>({
   key: 'FriendsList',
-  default: []
+  default: new Map()
 })
 
 export const JoinedLocalChatListState = atom<LocalChatRoomData[]>({

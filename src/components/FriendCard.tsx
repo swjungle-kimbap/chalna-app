@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity , Alert} from 'react-native';
-import { User } from '../interfaces/savedData';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity , Alert} from 'react-native';
+import { Friend } from '../interfaces/savedData';
 import RoundBox from './common/RoundBox';
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../interfaces";
 import Button from './common/Button';
 import { axiosGet, axiosPost } from "../axios/axios.method";
-import Config from 'react-native-config';
 import { useRecoilState } from 'recoil';
-import { FriendsListState } from '../recoil/atoms';
+import { FriendsMapState } from '../recoil/atoms';
 import {urls} from "../axios/config";
+import FastImage, { Source } from 'react-native-fast-image';
+
 interface FriendCardProps {
-    user: User;
+    user: Friend;
     isExpanded: boolean;
     onExpand: ()=> void;
     navigation: StackNavigationProp<RootStackParamList, '채팅'>;
@@ -31,7 +32,7 @@ interface ApiResponse {
   }
 
 const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, navigation, options}) => {
-    const [friendsList, setFriendsList] = useRecoilState(FriendsListState);
+    const [friendsList, setFriendsList] = useRecoilState(FriendsMapState);
 
     const handlePress = () => {
         onExpand();
@@ -55,29 +56,34 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
         }
     };
 
-    const handleBlockFriend = (id) => {
-        const filteredFriendsList = friendsList.filter(item => item.id !== id)
-        setFriendsList(filteredFriendsList);
-        axiosPost(urls.BLOCK_FRIEND_URL+id, "친구 차단");
-    }
+    // const handleBlockFriend = (id) => {
+    //     const filteredFriendsList = friendsList.filter(item => item.id !== id)
+    //     setFriendsList(filteredFriendsList);
+    //     axiosPost(urls.BLOCK_FRIEND_URL+id, "친구 차단");
+    // }
 
-    const handleDeleteFriend = (id) => {
-        const filteredFriendsList = friendsList.filter(item => item.id !== id)
-        setFriendsList(filteredFriendsList);
-        axiosPost(urls.DELETE_FRIEND_URL+id, "친구 삭제");
-    }
+    // const handleDeleteFriend = (id) => {
+    //     const filteredFriendsList = friendsList.filter(item => item.id !== id)
+    //     setFriendsList(filteredFriendsList);
+    //     axiosPost(urls.DELETE_FRIEND_URL+id, "친구 삭제");
+    // }
 
-    const handleUnblockFriend = (id) => {
-        const filteredFriendsList = friendsList.filter(item => item.id !== id)
-        setFriendsList(filteredFriendsList);
-        axiosPost(urls.UNBLOCK_FRIEND_URL+id, "친구 차단 해제");
-    }
+    // const handleUnblockFriend = (id) => {
+    //     const filteredFriendsList = friendsList.filter(item => item.id !== id)
+    //     setFriendsList(filteredFriendsList);
+    //     axiosPost(urls.UNBLOCK_FRIEND_URL+id, "친구 차단 해제");
+    // }
 
     return (
         <TouchableOpacity onPress={handlePress}>
             <RoundBox style={styles.container}>
                 <View style={styles.header}>
-                    <Image source={require('../assets/images/anonymous.png')} style={styles.avatar} />
+                    <FastImage
+                    style={styles.avatar}
+                    source={{uri: user.profileImageUrl, priority: FastImage.priority.normal } as Source}
+                    resizeMode={FastImage.resizeMode.cover}
+                    />
+                    {/* <Image source={require('../assets/images/anonymous.png')} style={styles.avatar} /> */}
                     {/* <Image source={user.profileImageUrl ? { uri: user.profileImageUrl } : require('../assets/images/anonymous.png')} style={styles.avatar} /> */}
                     <View style={styles.textContainer}>
                         <Text style={styles.name} >{user.username}</Text>
@@ -90,15 +96,15 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
                         { options==='friend' && (
                             <View style={styles.btnContainer}>
                                 <Button title="대화하기" onPress={handleChat}  />
-                                <Button title="차단하기" onPress={()=> {handleBlockFriend(user.id)}} />
+                                {/* <Button title="차단하기" onPress={()=> {handleBlockFriend(user.id)}} /> */}
                             </View>
                         )}
-                        { options==='blocked' && (
+                        {/* { options==='blocked' && (
                             <View style={styles.btnContainer}>
                                 <Button title="차단해제" onPress={()=> {handleUnblockFriend(user.id)}}  />
                                 <Button title="삭제하기" onPress={()=> {handleDeleteFriend(user.id)}} />
                             </View>
-                        )}
+                        )} */}
                         {/*{ options==='requested' && (*/}
                         {/*    <View style={styles.btnContainer}>*/}
                         {/*        <Button title="요청 수락" onPress={handleAccept}  />*/}
