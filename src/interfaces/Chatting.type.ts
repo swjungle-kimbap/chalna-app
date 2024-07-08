@@ -14,7 +14,7 @@ export type directedChatMessage = ChatMessage & {
 
 export type chatRoomMember = {
     memberId:number,
-    username:string,
+    username:string
 }
 
 export type chatroomInfoAndMsg= {

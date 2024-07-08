@@ -51,6 +51,7 @@ import { FileResponse } from "../../interfaces";
 import RNFS from "react-native-fs";
 import ImageResizer from 'react-native-image-resizer';
 import DateHeader from '../../components/Chat/DateHeader';
+import {sendFriendRequest} from "../../service/Friends/FriendRelationService";
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -97,6 +98,7 @@ const ChattingScreen = () => {
     console.log(distanceDisplay());
 
     // const scrollViewRef = useRef<ScrollView>(null);
+
 
     const updateRoomInfo = async () => {
         const responseData: chatroomInfoAndMsg = await fetchChatRoomContent(chatRoomId, currentUserId);
@@ -566,6 +568,8 @@ const ChattingScreen = () => {
                     menu1={'채팅방 나가기'}
                     onMenu1={handleMenu1Action}
                     members={members}
+                    chatRoomId={Number(chatRoomId)}
+                    chatRoomType={chatRoomType}
                 />
             </View>
         </SWRConfig>
