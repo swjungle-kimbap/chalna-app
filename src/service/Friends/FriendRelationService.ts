@@ -31,7 +31,7 @@ export const sendFriendRequest = (otherId: number): Promise<boolean> => {
 };
 
 
-export const acceptFriendRequest = async (otherId: number) => {
+export const acceptFriendRequest = async (otherId: number, chatRoomId: number) => {
     return new Promise((resolve) => {
         Alert.alert(
             '친구 요청 수락',
@@ -41,7 +41,10 @@ export const acceptFriendRequest = async (otherId: number) => {
                 {
                     text: '수락', onPress: async () => {
                         try {
-                            const response = await axiosPatch(urls.ACCEPT_FRIEND_REQUEST_URL + `${otherId}`);
+                            const response = await axiosPatch(
+                                urls.ACCEPT_FRIEND_REQUEST_URL + `${otherId}`,
+                                    "친구요청 전송", {chatRoomId: chatRoomId}
+                            );
                             console.log(response);
                             Alert.alert('친구 맺기 성공', '친구가 되었습니다!');
                             resolve(true);

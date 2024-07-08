@@ -67,7 +67,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     console.log('senderId ', senderId);
 
     const handleAccept = async () => {
-        const response = await acceptFriendRequest(senderId);
+        const response = await acceptFriendRequest(senderId, chatRoomId);
         console.log('수락 요청 응답: ',response);
         if (response === true) {
             WebSocketManager.sendMessage(String(chatRoomId), "친구가 되었습니다!\n대화를 이어가보세요.", 'FRIEND_REQUEST');
