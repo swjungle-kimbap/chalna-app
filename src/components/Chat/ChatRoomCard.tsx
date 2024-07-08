@@ -1,7 +1,10 @@
-import React , { useState }  from 'react';
+import React, {useMemo, useState} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import * as ImagePicker from 'react-native-image-picker';
 import { Swipeable } from 'react-native-gesture-handler';
+import {JoinedLocalChatListState, userInfoState} from "../../recoil/atoms";
+import {useRecoilValue} from "recoil";
+import {LocalChatRoomData, LoginResponse} from "../../interfaces";
 
 
 interface ChatRoomCardProps {
@@ -33,6 +36,11 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
         </TouchableOpacity>
     );
 
+    const joinedLocalChatList = useRecoilValue(JoinedLocalChatListState);
+    const chatRoomName = useMemo(() => {
+        const chatRoom = joinedLocalChatList.find(room => room.chatRoomId === chatRoomId);
+        return chatRoom ? chatRoom.name : 'Unknown Chat Room';
+    }, [chatRoomId, joinedLocalChatList]);
 
     return (
         <Swipeable renderRightActions={renderRightActions}>
@@ -54,14 +62,16 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
                     />
                     <View style={styles.content}>
                         <View style={styles.header}>
-                            <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}>{usernames}</Text>
+                            <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}>
+                                {chatRoomType==='LOCAL'? chatRoomName: usernames}
+                            </Text>
                             {unReadMsg ? (
                                 <View style={styles.unreadBadge}>
                                     <Text style={styles.unreadText}>{unReadMsg}</Text>
                                 </View>
                             ) : null}
                         </View>
-                        <Text style={styles.lastMsg}>{lastMsg || "대화를 시작해보세요"}</Text>
+                        <Text style={styles.lastMsg}>{lastMsg || " "}</Text>
                         <View style={styles.bottomRow}>
                             <Text style={styles.status}>{/* Status message here */}</Text>
                             <Text style={styles.lastUpdate}>{lastUpdate ? formatTime(lastUpdate) : " "}</Text>

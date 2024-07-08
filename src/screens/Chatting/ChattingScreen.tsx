@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRecoilValue } from "recoil";
-import { userInfoState } from "../../recoil/atoms";
+import {JoinedLocalChatListState, userInfoState} from "../../recoil/atoms";
 import { LoginResponse, User } from "../../interfaces";
 import { SWRConfig } from 'swr';
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
@@ -52,7 +52,6 @@ import RNFS from "react-native-fs";
 import ImageResizer from 'react-native-image-resizer';
 import DateHeader from '../../components/Chat/DateHeader';
 
-
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
 const ChattingScreen = () => {
@@ -79,11 +78,28 @@ const ChattingScreen = () => {
     const isUserAtBottom = useRef(true);
     const [showScrollToEndButton, setShowScrollToEndButton] = useState(false);
 
+    const joinedLocalChatList = useRecoilValue(JoinedLocalChatListState);
+    const chatRoomInfo = useMemo(() => {
+        const chatRoom = joinedLocalChatList.find(room => room.chatRoomId === Number(chatRoomId));
+        return chatRoom ? { name: chatRoom.name, distance: chatRoom.distance, description: chatRoom.description } : { name: 'Unknown Chat Room', distance: 0, description: '' };
+    }, [chatRoomId, joinedLocalChatList]);
+
+    const calculateDistanceInMeters = (distanceInKm) => {
+        const distanceInMeters = distanceInKm * 1000;
+        return Math.round(distanceInMeters);
+    };
+
+    const distanceDisplay =() => {
+        const distanceInMeters = calculateDistanceInMeters(chatRoomInfo.distance);
+        return distanceInMeters > 50 ? '50m+' : `${distanceInMeters}m`;
+    };
+    console.log(distanceDisplay());
 
     // const scrollViewRef = useRef<ScrollView>(null);
 
     const updateRoomInfo = async () => {
         const responseData: chatroomInfoAndMsg = await fetchChatRoomContent(chatRoomId, currentUserId);
+        console.log('Update & Render Room info after Befriending');
         if (responseData) {
             const usernames = responseData.members
                 .filter((member: chatRoomMember) => member.memberId !== currentUserId)
@@ -207,18 +223,20 @@ const ChattingScreen = () => {
                         parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
                         parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt);
 
+                        if(!(chatRoomType ==='FRIEND' && parsedMessage.type==='TIMEOUT')){
                         // 메세지 렌더링 & 저장 & 스크롤 업데이트
-                        setMessages((prevMessages) => (prevMessages ? [...prevMessages, parsedMessage] : [parsedMessage]));
-                        if (isUserAtBottom.current) {
-                            flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
-                            setShowScrollToEndButton(false);
-                        } else {
-                            setShowScrollToEndButton(true);
+                            setMessages((prevMessages) => (prevMessages ? [...prevMessages, parsedMessage] : [parsedMessage]));
+                            if (isUserAtBottom.current) {
+                                flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                                setShowScrollToEndButton(false);
+                            } else {
+                                setShowScrollToEndButton(true);
+                            }
+                            saveChatMessages(chatRoomId, [parsedMessage]);
                         }
-                        saveChatMessages(chatRoomId, [parsedMessage]);
 
                         // 친구가 되었으면 채팅방 정보 다시 로드
-                        if (parsedMessage.type === 'FRIEND_REQUEST' && parsedMessage.content === '친구가 되었습니다!\n대화를 이어가보세요.') {
+                        if (parsedMessage.type === 'FRIEND_REQUEST'  && parsedMessage.content.includes('친구가 되었습니다!')) {
                             updateRoomInfo();
                         }
 
@@ -355,7 +373,7 @@ const ChattingScreen = () => {
 
 
     const sendMessage = () => {
-        if (chatRoomType === 'WAITING')
+        if (chatRoomType === 'WAITING' || messageContent==='' )
             return;
         else if (chatMessageType.current == 'CHAT') {
             WebSocketManager.sendMessage(chatRoomId, messageContent, 'CHAT');
@@ -420,8 +438,8 @@ const ChattingScreen = () => {
         <SWRConfig value={{}}>
             <CustomHeader
                 // title={username}
-                titleSmall = {username}
-                subtitle={'안내문구 출력용'}
+                titleSmall = {chatRoomType==='LOCAL'? chatRoomInfo.name: username}
+                subtitle={chatRoomType==='LOCAL'? distanceDisplay(): ''}
                 onBackPress={() => {
                     navigate("로그인 성공", {
                         screen: "채팅목록",

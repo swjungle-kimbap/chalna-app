@@ -30,7 +30,7 @@ interface User {
 interface Friend extends User {
     profileImageId: number;
     status: number;
-    profileImageUrl?: string; 
+    profileImageUrl?: string;
 }
 
 type FriendsScreenProps = {
@@ -59,7 +59,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                     // handleDownloadProfile(response?.data?.data?.profileImageId);
 
                     const friends = response.data.data;
-                    
+
                     // 각 친구의 프로필 이미지를 다운로드
                     for (const friend of friends) {
                         if (friend.profileImageId) {
@@ -87,9 +87,11 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
         if (!trimmedQuery) {
             setFilteredData(friendsData);
         } else {
-            const filtered = friendsData.filter(({ username, message, profileImageId }) =>
-                (username &&  getKoreanInitials(username).includes(trimmedQuery)) ||
-                (message && getKoreanInitials(message).includes(trimmedQuery)) 
+
+            const filtered = friendsData.filter(({ username, message }) =>
+                (username && (username.includes(trimmedQuery) ||  getKoreanInitials(username).includes(trimmedQuery))) ||
+                (message && (message.includes(trimmedQuery) || getKoreanInitials(message).includes(trimmedQuery)))
+
             );
             setFilteredData(filtered);
         }
@@ -119,7 +121,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
         }
     };
 
-    
+
 
     const handleCardPress = useCallback((cardId: number) => {
         setExpandedCardId(prevId => prevId === cardId ? null : cardId);
