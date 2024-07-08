@@ -47,7 +47,7 @@ const MenuModal: React.FC<MenuModalProps> = ({ title, isVisible, onClose,
                 {menu2 && <ImageTextButton title={menu2} onPress={onMenu2} style={{marginBottom:20}} />}
                 {menu3 && <ImageTextButton title={menu3} onPress={onMenu3}  style={{marginBottom:20}}/>}
 
-                {members && <MemberList members={members}/>}
+                {members && <MemberList members={members} chatRoomId={chatRoomId} chatRoomType={chatRoomType}/>}
 
             </View>
         </Modal>
