@@ -376,8 +376,12 @@ const ChattingScreen = () => {
 
 
     const sendMessage = () => {
-        if (chatRoomType === 'WAITING' || messageContent==='' )
+        if (chatRoomType === 'WAITING')
             return;
+
+        if (chatMessageType.current != 'FILE' && messageContent === '')
+            return;
+
         else if (chatMessageType.current == 'CHAT') {
             WebSocketManager.sendMessage(chatRoomId, messageContent, 'CHAT');
             setMessageContent('');
