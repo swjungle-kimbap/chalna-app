@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRecoilValue } from "recoil";
-import { userInfoState } from "../../recoil/atoms";
+import {JoinedLocalChatListState, userInfoState} from "../../recoil/atoms";
 import { LoginResponse, User } from "../../interfaces";
 import { SWRConfig } from 'swr';
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
@@ -52,7 +52,6 @@ import RNFS from "react-native-fs";
 import ImageResizer from 'react-native-image-resizer';
 import DateHeader from '../../components/Chat/DateHeader';
 
-
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
 const ChattingScreen = () => {
@@ -79,6 +78,22 @@ const ChattingScreen = () => {
     const isUserAtBottom = useRef(true);
     const [showScrollToEndButton, setShowScrollToEndButton] = useState(false);
 
+    const joinedLocalChatList = useRecoilValue(JoinedLocalChatListState);
+    const chatRoomInfo = useMemo(() => {
+        const chatRoom = joinedLocalChatList.find(room => room.chatRoomId === Number(chatRoomId));
+        return chatRoom ? { name: chatRoom.name, distance: chatRoom.distance, description: chatRoom.description } : { name: 'Unknown Chat Room', distance: 0, description: '' };
+    }, [chatRoomId, joinedLocalChatList]);
+
+    const calculateDistanceInMeters = (distanceInKm) => {
+        const distanceInMeters = distanceInKm * 1000;
+        return Math.round(distanceInMeters);
+    };
+
+    const distanceDisplay =() => {
+        const distanceInMeters = calculateDistanceInMeters(chatRoomInfo.distance);
+        return distanceInMeters > 50 ? '50m+' : `${distanceInMeters}m`;
+    };
+    console.log(distanceDisplay());
 
     // const scrollViewRef = useRef<ScrollView>(null);
 
@@ -421,8 +436,8 @@ const ChattingScreen = () => {
         <SWRConfig value={{}}>
             <CustomHeader
                 // title={username}
-                titleSmall = {username}
-                subtitle={'안내문구 출력용'}
+                titleSmall = {chatRoomType==='LOCAL'? chatRoomInfo.name: username}
+                subtitle={chatRoomType==='LOCAL'? distanceDisplay(): ''}
                 onBackPress={() => {
                     navigate("로그인 성공", {
                         screen: "채팅목록",
