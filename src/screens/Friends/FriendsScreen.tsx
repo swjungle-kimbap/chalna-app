@@ -178,6 +178,7 @@ const styles = StyleSheet.create({
     searchInput: {
         flex: 1,
         height: 40,
+        color: 'black'
     },
     listContentContainer: {
         paddingHorizontal: 0, // Remove horizontal padding

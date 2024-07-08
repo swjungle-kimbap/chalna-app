@@ -198,7 +198,6 @@ async function requestExternalStoragePermission() {
                     return;
                 }
 
-
                 const { preSignedUrl } = message;
 
                 const path = `${RNFS.ExternalStorageDirectoryPath}/DCIM/Camera`; // 저장소
@@ -325,7 +324,7 @@ async function requestExternalStoragePermission() {
                                 {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
                         </DateReadStatusContainer>)}
 
-                        <MessageBubbleContent isSelf={isSelf}>
+                        <MessageBubbleContent isSelf={isSelf} isFile={type==='FILE'}>
                         {renderMessageContent()}
 
                         </MessageBubbleContent>
@@ -435,10 +434,10 @@ const MessageContainer = styled.View<{ isSelf: boolean; hasNewline: boolean; sho
 `; //bottom margin-left : profile pic length
 
 
-const MessageBubbleContent = styled.View<{ isSelf: boolean; hasNewline: boolean }>`
+const MessageBubbleContent = styled.View<{ isSelf: boolean; hasNewline: boolean; isFile: boolean}>`
     padding: 8px 15px;
     border-radius: 10px;
-    background-color: ${({ isSelf }) => (isSelf ? '#E4F1EE' : '#FFFFFF')};
+    background-color: ${({ isFile, isSelf }) => (isFile? 'transparent': isSelf ? '#E4F1EE' : '#FFFFFF')};
     flex-shrink: 1;
     max-width: 78%;
 `;
