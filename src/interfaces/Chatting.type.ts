@@ -41,7 +41,7 @@ export type ChatRoom = {
 export type chatRoomMemberImage = {
     memberId:number,
     username:string,
-    profile: string,
+    profileImageId: number,
     statusMsg: string,
 }
 

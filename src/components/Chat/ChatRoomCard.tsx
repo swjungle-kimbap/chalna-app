@@ -2,11 +2,16 @@ import React , { useState }  from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import * as ImagePicker from 'react-native-image-picker';
 import { Swipeable } from 'react-native-gesture-handler';
+import { useRecoilValue } from 'recoil';
+import { ProfileImageMapState } from '../../recoil/atoms';
+import FastImage, { Source } from 'react-native-fast-image';
+import { chatRoomMemberImage } from '../../interfaces/Chatting.type';
 
 
 interface ChatRoomCardProps {
     numMember: number;
     usernames: string;
+    members: chatRoomMemberImage[]
     lastMsg?: string | null;
     lastUpdate?: string;
     navigation: any;
@@ -21,19 +26,19 @@ const formatTime = (timestamp: string) => {
     return `${date.getHours()}:${date.getMinutes() < 10 ? '0' : ''}${date.getMinutes()}`;
 };
 
+const DefaultImgUrl = '../../assets/images/anonymous.png';
 
 const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
-                                                       lastMsg, lastUpdate, usernames
+                                                       lastMsg, lastUpdate, usernames, members
                                                        , navigation, chatRoomType, chatRoomId
                                                        , unReadMsg, onDelete }) => {
-
+    const profileImageMap = useRecoilValue(ProfileImageMapState);
     const renderRightActions = () => (
         <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(chatRoomId)}>
             <Text style={styles.deleteButtonText}>삭제</Text>
         </TouchableOpacity>
     );
-
-
+    console.log(members)
     return (
         <Swipeable renderRightActions={renderRightActions}>
             <TouchableOpacity
@@ -46,12 +51,21 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
                 ]} // Conditional styles
             >
                 <View style={styles.row}>
+                    {(chatRoomType === 'FRIEND' && members.length === 1 && members[0].profileImageId) ?
+                    (<FastImage
+                    style={styles.image}
+                    source={{uri: profileImageMap.get(members[0].profileImageId)
+                        , priority: FastImage.priority.normal } as Source}
+                    resizeMode={FastImage.resizeMode.cover}
+                    />) : (
                     <Image
-                        source={ //chatRoomType!=='LOCAL'?
-                            require('../../assets/images/anonymous.png')}
-                            // : require('../../assets/images/localChatRoom.png')} // Replace with your image path
-                        style={ styles.image }
+                    source={ //chatRoomType!=='LOCAL'?
+                        require(DefaultImgUrl)}
+                        // : require('../../assets/images/localChatRoom.png')} // Replace with your image path
+                    style={ styles.image }
                     />
+                    )}
+        
                     <View style={styles.content}>
                         <View style={styles.header}>
                             <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}>{usernames}</Text>

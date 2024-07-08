@@ -6,15 +6,19 @@ import MypageStackScreen from "./MypageStack";
 import FriendsStackScreen from "./FriendsStack";
 import ChattingStackScreen from "./ChattingStack";
 import { useEffect, useState } from 'react';
-import { useSetRecoilState } from 'recoil';
-import { locationState } from '../recoil/atoms';
+import { useRecoilState, useSetRecoilState } from 'recoil';
+import { locationState, ProfileImageMapState } from '../recoil/atoms';
 import { getMMKVObject } from '../utils/mmkvStorage';
-import { Position } from '../interfaces';
+import { AxiosResponse, Friend, Position } from '../interfaces';
 import { initUserSetting } from '../service/Setting';
+import { axiosGet } from "../axios/axios.method";
+import { urls } from "../axios/config";
+import { handleDownloadProfile } from "../service/Friends/FriendListAPI";
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
   const setLastLocation = useSetRecoilState(locationState);
+  const [profileImageMap, setProfileImageMap] = useRecoilState(ProfileImageMapState)
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -23,6 +27,23 @@ const BottomTabs = () => {
       setLastLocation(lastLocation);
     }
     initUserSetting();
+    const fetchData = async () => {
+      const response = await axiosGet<AxiosResponse<Friend[]>>(urls.GET_FRIEND_LIST_URL);
+      console.log("friend api response: ", response.data.data);
+      const friends = response.data.data;
+      const updatedProfileImageMap = new Map(profileImageMap);
+
+      for (const friend of friends) {
+        const profileImageUri = updatedProfileImageMap.get(friend.profileImageId);
+        if (!profileImageUri && friend.profileImageId) {
+          const newProfileImageUri = await handleDownloadProfile(friend.profileImageId);
+          updatedProfileImageMap.set(friend.profileImageId, newProfileImageUri);
+          console.log('새로 다운받은 프로필 이미지 : ', newProfileImageUri);
+        }
+      }
+      setProfileImageMap(updatedProfileImageMap);
+    }
+    fetchData();
     setIsLoading(false);
   }, [setLastLocation]);
 

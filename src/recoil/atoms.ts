@@ -1,7 +1,6 @@
 import { atom } from "recoil";
-import { LocalChatRoomData, LoginResponse, Position } from "../interfaces";
+import { Friend, LocalChatRoomData, LoginResponse, Position } from "../interfaces";
 import { IsNearbyState } from "./atomtypes";
-import { Friend } from "../screens/Friends/FriendsScreen";
 
 export const locationState = atom<Position>({
   key: 'location',
@@ -41,9 +40,9 @@ export const isNearbyState = atom<IsNearbyState>({
   }
 })
 
-export const FriendsMapState = atom<Map<number, Friend>>({
+export const ProfileImageMapState = atom<Map<number, string>>({
   key: 'FriendsList',
-  default: new Map()
+  default: new Map([[0, '../../assets/images/anonymous.png']])
 })
 
 export const JoinedLocalChatListState = atom<LocalChatRoomData[]>({

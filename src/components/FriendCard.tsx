@@ -1,15 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity , Alert} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity , Alert, Image} from 'react-native';
 import { Friend } from '../interfaces/savedData';
 import RoundBox from './common/RoundBox';
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../interfaces";
 import Button from './common/Button';
 import { axiosGet, axiosPost } from "../axios/axios.method";
-import { useRecoilState } from 'recoil';
-import { FriendsMapState } from '../recoil/atoms';
 import {urls} from "../axios/config";
 import FastImage, { Source } from 'react-native-fast-image';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { ProfileImageMapState } from '../recoil/atoms';
 
 interface FriendCardProps {
     user: Friend;
@@ -32,17 +32,14 @@ interface ApiResponse {
   }
 
 const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, navigation, options}) => {
-    const [friendsList, setFriendsList] = useRecoilState(FriendsMapState);
-
+    const profileImageMap = useRecoilValue(ProfileImageMapState);
     const handlePress = () => {
         onExpand();
     };
 
     const handleChat = async () => {
         try {
-
             const response = await axiosGet<ApiResponse>(`${urls.GET_FRIEND_LIST_URL}/${user.id}`);
-
             console.log(response.data);
             if (response.data && response.data.data && response.data.data.chatRoomId) {
                 const { chatRoomId } = response.data.data;
@@ -78,12 +75,15 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
         <TouchableOpacity onPress={handlePress}>
             <RoundBox style={styles.container}>
                 <View style={styles.header}>
-                    <FastImage
-                    style={styles.avatar}
-                    source={{uri: user.profileImageUrl, priority: FastImage.priority.normal } as Source}
-                    resizeMode={FastImage.resizeMode.cover}
-                    />
-                    {/* <Image source={require('../assets/images/anonymous.png')} style={styles.avatar} /> */}
+                    { user.profileImageId ? (
+                        <FastImage
+                        style={styles.avatar}
+                        source={{uri: profileImageMap.get(user.profileImageId), priority: FastImage.priority.normal } as Source}
+                        resizeMode={FastImage.resizeMode.cover}
+                        />
+                    ) : (
+                        <Image source={require('../assets/images/anonymous.png')} style={styles.avatar} />
+                    )}
                     {/* <Image source={user.profileImageUrl ? { uri: user.profileImageUrl } : require('../assets/images/anonymous.png')} style={styles.avatar} /> */}
                     <View style={styles.textContainer}>
                         <Text style={styles.name} >{user.username}</Text>

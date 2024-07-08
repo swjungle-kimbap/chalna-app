@@ -133,6 +133,7 @@ const ChattingListScreen = ({ navigation }) => {
                         return (
                             <ChatRoomCard
                                 usernames={getDisplayName(item)}
+                                members={item.members.filter(member => member.memberId !== currentUserId)}
                                 lastMsg={item.recentMessage ? (item.recentMessage.type == "FILE" ? "사진": item.recentMessage.content) : ""}
                                 lastUpdate={item.recentMessage?.createdAt || " "}
                                 navigation={navigation}
