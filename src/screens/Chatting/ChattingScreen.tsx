@@ -84,6 +84,7 @@ const ChattingScreen = () => {
 
     const updateRoomInfo = async () => {
         const responseData: chatroomInfoAndMsg = await fetchChatRoomContent(chatRoomId, currentUserId);
+        console.log('Update & Render Room info after Befriending');
         if (responseData) {
             const usernames = responseData.members
                 .filter((member: chatRoomMember) => member.memberId !== currentUserId)
@@ -218,7 +219,7 @@ const ChattingScreen = () => {
                         saveChatMessages(chatRoomId, [parsedMessage]);
 
                         // 친구가 되었으면 채팅방 정보 다시 로드
-                        if (parsedMessage.type === 'FRIEND_REQUEST' && parsedMessage.content === '친구가 되었습니다!\n대화를 이어가보세요.') {
+                        if (parsedMessage.type === 'FRIEND_REQUEST'  && parsedMessage.content.includes('친구가 되었습니다!')) {
                             updateRoomInfo();
                         }
 
