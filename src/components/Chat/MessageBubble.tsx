@@ -289,7 +289,6 @@ async function requestExternalStoragePermission() {
 
 
 
-
     // const hasNewline = message.includes('\n');
 
     return (
@@ -324,10 +323,14 @@ async function requestExternalStoragePermission() {
                                 {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
                         </DateReadStatusContainer>)}
 
-                        <MessageBubbleContent isSelf={isSelf} isFile={type==='FILE'}>
-                        {renderMessageContent()}
+                        {type==='FILE' ? (
+                            renderMessageContent()
+                        ): (
+                            <MessageBubbleContent isSelf={isSelf} isFile={type==='FILE'}>
+                                {renderMessageContent()}
+                            </MessageBubbleContent>
+                        )}
 
-                        </MessageBubbleContent>
                         {!isSelf && (<DateReadStatusContainer>
                             <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt>0? unreadCnt:''}</ReadStatus>
                             {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
@@ -357,7 +360,7 @@ async function requestExternalStoragePermission() {
                                 <Image
                                     source={require('../../assets/Icons/friendIcon.png')}
                                     style={{height: 18, width: 24, marginLeft:6, marginTop:7}}
-                                    resizeMode={"contain"}
+                                    resizeMode={"stretch"}
                                 />
                                 ):(
                             <ImageTextButton

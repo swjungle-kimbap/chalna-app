@@ -355,7 +355,7 @@ const ChattingScreen = () => {
 
 
     const sendMessage = () => {
-        if (chatRoomType === 'WAITING')
+        if (chatRoomType === 'WAITING' || messageContent==='' )
             return;
         else if (chatMessageType.current == 'CHAT') {
             WebSocketManager.sendMessage(chatRoomId, messageContent, 'CHAT');
