@@ -35,7 +35,7 @@ const createNotification = async (remoteMessage) => {
     return { title, body, isMatch, isImage: true, imageUrl };
   }
 
-  return { title, body, isMatch, isImage: false, imageUrl: null };
+  return { title, body, isMatch, isImage: false, imageUrl: '' };
 };
 
 // 로컬 알림 표시 함수
@@ -140,7 +140,7 @@ const FCMDataType = (data) => {
 const FCMMessageParse = (message:string) => {
   const messageObject = JSON.parse(message);
   if (messageObject.contentType === 'MESSAGE') {
-    return { body: messageObject.content, imageUrl:null}
+    return { body: messageObject.content, imageUrl:''}
   }
 
   return { body: "이미지", imageUrl: messageObject.content};
