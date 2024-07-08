@@ -68,8 +68,8 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
             setFilteredData(friendsData);
         } else {
             const filtered = friendsData.filter(({ username, message }) =>
-                (username &&  getKoreanInitials(username).includes(trimmedQuery)) ||
-                (message && getKoreanInitials(message).includes(trimmedQuery))
+                (username && (username.includes(trimmedQuery) ||  getKoreanInitials(username).includes(trimmedQuery))) ||
+                (message && (message.includes(trimmedQuery) || getKoreanInitials(message).includes(trimmedQuery)))
             );
             setFilteredData(filtered);
         }
