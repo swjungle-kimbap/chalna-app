@@ -78,6 +78,7 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
             <RoundBox style={styles.container}>
                 <View style={styles.header}>
                     <Image source={require('../assets/images/anonymous.png')} style={styles.avatar} />
+                    {/* <Image source={user.profileImageUrl ? { uri: user.profileImageUrl } : require('../assets/images/anonymous.png')} style={styles.avatar} /> */}
                     <View style={styles.textContainer}>
                         <Text style={styles.name} >{user.username}</Text>
                         <Text style={styles.statusMessage}>{user.message}</Text>
