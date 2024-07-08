@@ -329,7 +329,7 @@ const MessageBox: React.FC = ()  => {
     }
     console.log(fileId);
     let updateFileId = fileId;
-    if (!updateFileId) {
+    if (selectedTag ==='사진' && !updateFileId) {
       updateFileId = await uploadImageToS3();
       setFileId(updateFileId);
     }

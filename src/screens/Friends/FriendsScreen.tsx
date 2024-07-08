@@ -11,6 +11,9 @@ import { axiosGet } from "../../axios/axios.method";
 import { urls } from "../../axios/config";
 import ImageTextButton from "../../components/common/Button";
 import {getKoreanInitials} from '../../service/Friends/KoreanInitials';
+import { AxiosResponse } from "axios";
+import {  DownloadFileResponse } from "../../interfaces";
+import RNFS from 'react-native-fs';
 
 interface ApiResponse {
     status: number;
@@ -25,8 +28,9 @@ interface User {
 }
 
 interface Friend extends User {
-    profileImage: string;
+    profileImageId: number;
     status: number;
+    profileImageUrl?: string; 
 }
 
 type FriendsScreenProps = {
@@ -49,8 +53,24 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                 try {
                     const response = await axiosGet<ApiResponse>(urls.GET_FRIEND_LIST_URL);
                     console.log("friend api response: ", response.data.data);
-                    setFriendsData(response.data.data);
-                    setFilteredData(response.data.data); // Initially setting filteredData to all friends
+
+                    // setFriendsData(response.data.data);
+                    // setFilteredData(response.data.data); // Initially setting filteredData to all friends
+                    // handleDownloadProfile(response?.data?.data?.profileImageId);
+
+                    const friends = response.data.data;
+                    
+                    // 각 친구의 프로필 이미지를 다운로드
+                    for (const friend of friends) {
+                        if (friend.profileImageId) {
+                            const profileImageUrl = await handleDownloadProfile(friend.profileImageId);
+                            friend.profileImageUrl = profileImageUrl;
+                            console.log('프로필 이미지 ㅣ: ', profileImageUrl);
+                        }
+                    }
+
+                    setFriendsData(friends);
+                    setFilteredData(friends);
                 } catch (error) {
                     setError('Failed to fetch friends');
                 } finally {
@@ -67,13 +87,39 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
         if (!trimmedQuery) {
             setFilteredData(friendsData);
         } else {
-            const filtered = friendsData.filter(({ username, message }) =>
+            const filtered = friendsData.filter(({ username, message, profileImageId }) =>
                 (username &&  getKoreanInitials(username).includes(trimmedQuery)) ||
-                (message && getKoreanInitials(message).includes(trimmedQuery))
+                (message && getKoreanInitials(message).includes(trimmedQuery)) 
             );
             setFilteredData(filtered);
         }
     }, [friendsData, searchQuery]);
+
+    const handleDownloadProfile = async (profileId: number) => {
+        try {
+            const downloadResponse = await axiosGet<AxiosResponse<DownloadFileResponse>>(`${urls.FILE_DOWNLOAD_URL}${profileId}`, "프로필 다운로드");
+            const { presignedUrl } = downloadResponse.data.data;
+
+            const timestamp = new Date().getTime();
+            const localFilePath = `${RNFS.DocumentDirectoryPath}/profile_image_${profileId}_${timestamp}.jpg`;
+            const downloadResult = await RNFS.downloadFile({
+                fromUrl: presignedUrl,
+                toFile: localFilePath,
+            }).promise;
+
+            if (downloadResult.statusCode === 200) {
+                return `file://${localFilePath}`;
+            } else {
+                console.log(downloadResult.statusCode);
+                return null;
+            }
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    };
+
+    
 
     const handleCardPress = useCallback((cardId: number) => {
         setExpandedCardId(prevId => prevId === cardId ? null : cardId);
