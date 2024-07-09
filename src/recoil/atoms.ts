@@ -71,3 +71,8 @@ export const DeveloperModeState = atom<boolean>({
   key: 'DeveloperMode',
   default: false,
 })
+
+export const MsgSendCntState = atom<number>({
+  key: 'MsgSendCnt',
+  default: 0,
+})

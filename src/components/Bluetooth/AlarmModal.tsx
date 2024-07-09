@@ -8,6 +8,7 @@ import { AlarmCountState } from '../../recoil/atoms';
 import { userMMKVStorage } from '../../utils/mmkvStorage';
 import { MatchFCM } from '../../interfaces/ReceivedFCMData.type';
 import { useMMKVObject } from 'react-native-mmkv';
+import Text from '../common/Text';
 
 export interface AlarmModalProps{
   closeModal: () => void,
@@ -85,14 +86,17 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
         <View style={styles.modalOverlay}>
           <TouchableWithoutFeedback>
             <View style={styles.modalpos}>
+              <Text style={styles.headText}>인연 알림 센터</Text>
+              {alarmCnt === 0 ? <Text style={styles.headText}>현재 알림이 없습니다.</Text> :
+              <>
               <FlatList
                 data={FCMAlarms}
                 keyExtractor={(item) => item.id}
                 renderItem={renderAlarmCard}
               />
-              {alarmCnt === 0 ? <></> :
               <Button title='모두 지우기' variant='sub' onPress={() => {removeAlarmItem("", true)}}
-                style={styles.deleteAllButtonPos} titleStyle={{color:'#FFF'}}/> }
+                style={styles.deleteAllButtonPos} titleStyle={{color:'#FFF'}}/> 
+              </>}
             </View>
           </TouchableWithoutFeedback>
         </View>
@@ -102,6 +106,10 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
 };
 
 const styles = StyleSheet.create({
+  headText: {
+    color:'white',
+    marginBottom: 10,
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

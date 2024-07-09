@@ -11,6 +11,8 @@ import { useMMKVBoolean, useMMKVNumber, useMMKVString } from 'react-native-mmkv'
 import { launchImageLibrary } from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 import FastImage from 'react-native-fast-image';
+import { useSetRecoilState } from 'recoil';
+import { MsgSendCntState } from '../../recoil/atoms';
 
 const ignorePatterns = [
   /No task registered for key shortService\d+/,
@@ -23,26 +25,25 @@ ignorePatterns.forEach(pattern => {
 
 interface MessageBoxPrams {
   uuids: Set<string>;
-  setShowMsgBox: React.Dispatch<React.SetStateAction<boolean>>
+  setShowMsgBox: React.Dispatch<React.SetStateAction<boolean>>;
+  setRemainingTime: React.Dispatch<React.SetStateAction<number>>;
+  fadeInAndMoveUp: () => void;
 }
 
-const sendDelayedTime = 30 * 1000;
+const sendDelayedTime = 30;
 
 const tags = ['텍스트', '사진'];
 
-const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox})  => {
+const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemainingTime, fadeInAndMoveUp})  => {
   const [msgText, setMsgText] = useMMKVString("map.msgText", userMMKVStorage);
   const [isBlocked, setIsBlocked] = useMMKVBoolean("map.isBlocked", userMMKVStorage);
   const [blockedTime, setBlockedTime] = useMMKVNumber("map.blockedTime", userMMKVStorage);
-  const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
   const sendCountsRef = useRef(0);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(0)).current;
-  const [rssiMap, setRssiMap] = useState<Map<string, number>>(null);
   const [selectedTag, setSelectedTag] = useMMKVString("map.selectedTag", userMMKVStorage); 
   const [imageUrl, setImageUrl] = useMMKVString("map.imageUrl", userMMKVStorage); 
   const [fileId, setFileId] = useMMKVNumber("map.fileId", userMMKVStorage); 
   const [selectedImage, setSelectedImage] = useState(null);
+  const setMsgSendCnt = useSetRecoilState(MsgSendCntState);
 
   const handleSelectImage = () => {
     setFileId(0);
@@ -141,6 +142,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox})  => {
       } as SendMsgRequest)
     }
     sendCountsRef.current = response?.data?.data?.sendCount;
+    setMsgSendCnt(response?.data?.data?.sendCount);
   } 
 
   const handleSendingMessage = async () => {
@@ -161,9 +163,22 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox})  => {
       return;
     setIsBlocked(true);
     setBlockedTime(Date.now());
-    setTimeout(() => {
-      setIsBlocked(false);
-    }, sendDelayedTime);
+    setRemainingTime(sendDelayedTime);
+    const timerId: NodeJS.Timeout | null = setInterval(() => {
+      setRemainingTime((prevTime) => {
+        if (prevTime > 0)
+          return prevTime - 1;
+        setIsBlocked(false);
+        clearInterval(timerId);
+        return sendDelayedTime; 
+      }); 
+
+    return () => {
+      if (timerId) {
+        clearInterval(timerId);
+      }
+    };
+    }, 1000);
   }
   
   // 이미지 제거 함수 추가
@@ -189,54 +204,13 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox})  => {
     return true;
   };
 
-  const fadeInAndMoveUp = () => {
-    fadeAnim.setValue(0);
-    translateY.setValue(0);
-
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateY, {
-        toValue: -50,
-        duration: 1000,
-        useNativeDriver: true,
-      })
-    ]).start(() => {
-      fadeOutAndMoveUp();
-    });
-  };
-
-  const fadeOutAndMoveUp = () => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 3000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateY, {
-        toValue: -100,
-        duration: 3000,
-        useNativeDriver: true,
-      })
-    ]).start();
-  };
 
   return (
     <> 
-      <Animated.View
-        style={{ 
-            opacity: fadeAnim,
-            transform: [{ translateY: translateY }],
-          }}>
-        <Text variant='sub'>{sendCountsRef.current !== 0 ? `${sendCountsRef.current}명에게 인연 메세지를 보냈습니다.` : `메세지를 보낼 수 없는 대상입니다.`}</Text>
-      </Animated.View>
       <RoundBox width='95%' style={styles.msgBox}>
         <View style={styles.titleContainer}>
           <Text variant='title' style={styles.title}>인연 메세지 <Button title='💬' onPress={() => {
-            Alert.alert("인연 메세지 작성",`${sendDelayedTime/(1000)}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요! 메세지를 받기 위해 블루투스 버튼을 켜주세요`)}
+            Alert.alert("인연 메세지 작성",`${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요! 메세지를 받기 위해 블루투스 버튼을 켜주세요`)}
           }/> 
           </Text>
           {tags.map((tag) => (
@@ -269,19 +243,22 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox})  => {
                 </TouchableOpacity>
                 </>
               ) : (
-                <Button title='사진을 추가해주세요🖼️' onPress={()=>{handleSelectImage()}}/> 
+                <Button title='사진을 추가해주세요🖼️' onPress={handleSelectImage}/> 
               )}
             </View>
           )}
       </View>
         <Button title={'보내기'} variant='main' titleStyle={{color: '#000'}}
-          onPress={() => handleSendingMessage()}/>
+          onPress={handleSendingMessage}/>
       </RoundBox>
     </>
   );
 };
 
 const styles = StyleSheet.create({
+  animatedText : {
+    color:'black',
+},
   fullScreenImage: {
     width: '100%',
     height: 150,

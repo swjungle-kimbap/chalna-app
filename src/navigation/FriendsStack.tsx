@@ -15,7 +15,7 @@ const FriendsStackScreen = () => {
       }
     })}>
       <FriendsStack.Screen name='친구 목록' component={FriendsScreen}/>
-      <FriendsStack.Screen name='마이 페이지' component={MypageStackScreen} options={{headerShown:false}}/>
+      <FriendsStack.Screen name='마이페이지' component={MypageStackScreen} options={{headerShown:false}}/>
     </FriendsStack.Navigator>
   );
 }

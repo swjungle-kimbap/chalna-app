@@ -1,4 +1,4 @@
-import { Modal, NativeEventEmitter, NativeModules, StyleSheet, TouchableWithoutFeedback, View } from "react-native";
+import { Animated, Modal, NativeEventEmitter, NativeModules, StyleSheet, TouchableWithoutFeedback, View } from "react-native";
 import AlarmButton from "../../components/Bluetooth/AlarmButton";
 import MessageBox from "../../components/Bluetooth/MessageBox";
 import Text from "../../components/common/Text";
@@ -7,7 +7,7 @@ import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv";
 import { userMMKVStorage } from "../../utils/mmkvStorage";
 import ScanNearbyAndPost, { ScanNearbyStop } from "../../service/Bluetooth";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { DeviceUUIDState, isRssiTrackingState } from "../../recoil/atoms";
+import { DeviceUUIDState, isRssiTrackingState, MsgSendCntState } from "../../recoil/atoms";
 import requestPermissions from "../../utils/requestPermissions";
 import requestBluetooth from "../../utils/requestBluetooth";
 import showPermissionAlert from "../../utils/showPermissionAlert";
@@ -21,6 +21,7 @@ import RssiTracking from "../../components/Bluetooth/RssiTracking";
 import Button from '../../components/common/Button';
 import DancingText from "../../components/Bluetooth/DancingText";
 import DancingWords from "../../components/Bluetooth/DancingWords";
+import useFadeText from "../../hooks/useFadeText";
 
 interface BluetoothScreenPrams {
   route: {
@@ -66,6 +67,10 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   const [showTracking, setShowTracking] = useState(false);
   const [rssiMap, setRssiMap] = useState<Map<string, number>>(null);
   const [detectCnt, setDetectCnt] = useState(0);
+  const [remainingTime, setRemainingTime] = useState(30);
+  const msgSendCnt = useRecoilValue(MsgSendCntState);
+  
+  const [fadeInAndMoveUp, fadeAnim, translateY] = useFadeText();
   useBackground(isScanning);
 
   useEffect(() => {
@@ -76,15 +81,32 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
     if (isScanning) {
       ScanNearbyAndPost(deviceUUID);
     }
+
+    let timerId: NodeJS.Timeout | null = null;
     if (isBlocked) {
       const restBlockedTime = sendDelayedTime - (Date.now() - blockedTime);
       if (restBlockedTime > 0) {
         setIsBlocked(true);
-        setTimeout(() => setIsBlocked(false), restBlockedTime);
+        setRemainingTime(Math.round(restBlockedTime / 1000));
+        timerId = setInterval(() => {
+          setRemainingTime((prevTime) => {
+            if (prevTime > 0)
+              return prevTime - 1;
+            setIsBlocked(false);
+            clearInterval(timerId);
+            return 30; 
+          }); 
+        }, 1000);
       } else {
         setIsBlocked(false);
       }
     }
+
+    return () => {
+      if (timerId) {
+        clearInterval(timerId);
+      }
+    };
   }, [])
 
   const updateRssi = (uuid: string, rssi: number) => {
@@ -224,9 +246,9 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
     <>
       {isRssiTracking && (
         <>
-          <RoundBox style={styles.TVButton}>
-            <Button title='CCTV' onPress={()=>setShowTracking(true)} titleStyle={{color: '#979797' , fontSize: 10}}/>
-          </RoundBox>
+          <View style={styles.TVButton}>
+            <Button title='CCTV' onPress={()=>setShowTracking(true)} titleStyle={{color: 'white' , fontSize: 10}}/>
+          </View>
           <RssiTracking closeModal={()=>setShowTracking(false)} modalVisible = {showTracking} items={rssiMap}/>
         </>
       )} 
@@ -234,12 +256,14 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
         <BleButton bleON={isScanning} bleHanddler={handleBLEButton} />
         <AlarmButton notificationId={notificationId} />
         <View style={styles.contentContainer}>
-          <Text style={styles.findText}>10m 이내에 인연을 찾고 있습니다</Text>
+          {isScanning ? <Text style={styles.findText}>10m 이내에 인연을 찾고 있습니다</Text> :
+            <Text style={styles.findText}>주변의 사람을 찾을 수 없습니다.</Text>
+          }
           <RoundBox style={styles.content}>
             <Text>디자인</Text>
           </RoundBox>
           <View style={styles.msgContent}>
-          {showMsgBox ? 
+          {showMsgBox ?
           <Modal
             animationType="slide"
             transparent={true}
@@ -250,30 +274,35 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
               <View style={styles.modalOverlay}>
                 <TouchableWithoutFeedback>
                   <View style={styles.modalContent}>
-                    <MessageBox uuids={uuidSet} setShowMsgBox={setShowMsgBox} />
+                    <MessageBox uuids={uuidSet} setShowMsgBox={setShowMsgBox} setRemainingTime={setRemainingTime}
+                      fadeInAndMoveUp={fadeInAndMoveUp}/>
                   </View>
                 </TouchableWithoutFeedback>
               </View>
             </TouchableWithoutFeedback>
           </Modal> : (
            isBlocked ?  
-            <Text>인연 메세지는 30초 뒤에 다시 보낼 수 있습니다.</Text> : 
+            <>
+            <Animated.View
+              style={{
+                opacity: fadeAnim,
+                transform: [{ translateY: translateY }],
+              }}>
+              <Text variant='sub'style={{fontSize: 15}}>{msgSendCnt ? `${msgSendCnt}명에게 인연 메세지를 보냈습니다.` :
+                "메세지를 보낼 수 없는 대상입니다. 다시 보내 주세요!"}</Text>
+            </Animated.View>
+            <Text style={styles.blockText}>인연 메세지는</Text>
+            <Text style={styles.blockText2}>{remainingTime}초 뒤에 다시 보낼 수 있습니다.</Text>
+            </> : 
             isScanning ? detectCnt ?  
             <>
-              <DancingText >주위의 {detectCnt}명의 인연을 찾았습니다!</DancingText>
-              <RoundBox style={styles.sendButton}>
-                <Button title="메세지 보내기" onPress={() => setShowMsgBox(true)}/>
-              </RoundBox>
+              <Text style={styles.findText}>주위의 {detectCnt}명의 인연을 만났습니다!</Text>
+              <DancingText setShowMsgBox = {setShowMsgBox}/>                
             </> : 
             <>
-            <DancingWords />
-            <Text style={styles.searchText}>탐색중</Text>
+            <DancingWords/>
             </> : (
-            <>
-              <Text style={styles.notSearchText}>주변의 사람을 만날 수 있도록</Text>
-              <Text style={styles.notSearchText}>블루투스 버튼을 눌러 주세요!</Text>
-              {/* Add additional conditions here to handle other states like "인연을 찾았을 때" */}
-            </>
+              <Text style={styles.findText}>블루투스 버튼을 눌러 주세요!</Text>
           ))}
           </View>
         </View>
@@ -283,6 +312,14 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
+  blockText2: {
+    marginTop: 10,
+    fontSize: 20,
+  },
+  blockText: {
+    marginTop: 40,
+    fontSize: 20,
+  },
   msgContent: {
     height: 100,
   },
@@ -291,7 +328,6 @@ const styles = StyleSheet.create({
     width: '95%',
     bottom: 80, 
     right: 5,
-    zIndex: 2,
   },
   modalOverlay: {
     flex: 1,
