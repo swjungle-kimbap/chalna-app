@@ -74,7 +74,7 @@ const ChattingScreen = () => {
     const chatRoomIdRef = useRef<string>(chatRoomId)
     const [profilePicture, setProfilePicture] = useState("");
     const profileImageMap = useRecoilValue(ProfileImageMapState);
-    
+
     const otherIdRef = useRef<number | null>(null);
     const chatMessageType = useRef('CHAT');
 
@@ -100,7 +100,6 @@ const ChattingScreen = () => {
         const distanceInMeters = calculateDistanceInMeters(chatRoomInfo.distance);
         return distanceInMeters > 50 ? '50m+' : `${distanceInMeters}m`;
     };
-    console.log(distanceDisplay());
 
     // const scrollViewRef = useRef<ScrollView>(null);
 
@@ -252,10 +251,14 @@ const ChattingScreen = () => {
                             if (isUserAtBottom.current) {
                                 flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
                                 setShowScrollToEndButton(false);
-                                setShowNewMessageBadge(true);
+                                if (parsedMessage.senderId!==currentUserId){
+                                    setShowNewMessageBadge(true);
+                                }
                             } else {
                                 setShowScrollToEndButton(true);
-                                setShowNewMessageBadge(true);
+                                if (parsedMessage.senderId!==currentUserId){
+                                    setShowNewMessageBadge(true);
+                                }
                                 setTimeout(() => setShowNewMessageBadge(false), 3000);
                             }
                             // if (isUserAtBottom.current) {
@@ -311,16 +314,16 @@ const ChattingScreen = () => {
 
     const handleKeyboardDidShow = () => {
         setShowScrollToEndButton(false);
-        if (isUserAtBottom.current) {
+        // if (isUserAtBottom.current) {
             flatListRef.current?.scrollToEnd({ animated: true });
-        }
+        // }
     };
 
     const handleKeyboardDidHide = () => {
         setShowScrollToEndButton(false);
-        if (isUserAtBottom.current) {
+        // if (isUserAtBottom.current) {
             flatListRef.current?.scrollToEnd({ animated: true });
-        }
+        // }
     };
 
     useEffect(() => {
@@ -456,27 +459,13 @@ const ChattingScreen = () => {
     }, [members]);
 
     const getUsernameBySenderId = (senderId: number) => {
-        return memberIdToUsernameMap.get(senderId) || '익명의 하마';
+        return memberIdToUsernameMap.get(senderId) || '(알 수 없는 사용자)';
     }
 
-    // const handleScroll = (event) => {
-    //     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-    //     const buffer = 500; // Increase the buffer to make it more generous
-    //     const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - buffer;
-    //     isUserAtBottom.current = isAtBottom;
-    //     if (isAtBottom) {
-    //         setShowScrollToEndButton(false);
-    //     }
-    // }
-    //
-    // const scrollToBottom = () => {
-    //     flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
-    //     setShowScrollToEndButton(false);
-    // };
 
     const handleScroll = (event) => {
         const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-        const buffer = 50; // Adjust buffer as necessary
+        const buffer = 400; // Adjust buffer as necessary
         const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - buffer;
         isUserAtBottom.current = isAtBottom;
         setShowScrollToEndButton(!isAtBottom);
@@ -505,7 +494,7 @@ const ChattingScreen = () => {
         <SWRConfig value={{}}>
             <CustomHeader
                 // title={username}
-                titleSmall = {chatRoomType==='LOCAL'? chatRoomInfo.name: username}
+                titleSmall = {chatRoomType==='LOCAL'? chatRoomInfo.name: username? username: '(알 수 없는 사용자)'}
                 subtitle={chatRoomType==='LOCAL'? distanceDisplay(): ''}
                 onBackPress={() => {
                     navigate("로그인 성공", {
@@ -645,8 +634,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     scrollView: {
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
+        // flexDirection: 'column',
+        justifyContent: 'flex-end',
         flex: 1,
         paddingTop: 5,
     },
