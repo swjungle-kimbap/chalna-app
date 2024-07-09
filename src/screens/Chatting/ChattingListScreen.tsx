@@ -5,12 +5,11 @@ import { useIsFocused } from '@react-navigation/native';
 import CustomHeader from "../../components/common/CustomHeader";
 import { useRecoilValue } from "recoil";
 import { LoginResponse } from "../../interfaces";
-import {JoinedLocalChatListState, userInfoState} from "../../recoil/atoms";
+import { userInfoState } from "../../recoil/atoms";
 import {ChatRoom, ChatRoomLocal} from "../../interfaces/Chatting.type";
 import { fetchChatRoomList, deleteChat } from "../../service/Chatting/chattingAPI";
 import BackgroundTimer from 'react-native-background-timer';
 import {saveChatRoomList, getChatRoomList, removeChatRoom} from '../../service/Chatting/mmkvChatStorage';
-import {convertChatRoomDateFormat, formatDateToKoreanTime} from "../../service/Chatting/DateHelpers";
 
 const ChattingListScreen = ({ navigation }) => {
     const [chatRooms, setChatRooms] = useState<ChatRoomLocal[]>(getChatRoomList()||[]);
@@ -91,65 +90,23 @@ const ChattingListScreen = ({ navigation }) => {
     const chatRoomIdToUsernamesMap = useMemo(() => {
         const map = new Map<number, string>();
         chatRooms.forEach(room => {
-            if (room.type !== 'LOCAL') {
+            // if (room.type !== 'LOCAL') {
                 const usernames = room.members
                     .filter(member => member.memberId !== currentUserId)
-                    .map(member => member.username)
-                    .sort((a, b) => a.localeCompare(b)); // added sort
+                    .map(member => member.username);
                 map.set(room.id, usernames.join(', '));
-            }
+            // }
         });
         return map;
     }, [chatRooms, currentUserId]);
 
-    const joinedLocalChatList = useRecoilValue(JoinedLocalChatListState);
-    const getChatRoomInfo = (chatRoomId, joinedLocalChatList) => {
-        const chatRoom = joinedLocalChatList.find(room => room.chatRoomId === Number(chatRoomId));
-        return chatRoom
-            ? { name: chatRoom.name, distance: chatRoom.distance, description: chatRoom.description }
-            : { name: 'Unknown Chat Room', distance: 0, description: '' };
-    };
-
     const getDisplayName = (room: ChatRoom) => {
-        if (room.type === 'LOCAL') {
-            return getChatRoomInfo(room.id, joinedLocalChatList).name;
-        } else {
-            return chatRoomIdToUsernamesMap.get(room.id) || '(알 수 없는 사용자)';
-        }
+        // if (room.type === 'LOCAL') {
+        //     return room.name;
+        // } else {
+            return chatRoomIdToUsernamesMap.get(room.id) || 'Unknown';
+        // }
     };
-
-    //recent message 넣기
-    const getLastMsg = (room: ChatRoom) =>{
-        if (room.type === 'LOCAL') {
-            return getChatRoomInfo(room.id, joinedLocalChatList).description;
-        } else {
-            return room.recentMessage ? (room.recentMessage.type == "FILE" ? "사진": room.recentMessage.content) : "";
-        }
-    }
-
-    const calculateDistanceInMeters = (distanceInKm) => {
-        const distanceInMeters = distanceInKm * 1000;
-        return Math.round(distanceInMeters);
-    };
-
-    const distanceDisplay = (chatRoomId) => {
-        const chatRoom = joinedLocalChatList.find(room => room.chatRoomId === Number(chatRoomId));
-        if (chatRoom) {
-            const distanceInMeters = calculateDistanceInMeters(chatRoom.distance);
-            return distanceInMeters > 50 ? '50m+' : `${distanceInMeters}m`;
-        }
-        return '';
-    };
-
-    // 몇명
-    const getLastUpdate = (room: ChatRoom) =>{
-        if (room.type === 'LOCAL') {
-            return distanceDisplay(room.id);
-        } else {
-            return room.recentMessage ?
-                formatDateToKoreanTime(room.recentMessage.createdAt) : '';
-        }
-    }
 
     if (loading) {
         return (
@@ -176,10 +133,9 @@ const ChattingListScreen = ({ navigation }) => {
                         return (
                             <ChatRoomCard
                                 usernames={getDisplayName(item)}
-                                memberCnt = {item.memberCount}
                                 members={item.members.filter(member => member.memberId !== currentUserId)}
-                                lastMsg={getLastMsg(item)}
-                                lastUpdate={getLastUpdate(item)}
+                                lastMsg={item.recentMessage ? (item.recentMessage.type == "FILE" ? "사진": item.recentMessage.content) : ""}
+                                lastUpdate={item.recentMessage? item.recentMessage.createdAt : "" }
                                 navigation={navigation}
                                 chatRoomType={item.type}
                                 chatRoomId={item.id}

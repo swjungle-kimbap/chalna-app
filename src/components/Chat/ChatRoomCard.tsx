@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useRecoilValue } from 'recoil';
 import { ProfileImageMapState } from '../../recoil/atoms';
@@ -8,13 +8,12 @@ import { chatRoomMemberImage } from '../../interfaces/Chatting.type';
 import { handleDownloadProfile } from '../../service/Friends/FriendListAPI';
 import {JoinedLocalChatListState, userInfoState} from "../../recoil/atoms";
 import {LocalChatRoomData, LoginResponse} from "../../interfaces";
-import Text from '../../components/common/Text';
+
 
 interface ChatRoomCardProps {
     numMember: number;
     usernames: string;
     members: chatRoomMemberImage[]
-    memberCnt: number;
     lastMsg?: string | null;
     lastUpdate?: string;
     navigation: any;
@@ -24,11 +23,15 @@ interface ChatRoomCardProps {
     onDelete: (chatRoomId: number) =>void;
 }
 
+const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return `${date.getHours()}:${date.getMinutes() < 10 ? '0' : ''}${date.getMinutes()}`;
+};
 
 const DefaultImgUrl = '../../assets/images/anonymous.png';
 
 const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
-                                                       lastMsg, lastUpdate, usernames, members, memberCnt
+                                                       lastMsg, lastUpdate, usernames, members
                                                        , navigation, chatRoomType, chatRoomId
                                                        , unReadMsg, onDelete }) => {
     const profileImageMap = useRecoilValue(ProfileImageMapState);
@@ -89,27 +92,22 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
                     style={ styles.image }
                     />
                     )}
-
+        
                     <View style={styles.content}>
                         <View style={styles.header}>
-
                             <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}>
                                 {chatRoomType==='LOCAL'? chatRoomName: usernames}
                             </Text>
-                            <Text variant={'sub'} align={'left'} style={{ color: chatRoomType==='MATCH'? 'green': 'grey' }}>
-                                {memberCnt===2?'':memberCnt}
-                            </Text>
-
                             {unReadMsg ? (
                                 <View style={styles.unreadBadge}>
                                     <Text style={styles.unreadText}>{unReadMsg}</Text>
                                 </View>
                             ) : null}
                         </View>
-
+                        <Text style={styles.lastMsg}>{lastMsg || " "}</Text>
                         <View style={styles.bottomRow}>
-                            <Text style={styles.lastMsg} align={'left'} >{lastMsg || " "}</Text>
-                            <Text style={styles.lastUpdate}>{lastUpdate ? lastUpdate : " "}</Text>
+                            <Text style={styles.status}>{/* Status message here */}</Text>
+                            <Text style={styles.lastUpdate}>{lastUpdate ? formatTime(lastUpdate) : " "}</Text>
                         </View>
                     </View>
                 </View>
@@ -146,7 +144,7 @@ const styles = StyleSheet.create({
     },
     header: {
         flexDirection: 'row',
-        justifyContent: 'flex-start',
+        justifyContent: 'space-between',
         alignItems: 'center',
     },
     content: {
@@ -157,7 +155,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         marginBottom: 5,
-        marginRight:10,
         color: '#5A5A5A',
         flex: 1, // Ensure the username takes up available space
     },
@@ -183,7 +180,6 @@ const styles = StyleSheet.create({
         color: '#999',
     },
     unreadBadge: {
-        alignSelf: "flex-end",
         backgroundColor: 'green',
         borderRadius: 10,
         paddingHorizontal: 8,
