@@ -320,7 +320,7 @@ async function requestExternalStoragePermission() {
 
                     <MessageContainer isSelf={isSelf} showProfileTime={showProfileTime}>
                         {isSelf && (<DateReadStatusContainer>
-                                <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt>0? unreadCnt:''}</ReadStatus>
+                                {/*<ReadStatus isSelf={isSelf} variant="sub">{unreadCnt>0? unreadCnt:''}</ReadStatus>*/}
                                 {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
                         </DateReadStatusContainer>)}
 
@@ -333,7 +333,7 @@ async function requestExternalStoragePermission() {
                         )}
 
                         {!isSelf && (<DateReadStatusContainer>
-                            <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt>0? unreadCnt:''}</ReadStatus>
+                            {/*<ReadStatus isSelf={isSelf} variant="sub">{unreadCnt>0? unreadCnt:''}</ReadStatus>*/}
                             {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
                         </DateReadStatusContainer>)}
                     </MessageContainer>
