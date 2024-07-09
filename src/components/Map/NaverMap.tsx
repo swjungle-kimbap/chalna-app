@@ -1,18 +1,17 @@
 import { NaverMapView, NaverMapMarkerOverlay, NaverMapCircleOverlay, NaverMapViewRef } from "@mj-studio/react-native-naver-map";
-import { FlyingModeState, isNearbyState, showMsgBoxState } from "../../recoil/atoms";
+import { FlyingModeState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useEffect, useRef } from "react";
 import Geolocation, { GeoError } from "react-native-geolocation-service";
 import { Alert, LogBox } from "react-native";
 import { openSettings, PERMISSIONS } from "react-native-permissions";
-import { IsNearbyState } from "../../recoil/atomtypes";
 import LocalChatButton from "./LocalChatButton";
 import LocalChatMarkerOverlay from "./LocalChatMarkerOverlay";
 import { locationState } from "../../recoil/atoms";
 import { Position } from '../../interfaces';
 import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
 import requestPermissions from "../../utils/requestPermissions";
-import ArrowButton from "./ArrowButton";
+import ArrowButton from "../Bluetooth/ArrowButton";
 import KalmanFilter from 'kalmanjs'
 
 LogBox.ignoreLogs(['Called stopObserving with existing subscriptions.'])
@@ -21,8 +20,6 @@ const longkfilter = new KalmanFilter();
 
 export const NaverMap: React.FC = ({}) => {
   const [currentLocation, setCurrentLocation] = useRecoilState<Position>(locationState);
-  const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
-  const nearbyInfo = useRecoilValue<IsNearbyState>(isNearbyState);
   const mapViewRef = useRef<NaverMapViewRef>(null);
   const flyingMode = useRecoilValue(FlyingModeState);
   const watchId = useRef<number | null>(null);
@@ -105,24 +102,6 @@ export const NaverMap: React.FC = ({}) => {
       }}
       ref={mapViewRef}
       >
-        <NaverMapMarkerOverlay
-          latitude={currentLocation.latitude}
-          longitude={currentLocation.longitude}
-          onTap={() => Alert.alert("반갑티비", "주위의 인연이 존재하면 초록색으로 바뀌어요!")}
-          anchor={{ x: 0.5, y: 1 }}
-          caption={{
-            text: '나',
-          }}
-          image={{symbol:(nearbyInfo.isNearby ? "green" : "red") }}
-          width={20}
-          height={30}
-        />
-        <NaverMapCircleOverlay
-          latitude={currentLocation.latitude}
-          longitude={currentLocation.longitude}
-          radius={9}
-          color={nearbyInfo.isNearby ? '#3EB29780': '#D7351150'}
-        />
         <LocalChatMarkerOverlay />
     </NaverMapView>
     <LocalChatButton />

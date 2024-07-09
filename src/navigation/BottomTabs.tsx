@@ -14,6 +14,8 @@ import { initUserSetting } from '../service/Setting';
 import { axiosGet } from "../axios/axios.method";
 import { urls } from "../axios/config";
 import { handleDownloadProfile } from "../service/Friends/FriendListAPI";
+import BluetoothScreen from "../screens/BlueTooth/BluetoothScreen";
+import Text from "../components/common/Text";
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
@@ -58,13 +60,13 @@ const BottomTabs = () => {
 
   }
   return (
-      <Tab.Navigator initialRouteName="지도"
+      <Tab.Navigator initialRouteName="블루투스"
         screenOptions={({ route }) => ({
           tabBarIcon: ({ color, size }) => {
             let iconSource;
             switch (route.name) {
-              case '블루투스':
-                iconSource = require("../assets/Icons/bluetoothIcon.png");
+              case '인연':
+                iconSource = require("../assets/Icons/MypageIcon.png");
                 break
               case '지도':
                 iconSource = require("../assets/Icons/MapIcon.png");
@@ -75,15 +77,20 @@ const BottomTabs = () => {
               case '친구목록' :
                 iconSource = require("../assets/Icons/FriendsIcon.png");;
                 break;
-              case '마이페이지':
-                iconSource = require("../assets/Icons/MypageIcon.png");
-                break;
             }
             return <Image source={iconSource} resizeMode="contain"
-                    style={{ width: size, height: size, tintColor: color }} />;
+                    style={{ width: size, height: size, tintColor: color, marginTop: 7 }} />;
+          },
+          tabBarLabel: ({ focused }) => {
+            let labelStyle = {
+              fontFamily: focused ? FontTheme.fonts.title : FontTheme.fonts.sub,
+              fontSize: focused ? 12 : 10,
+              color: focused ? '#3EB297' : 'gray',
+              marginBottom: 4,
+            };
+            return <Text style={labelStyle}>{route.name}</Text>;
           },
           tabBarActiveTintColor: '#3EB297',
-          tabBarInactiveTintColor: 'gray',
           tabBarStyle: styles.tabContainer,
           tabBarLabelStyle : {
             fontFamily: FontTheme.fonts.main,
@@ -96,7 +103,7 @@ const BottomTabs = () => {
           },
           headerShown: false
         })}>
-      <Tab.Screen name="블루투스" component={MapScreen}/>    
+      <Tab.Screen name="인연" component={BluetoothScreen}/>    
       <Tab.Screen name="지도" component={MapScreen}/>
       <Tab.Screen name="채팅목록" component={ChattingStackScreen}/>
       <Tab.Screen name="친구목록" component={FriendsStackScreen} />

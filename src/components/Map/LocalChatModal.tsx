@@ -42,7 +42,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
           <View style={styles.inputBoxPos}>
             <TouchableWithoutFeedback>
               <View style={styles.inputBox}>
-                <Text style={styles.titleText}>Local Chatting <Button title='💬' onPress={
+                <Text style={styles.titleText}>장소 채팅 생성 <Button title='💬' onPress={
                   () => {Alert.alert("장소 대화방","현재 위치에서 주위 사람들과의 대화방을 만들어 보세요! 50m 이내의 사람들만 참여할 수 있어요!")}
                 }/></Text>
                 <Text style={styles.subText} variant='sub'>제목</Text>

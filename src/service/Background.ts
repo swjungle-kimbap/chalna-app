@@ -52,7 +52,7 @@ export const startBackgroundService = async () => {
   const options = {
     taskName: 'shortService',
     taskTitle: '인연 만나기',
-    taskDesc: '새로운 인연을 찾고 있습니다.',
+    taskDesc: '새로운 인연을 기다리고 있습니다.',
     taskIcon: {
       name: 'ic_launcher',
       type: 'mipmap',
