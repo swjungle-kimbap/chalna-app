@@ -7,7 +7,6 @@ import { getDefaultMMKVString } from '../utils/mmkvStorage';
 import { get } from 'http';
 
 
-const channelIdValue = getDefaultMMKVString('channelId');
 
 const handleFCMMessage = async (remoteMessage) => {
   if (checkMyPageSettings(remoteMessage.data) || remoteMessage.notification) {
@@ -29,9 +28,8 @@ const handleFCMMessage = async (remoteMessage) => {
 const createNotification = async (remoteMessage) => {
   const { title, body, isNotification, isMatch, imageUrl } = handleFCMType(remoteMessage);
 
-  if (imageUrl) {
+  if (imageUrl !== '' && imageUrl !== null) {
     console.log("곧 보여줄 이미지 URL", imageUrl);
-    //const localImagePath = await downloadImage(image);
     return { title, body, isMatch, isImage: true, imageUrl };
   }
 
@@ -40,6 +38,7 @@ const createNotification = async (remoteMessage) => {
 
 // 로컬 알림 표시 함수
 const showLocalNotification = (title: string, body: string, isMatch: boolean, data: any) => {
+  const channelIdValue = getDefaultMMKVString('channelId');
   let notificationOptions: any = {
     channelId: channelIdValue,
     channelName: DEFAULT_CHANNEL_NAME,
@@ -65,6 +64,7 @@ const showLocalNotification = (title: string, body: string, isMatch: boolean, da
 
 // 로컬 이미지 알림 함수
 const showLocalNotificationImage = (title:string, body:string, isMatch:boolean, imageUrl:string, data:any) => {
+  const channelIdValue = getDefaultMMKVString('channelId');
   let notificationOptions: any = {
     channelId: channelIdValue,
     channelName: DEFAULT_CHANNEL_NAME,
