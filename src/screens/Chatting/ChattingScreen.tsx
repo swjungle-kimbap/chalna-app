@@ -123,6 +123,21 @@ const ChattingScreen = () => {
             }
             saveChatRoomInfo(chatRoomInfo);
         }
+        // 프로필 이미지 로드
+        const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
+        if (filteredMembers[0].profileImageId) {
+            const findProfileImageId = filteredMembers[0].profileImageId;
+            const newprofile = profileImageMap.get(findProfileImageId);
+            if (newprofile)
+                setProfilePicture(newprofile);
+            else {
+                const newProfileImageUri = await handleDownloadProfile(findProfileImageId);
+                profileImageMap.set(findProfileImageId, newProfileImageUri);
+                setProfilePicture(newprofile);
+            }
+        } else {
+            setProfilePicture("");
+        }
     };
 
     const handleSelectImage = () => {

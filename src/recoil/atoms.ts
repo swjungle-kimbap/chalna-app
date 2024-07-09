@@ -16,6 +16,7 @@ export const userInfoState = atom<LoginResponse>({
     message : "",
     username : "",
     profileImageUrl : "",
+    profileImageId: 0,
     id : 0,
   }
 })
