@@ -78,6 +78,7 @@ const ChattingScreen = () => {
     const flatListRef = useRef<FlatList<directedChatMessage>>(null);
     const isUserAtBottom = useRef(true);
     const [showScrollToEndButton, setShowScrollToEndButton] = useState(false);
+    const [showNewMessageBadge, setShowNewMessageBadge] = useState(false);
 
     const joinedLocalChatList = useRecoilValue(JoinedLocalChatListState);
     const chatRoomInfo = useMemo(() => {
@@ -232,10 +233,19 @@ const ChattingScreen = () => {
                             if (isUserAtBottom.current) {
                                 flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
                                 setShowScrollToEndButton(false);
+                                setShowNewMessageBadge(true);
                             } else {
                                 setShowScrollToEndButton(true);
+                                setShowNewMessageBadge(true);
+                                setTimeout(() => setShowNewMessageBadge(false), 3000);
                             }
+                            // if (isUserAtBottom.current) {
+                            //     flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                            // } else {
+                            //     setShowScrollToEndButton(true);
+                            // }
                             saveChatMessages(chatRoomId, [parsedMessage]);
+                            // setShowScrollToEndButton(false);
                         }
 
                         // 친구가 되었으면 채팅방 정보 다시 로드
@@ -418,20 +428,38 @@ const ChattingScreen = () => {
         return memberIdToUsernameMap.get(senderId) || '익명의 하마';
     }
 
+    // const handleScroll = (event) => {
+    //     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    //     const buffer = 500; // Increase the buffer to make it more generous
+    //     const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - buffer;
+    //     isUserAtBottom.current = isAtBottom;
+    //     if (isAtBottom) {
+    //         setShowScrollToEndButton(false);
+    //     }
+    // }
+    //
+    // const scrollToBottom = () => {
+    //     flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+    //     setShowScrollToEndButton(false);
+    // };
+
     const handleScroll = (event) => {
         const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-        const buffer = 500; // Increase the buffer to make it more generous
+        const buffer = 50; // Adjust buffer as necessary
         const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - buffer;
         isUserAtBottom.current = isAtBottom;
+        setShowScrollToEndButton(!isAtBottom);
         if (isAtBottom) {
-            setShowScrollToEndButton(false);
+            setShowNewMessageBadge(false);
         }
-    }
+    };
 
     const scrollToBottom = () => {
         flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
         setShowScrollToEndButton(false);
+        setShowNewMessageBadge(false);
     };
+
 
 
     if (loading) {
@@ -517,7 +545,12 @@ const ChattingScreen = () => {
                     //     imageStyle={{ height: 15, width: 15 }}
                     // />
                     <TouchableOpacity style={styles.scrollToEndButton} onPress={scrollToBottom}>
-                        <Text style={styles.scrollToEndButtonText}>⌄</Text>
+                        <Text style={styles.scrollToEndButtonText}>↓</Text>
+                    </TouchableOpacity>
+                )}
+                {showNewMessageBadge && (
+                    <TouchableOpacity style={styles.newMessageBadge} onPress={scrollToBottom}>
+                        <Text style={styles.newMessageBadgeText}>새로운 메세지</Text>
                     </TouchableOpacity>
                 )}
                 {chatRoomType !== 'WAITING' && (
@@ -654,15 +687,32 @@ const styles = StyleSheet.create({
     },
     scrollToEndButton: {
         position: 'absolute',
-        right: 10,
-        bottom: 70,
-        backgroundColor: '#007bff',
-        padding: 10,
+        right: 15,
+        bottom: 62,
+        backgroundColor: 'rgba(27, 116, 118, 0.4)',
+        // padding: 5,
         borderRadius: 20,
+        height: 20,
+        width:20,
     },
     scrollToEndButtonText: {
         color: 'white',
         fontSize: 14,
+    },
+    newMessageBadge: {
+        position: 'absolute',
+        alignSelf: 'center',
+        backgroundColor: 'rgba(27, 116, 118, 0.4)',
+        // maxWidth: '45%',
+        minWidth: 85,
+        bottom: 62,
+        // padding: 5,
+        borderRadius: 20,
+        height: 20,
+    },
+    newMessageBadgeText: {
+        color: 'white',
+        fontSize: 12,
     },
 });
 
