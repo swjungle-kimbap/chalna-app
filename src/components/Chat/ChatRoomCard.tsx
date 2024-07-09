@@ -63,6 +63,17 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
         return chatRoom ? chatRoom.name : 'Unknown Chat Room';
     }, [chatRoomId, joinedLocalChatList]);
 
+    const truncateString = (str, num) => {
+        const newLineIndex = str.indexOf('\n');
+        if (newLineIndex !== -1 && newLineIndex < num) {
+            return str.slice(0, newLineIndex);
+        } else if (str.length > num) {
+            return str.slice(0, num) + '...';
+        }
+        return str;
+    };
+    const truncatedMsg = truncateString(lastMsg || " ", 15);
+
 
     return (
         <Swipeable renderRightActions={renderRightActions}>
@@ -93,22 +104,24 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
                     <View style={styles.content}>
                         <View style={styles.header}>
 
+
                             <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}>
                                 {chatRoomType==='LOCAL'? chatRoomName: usernames}
                             </Text>
-                            <Text variant={'sub'} align={'left'} style={{ color: chatRoomType==='MATCH'? 'green': 'grey' }}>
-                                {memberCnt===2?'':memberCnt}
-                            </Text>
-
-                            {unReadMsg ? (
-                                <View style={styles.unreadBadge}>
-                                    <Text style={styles.unreadText}>{unReadMsg}</Text>
-                                </View>
-                            ) : null}
+                            <View style={styles.bottomRow}>
+                                <Text variant={'sub'} align={'left'} style={{ color: chatRoomType==='MATCH'? 'green': 'grey' }}>
+                                    {memberCnt===2?'':memberCnt}
+                                </Text>
+                                {unReadMsg ? (
+                                    <View style={styles.unreadBadge}>
+                                        <Text style={styles.unreadText}>{unReadMsg}</Text>
+                                    </View>
+                                ) : null}
+                            </View>
                         </View>
 
                         <View style={styles.bottomRow}>
-                            <Text style={styles.lastMsg} align={'left'} >{lastMsg || " "}</Text>
+                            <Text style={styles.lastMsg} numberOfLines={1}  align={'left'} >{truncatedMsg || " "}</Text>
                             <Text style={styles.lastUpdate}>{lastUpdate ? lastUpdate : " "}</Text>
                         </View>
                     </View>
@@ -146,8 +159,7 @@ const styles = StyleSheet.create({
     },
     header: {
         flexDirection: 'row',
-        justifyContent: 'flex-start',
-        alignItems: 'center',
+        alignItems:'center',
     },
     content: {
         flex: 1,
@@ -183,11 +195,11 @@ const styles = StyleSheet.create({
         color: '#999',
     },
     unreadBadge: {
-        alignSelf: "flex-end",
+        // flex: 1,
         backgroundColor: 'green',
+        marginLeft: 'auto',
         borderRadius: 10,
         paddingHorizontal: 8,
-        paddingVertical: 2,
     },
     unreadText: {
         color: 'white',

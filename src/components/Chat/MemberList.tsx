@@ -1,6 +1,6 @@
 // MemberList.tsx
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, Image } from 'react-native';
+import { View,  FlatList, StyleSheet, Image } from 'react-native';
 import { chatRoomMember } from "../../interfaces/Chatting.type";
 import ImageTextButton from "../common/Button";
 import {useRecoilValue} from "recoil";
@@ -8,6 +8,7 @@ import {LoginResponse} from "../../interfaces";
 import {userInfoState} from "../../recoil/atoms";
 import {sendFriendRequest} from "../../service/Friends/FriendRelationService";
 import WebSocketManager from "../../utils/WebSocketManager";
+import Text from '../common/Text';
 
 interface MemberListProps {
     members: chatRoomMember[];
@@ -53,8 +54,8 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
                                 onPress={()=>handleSend(item.memberId)}
                             />
                         ): (
-                            <View Style = {styles.badgeContainer} >
-                                <Text Style={styles.badgeText}>나</Text>
+                            <View style = {styles.badgeContainer} >
+                                <Text style={styles.badgeText}>나</Text>
                             </View>
                         )}
                     </View>
