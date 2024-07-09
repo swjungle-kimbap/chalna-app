@@ -1,7 +1,7 @@
-import React, {useState, useCallback, useEffect, useRef, useMemo} from 'react';
+import React, {useState, useEffect, useRef, useMemo} from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, Text, SafeAreaView, AppState, AppStateStatus } from 'react-native';
 import ChatRoomCard from '../../components/Chat/ChatRoomCard';
-import { useFocusEffect, useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 import CustomHeader from "../../components/common/CustomHeader";
 import { useRecoilValue } from "recoil";
 import { LoginResponse } from "../../interfaces";
@@ -133,6 +133,7 @@ const ChattingListScreen = ({ navigation }) => {
                         return (
                             <ChatRoomCard
                                 usernames={getDisplayName(item)}
+                                members={item.members.filter(member => member.memberId !== currentUserId)}
                                 lastMsg={item.recentMessage ? (item.recentMessage.type == "FILE" ? "사진": item.recentMessage.content) : ""}
                                 lastUpdate={item.recentMessage? item.recentMessage.createdAt : "" }
                                 navigation={navigation}

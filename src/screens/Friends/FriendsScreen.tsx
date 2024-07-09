@@ -1,50 +1,38 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, FlatList, TextInput, StyleSheet, TouchableOpacity, Modal, TouchableWithoutFeedback, ActivityIndicator, Image } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import styled from 'styled-components/native';
 import Text from "../../components/common/Text";
 import Button from '../../components/common/Button';
 import FriendCard from "../../components/FriendCard";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../../interfaces";
+import { Friend, RootStackParamList } from "../../interfaces";
 import { axiosGet } from "../../axios/axios.method";
 import { urls } from "../../axios/config";
-import ImageTextButton from "../../components/common/Button";
-import {getKoreanInitials} from '../../service/Friends/KoreanInitials';
-import { AxiosResponse } from "axios";
-import {  DownloadFileResponse } from "../../interfaces";
-import RNFS from 'react-native-fs';
+import { useRecoilState } from 'recoil';
+import { getKoreanInitials, handleDownloadProfile } from '../../service/Friends/FriendListAPI';
+import { ProfileImageMapState } from '../../recoil/atoms';
 
 interface ApiResponse {
-    status: number;
+    status: string;
     message: string;
     data: Friend[];
-}
-
-interface User {
-    id: number;
-    username: string;
-    message: string;
-}
-
-interface Friend extends User {
-    profileImageId: number;
-    status: number;
-    profileImageUrl?: string;
 }
 
 type FriendsScreenProps = {
     navigation: StackNavigationProp<RootStackParamList, '친구 목록'>
 };
 
+
 const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
+    const [friendsList, setFriendsList] = useState([]);
     const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>('');
-    const [friendsData, setFriendsData] = useState<Friend[]>([]);
     const [filteredData, setFilteredData] = useState<Friend[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const [profileImageMap, setProfileImageMap] = useRecoilState(ProfileImageMapState)
 
     useFocusEffect(
         useCallback(() => {
@@ -53,31 +41,26 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                 try {
                     const response = await axiosGet<ApiResponse>(urls.GET_FRIEND_LIST_URL);
                     console.log("friend api response: ", response.data.data);
-
-                    // setFriendsData(response.data.data);
-                    // setFilteredData(response.data.data); // Initially setting filteredData to all friends
-                    // handleDownloadProfile(response?.data?.data?.profileImageId);
-
                     const friends = response.data.data;
+                    const updatedProfileImageMap = new Map(profileImageMap);
 
-                    // 각 친구의 프로필 이미지를 다운로드
                     for (const friend of friends) {
-                        if (friend.profileImageId) {
-                            const profileImageUrl = await handleDownloadProfile(friend.profileImageId);
-                            friend.profileImageUrl = profileImageUrl;
-                            console.log('프로필 이미지 ㅣ: ', profileImageUrl);
-                        }
+                      const profileImageUri = updatedProfileImageMap.get(friend.profileImageId);
+                      if (!profileImageUri && friend.profileImageId) {
+                        const newProfileImageUri = await handleDownloadProfile(friend.profileImageId);
+                        updatedProfileImageMap.set(friend.profileImageId, newProfileImageUri);
+                        console.log('새로 다운받은 프로필 이미지 : ', newProfileImageUri);
+                      }
                     }
-
-                    setFriendsData(friends);
-                    setFilteredData(friends);
+                    setProfileImageMap(updatedProfileImageMap);
+                    setFriendsList(friends);
                 } catch (error) {
                     setError('Failed to fetch friends');
+                    setLoading(false);
                 } finally {
                     setLoading(false);
                 }
             };
-
             fetchFriends();
         }, [])
     );
@@ -85,43 +68,15 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     useMemo(() => {
         const trimmedQuery = searchQuery.replace(/\s+/g, '');
         if (!trimmedQuery) {
-            setFilteredData(friendsData);
+            setFilteredData(friendsList);
         } else {
-
-            const filtered = friendsData.filter(({ username, message }) =>
+            const filtered = friendsList.filter(({ username, message }) =>
                 (username && (username.includes(trimmedQuery) ||  getKoreanInitials(username).includes(trimmedQuery))) ||
                 (message && (message.includes(trimmedQuery) || getKoreanInitials(message).includes(trimmedQuery)))
-
             );
             setFilteredData(filtered);
         }
-    }, [friendsData, searchQuery]);
-
-    const handleDownloadProfile = async (profileId: number) => {
-        try {
-            const downloadResponse = await axiosGet<AxiosResponse<DownloadFileResponse>>(`${urls.FILE_DOWNLOAD_URL}${profileId}`, "프로필 다운로드");
-            const { presignedUrl } = downloadResponse.data.data;
-
-            const timestamp = new Date().getTime();
-            const localFilePath = `${RNFS.DocumentDirectoryPath}/profile_image_${profileId}_${timestamp}.jpg`;
-            const downloadResult = await RNFS.downloadFile({
-                fromUrl: presignedUrl,
-                toFile: localFilePath,
-            }).promise;
-
-            if (downloadResult.statusCode === 200) {
-                return `file://${localFilePath}`;
-            } else {
-                console.log(downloadResult.statusCode);
-                return null;
-            }
-        } catch (error) {
-            console.error(error);
-            return null;
-        }
-    };
-
-
+    }, [friendsList, searchQuery]);
 
     const handleCardPress = useCallback((cardId: number) => {
         setExpandedCardId(prevId => prevId === cardId ? null : cardId);
@@ -145,12 +100,11 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
     if (error) return <Text>Error loading friends: {error}</Text>;
     return (
         <FriendsStyle>
-
-            <ImageTextButton
+            {/* <ImageTextButton
                     iconSource={require('../../assets/Icons/cogIcon.png')}
                     imageStyle={{height:15, width:15}}
                     style={{padding: 10, alignSelf:'flex-end', marginRight:20}}
-                    onPress={() => setModalVisible(true) } />
+                    onPress={() => setModalVisible(true) } /> */}
             <View style={styles.searchContainer}>
                 <TextInput
                     placeholder="친구 검색"
@@ -181,11 +135,11 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({ navigation }) => {
                     <ModalContainer>
                         <ModalContent style={shadowStyles}>
                             <Button title="친구요청 목록"
-                                    style={{marginBottom: 20}}
-                                    onPress={() => {
-                                        setModalVisible(false);
-                                        navigation.navigate('Tabs', {screen: '친구요청 목록' });
-                                    }} />
+                                style={{marginBottom: 20}}
+                                onPress={() => {
+                                    setModalVisible(false);
+                                    navigation.navigate('Tabs', {screen: '친구요청 목록' });
+                                }} />
                             <Button title="차단친구 목록" onPress={() => {
                                 setModalVisible(false);
                                 navigation.navigate('Tabs', {screen: '차단친구 목록' });
@@ -203,10 +157,9 @@ const FriendsStyle = styled.View`
 
 `;
 
-
-
 const styles = StyleSheet.create({
     searchContainer: {
+        marginTop:10,
         flexDirection: 'row',
         alignItems: 'center',
         borderColor: '#CCC',

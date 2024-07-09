@@ -1,15 +1,19 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import * as ImagePicker from 'react-native-image-picker';
 import { Swipeable } from 'react-native-gesture-handler';
+import { useRecoilValue } from 'recoil';
+import { ProfileImageMapState } from '../../recoil/atoms';
+import FastImage, { Source } from 'react-native-fast-image';
+import { chatRoomMemberImage } from '../../interfaces/Chatting.type';
+import { handleDownloadProfile } from '../../service/Friends/FriendListAPI';
 import {JoinedLocalChatListState, userInfoState} from "../../recoil/atoms";
-import {useRecoilValue} from "recoil";
 import {LocalChatRoomData, LoginResponse} from "../../interfaces";
 
 
 interface ChatRoomCardProps {
     numMember: number;
     usernames: string;
+    members: chatRoomMemberImage[]
     lastMsg?: string | null;
     lastUpdate?: string;
     navigation: any;
@@ -24,23 +28,44 @@ const formatTime = (timestamp: string) => {
     return `${date.getHours()}:${date.getMinutes() < 10 ? '0' : ''}${date.getMinutes()}`;
 };
 
+const DefaultImgUrl = '../../assets/images/anonymous.png';
 
 const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
-                                                       lastMsg, lastUpdate, usernames
+                                                       lastMsg, lastUpdate, usernames, members
                                                        , navigation, chatRoomType, chatRoomId
                                                        , unReadMsg, onDelete }) => {
+    const profileImageMap = useRecoilValue(ProfileImageMapState);
+    const [profilePicture, setProfilePicture] = useState("");
+    useEffect(() => {
+        const fetchProfileImage = async () => {
+            if (chatRoomType === 'FRIEND' && members.length === 1 && members[0].profileImageId) {
+                const findProfileImageId = members[0].profileImageId;
+                const newprofile = profileImageMap.get(findProfileImageId);
+                if (newprofile)
+                    setProfilePicture(newprofile);
+                else {
+                    const newProfileImageUri = await handleDownloadProfile(findProfileImageId);
+                    profileImageMap.set(findProfileImageId, newProfileImageUri);
+                    setProfilePicture(newProfileImageUri);
+                }
+            } else {
+                setProfilePicture("");
+            }
+        }
+        fetchProfileImage();
+    }, [members])
 
     const renderRightActions = () => (
         <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(chatRoomId)}>
             <Text style={styles.deleteButtonText}>삭제</Text>
         </TouchableOpacity>
     );
-
     const joinedLocalChatList = useRecoilValue(JoinedLocalChatListState);
     const chatRoomName = useMemo(() => {
         const chatRoom = joinedLocalChatList.find(room => room.chatRoomId === chatRoomId);
         return chatRoom ? chatRoom.name : 'Unknown Chat Room';
     }, [chatRoomId, joinedLocalChatList]);
+
 
     return (
         <Swipeable renderRightActions={renderRightActions}>
@@ -54,12 +79,20 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
                 ]} // Conditional styles
             >
                 <View style={styles.row}>
+                    {(profilePicture) ?
+                    (<FastImage
+                    style={styles.image}
+                    source={{uri: profilePicture, priority: FastImage.priority.normal } as Source}
+                    resizeMode={FastImage.resizeMode.cover}
+                    />) : (
                     <Image
-                        source={ //chatRoomType!=='LOCAL'?
-                            require('../../assets/images/anonymous.png')}
-                            // : require('../../assets/images/localChatRoom.png')} // Replace with your image path
-                        style={ styles.image }
+                    source={ //chatRoomType!=='LOCAL'?
+                        require(DefaultImgUrl)}
+                        // : require('../../assets/images/localChatRoom.png')} // Replace with your image path
+                    style={ styles.image }
                     />
+                    )}
+        
                     <View style={styles.content}>
                         <View style={styles.header}>
                             <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}>
