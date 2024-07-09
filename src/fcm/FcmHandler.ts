@@ -100,7 +100,7 @@ const handleFCMClick = (notification: any) => {
       case 'match':
         // 예: 매치 화면으로 이동
         navigate("로그인 성공", {
-          screen: "지도",
+          screen: "블루투스",
           params: { notificationId: additionalData.notificationId }
         });
         console.log("매치 화면으로 이동 ", additionalData.notificationId);

@@ -14,6 +14,7 @@ import { initUserSetting } from '../service/Setting';
 import { axiosGet } from "../axios/axios.method";
 import { urls } from "../axios/config";
 import { handleDownloadProfile } from "../service/Friends/FriendListAPI";
+import BluetoothScreen from "../screens/BlueTooth/BluetoothScreen";
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
@@ -96,7 +97,7 @@ const BottomTabs = () => {
           },
           headerShown: false
         })}>
-      <Tab.Screen name="블루투스" component={MapScreen}/>    
+      <Tab.Screen name="블루투스" component={BluetoothScreen}/>    
       <Tab.Screen name="지도" component={MapScreen}/>
       <Tab.Screen name="채팅목록" component={ChattingStackScreen}/>
       <Tab.Screen name="친구목록" component={FriendsStackScreen} />

@@ -12,7 +12,7 @@ import { locationState } from "../../recoil/atoms";
 import { Position } from '../../interfaces';
 import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
 import requestPermissions from "../../utils/requestPermissions";
-import ArrowButton from "./ArrowButton";
+import ArrowButton from "../Bluetooth/ArrowButton";
 import KalmanFilter from 'kalmanjs'
 
 LogBox.ignoreLogs(['Called stopObserving with existing subscriptions.'])
@@ -105,24 +105,6 @@ export const NaverMap: React.FC = ({}) => {
       }}
       ref={mapViewRef}
       >
-        <NaverMapMarkerOverlay
-          latitude={currentLocation.latitude}
-          longitude={currentLocation.longitude}
-          onTap={() => Alert.alert("반갑티비", "주위의 인연이 존재하면 초록색으로 바뀌어요!")}
-          anchor={{ x: 0.5, y: 1 }}
-          caption={{
-            text: '나',
-          }}
-          image={{symbol:(nearbyInfo.isNearby ? "green" : "red") }}
-          width={20}
-          height={30}
-        />
-        <NaverMapCircleOverlay
-          latitude={currentLocation.latitude}
-          longitude={currentLocation.longitude}
-          radius={9}
-          color={nearbyInfo.isNearby ? '#3EB29780': '#D7351150'}
-        />
         <LocalChatMarkerOverlay />
     </NaverMapView>
     <LocalChatButton />
