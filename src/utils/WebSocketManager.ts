@@ -28,7 +28,7 @@ class WebSocketManager {
             debug: (str) => {
                 console.log(str);
             },
-            reconnectDelay: 2000,
+            reconnectDelay: 1000,
             heartbeatIncoming: 10000,
             heartbeatOutgoing: 10000,
             webSocketFactory: () => {
