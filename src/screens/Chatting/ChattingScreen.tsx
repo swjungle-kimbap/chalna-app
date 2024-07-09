@@ -74,7 +74,7 @@ const ChattingScreen = () => {
     const chatRoomIdRef = useRef<string>(chatRoomId)
     const [profilePicture, setProfilePicture] = useState("");
     const profileImageMap = useRecoilValue(ProfileImageMapState);
-    
+
     const otherIdRef = useRef<number | null>(null);
     const chatMessageType = useRef('CHAT');
 
@@ -100,7 +100,6 @@ const ChattingScreen = () => {
         const distanceInMeters = calculateDistanceInMeters(chatRoomInfo.distance);
         return distanceInMeters > 50 ? '50m+' : `${distanceInMeters}m`;
     };
-    console.log(distanceDisplay());
 
     // const scrollViewRef = useRef<ScrollView>(null);
 
@@ -445,7 +444,7 @@ const ChattingScreen = () => {
     }, [members]);
 
     const getUsernameBySenderId = (senderId: number) => {
-        return memberIdToUsernameMap.get(senderId) || '익명의 하마';
+        return memberIdToUsernameMap.get(senderId) || '(알 수 없는 사용자)';
     }
 
 
@@ -480,7 +479,7 @@ const ChattingScreen = () => {
         <SWRConfig value={{}}>
             <CustomHeader
                 // title={username}
-                titleSmall = {chatRoomType==='LOCAL'? chatRoomInfo.name: username}
+                titleSmall = {chatRoomType==='LOCAL'? chatRoomInfo.name: username? username: '(알 수 없는 사용자)'}
                 subtitle={chatRoomType==='LOCAL'? distanceDisplay(): ''}
                 onBackPress={() => {
                     navigate("로그인 성공", {
@@ -620,7 +619,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     scrollView: {
-        flexDirection: 'column',
+        // flexDirection: 'column',
         justifyContent: 'flex-end',
         flex: 1,
         paddingTop: 5,
