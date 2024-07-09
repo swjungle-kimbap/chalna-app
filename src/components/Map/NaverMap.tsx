@@ -1,5 +1,5 @@
 import { NaverMapView, NaverMapMarkerOverlay, NaverMapCircleOverlay, NaverMapViewRef } from "@mj-studio/react-native-naver-map";
-import { FlyingModeState, showMsgBoxState } from "../../recoil/atoms";
+import { FlyingModeState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useEffect, useRef } from "react";
 import Geolocation, { GeoError } from "react-native-geolocation-service";
@@ -20,7 +20,6 @@ const longkfilter = new KalmanFilter();
 
 export const NaverMap: React.FC = ({}) => {
   const [currentLocation, setCurrentLocation] = useRecoilState<Position>(locationState);
-  const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
   const mapViewRef = useRef<NaverMapViewRef>(null);
   const flyingMode = useRecoilValue(FlyingModeState);
   const watchId = useRef<number | null>(null);

@@ -3,9 +3,7 @@ import RoundBox from '../common/RoundBox';
 import Button from '../common/Button';
 import { StyleSheet, TextInput, View, Alert, Animated, LogBox, TouchableOpacity } from 'react-native';
 import Text from '../common/Text';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { DeviceUUIDState, isRssiTrackingState, showMsgBoxState } from '../../recoil/atoms';
-import { AxiosResponse, FileResponse } from '../../interfaces';
+import { AxiosResponse, FileResponse, SendMatchResponse, SendMsgRequest } from '../../interfaces';
 import { axiosPost } from '../../axios/axios.method';
 import { urls } from '../../axios/config';
 import {  userMMKVStorage } from '../../utils/mmkvStorage';
@@ -24,33 +22,29 @@ ignorePatterns.forEach(pattern => {
 });
 
 interface MessageBoxPrams {
-  handleSendMsg: () => void 
+  uuids: Set<string>;
+  setShowMsgBox: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const sendDelayedTime = 60 * 1000;
+const sendDelayedTime = 30 * 1000;
 
 const tags = ['텍스트', '사진'];
 
-const MessageBox: React.FC<MessageBoxPrams> = ({handleSendMsg})  => {
-  const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
-  const isRssiTracking = useRecoilValue(isRssiTrackingState);
-  const deviceUUID = useRecoilValue(DeviceUUIDState);
+const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox})  => {
   const [msgText, setMsgText] = useMMKVString("map.msgText", userMMKVStorage);
-  const [isScanning, setIsScanning] = useMMKVBoolean("map.isScanning", userMMKVStorage);
   const [isBlocked, setIsBlocked] = useMMKVBoolean("map.isBlocked", userMMKVStorage);
   const [blockedTime, setBlockedTime] = useMMKVNumber("map.blockedTime", userMMKVStorage);
   const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
   const sendCountsRef = useRef(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
-  const [showTracking, setShowTracking] = useState(false);
   const [rssiMap, setRssiMap] = useState<Map<string, number>>(null);
   const [selectedTag, setSelectedTag] = useMMKVString("map.selectedTag", userMMKVStorage); 
   const [imageUrl, setImageUrl] = useMMKVString("map.imageUrl", userMMKVStorage); 
   const [fileId, setFileId] = useMMKVNumber("map.fileId", userMMKVStorage); 
   const [selectedImage, setSelectedImage] = useState(null);
 
-  const handleSelectImage = ({handleSendMsg}) => {
+  const handleSelectImage = () => {
     setFileId(0);
     launchImageLibrary({mediaType: 'photo', includeBase64: false}, (response) => {
       if (response.didCancel) {
@@ -97,7 +91,6 @@ const MessageBox: React.FC<MessageBoxPrams> = ({handleSendMsg})  => {
   );
 
     const resizedUri = resizedImage.uri;
-
     const file = await fetch(resizedUri);
     const blob = await file.blob();
     const uploadResponse = await fetch(presignedUrl, {
@@ -132,7 +125,24 @@ const MessageBox: React.FC<MessageBoxPrams> = ({handleSendMsg})  => {
       return null;
     }
   };
-  
+  const sendMsg = async ( uuids:Set<string>, fileId : number ) => {
+    let response = null;
+    if (selectedTag ==='텍스트') {
+      response = await axiosPost<AxiosResponse<SendMatchResponse>>(urls.SEND_MSG_URL, "인연 보내기", {
+        deviceIdList: Array.from(uuids),
+        content: msgText,
+        contentType: 'MESSAGE'
+      } as SendMsgRequest)
+    } else {
+      response = await axiosPost<AxiosResponse<SendMatchResponse>>(urls.SEND_MSG_URL, "인연 보내기", {
+        deviceIdList: Array.from(uuids),
+        content: fileId.toString(),
+        contentType: 'FILE'
+      } as SendMsgRequest)
+    }
+    sendCountsRef.current = response?.data?.data?.sendCount;
+  } 
+
   const handleSendingMessage = async () => {
     const validState = checkValid();
     if (!validState) {
@@ -144,7 +154,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({handleSendMsg})  => {
       updateFileId = await uploadImageToS3();
       setFileId(updateFileId);
     }
-    handleSendMsg();
+    await sendMsg(uuids, updateFileId);
     fadeInAndMoveUp();
     setShowMsgBox(false);
     if (sendCountsRef.current === 0)
@@ -217,69 +227,56 @@ const MessageBox: React.FC<MessageBoxPrams> = ({handleSendMsg})  => {
   return (
     <> 
       <Animated.View
-        style={[
-          styles.msgcontainer,
-          { 
+        style={{ 
             opacity: fadeAnim,
             transform: [{ translateY: translateY }],
-          }
-        ]}>
+          }}>
         <Text variant='sub'>{sendCountsRef.current !== 0 ? `${sendCountsRef.current}명에게 인연 메세지를 보냈습니다.` : `메세지를 보낼 수 없는 대상입니다.`}</Text>
       </Animated.View>
-      {showMsgBox ? (
-          <View style={styles.msgcontainer} >
-            <RoundBox width='95%' 
-              style={[styles.msgBox, {borderColor : !isBlocked && isScanning ? '#14F12A': '#979797'}]}>
-              <View style={styles.titleContainer}>
-                <Text variant='title' style={styles.title}>인연 메세지 <Button title='💬' onPress={() => {
-                  Alert.alert("인연 메세지 작성",`${sendDelayedTime/(60 * 1000)}분에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요! 메세지를 받기 위해 블루투스 버튼을 켜주세요`)}
-                }/> 
-                </Text>
-                {tags.map((tag) => (
-                  <Button titleStyle={[styles.tagText, selectedTag === tag && styles.selectedTag]} 
-                    variant='sub' title={`#${tag}`}  onPress={() => setSelectedTag(tag)} 
-                    key={tag} activeOpacity={0.6} />
-                ))}
-              </View>
-              <View style={styles.textInputContainer}>
-                {selectedTag === "텍스트" ? (
-                  <TextInput
-                  value={msgText}
-                  style={styles.textInput}
-                  onChange={(event) => { setMsgText(event.nativeEvent.text);}}
-                  placeholder="메세지를 입력하세요"
-                  placeholderTextColor="#333"
-                  editable={!selectedImage} 
+      <RoundBox width='95%' style={styles.msgBox}>
+        <View style={styles.titleContainer}>
+          <Text variant='title' style={styles.title}>인연 메세지 <Button title='💬' onPress={() => {
+            Alert.alert("인연 메세지 작성",`${sendDelayedTime/(1000)}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요! 메세지를 받기 위해 블루투스 버튼을 켜주세요`)}
+          }/> 
+          </Text>
+          {tags.map((tag) => (
+            <Button titleStyle={[styles.tagText, selectedTag === tag && styles.selectedTag]} 
+              variant='sub' title={`#${tag}`}  onPress={() => setSelectedTag(tag)} 
+              key={tag} activeOpacity={0.6} />
+          ))}
+        </View>
+        <View style={styles.textInputContainer}>
+          {selectedTag === "텍스트" ? (
+            <TextInput
+            value={msgText}
+            style={styles.textInput}
+            onChange={(event) => { setMsgText(event.nativeEvent.text);}}
+            placeholder="메세지를 입력하세요"
+            placeholderTextColor="#333"
+            editable={!selectedImage} 
+          />
+          ): (
+            <View style={[styles.ImageBox, {height:imageUrl? 150 : 50}]}>
+              {imageUrl ? (
+                <>
+                <FastImage
+                  style={styles.fullScreenImage}
+                  source={{ uri: imageUrl, priority: FastImage.priority.normal }}
+                  resizeMode={FastImage.resizeMode.contain}
                 />
-                ): (
-                  <View style={[styles.ImageBox, {height:imageUrl? 150 : 50}]}>
-                    {imageUrl ? (
-                      <>
-                      <FastImage
-                        style={styles.fullScreenImage}
-                        source={{ uri: imageUrl, priority: FastImage.priority.normal }}
-                        resizeMode={FastImage.resizeMode.contain}
-                      />
-                      <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageButton}>
-                        <Text style={styles.removeImageButtonText}>×</Text>
-                      </TouchableOpacity>
-                      </>
-                    ) : (
-                      <Button title='사진을 추가해주세요🖼️' onPress={()=>{handleSelectImage()}}/> 
-                    )}
-                  </View>
-                )}
+                <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageButton}>
+                  <Text style={styles.removeImageButtonText}>×</Text>
+                </TouchableOpacity>
+                </>
+              ) : (
+                <Button title='사진을 추가해주세요🖼️' onPress={()=>{handleSelectImage()}}/> 
+              )}
             </View>
-              <Button title={'보내기'} variant='main' titleStyle={{color: isScanning ? '#000': '#979797'}}
-                onPress={() => handleSendingMessage()}/>
-            </RoundBox>
-          </View>
-      ) : (
-        <RoundBox width='95%' 
-          style={[styles.buttonContainer, {borderColor : !isBlocked && isScanning ? '#14F12A': '#979797'}]}>
-          <Button title='인연 보내기' onPress={() => setShowMsgBox(true)}/>
-        </RoundBox>
-      )}
+          )}
+      </View>
+        <Button title={'보내기'} variant='main' titleStyle={{color: '#000'}}
+          onPress={() => handleSendingMessage()}/>
+      </RoundBox>
     </>
   );
 };
@@ -326,18 +323,13 @@ const styles = StyleSheet.create({
     width: '100%', // 컨테이너 너비를 꽉 채움
     marginBottom: 10,
   },
-  msgcontainer: {
-    position: 'absolute',
-    width: '95%',
-    bottom: 10, 
-    right: 5,
-    zIndex: 2,
-  },
   msgBox: {
     width: '95%',
     paddingTop: 0,
     padding: 20,
     borderTopWidth: 4,
+    borderColor: '#14F12A',
+    backgroundColor: '#fff',
   },
   title: {
     paddingTop: 15,

@@ -26,11 +26,6 @@ export const AlarmCountState = atom<number>({
   }
 )
 
-export const showMsgBoxState = atom<boolean>({
-  key: 'showMsgBox',
-  default: false
-  }
-)
 
 export const ProfileImageMapState = atom<Map<number, string>>({
   key: 'FriendsList',
