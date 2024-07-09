@@ -49,7 +49,7 @@ type TextProps = {
     variant?: "title" |"titleSmall"| "subtitle" | "mainBold" | "main" | "sub" | "subBold";
     style?: object;
     numberOfLines?: number;
-    align?: "left"|"center"|"right";
+    align?: "left"|"center"|"right"; //text 정렬
 };
 
 const Text: React.FC<TextProps> = ({ children, numberOfLines, variant="main", align="center",...rest}) => {
@@ -93,7 +93,7 @@ const Text: React.FC<TextProps> = ({ children, numberOfLines, variant="main", al
 
 const TextWrapper = styled.View<{ align: "left" | "center" | "right" }>`
     justify-content: ${({ align }) => (align === "center" ? "center" : "flex-start")};
-    align-items: ${({ align }) => (align === "center" ? "center" : align === "right" ? "flex-end" : "flex-start")};
+    align-items: center;
     text-align: ${({ align }) => align};
 `;
 
