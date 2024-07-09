@@ -1,13 +1,9 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import FontTheme from "../styles/FontTheme"
 import FriendsScreen from "../screens/Friends/FriendsScreen";
-import BlockFriendsScreen from "../screens/Friends/BlockFriendsScreen";
-import FriendRequestScreen from "../screens/Friends/FriendRequestScreen";
-import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
+import MypageStackScreen from "./MypageStack";
 
 const FriendsStack = createNativeStackNavigator();
-
-const Tab = createBottomTabNavigator();
 
 const FriendsStackScreen = () => {
   return (
@@ -19,19 +15,9 @@ const FriendsStackScreen = () => {
       }
     })}>
       <FriendsStack.Screen name='친구 목록' component={FriendsScreen}/>
-      <FriendsStack.Screen name='Tabs' component={Tabs}/>
+      <FriendsStack.Screen name='마이 페이지' component={MypageStackScreen} options={{headerShown:false}}/>
     </FriendsStack.Navigator>
   );
 }
-
-const Tabs = () => {
-  return (
-      <Tab.Navigator>
-        <Tab.Screen name="차단친구 목록" component={BlockFriendsScreen} options={{ tabBarLabel: '차단친구' }} />
-        <Tab.Screen name="친구요청 목록" component={FriendRequestScreen} options={{ tabBarLabel: '친구요청' }} />
-      </Tab.Navigator>
-  );
-}
-
 
 export default FriendsStackScreen;

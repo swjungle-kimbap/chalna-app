@@ -15,8 +15,8 @@ interface FriendCardProps {
     user: Friend;
     isExpanded: boolean;
     onExpand: ()=> void;
-    navigation: StackNavigationProp<RootStackParamList, '채팅'>;
-    options: 'friend' | 'blocked' | 'requested'
+    navigation?: StackNavigationProp<RootStackParamList, '채팅'>;
+    options?: 'friend' | 'blocked' | 'requested'
 }
 
 interface ApiResponse {
@@ -124,7 +124,7 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
 const styles = StyleSheet.create({
     container: {
         paddingVertical: 15,
-        paddingHorizontal: 30,
+        padding: 0,
         margin: 0,
         borderRadius: 0,
         backgroundColor: '#fff',
@@ -139,8 +139,8 @@ const styles = StyleSheet.create({
         alignItems:  'flex-start',
     },
     avatar: {
-        width: 50,
-        height: 50,
+        width: 60,
+        height: 60,
         borderRadius: 25,
         marginRight: 15,
     },

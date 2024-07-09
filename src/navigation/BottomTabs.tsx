@@ -63,14 +63,17 @@ const BottomTabs = () => {
           tabBarIcon: ({ color, size }) => {
             let iconSource;
             switch (route.name) {
-              case '친구목록' :
-                iconSource = require("../assets/Icons/FriendsIcon.png");;
-                break;
+              case '블루투스':
+                iconSource = require("../assets/Icons/bluetoothIcon.png");
+                break
               case '지도':
                 iconSource = require("../assets/Icons/MapIcon.png");
                 break;
               case '채팅목록':
                 iconSource = require("../assets/Icons/MessageIcon.png");
+                break;
+              case '친구목록' :
+                iconSource = require("../assets/Icons/FriendsIcon.png");;
                 break;
               case '마이페이지':
                 iconSource = require("../assets/Icons/MypageIcon.png");
@@ -93,10 +96,10 @@ const BottomTabs = () => {
           },
           headerShown: false
         })}>
-      <Tab.Screen name="친구목록" component={FriendsStackScreen} />
+      <Tab.Screen name="블루투스" component={MapScreen}/>    
       <Tab.Screen name="지도" component={MapScreen}/>
       <Tab.Screen name="채팅목록" component={ChattingStackScreen}/>
-      <Tab.Screen name="마이페이지" component={MypageStackScreen}/>
+      <Tab.Screen name="친구목록" component={FriendsStackScreen} />
     </Tab.Navigator>
   )
 }
