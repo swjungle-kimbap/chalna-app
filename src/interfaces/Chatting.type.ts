@@ -14,7 +14,8 @@ export type directedChatMessage = ChatMessage & {
 
 export type chatRoomMember = {
     memberId:number,
-    username:string
+    username:string,
+    profileImageId: number,
 }
 
 export type chatroomInfoAndMsg= {
@@ -37,12 +38,10 @@ export type ChatRoom = {
 }
 
 
-
 export type chatRoomMemberImage = {
     memberId:number,
     username:string,
-    profile: string,
-    statusMsg: string,
+    profileImageId: number,
 }
 
 export type ChatRoomLocal = {

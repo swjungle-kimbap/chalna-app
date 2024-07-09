@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Image, Modal, TouchableOpacity, Button, Alert, Linking } from 'react-native';
+import { View, Image, Modal, TouchableOpacity, Button, Alert, Linking, StyleSheet } from 'react-native';
 import styled from 'styled-components/native';
 import ImageTextButton from "../common/Button";
 import WebSocketManager from "../../utils/WebSocketManager";
@@ -14,6 +14,7 @@ import RNFetchBlob from 'rn-fetch-blob';
 import ImageResizer from 'react-native-image-resizer';
 import Exif from 'react-native-exif'
 import ImagePicker from 'react-native-image-crop-picker';
+import FastImage, { Source } from 'react-native-fast-image';
 
 interface MessageBubbleProps {
     message: any;
@@ -288,15 +289,24 @@ async function requestExternalStoragePermission() {
         }
     };
 
-
-
     // const hasNewline = message.includes('\n');
 
     return (
         <Container isSelf={isSelf} notChat={type!=='CHAT' && type!=='FILE'}>
             {!isSelf && showProfileTime && type==='CHAT' && (
                 <TouchableOpacity onPress={openUserInfoModal}>
-                    <ProfilePicture source={{ uri: profilePicture || 'https://www.refugee-action.org.uk/wp-content/uploads/2016/10/anonymous-user.png' }} />
+                    { profilePicture ?
+                    (<FastImage
+                    style={styles.profilePicture}
+                    source={{uri: profilePicture, priority: FastImage.priority.normal } as Source}
+                    resizeMode={FastImage.resizeMode.cover}
+                    />) : (
+                    <Image
+                    source={ require('../../assets/images/anonymous.png')}
+                    style={styles.profilePicture }
+                    />
+                    )}                    
+                    {/* <ProfilePicture source={{ uri: profilePicture || 'https://www.refugee-action.org.uk/wp-content/uploads/2016/10/anonymous-user.png' }} /> */}
                 </TouchableOpacity>
             )}
             <BubbleContainer isSelf={isSelf} notChat={type!=='CHAT'}>
@@ -351,10 +361,17 @@ async function requestExternalStoragePermission() {
                         <ImageTextButton iconSource={require('../../assets/Icons/closeIcon.png')}
                                          imageStyle={{height: 15, width: 15}}
                                          onPress={closeUserInfoModal} style={{alignSelf:'flex-end'}}/>
-                        <ProfilePicture modal source={{uri:
-                                    profilePicture ||
-                                    'https://www.refugee-action.org.uk/wp-content/uploads/2016/10/anonymous-user.png' }}
+                        { profilePicture ?
+                        (<FastImage
+                        style={styles.profilePictureModal}
+                        source={{uri: profilePicture, priority: FastImage.priority.normal } as Source}
+                        resizeMode={FastImage.resizeMode.cover}
+                        />) : (
+                        <Image
+                        source={ require('../../assets/images/anonymous.png')}
+                        style={styles.profilePictureModal }
                         />
+                        )} 
                         <NameBtnContainer>
                             <Text variant="subtitle" >{username}</Text>
                             { chatRoomType==='FRIEND'? (
@@ -414,6 +431,25 @@ const Container = styled.View<{ isSelf: boolean , notChat: boolean}>`
     margin-top: ${({notChat})=>(notChat? '15px': '5px')};
     margin-bottom: ${({notChat})=>(notChat? '15px': '5px')};
 `;
+
+const styles = StyleSheet.create({
+    profilePicture: {
+      width: 32,
+      height: 32,
+      borderRadius: 20,
+      marginRight: 5,
+      marginLeft: 2,
+      marginTop: 5,
+    },
+    profilePictureModal: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      marginRight: 0,
+      marginLeft: 0,
+      marginTop: 0,
+    },
+  });
 
 const ProfilePicture = styled.Image<{ modal?: boolean }>`
     width: ${({ modal }) => (modal ? '100px' : '32px')};
