@@ -8,6 +8,8 @@ const DancingWords = () => {
   const moveAnim3 = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    let isMounted = true;
+
     const createAnimation = (animation, delay) => {
       return Animated.sequence([
         Animated.timing(animation, {
@@ -30,8 +32,9 @@ const DancingWords = () => {
     };
 
     const startAnimations = () => {
+      if (!isMounted) return;
       Animated.sequence([
-        Animated.delay(0), 
+        Animated.delay(0),
         createAnimation(moveAnim1, 1200),
         createAnimation(moveAnim2, 600),
         createAnimation(moveAnim3, 0),
@@ -40,10 +43,14 @@ const DancingWords = () => {
           createAnimation(moveAnim2, 0),
           createAnimation(moveAnim3, 0),
         ]),
-      ]).start(() => startAnimations()); // Loop the animation
+      ]).start(() => isMounted && startAnimations());
     };
 
     startAnimations();
+
+    return () => {
+      isMounted = false;
+    };
   }, [moveAnim1, moveAnim2, moveAnim3]);
 
   return (

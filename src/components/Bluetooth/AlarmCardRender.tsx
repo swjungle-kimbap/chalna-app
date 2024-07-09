@@ -11,12 +11,13 @@ import FastImage from 'react-native-fast-image';
 export interface AlaramItemProps{
   item: MatchFCM;
   expandedCardId: string;
+  restTime: number;
   handleCardPress: (notificationId: string) => void;
   removeAlarmItem: (notificationId: string, DeleteAll?:boolean) =>void;
 }
 
 const AlarmCardRender: React.FC<AlaramItemProps> =
-  ({ item, expandedCardId, handleCardPress, removeAlarmItem }) => {
+  ({ item, expandedCardId, restTime, handleCardPress, removeAlarmItem }) => {
 
     const handleAcceptButton = async (notificationId:string) => {
     removeAlarmItem(notificationId);
@@ -28,7 +29,10 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
   return (
   <TouchableOpacity onPress={() => handleCardPress(item.id)}>
     <View style={styles.modalContent}>
-      <Text style={styles.alarmCnt}>{`${item.overlapCount}번 스쳐간 인연입니다.`}</Text>
+      <View style={styles.headerText}>
+        <Text style={styles.alarmCnt}>{`${item.overlapCount}번 스쳐간 인연입니다.`}</Text>
+        <Text style={styles.alarmCnt}>{restTime > 0 ? `${restTime}분 남음` : "1분 미만"}</Text>
+      </View>
       {expandedCardId === item.id ? (
         <>
           {
@@ -66,6 +70,10 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
 };
 
 const styles = StyleSheet.create({
+  headerText: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   fullScreenImage: {
     width: '100%',
     height: 200,
@@ -76,10 +84,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 10,
     marginBottom: 10,
-    alignItems: 'flex-start',
   },
   alarmCnt: {
-    fontSize:10,
+    fontSize:12,
     marginBottom:5,
     fontFamily: FontTheme.fonts.title,
     color: '#979797',

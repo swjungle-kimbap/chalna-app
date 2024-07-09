@@ -63,7 +63,6 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   const [isScanning, setIsScanning] = useMMKVBoolean("map.isScanning", userMMKVStorage);
   const [isBlocked, setIsBlocked] = useMMKVBoolean("map.isBlocked", userMMKVStorage);
   const [blockedTime, setBlockedTime] = useMMKVNumber("map.blockedTime", userMMKVStorage);
-  const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
   const [showTracking, setShowTracking] = useState(false);
   const [rssiMap, setRssiMap] = useState<Map<string, number>>(null);
   const [detectCnt, setDetectCnt] = useState(0);
@@ -118,15 +117,10 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   };
 
   const handleSetIsNearby = (uuid: string, rssi:number, isBlocked = false) => {
-    console.log(detectCnt);
     const currentTime = new Date().getTime();
     if (isRssiTracking)
       updateRssi(uuid, rssi);
     
-    if (timeoutIdRef.current) {
-      clearTimeout(timeoutIdRef.current);
-    }
-
     if (isBlocked) {
       if (uuidSet.size > 0) {
         uuidSet.clear();

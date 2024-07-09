@@ -1,10 +1,17 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Animated } from "react-native";
 
 const useFadeText = (): [() => void, Animated.Value, Animated.Value] => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
   
+  useEffect(() => {
+    return () => {
+      fadeAnim.stopAnimation();
+      translateY.stopAnimation();
+    };
+  }, [fadeAnim, translateY]);
+
   const fadeInAndMoveUp = () => {
     fadeAnim.setValue(0);
     translateY.setValue(0);
@@ -41,6 +48,6 @@ const useFadeText = (): [() => void, Animated.Value, Animated.Value] => {
   };
 
   return [fadeInAndMoveUp, fadeAnim, translateY];
-}
+};
 
 export default useFadeText;

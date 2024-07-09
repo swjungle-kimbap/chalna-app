@@ -2,33 +2,40 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import FontTheme from '../../styles/FontTheme';
 
-const DancingText = ({setShowMsgBox}) => {
+const DancingText = ({ setShowMsgBox }) => {
   const moveAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    let isMounted = true;
+    
     const animate = () => {
+      if (!isMounted) return;
       Animated.sequence([
         Animated.timing(moveAnim, {
-          toValue: -10, // 위로 이동할 거리
+          toValue: -10,
           duration: 500,
           useNativeDriver: true,
         }),
         Animated.timing(moveAnim, {
-          toValue: 10, // 아래로 이동할 거리
+          toValue: 10,
           duration: 500,
           useNativeDriver: true,
         }),
         Animated.timing(moveAnim, {
-          toValue: 0, // 원래 위치로 이동
+          toValue: 0,
           duration: 500,
           useNativeDriver: true,
         }),
-      ]).start(() => animate()); // 애니메이션이 끝나면 다시 시작
+      ]).start(() => isMounted && animate());
     };
 
     animate();
-  }, [moveAnim]);
 
+    return () => {
+      isMounted = false;
+    };
+  }, [moveAnim]);
+  
   return (
     <TouchableOpacity onPress={() => setShowMsgBox(true)}>
       <View style={styles.container}>
