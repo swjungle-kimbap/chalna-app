@@ -1,26 +1,15 @@
-import  React, { useState, useEffect, useRef } from 'react';
+import  React, { useState, useRef } from 'react';
 import RoundBox from '../common/RoundBox';
 import Button from '../common/Button';
-import { StyleSheet, TextInput, View, Alert, NativeModules, NativeEventEmitter, Animated, AppStateStatus, AppState ,  Image, TouchableOpacity, LogBox  } from 'react-native';
+import { StyleSheet, TextInput, View, Alert, Animated, LogBox, TouchableOpacity } from 'react-native';
 import Text from '../common/Text';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { DeviceUUIDState, isRssiTrackingState, showMsgBoxState } from '../../recoil/atoms';
-import ScanNearbyAndPost, { ScanNearbyStop } from '../../service/Bluetooth';
-import showPermissionAlert from '../../utils/showPermissionAlert';
-import requestPermissions from '../../utils/requestPermissions';
-import requestBluetooth from '../../utils/requestBluetooth';
-import { PERMISSIONS } from 'react-native-permissions';
-import { isNearbyState } from "../../recoil/atoms";
-import { AxiosResponse, SendMatchResponse, SendMsgRequest, FileResponse } from '../../interfaces';
+import { AxiosResponse, FileResponse } from '../../interfaces';
 import { axiosPost } from '../../axios/axios.method';
-import BleButton from './BleButton';
 import { urls } from '../../axios/config';
-import useBackground from '../../hooks/useBackground';
 import {  userMMKVStorage } from '../../utils/mmkvStorage';
-import RssiTracking from './RssiTracking';
 import { useMMKVBoolean, useMMKVNumber, useMMKVString } from 'react-native-mmkv';
-import { addDevice } from '../../service/Background';
-import KalmanFilter from 'kalmanjs'
 import { launchImageLibrary } from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 import FastImage from 'react-native-fast-image';
@@ -33,35 +22,17 @@ const ignorePatterns = [
 ignorePatterns.forEach(pattern => {
   LogBox.ignoreLogs([pattern.source]);
 });
-interface BleScanInfo {
-  advFlag: number,
-  companyId: number,
-  deviceAddress: string,
-  deviceName: string|null,
-  manufData: number[],
-  rssi: number,
-  serviceUuids: string[],
-  txPower: number,
+
+interface MessageBoxPrams {
+  handleSendMsg: () => void 
 }
+
+const sendDelayedTime = 60 * 1000;
 
 const tags = ['텍스트', '사진'];
 
-const requiredPermissions = [
-  PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-  PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
-  PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
-  PERMISSIONS.ANDROID.BLUETOOTH_ADVERTISE];
-
-const uuidSet = new Set<string>(); 
-const uuidTime = new Map(); 
-const uuidTimeoutID = new Map();
-const kFileters = new Map();
-const scanDelayedTime = 5 * 1000;
-const sendDelayedTime = 60 * 1000;
-
-const MessageBox: React.FC = ()  => {
+const MessageBox: React.FC<MessageBoxPrams> = ({handleSendMsg})  => {
   const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
-  const [nearInfo, setNearInfo] = useRecoilState(isNearbyState);
   const isRssiTracking = useRecoilValue(isRssiTrackingState);
   const deviceUUID = useRecoilValue(DeviceUUIDState);
   const [msgText, setMsgText] = useMMKVString("map.msgText", userMMKVStorage);
@@ -78,150 +49,8 @@ const MessageBox: React.FC = ()  => {
   const [imageUrl, setImageUrl] = useMMKVString("map.imageUrl", userMMKVStorage); 
   const [fileId, setFileId] = useMMKVNumber("map.fileId", userMMKVStorage); 
   const [selectedImage, setSelectedImage] = useState(null);
-  useBackground(isScanning);
-  
-  useEffect(()=> {
-    if (isScanning) {
-      ScanNearbyAndPost(deviceUUID);
-    }
-    if (isBlocked) {
-      const restBlockedTime = sendDelayedTime - (Date.now() - blockedTime);
-      if (restBlockedTime > 0) {
-        setIsBlocked(true);
-        setTimeout(() => setIsBlocked(false), restBlockedTime);
-      } else {
-        setIsBlocked(false);
-      }
-    }
-  }, []);
 
-  const updateRssi = (uuid: string, rssi: number) => {
-    setRssiMap(prevMap => {
-      const newMap = new Map(prevMap);
-      newMap.set(uuid, rssi);
-      return newMap;
-    });
-  };
-
-  const handleSetIsNearby = (uuid: string, rssi:number, isBlocked = false) => {
-    const currentTime = new Date().getTime();
-    if (isRssiTracking)
-      updateRssi(uuid, rssi);
-
-    setNearInfo({isNearby: true, lastMeetTime: currentTime});
-    if (timeoutIdRef.current) {
-      clearTimeout(timeoutIdRef.current);
-    }
-
-    timeoutIdRef.current = setTimeout(() => {
-      setNearInfo(prevNearInfo => ({
-        ...prevNearInfo,
-        isNearby: false
-      }));
-    }, scanDelayedTime)
-
-    if (isBlocked) {
-      if (uuidSet.size > 0) {
-        uuidSet.clear();
-        uuidTime.clear();
-        for (const timeoutId of Object.values(uuidTimeoutID)) {
-          clearTimeout(timeoutId);
-        }
-        uuidTimeoutID.clear();
-      }
-      return;
-    }
-
-    if (!uuidSet.has(uuid)) {
-      uuidSet.add(uuid);
-    } else {
-      if (uuidTimeoutID[uuid]) {
-        clearTimeout(uuidTimeoutID[uuid]);
-      }
-    }
-    uuidTime[uuid] = currentTime;
-    uuidTimeoutID[uuid] = setTimeout(() => {
-      uuidSet.delete(uuid)
-      if (isRssiTracking) {
-        setRssiMap(prevMap => {
-          const newMap = new Map(prevMap);
-          newMap.delete(uuid);
-          return newMap;
-        });
-      }
-    }, scanDelayedTime)
-  };
-
-  useEffect(() => {
-    const RSSIvalue =  userMMKVStorage.getNumber("bluetooth.rssivalue");
-    const { BLEAdvertiser } = NativeModules;
-    const eventEmitter = new NativeEventEmitter(BLEAdvertiser);
-    eventEmitter.removeAllListeners('onDeviceFound');
-    eventEmitter.addListener('onDeviceFound', (event: BleScanInfo) => {
-        for (let i = 0; i < event.serviceUuids.length; i++) {
-          if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00')) {
-            if (isRssiTracking) {
-              let kf = kFileters[event.serviceUuids[i]];
-              if (!kf) {
-                kFileters[event.serviceUuids[i]] = new KalmanFilter();
-                kf = kFileters[event.serviceUuids[i]];
-              }
-              const filterdRSSI = kf.filter(event.rssi)
-              if (filterdRSSI < RSSIvalue) return;
-              handleSetIsNearby(event.serviceUuids[i], filterdRSSI, isBlocked);
-            } else {
-              handleSetIsNearby(event.serviceUuids[i], event.rssi, isBlocked);
-            }
-            addDevice(event.serviceUuids[i], new Date().getTime());
-          }
-        }
-      })
-  }, [isScanning, isBlocked, isRssiTracking, handleSetIsNearby])
-
-  const startScan = async () => {
-    if (!isScanning) {
-      ScanNearbyAndPost(deviceUUID);
-      setIsScanning(true);
-    }
-  };
-
-  const stopScan = async () => {
-    if (isScanning) {
-      ScanNearbyStop();
-      setIsScanning(false);
-    }
-  };
-
-  const handleCheckPermission = async (): Promise<boolean> => {
-    const granted = await requestPermissions(requiredPermissions);
-    const checkNotBluetooth = await requestBluetooth();
-    if (!granted || !checkNotBluetooth) {
-      await showPermissionAlert("블루투스와 위치");
-      const granted = await requestPermissions(requiredPermissions);
-      if (granted && checkNotBluetooth) {
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      return true; 
-    }
-  };
-
-  const handleBLEButton = async () => {
-    await handleCheckPermission()
-    if (!isScanning)
-      startScan();
-    else if (isScanning) {
-      stopScan();
-      setNearInfo(prevNearInfo => ({
-        ...prevNearInfo,
-        isNearby: false
-      }));
-    }
-  };
-
-  const handleSelectImage = () => {
+  const handleSelectImage = ({handleSendMsg}) => {
     setFileId(0);
     launchImageLibrary({mediaType: 'photo', includeBase64: false}, (response) => {
       if (response.didCancel) {
@@ -304,24 +133,6 @@ const MessageBox: React.FC = ()  => {
     }
   };
   
-  const sendMsg = async ( uuids:Set<string>, fileId : number ) => {
-    let response = null;
-    if (selectedTag ==='텍스트') {
-      response = await axiosPost<AxiosResponse<SendMatchResponse>>(urls.SEND_MSG_URL, "인연 보내기", {
-        deviceIdList: Array.from(uuids),
-        content: msgText,
-        contentType: 'MESSAGE'
-      } as SendMsgRequest)
-    } else {
-      response = await axiosPost<AxiosResponse<SendMatchResponse>>(urls.SEND_MSG_URL, "인연 보내기", {
-        deviceIdList: Array.from(uuids),
-        content: fileId.toString(),
-        contentType: 'FILE'
-      } as SendMsgRequest)
-    }
-    sendCountsRef.current = response?.data?.data?.sendCount;
-  }  
-
   const handleSendingMessage = async () => {
     const validState = checkValid();
     if (!validState) {
@@ -333,7 +144,7 @@ const MessageBox: React.FC = ()  => {
       updateFileId = await uploadImageToS3();
       setFileId(updateFileId);
     }
-    await sendMsg(uuidSet, updateFileId);
+    handleSendMsg();
     fadeInAndMoveUp();
     setShowMsgBox(false);
     if (sendCountsRef.current === 0)
@@ -363,26 +174,6 @@ const MessageBox: React.FC = ()  => {
         Alert.alert('내용을 더 채워 주세요', '5글자 이상 입력해 주세요!');
         return false;
       } 
-    }
-
-    if (!isScanning) {
-      Alert.alert('주위 인연을 만날 수 없습니다.', '블루투스 버튼을 켜고 새로운 인연을 만나기 전까지 기다려주세요!',
-        [
-          {
-            text: '켜기',
-            onPress: async () => {await handleBLEButton()},
-            style: 'default'
-          },
-        ],
-        {cancelable: true,},
-      );
-      return false
-    } else if (isBlocked) {
-      Alert.alert('잠시 기다려 주세요', '인연 메세지는 1분에 1번씩 보낼 수 있어요!');
-      return false
-    } else if (!nearInfo.isNearby || !uuidSet) {
-      Alert.alert('주위 인연이 없습니다.', '새로운 인연을 만나기 전까지 기다려주세요!');
-      return false
     }
   
     return true;
@@ -425,15 +216,6 @@ const MessageBox: React.FC = ()  => {
 
   return (
     <> 
-      {isRssiTracking && (
-        <>
-          <RoundBox style={styles.TVButton}>
-            <Button title='CCTV' onPress={()=>setShowTracking(true)} titleStyle={{color: '#979797' , fontSize: 10}}/>
-          </RoundBox>
-          <RssiTracking closeModal={()=>setShowTracking(false)} modalVisible = {showTracking} items={rssiMap}/>
-        </>
-      )}
-      <BleButton bleON = {isScanning} bleHanddler = {handleBLEButton}/>
       <Animated.View
         style={[
           styles.msgcontainer,
@@ -447,7 +229,7 @@ const MessageBox: React.FC = ()  => {
       {showMsgBox ? (
           <View style={styles.msgcontainer} >
             <RoundBox width='95%' 
-              style={[styles.msgBox, {borderColor : nearInfo.isNearby && !isBlocked && isScanning ? '#14F12A': '#979797'}]}>
+              style={[styles.msgBox, {borderColor : !isBlocked && isScanning ? '#14F12A': '#979797'}]}>
               <View style={styles.titleContainer}>
                 <Text variant='title' style={styles.title}>인연 메세지 <Button title='💬' onPress={() => {
                   Alert.alert("인연 메세지 작성",`${sendDelayedTime/(60 * 1000)}분에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요! 메세지를 받기 위해 블루투스 버튼을 켜주세요`)}
@@ -494,7 +276,7 @@ const MessageBox: React.FC = ()  => {
           </View>
       ) : (
         <RoundBox width='95%' 
-          style={[styles.buttonContainer, {borderColor : nearInfo.isNearby && !isBlocked && isScanning ? '#14F12A': '#979797'}]}>
+          style={[styles.buttonContainer, {borderColor : !isBlocked && isScanning ? '#14F12A': '#979797'}]}>
           <Button title='인연 보내기' onPress={() => setShowMsgBox(true)}/>
         </RoundBox>
       )}

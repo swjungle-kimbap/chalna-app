@@ -1,11 +1,10 @@
 import { NaverMapView, NaverMapMarkerOverlay, NaverMapCircleOverlay, NaverMapViewRef } from "@mj-studio/react-native-naver-map";
-import { FlyingModeState, isNearbyState, showMsgBoxState } from "../../recoil/atoms";
+import { FlyingModeState, showMsgBoxState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useEffect, useRef } from "react";
 import Geolocation, { GeoError } from "react-native-geolocation-service";
 import { Alert, LogBox } from "react-native";
 import { openSettings, PERMISSIONS } from "react-native-permissions";
-import { IsNearbyState } from "../../recoil/atomtypes";
 import LocalChatButton from "./LocalChatButton";
 import LocalChatMarkerOverlay from "./LocalChatMarkerOverlay";
 import { locationState } from "../../recoil/atoms";
@@ -22,7 +21,6 @@ const longkfilter = new KalmanFilter();
 export const NaverMap: React.FC = ({}) => {
   const [currentLocation, setCurrentLocation] = useRecoilState<Position>(locationState);
   const [showMsgBox, setShowMsgBox] = useRecoilState<boolean>(showMsgBoxState);
-  const nearbyInfo = useRecoilValue<IsNearbyState>(isNearbyState);
   const mapViewRef = useRef<NaverMapViewRef>(null);
   const flyingMode = useRecoilValue(FlyingModeState);
   const watchId = useRef<number | null>(null);

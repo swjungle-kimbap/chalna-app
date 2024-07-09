@@ -1,6 +1,5 @@
 import { atom } from "recoil";
 import { Friend, LocalChatRoomData, LoginResponse, Position } from "../interfaces";
-import { IsNearbyState } from "./atomtypes";
 
 export const locationState = atom<Position>({
   key: 'location',
@@ -32,14 +31,6 @@ export const showMsgBoxState = atom<boolean>({
   default: false
   }
 )
-
-export const isNearbyState = atom<IsNearbyState>({
-  key: 'isNearby',
-  default: {
-    isNearby: false,
-    lastMeetTime: 0
-  }
-})
 
 export const ProfileImageMapState = atom<Map<number, string>>({
   key: 'FriendsList',
