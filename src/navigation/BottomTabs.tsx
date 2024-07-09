@@ -8,7 +8,7 @@ import ChattingStackScreen from "./ChattingStack";
 import { useEffect, useState } from 'react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { locationState, ProfileImageMapState } from '../recoil/atoms';
-import { getMMKVObject } from '../utils/mmkvStorage';
+import { getMMKVObject, setMMKVObject } from '../utils/mmkvStorage';
 import { AxiosResponse, Friend, Position } from '../interfaces';
 import { initUserSetting } from '../service/Setting';
 import { axiosGet } from "../axios/axios.method";
@@ -18,34 +18,40 @@ const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
   const setLastLocation = useSetRecoilState(locationState);
+  setMMKVObject('user.profileImgMap', new Map([[0, '../../assets/images/anonymous.png']]));
   const [profileImageMap, setProfileImageMap] = useRecoilState(ProfileImageMapState)
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const lastLocation = getMMKVObject<Position>('map.lastLocation');
-    if (lastLocation) {
-      setLastLocation(lastLocation);
-    }
-    initUserSetting();
-    const fetchData = async () => {
-      const response = await axiosGet<AxiosResponse<Friend[]>>(urls.GET_FRIEND_LIST_URL);
-      console.log("friend api response: ", response.data.data);
-      const friends = response.data.data;
-      const updatedProfileImageMap = new Map(profileImageMap);
-
-      for (const friend of friends) {
-        const profileImageUri = updatedProfileImageMap.get(friend.profileImageId);
-        if (!profileImageUri && friend.profileImageId) {
-          const newProfileImageUri = await handleDownloadProfile(friend.profileImageId);
-          updatedProfileImageMap.set(friend.profileImageId, newProfileImageUri);
-          console.log('새로 다운받은 프로필 이미지 : ', newProfileImageUri);
-        }
+    const initialize = async () => {
+      const lastLocation = getMMKVObject<Position>('map.lastLocation');
+      if (lastLocation) {
+        setLastLocation(lastLocation);
       }
-      setProfileImageMap(updatedProfileImageMap);
-    }
-    fetchData();
-    setIsLoading(false);
-  }, [setLastLocation]);
+      initUserSetting();
+
+      try {
+        const response = await axiosGet<AxiosResponse<Friend[]>>(urls.GET_FRIEND_LIST_URL);
+        console.log("friend api response: ", response.data.data);
+        const friends = response.data.data;
+        for (const friend of friends) {
+          const profileImageUri = profileImageMap.get(friend.profileImageId);
+          console.log(profileImageUri, friend.profileImageId);
+          if (!profileImageUri && friend.profileImageId) {
+            const newProfileImageUri = await handleDownloadProfile(friend.profileImageId);
+            profileImageMap.set(friend.profileImageId, newProfileImageUri);
+            console.log('새로 다운받은 프로필 이미지 : ', newProfileImageUri);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching friend list or updating profile images: ", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initialize();
+  }, [setLastLocation, setProfileImageMap]);
 
   if (isLoading) {
     return <ActivityIndicator size="large" color="#3EB297" />

@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRecoilValue } from "recoil";
-import { userInfoState } from "../../recoil/atoms";
+import { ProfileImageMapState, userInfoState } from "../../recoil/atoms";
 import { LoginResponse, User } from "../../interfaces";
 import { SWRConfig } from 'swr';
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
@@ -51,6 +51,7 @@ import { FileResponse } from "../../interfaces";
 import RNFS from "react-native-fs";
 import ImageResizer from 'react-native-image-resizer';
 import DateHeader from '../../components/Chat/DateHeader';
+import { handleDownloadProfile } from '../../service/Friends/FriendListAPI';
 
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
@@ -69,7 +70,8 @@ const ChattingScreen = () => {
     const [username, setUsername] = useState<string>('');
     const [members, setMembers] = useState<chatRoomMember[]>([]);
     const [selectedImage, setSelectedImage] = useState<any>(null);
-
+    const [profilePicture, setProfilePicture] = useState("");
+    const profileImageMap = useRecoilValue(ProfileImageMapState);
     const otherIdRef = useRef<number | null>(null);
     const chatMessageType = useRef('CHAT');
 
@@ -78,7 +80,6 @@ const ChattingScreen = () => {
     const flatListRef = useRef<FlatList<directedChatMessage>>(null);
     const isUserAtBottom = useRef(true);
     const [showScrollToEndButton, setShowScrollToEndButton] = useState(false);
-
 
     // const scrollViewRef = useRef<ScrollView>(null);
 
@@ -92,7 +93,6 @@ const ChattingScreen = () => {
             setChatRoomType(responseData.type);
             setMembers(responseData.members);
             setUsername(usernames.join(', ')); // for chatroom title
-
             const chatRoomInfo: ChatRoomLocal = {
                 id: parseInt(chatRoomId, 10),
                 type: responseData.type,
@@ -287,8 +287,6 @@ const ChattingScreen = () => {
         };
     }, []);
 
-
-
     useFocusEffect(
         useCallback(() => {
             const fetchMessages = async () => {
@@ -331,6 +329,21 @@ const ChattingScreen = () => {
                         }
                         saveChatRoomInfo(chatRoomInfo);
 
+                        // 프로필 이미지 로드
+                        const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
+                        if (responseData.type === 'FRIEND' && filteredMembers.length === 1 && filteredMembers[0].profileImageId) {
+                            const findProfileImageId = filteredMembers[0].profileImageId;
+                            const newprofile = profileImageMap.get(findProfileImageId);
+                            if (newprofile)
+                                setProfilePicture(newprofile);
+                            else {
+                                const newProfileImageUri = await handleDownloadProfile(findProfileImageId);
+                                profileImageMap.set(findProfileImageId, newProfileImageUri);
+                                setProfilePicture(newprofile);
+                            }
+                        } else {
+                            setProfilePicture("");
+                        }
                     }
                 } catch (error) {
                     console.error('채팅방 메세지 목록조회 실패:', error);
@@ -352,7 +365,6 @@ const ChattingScreen = () => {
             };
         }, [chatRoomId, currentUserId])
     );
-
 
     const sendMessage = () => {
         if (chatRoomType === 'WAITING')
@@ -464,7 +476,7 @@ const ChattingScreen = () => {
                                         chatRoomId={Number(chatRoomId)}
                                         otherId={otherIdRef.current}
                                         chatRoomType={chatRoomType}
-                                        profilePicture={item.isSelf ? '' : 'https://img.freepik.com/premium-photo/full-frame-shot-rippled-water_1048944-5521428.jpg?size=626&ext=jpg&ga=GA1.1.2034235092.1718206967&semt=ais_user'}
+                                        profilePicture={profilePicture}
                                         username={getUsernameBySenderId(item.senderId)}
                                         showProfileTime={showProfileTime}
                                     />

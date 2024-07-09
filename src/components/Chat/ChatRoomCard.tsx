@@ -1,11 +1,11 @@
-import React , { useState }  from 'react';
+import React , { useEffect, useState }  from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import * as ImagePicker from 'react-native-image-picker';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useRecoilValue } from 'recoil';
 import { ProfileImageMapState } from '../../recoil/atoms';
 import FastImage, { Source } from 'react-native-fast-image';
 import { chatRoomMemberImage } from '../../interfaces/Chatting.type';
+import { handleDownloadProfile } from '../../service/Friends/FriendListAPI';
 
 
 interface ChatRoomCardProps {
@@ -33,12 +33,32 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
                                                        , navigation, chatRoomType, chatRoomId
                                                        , unReadMsg, onDelete }) => {
     const profileImageMap = useRecoilValue(ProfileImageMapState);
+    const [profilePicture, setProfilePicture] = useState("");
+    useEffect(() => {
+        const fetchProfileImage = async () => {
+            if (chatRoomType === 'FRIEND' && members.length === 1 && members[0].profileImageId) {
+                const findProfileImageId = members[0].profileImageId;
+                const newprofile = profileImageMap.get(findProfileImageId);
+                if (newprofile)
+                    setProfilePicture(newprofile);
+                else {
+                    const newProfileImageUri = await handleDownloadProfile(findProfileImageId);
+                    profileImageMap.set(findProfileImageId, newProfileImageUri);
+                    setProfilePicture(newProfileImageUri);
+                }
+            } else {
+                setProfilePicture("");
+            }
+        }
+        fetchProfileImage();
+    }, [members])
+
     const renderRightActions = () => (
         <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(chatRoomId)}>
             <Text style={styles.deleteButtonText}>삭제</Text>
         </TouchableOpacity>
     );
-    console.log(members)
+
     return (
         <Swipeable renderRightActions={renderRightActions}>
             <TouchableOpacity
@@ -51,11 +71,10 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
                 ]} // Conditional styles
             >
                 <View style={styles.row}>
-                    {(chatRoomType === 'FRIEND' && members.length === 1 && members[0].profileImageId) ?
+                    {(profilePicture) ?
                     (<FastImage
                     style={styles.image}
-                    source={{uri: profileImageMap.get(members[0].profileImageId)
-                        , priority: FastImage.priority.normal } as Source}
+                    source={{uri: profilePicture, priority: FastImage.priority.normal } as Source}
                     resizeMode={FastImage.resizeMode.cover}
                     />) : (
                     <Image

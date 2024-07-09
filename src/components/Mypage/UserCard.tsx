@@ -14,7 +14,6 @@ import { AxiosResponse } from "axios";
 import { FileResponse, DownloadFileResponse } from "../../interfaces";
 import FastImage, { Source } from 'react-native-fast-image';
 import RNFS from 'react-native-fs';
-import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 const DefaultImgUrl = '../../assets/images/anonymous.png';
 const editButtonUrl ='../../assets/buttons/EditButton.png'
@@ -89,8 +88,6 @@ const UserCard = () => {
         }catch(error) {
           console.error(error);
         }
-        // const fileUrl = presignedUrl.split('?')[0];
-        // await downloadAndStoreImage(fileUrl);
 
       } else {
         console.log('이미지상태:',uploadResponse.status);
@@ -102,7 +99,6 @@ const UserCard = () => {
   };
 
   const downloadAndStoreImage = async (url) => {
-    // console.log('s3 다운',url);
     try {
       const timestamp = new Date().getTime();
       const localFilePath = `${RNFS.DocumentDirectoryPath}/profile_image_${timestamp}.jpg`; // 앱 내부 저장소 
