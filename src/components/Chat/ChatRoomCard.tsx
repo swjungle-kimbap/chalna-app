@@ -1,4 +1,4 @@
-import React , { useEffect, useState }  from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useRecoilValue } from 'recoil';
@@ -6,6 +6,8 @@ import { ProfileImageMapState } from '../../recoil/atoms';
 import FastImage, { Source } from 'react-native-fast-image';
 import { chatRoomMemberImage } from '../../interfaces/Chatting.type';
 import { handleDownloadProfile } from '../../service/Friends/FriendListAPI';
+import {JoinedLocalChatListState, userInfoState} from "../../recoil/atoms";
+import {LocalChatRoomData, LoginResponse} from "../../interfaces";
 
 
 interface ChatRoomCardProps {
@@ -58,6 +60,12 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
             <Text style={styles.deleteButtonText}>삭제</Text>
         </TouchableOpacity>
     );
+    const joinedLocalChatList = useRecoilValue(JoinedLocalChatListState);
+    const chatRoomName = useMemo(() => {
+        const chatRoom = joinedLocalChatList.find(room => room.chatRoomId === chatRoomId);
+        return chatRoom ? chatRoom.name : 'Unknown Chat Room';
+    }, [chatRoomId, joinedLocalChatList]);
+
 
     return (
         <Swipeable renderRightActions={renderRightActions}>
@@ -87,14 +95,16 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
         
                     <View style={styles.content}>
                         <View style={styles.header}>
-                            <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}>{usernames}</Text>
+                            <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}>
+                                {chatRoomType==='LOCAL'? chatRoomName: usernames}
+                            </Text>
                             {unReadMsg ? (
                                 <View style={styles.unreadBadge}>
                                     <Text style={styles.unreadText}>{unReadMsg}</Text>
                                 </View>
                             ) : null}
                         </View>
-                        <Text style={styles.lastMsg}>{lastMsg || "대화를 시작해보세요"}</Text>
+                        <Text style={styles.lastMsg}>{lastMsg || " "}</Text>
                         <View style={styles.bottomRow}>
                             <Text style={styles.status}>{/* Status message here */}</Text>
                             <Text style={styles.lastUpdate}>{lastUpdate ? formatTime(lastUpdate) : " "}</Text>

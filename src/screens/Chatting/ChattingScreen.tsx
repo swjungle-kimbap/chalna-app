@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRecoilValue } from "recoil";
-import { ProfileImageMapState, userInfoState } from "../../recoil/atoms";
+import { userInfoState, ProfileImageMapState, JoinedLocalChatListState } from "../../recoil/atoms";
 import { LoginResponse, User } from "../../interfaces";
 import { SWRConfig } from 'swr';
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
@@ -52,13 +52,14 @@ import RNFS from "react-native-fs";
 import ImageResizer from 'react-native-image-resizer';
 import DateHeader from '../../components/Chat/DateHeader';
 import { handleDownloadProfile } from '../../service/Friends/FriendListAPI';
+import {sendFriendRequest} from "../../service/Friends/FriendRelationService";
 
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
 const ChattingScreen = () => {
     const route = useRoute<ChattingScreenRouteProp>();
-    const { chatRoomId } = route.params;
+    let { chatRoomId } = route.params;
     const navigation = useNavigation();
 
     const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
@@ -70,8 +71,10 @@ const ChattingScreen = () => {
     const [username, setUsername] = useState<string>('');
     const [members, setMembers] = useState<chatRoomMember[]>([]);
     const [selectedImage, setSelectedImage] = useState<any>(null);
+    const chatRoomIdRef = useRef<string>(chatRoomId)
     const [profilePicture, setProfilePicture] = useState("");
     const profileImageMap = useRecoilValue(ProfileImageMapState);
+    
     const otherIdRef = useRef<number | null>(null);
     const chatMessageType = useRef('CHAT');
 
@@ -80,11 +83,31 @@ const ChattingScreen = () => {
     const flatListRef = useRef<FlatList<directedChatMessage>>(null);
     const isUserAtBottom = useRef(true);
     const [showScrollToEndButton, setShowScrollToEndButton] = useState(false);
+    const [showNewMessageBadge, setShowNewMessageBadge] = useState(false);
+
+    const joinedLocalChatList = useRecoilValue(JoinedLocalChatListState);
+    const chatRoomInfo = useMemo(() => {
+        const chatRoom = joinedLocalChatList.find(room => room.chatRoomId === Number(chatRoomId));
+        return chatRoom ? { name: chatRoom.name, distance: chatRoom.distance, description: chatRoom.description } : { name: 'Unknown Chat Room', distance: 0, description: '' };
+    }, [chatRoomId, joinedLocalChatList]);
+
+    const calculateDistanceInMeters = (distanceInKm) => {
+        const distanceInMeters = distanceInKm * 1000;
+        return Math.round(distanceInMeters);
+    };
+
+    const distanceDisplay =() => {
+        const distanceInMeters = calculateDistanceInMeters(chatRoomInfo.distance);
+        return distanceInMeters > 50 ? '50m+' : `${distanceInMeters}m`;
+    };
+    console.log(distanceDisplay());
 
     // const scrollViewRef = useRef<ScrollView>(null);
 
+
     const updateRoomInfo = async () => {
         const responseData: chatroomInfoAndMsg = await fetchChatRoomContent(chatRoomId, currentUserId);
+        console.log('Update & Render Room info after Befriending');
         if (responseData) {
             const usernames = responseData.members
                 .filter((member: chatRoomMember) => member.memberId !== currentUserId)
@@ -103,6 +126,7 @@ const ChattingScreen = () => {
     };
 
     const handleSelectImage = () => {
+        chatRoomIdRef.current = chatRoomId
         launchImageLibrary({ mediaType: 'photo', includeBase64: false }, (response) => {
             if (response.didCancel) {
                 console.log('이미지 선택 취소');
@@ -207,18 +231,29 @@ const ChattingScreen = () => {
                         parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
                         parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt);
 
+                        if(!(chatRoomType ==='FRIEND' && parsedMessage.type==='TIMEOUT')){
                         // 메세지 렌더링 & 저장 & 스크롤 업데이트
-                        setMessages((prevMessages) => (prevMessages ? [...prevMessages, parsedMessage] : [parsedMessage]));
-                        if (isUserAtBottom.current) {
-                            flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
-                            setShowScrollToEndButton(false);
-                        } else {
-                            setShowScrollToEndButton(true);
+                            setMessages((prevMessages) => (prevMessages ? [...prevMessages, parsedMessage] : [parsedMessage]));
+                            if (isUserAtBottom.current) {
+                                flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                                setShowScrollToEndButton(false);
+                                setShowNewMessageBadge(true);
+                            } else {
+                                setShowScrollToEndButton(true);
+                                setShowNewMessageBadge(true);
+                                setTimeout(() => setShowNewMessageBadge(false), 3000);
+                            }
+                            // if (isUserAtBottom.current) {
+                            //     flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                            // } else {
+                            //     setShowScrollToEndButton(true);
+                            // }
+                            saveChatMessages(chatRoomId, [parsedMessage]);
+                            // setShowScrollToEndButton(false);
                         }
-                        saveChatMessages(chatRoomId, [parsedMessage]);
 
                         // 친구가 되었으면 채팅방 정보 다시 로드
-                        if (parsedMessage.type === 'FRIEND_REQUEST' && parsedMessage.content === '친구가 되었습니다!\n대화를 이어가보세요.') {
+                        if (parsedMessage.type === 'FRIEND_REQUEST'  && parsedMessage.content.includes('친구가 되었습니다!')) {
                             updateRoomInfo();
                         }
 
@@ -278,6 +313,7 @@ const ChattingScreen = () => {
             if (nextAppState === 'background' || nextAppState === 'inactive') {
                 WebSocketManager.disconnect();
             } else {
+                chatRoomId = chatRoomIdRef.current
                 setupWebSocket();
             }
         };
@@ -369,6 +405,10 @@ const ChattingScreen = () => {
     const sendMessage = () => {
         if (chatRoomType === 'WAITING')
             return;
+
+        if (chatMessageType.current != 'FILE' && messageContent === '')
+            return;
+
         else if (chatMessageType.current == 'CHAT') {
             WebSocketManager.sendMessage(chatRoomId, messageContent, 'CHAT');
             setMessageContent('');
@@ -404,20 +444,38 @@ const ChattingScreen = () => {
         return memberIdToUsernameMap.get(senderId) || '익명의 하마';
     }
 
+    // const handleScroll = (event) => {
+    //     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    //     const buffer = 500; // Increase the buffer to make it more generous
+    //     const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - buffer;
+    //     isUserAtBottom.current = isAtBottom;
+    //     if (isAtBottom) {
+    //         setShowScrollToEndButton(false);
+    //     }
+    // }
+    //
+    // const scrollToBottom = () => {
+    //     flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+    //     setShowScrollToEndButton(false);
+    // };
+
     const handleScroll = (event) => {
         const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-        const buffer = 500; // Increase the buffer to make it more generous
+        const buffer = 50; // Adjust buffer as necessary
         const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - buffer;
         isUserAtBottom.current = isAtBottom;
+        setShowScrollToEndButton(!isAtBottom);
         if (isAtBottom) {
-            setShowScrollToEndButton(false);
+            setShowNewMessageBadge(false);
         }
-    }
+    };
 
     const scrollToBottom = () => {
         flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
         setShowScrollToEndButton(false);
+        setShowNewMessageBadge(false);
     };
+
 
 
     if (loading) {
@@ -432,8 +490,8 @@ const ChattingScreen = () => {
         <SWRConfig value={{}}>
             <CustomHeader
                 // title={username}
-                titleSmall = {username}
-                subtitle={'안내문구 출력용'}
+                titleSmall = {chatRoomType==='LOCAL'? chatRoomInfo.name: username}
+                subtitle={chatRoomType==='LOCAL'? distanceDisplay(): ''}
                 onBackPress={() => {
                     navigate("로그인 성공", {
                         screen: "채팅목록",
@@ -447,7 +505,7 @@ const ChattingScreen = () => {
                 useNav={true}
                 useMenu={true}
             />
-            <Text>{chatRoomType}: {WebSocketManager.isConnected() ? 'Connected' : ' - '} </Text>
+            {/*<Text>{chatRoomType}: {WebSocketManager.isConnected() ? 'Connected' : ' - '} </Text>*/}
             <View style={styles.container}>
                 <View style={styles.scrollView}>
                     <FlatList
@@ -466,7 +524,6 @@ const ChattingScreen = () => {
 
                             return (
                                 <>
-
                                     <MessageBubble
                                         message={item.content}
                                         datetime={item.formatedTime}
@@ -474,7 +531,7 @@ const ChattingScreen = () => {
                                         type={item.type}
                                         unreadCnt={item.unreadCount}
                                         chatRoomId={Number(chatRoomId)}
-                                        otherId={otherIdRef.current}
+                                        senderId={item.senderId}
                                         chatRoomType={chatRoomType}
                                         profilePicture={profilePicture}
                                         username={getUsernameBySenderId(item.senderId)}
@@ -504,7 +561,12 @@ const ChattingScreen = () => {
                     //     imageStyle={{ height: 15, width: 15 }}
                     // />
                     <TouchableOpacity style={styles.scrollToEndButton} onPress={scrollToBottom}>
-                        <Text style={styles.scrollToEndButtonText}>⌄</Text>
+                        <Text style={styles.scrollToEndButtonText}>↓</Text>
+                    </TouchableOpacity>
+                )}
+                {showNewMessageBadge && (
+                    <TouchableOpacity style={styles.newMessageBadge} onPress={scrollToBottom}>
+                        <Text style={styles.newMessageBadgeText}>새로운 메세지</Text>
                     </TouchableOpacity>
                 )}
                 {chatRoomType !== 'WAITING' && (
@@ -553,6 +615,8 @@ const ChattingScreen = () => {
                     menu1={'채팅방 나가기'}
                     onMenu1={handleMenu1Action}
                     members={members}
+                    chatRoomId={Number(chatRoomId)}
+                    chatRoomType={chatRoomType}
                 />
             </View>
         </SWRConfig>
@@ -569,7 +633,7 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         justifyContent: 'flex-start',
         flex: 1,
-        paddingTop: 10,
+        paddingTop: 5,
     },
     inputContainer: {
         verticalAlign: 'top',
@@ -639,15 +703,32 @@ const styles = StyleSheet.create({
     },
     scrollToEndButton: {
         position: 'absolute',
-        right: 10,
-        bottom: 70,
-        backgroundColor: '#007bff',
-        padding: 10,
+        right: 15,
+        bottom: 62,
+        backgroundColor: 'rgba(27, 116, 118, 0.4)',
+        // padding: 5,
         borderRadius: 20,
+        height: 20,
+        width:20,
     },
     scrollToEndButtonText: {
         color: 'white',
         fontSize: 14,
+    },
+    newMessageBadge: {
+        position: 'absolute',
+        alignSelf: 'center',
+        backgroundColor: 'rgba(27, 116, 118, 0.4)',
+        // maxWidth: '45%',
+        minWidth: 85,
+        bottom: 62,
+        // padding: 5,
+        borderRadius: 20,
+        height: 20,
+    },
+    newMessageBadgeText: {
+        color: 'white',
+        fontSize: 12,
     },
 });
 

@@ -11,7 +11,7 @@ export const fetchChatRoomList=async():Promise<ChatRoom[]|any>=>{
         const response = await axiosGet<{ data: { list: ChatRoom[] } }>(
             urls.CHATROOM_LIST_URL,
         );
-        console.log('response from api: ', response.data.data);
+        // console.log('response from api: ', response.data.data);
         return response.data.data
 
     } catch (error) {

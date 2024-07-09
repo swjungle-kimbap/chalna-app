@@ -22,7 +22,7 @@ interface MessageBubbleProps {
     isSelf: boolean;
     type?: string;
     unreadCnt?: number;
-    otherId: number;
+    senderId: number;
     chatRoomId: number;
     chatRoomType: string;
     profilePicture?: string;
@@ -33,7 +33,7 @@ interface MessageBubbleProps {
 
 const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                                                          message, datetime, isSelf, type, unreadCnt,
-                                                         otherId, chatRoomId, chatRoomType,
+                                                         senderId, chatRoomId, chatRoomType,
                                                          profilePicture, username, showProfileTime, onFileDownload
                                                      }) => {
     // const date = new Date(datetime);
@@ -65,9 +65,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     //     }
     // };
 
+    console.log('senderId ', senderId);
 
     const handleAccept = async () => {
-        const response = await acceptFriendRequest(chatRoomId);
+        const response = await acceptFriendRequest(senderId, chatRoomId);
         console.log('수락 요청 응답: ',response);
         if (response === true) {
             WebSocketManager.sendMessage(String(chatRoomId), "친구가 되었습니다!\n대화를 이어가보세요.", 'FRIEND_REQUEST');
@@ -76,7 +77,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     };
 
     const handleReject = async () => {
-        const response = await rejectFriendRequest(otherId);
+        const response = await rejectFriendRequest(senderId);
         console.log('거절 요청 응답: ',response);
         if (response === true) {
             WebSocketManager.sendMessage(String(chatRoomId), "인연이 스쳐갔습니다.", 'FRIEND_REQUEST');
@@ -85,7 +86,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     };
 
     const handleSend = async () =>{
-        const response = await sendFriendRequest(chatRoomId, otherId);
+        const response = await sendFriendRequest(senderId);
         console.log('친구요청 응답 출력', response);
         if (response === true) {
             WebSocketManager.sendMessage(chatRoomId, "친구 요청을 보냈습니다.", 'FRIEND_REQUEST');
@@ -329,16 +330,20 @@ async function requestExternalStoragePermission() {
 
                     <MessageContainer isSelf={isSelf} showProfileTime={showProfileTime}>
                         {isSelf && (<DateReadStatusContainer>
-                                <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt>0? unreadCnt:''}</ReadStatus>
+                                {/*<ReadStatus isSelf={isSelf} variant="sub">{unreadCnt>0? unreadCnt:''}</ReadStatus>*/}
                                 {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
                         </DateReadStatusContainer>)}
 
-                        <MessageBubbleContent isSelf={isSelf} isFile={type==='FILE'}>
-                        {renderMessageContent()}
+                        {type==='FILE' ? (
+                            renderMessageContent()
+                        ): (
+                            <MessageBubbleContent isSelf={isSelf} isFile={type==='FILE'}>
+                                {renderMessageContent()}
+                            </MessageBubbleContent>
+                        )}
 
-                        </MessageBubbleContent>
                         {!isSelf && (<DateReadStatusContainer>
-                            <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt>0? unreadCnt:''}</ReadStatus>
+                            {/*<ReadStatus isSelf={isSelf} variant="sub">{unreadCnt>0? unreadCnt:''}</ReadStatus>*/}
                             {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
                         </DateReadStatusContainer>)}
                     </MessageContainer>
@@ -373,7 +378,7 @@ async function requestExternalStoragePermission() {
                                 <Image
                                     source={require('../../assets/Icons/friendIcon.png')}
                                     style={{height: 18, width: 24, marginLeft:6, marginTop:7}}
-                                    resizeMode={"contain"}
+                                    resizeMode={"stretch"}
                                 />
                                 ):(
                             <ImageTextButton
@@ -401,9 +406,9 @@ async function requestExternalStoragePermission() {
                     <FullScreenModalContent>
 
                         <ImageTextButton iconSource={require('../../assets/Icons/closeIcon.png')}
-                                         imageStyle={{height: 15, width: 15, paddingRight:20, paddingTop: 20 }}
+                                         imageStyle={{height: 15, width: 15, marginRight:10, marginTop: 10 }}
                                          onPress={closeImageModal} style={{ alignSelf: 'flex-end' }} />
-                            <Image
+                        <Image
                             // source={{ uri: resizedImageUri.current }}
                             source={{uri: message.preSignedUrl}}
                             style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
@@ -411,6 +416,7 @@ async function requestExternalStoragePermission() {
                         <ImageTextButton iconSource={require('../../assets/Icons/downloadIcon.png')}
                                          imageStyle={{height: 20, width: 20}}
                                          onPress={handleFileDownload} />
+
                     </FullScreenModalContent>
                 </FullScreenModalContainer>
             </Modal>

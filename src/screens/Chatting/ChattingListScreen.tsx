@@ -135,7 +135,7 @@ const ChattingListScreen = ({ navigation }) => {
                                 usernames={getDisplayName(item)}
                                 members={item.members.filter(member => member.memberId !== currentUserId)}
                                 lastMsg={item.recentMessage ? (item.recentMessage.type == "FILE" ? "사진": item.recentMessage.content) : ""}
-                                lastUpdate={item.recentMessage?.createdAt || " "}
+                                lastUpdate={item.recentMessage? item.recentMessage.createdAt : "" }
                                 navigation={navigation}
                                 chatRoomType={item.type}
                                 chatRoomId={item.id}
@@ -160,6 +160,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f5f5f5',
+        marginBottom:75,
     },
     loadingContainer: {
         flex: 1,

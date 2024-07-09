@@ -2,7 +2,7 @@ import {axiosPatch} from '../../axios/axios.method'; // Adjust the path as neces
 import {Alert} from "react-native";
 import {urls} from "../../axios/config";
 
-export const sendFriendRequest = (chatRoomId: number, otherId: number): Promise<boolean> => {
+export const sendFriendRequest = (otherId: number): Promise<boolean> => {
     return new Promise((resolve) => {
         Alert.alert(
             "친구 요청",
@@ -13,7 +13,7 @@ export const sendFriendRequest = (chatRoomId: number, otherId: number): Promise<
                             try {
                                 // 친구요청 API 전송
                                 const response = await axiosPatch(
-                                    `${urls.SEND_FRIEND_REQUEST_URL}${chatRoomId}`
+                                    `${urls.SEND_FRIEND_REQUEST_URL}${otherId}`
                                 );
                                 console.log(response);
                                 Alert.alert('친구 요청 성공', '친구 요청을 보냈습니다!');
@@ -31,7 +31,7 @@ export const sendFriendRequest = (chatRoomId: number, otherId: number): Promise<
 };
 
 
-export const acceptFriendRequest = async (chatRoomId: number) => {
+export const acceptFriendRequest = async (otherId: number, chatRoomId: number) => {
     return new Promise((resolve) => {
         Alert.alert(
             '친구 요청 수락',
@@ -41,7 +41,10 @@ export const acceptFriendRequest = async (chatRoomId: number) => {
                 {
                     text: '수락', onPress: async () => {
                         try {
-                            const response = await axiosPatch(urls.ACCEPT_FRIEND_REQUEST_URL + `${chatRoomId}`);
+                            const response = await axiosPatch(
+                                urls.ACCEPT_FRIEND_REQUEST_URL + `${otherId}`,
+                                    "친구요청 전송", {chatRoomId: chatRoomId}
+                            );
                             console.log(response);
                             Alert.alert('친구 맺기 성공', '친구가 되었습니다!');
                             resolve(true);
