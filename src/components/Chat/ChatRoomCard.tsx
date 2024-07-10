@@ -106,10 +106,12 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
 
                     <View style={styles.content}>
                         <View style={styles.header}>
-                                <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}>
+                                <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}
+                                      variant={chatRoomType=='MATCH'?"title":"main"}
+                                >
                                     {chatRoomType==='LOCAL'? chatRoomName: usernames}
                                 </Text>
-                                <Text variant={'sub'} align={'left'} style={{ color: chatRoomType==='MATCH'? 'green': 'grey', marginRight: 3 }}>
+                                <Text variant={'sub'} align={'left'} style={{ color: chatRoomType==='MATCH'? '#006a81': 'grey', marginRight: 3 }}>
                                     {memberCnt===2?'':memberCnt}
                                 </Text>
                                 {chatRoomType==='LOCAL' && (
@@ -154,10 +156,11 @@ const styles = StyleSheet.create({
         backgroundColor:'#ffffff'
     },
     waitCard: {
-        backgroundColor:'#ececec'
+        backgroundColor: 'f3f3f3'// '#eeeeee'
     },
     localCard: {
-        backgroundColor: '#d5ead6'
+        // backgroundColor: '#d9ebfa'
+        backgroundColor: '#e6f4ff'
     },
     header: {
         flexDirection: 'row',
@@ -170,14 +173,12 @@ const styles = StyleSheet.create({
     },
     usernames: {
         fontSize: 16,
-        fontWeight: 'bold',
         marginBottom: 5,
         marginRight:2,
-        color: '#5A5A5A',
         flex: 1, // Ensure the username takes up available space
     },
     matchUsername: {
-        color: 'green',
+        color: '#006a81',
     },
     lastMsg: {
         fontSize: 14,
@@ -200,7 +201,7 @@ const styles = StyleSheet.create({
     unreadBadge: {
         // flex: 1,
         alignContent:'flex-end',
-        backgroundColor: 'green',
+        backgroundColor: '#006a81',
         marginLeft: 'auto',
         borderRadius: 10,
         paddingHorizontal: 8,

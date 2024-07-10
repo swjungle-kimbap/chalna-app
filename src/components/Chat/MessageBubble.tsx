@@ -323,7 +323,14 @@ async function requestExternalStoragePermission() {
                     <AnnouncementMessageBubble style={{backgroundColor: '#c0c0c0'}}>
                         <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
                     </AnnouncementMessageBubble>
-
+                ) : type==='USER_JOIN'? (
+                    <AnnouncementMessageBubble style={{backgroundColor: 'transparent'}}>
+                        <Text variant="sub" style={{color:"#444444"}}>{message+'님이 대화에 참여하셨습니다.'}</Text>
+                    </AnnouncementMessageBubble>
+                ) : type==='USER_LEAVE'? (
+                    <AnnouncementMessageBubble style={{backgroundColor: 'transparent'}}>
+                        <Text variant="sub" style={{color:"#444444"}}>{message+'님이 나갔습니다.'}</Text>
+                    </AnnouncementMessageBubble>
                 ) : (
 
                     <MessageContainer isSelf={isSelf} showProfileTime={showProfileTime}>

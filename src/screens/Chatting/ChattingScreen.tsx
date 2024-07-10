@@ -495,7 +495,7 @@ const ChattingScreen = () => {
 
     const handleScroll = (event) => {
         const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-        const buffer = 100; // Adjust buffer as necessary
+        const buffer = 300; // Adjust buffer as necessary
         const isAtBottom = contentOffset.y <= buffer; // inverted라서 offset 0 기준으로 잡아야함
         isUserAtBottom.current = isAtBottom;
         setShowScrollToEndButton(!isAtBottom);
