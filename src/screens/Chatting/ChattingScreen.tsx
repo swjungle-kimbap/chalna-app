@@ -316,14 +316,14 @@ const ChattingScreen = () => {
     const handleKeyboardDidShow = () => {
         setShowScrollToEndButton(false);
         // if (isUserAtBottom.current) {
-        flatListRef.current?.scrollToEnd({ animated: true });
+        flatListRef.current?.scrollToOffset({animated: true, offset: 0});
         // }
     };
 
     const handleKeyboardDidHide = () => {
         setShowScrollToEndButton(false);
         // if (isUserAtBottom.current) {
-        flatListRef.current?.scrollToEnd({ animated: true });
+        flatListRef.current?.scrollToOffset({animated: true, offset: 0});
         // }
     };
 
