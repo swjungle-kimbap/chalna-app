@@ -3,7 +3,7 @@ import Button from "../../components/common/Button"
 import { StyleSheet, View, Text , Modal, TouchableOpacity, Alert} from "react-native";
 import { useRecoilState } from "recoil";
 import { userInfoState } from "../../recoil/atoms";
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import EditModal from './EditModal';
 import { LoginResponse } from '../../interfaces';
 import { axiosPatch } from '../../axios/axios.method';
@@ -23,6 +23,7 @@ const UserCard = () => {
   const [showNameEditModal, setShowNameEditModal] = useState<boolean>(false);
   const [showStatusEditModal, setShowStatusEditModal] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const ImageRef = useRef(null);
 
   const setUsername = (username) => {
     const newUseInfo = {...userInfo, username};
@@ -68,9 +69,9 @@ const UserCard = () => {
   };
 
   const handleImagePick = async () => {
-    const image = handleImagePicker();
+    const image = await handleImagePicker();
     const {presignedUrl, fileId} = await handleUploadS3(image);
-    downloadAndStoreImage(presignedUrl);
+    await downloadAndStoreImage(presignedUrl);
   }
   return (
   <>
@@ -136,7 +137,7 @@ const UserCard = () => {
           />
         </View>
         <View style={styles.buttonContainer}>
-          <Button title="다른 이미지 선택" onPress={handleImagePicker} titleStyle={styles.Button} />
+          <Button title="다른 이미지 선택" onPress={handleImagePick} titleStyle={styles.Button} />
           <Button title="기본 이미지로 변경" onPress={() => {
             resetToDefaultImage();
             setModalVisible(false);

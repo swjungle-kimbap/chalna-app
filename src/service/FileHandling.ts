@@ -5,22 +5,41 @@ import { urls } from '../axios/config';
 import { axiosGet, axiosPatch } from '../axios/axios.method';
 import { Alert } from 'react-native';
 
-export const handleImagePicker = async () => {
-  launchImageLibrary({ mediaType: 'photo' }, (response) => {
-    if (response.didCancel) {
-      console.log('이미지 선택 취소');
-    } else if (response.errorMessage) {
-      console.log('ImagePicker error: ', response.errorMessage);
-    } else {
-      const image = response.assets[0];
-      return image;
-    }
-    return null;
+interface FileImage {
+  uri: string;
+  fileName: string;
+  fileSize: number;
+  type: string;
+}
+
+export const handleImagePicker = (): Promise<FileImage|null> => {
+  return new Promise((resolve, reject) => {
+    launchImageLibrary({ mediaType: 'photo' }, (response) => {
+      if (response.didCancel) {
+        console.log('이미지 선택 취소');
+        resolve(null);
+      } else if (response.errorMessage) {
+        console.log('ImagePicker error: ', response.errorMessage);
+        reject(new Error(response.errorMessage));
+      } else {
+        const asset = response.assets && response.assets[0];
+        if (asset) {
+          const image: FileImage = {
+            uri: asset.uri,
+            fileName: asset.fileName,
+            fileSize: asset.fileSize,
+            type: asset.type,
+          };
+          resolve(image);
+        } else {
+          resolve(null);
+        }
+      }
+    });
   });
-  return null;
 };
 
-export const handleUploadS3 = async (image) => {
+export const handleUploadS3 = async (image:FileImage):Promise<FileResponse> => {
   if (!image) return;
   const { uri, fileName, fileSize, type: contentType } = image;
 
@@ -30,24 +49,29 @@ export const handleUploadS3 = async (image) => {
       fileSize,
       contentType
     });
-    const { fileId, presignedUrl } = metadataResponse?.data?.data;
-
+    const fileResponse = metadataResponse?.data?.data;
+    
     // s3에 업로드
     const file = await fetch(uri);
     const blob = await file.blob();
-    const uploadResponse = await fetch(presignedUrl, {
+    const uploadResponse = await fetch(fileResponse.presignedUrl, {
       headers: {'Content-Type': contentType},
       method: 'PUT',
       body: blob
     })
 
     if (uploadResponse.ok) {
-      return metadataResponse?.data?.data;
+      const downloadResponse = await axiosGet<AxiosResponse<DownloadFileResponse>>(`${urls.FILE_DOWNLOAD_URL}${fileResponse.fileId}`,"프로필 다운로드" );
+      const { presignedUrl }= downloadResponse?.data?.data;
+      fileResponse.presignedUrl = presignedUrl;
+      return fileResponse;
     } else {
-      console.log('이미지상태:',uploadResponse.status);
+      console.log('이미지상태:', uploadResponse.status);
       Alert.alert('실패', '이미지 업로드에 실패했습니다.');
+      return null;
     }
   } catch (error) {
     console.error(error);
+    return null;
   }
 };

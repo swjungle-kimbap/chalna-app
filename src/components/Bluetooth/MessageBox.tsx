@@ -46,15 +46,6 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
   const [selectedImage, setSelectedImage] = useState(null);
   const setMsgSendCnt = useSetRecoilState(MsgSendCntState);
 
-  const handleSelectImage = async () => {
-    setFileId(0);
-    const image = await handleImagePicker();
-    if (image) {
-      setImageUrl(image.uri);
-      setSelectedImage(image);
-    }
-  }
-
   const sendMsg = async ( uuids:Set<string>, fileId : number ) => {
     let response = null;
     if (selectedTag ==='텍스트') {
@@ -111,7 +102,15 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
     }, 1000);
   }
   
-  // 이미지 제거 함수 추가
+  const handleSelectImage = async () => {
+    setFileId(0);
+    const image = await handleImagePicker();
+    if (image) {
+      setImageUrl(image.uri);
+      setSelectedImage(image);
+    }
+  }
+
   const handleRemoveImage = () => {
     setSelectedImage(null);
     setImageUrl('');
@@ -249,9 +248,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     marginBottom: 10,
-  },
-  textInputWithImage: {
-    paddingLeft: 70, // 이미지 오른쪽에 텍스트가 올 수 있도록 패딩 추가
   },
   buttonContainer: {
     width: '75%',
