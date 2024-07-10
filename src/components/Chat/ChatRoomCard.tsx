@@ -111,7 +111,7 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
                                 >
                                     {chatRoomType==='LOCAL'? chatRoomName: usernames}
                                 </Text>
-                                <Text variant={'sub'} align={'left'} style={{ color: chatRoomType==='MATCH'? '#006a81': 'grey', marginRight: 3 }}>
+                                <Text variant={'main'} align={'left'} style={{ color: 'grey', marginRight: 5, size:14 }}>
                                     {chatRoomType==='FRIEND'? '':memberCnt}
                                 </Text>
                                 {chatRoomType==='LOCAL' && (
@@ -160,11 +160,12 @@ const styles = StyleSheet.create({
     },
     localCard: {
         // backgroundColor: '#d9ebfa'
-        backgroundColor: '#e6f4ff'
+        backgroundColor: '#E4F1EE'
     },
     header: {
         flexDirection: 'row',
         alignItems:'center',
+        marginBottom: 5,
     },
     content: {
         flex: 1,
@@ -172,9 +173,9 @@ const styles = StyleSheet.create({
         flexDirection: 'column'
     },
     usernames: {
+        alignItems:'center',
         fontSize: 16,
-        marginBottom: 5,
-        marginRight:2,
+        marginRight:5,
         flex: 1, // Ensure the username takes up available space
     },
     matchUsername: {
