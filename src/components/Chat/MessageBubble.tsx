@@ -262,7 +262,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
 
     const renderMessageContent = () => {
         if (typeof message === 'string' && message) {
-            return <Text variant="sub" style={{ color: "#444444" }}>{message}</Text>;
+            const hasNewline = message.includes('\n');
+            return(
+                <MessageBubbleContent isSelf={isSelf} hasNewline={hasNewline}>
+                    <Text variant="sub" style={{ color: "#444444" }}>{message}</Text>
+                </MessageBubbleContent>
+            );
         } else if (type === 'FILE' && message.preSignedUrl) {
             console.log(message.preSignedUrl);
             return (
@@ -271,10 +276,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
 
                     <Image
                         source={{ uri: message.preSignedUrl }}
-                        style={{ width: 200, height: 200, borderRadius: 10 }}
-                        resizeMode={"contain"}
+                        style={{ width: '100%', height: 150, resizeMode: "cover", borderRadius: 10 }}
                     />
-
                     </TouchableOpacity>
                 </ImageContainer>
             );
@@ -292,11 +295,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
         }
     };
 
-    // const hasNewline = message.includes('\n');
+
+    const notChat = (type!=='CHAT' && type!=='FILE');
 
     return (
-        <Container isSelf={isSelf} notChat={type!=='CHAT' && type!=='FILE'}>
-            {!isSelf && showProfileTime && type==='CHAT' && (
+        <Container isSelf={isSelf} notChat={notChat}>
+            {!isSelf && showProfileTime && (!notChat) && (
                 <TouchableOpacity onPress={openUserInfoModal}>
                     { profilePicture ?
                     (<FastImage
@@ -312,8 +316,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                     {/* <ProfilePicture source={{ uri: profilePicture || 'https://www.refugee-action.org.uk/wp-content/uploads/2016/10/anonymous-user.png' }} /> */}
                 </TouchableOpacity>
             )}
-            <BubbleContainer isSelf={isSelf} notChat={type!=='CHAT'}>
-                {!isSelf && showProfileTime && username && type==='CHAT' && <Username variant="subBold">{username}</Username>}
+            <BubbleContainer isSelf={isSelf} notChat={notChat}>
+                {!isSelf && showProfileTime && username && (!notChat) && <Username variant="subBold">{username}</Username>}
                 {type === 'FRIEND_REQUEST' ? (
                     <AnnouncementMessageBubble>
                         <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
@@ -347,7 +351,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                         {type==='FILE' ? (
                             renderMessageContent()
                         ): (
-                            <MessageBubbleContent isSelf={isSelf} isFile={type==='FILE'}>
+                            <MessageBubbleContent isSelf={isSelf} >
                                 {renderMessageContent()}
                             </MessageBubbleContent>
                         )}
@@ -475,31 +479,31 @@ const BubbleContainer = styled.View<{ isSelf: boolean , notChat: boolean}>`
     align-items: ${({ isSelf, notChat }) => (notChat? 'center': isSelf ? 'flex-end' : 'flex-start')};
 `;
 
-const MessageContainer = styled.View<{ isSelf: boolean;  showProfileTime: boolean }>`
+const MessageContainer = styled.View<{ isSelf: boolean; hasNewline: boolean;   showProfileTime: boolean }>`
     flex-direction: row;
     align-items: flex-end;
     flex-wrap: wrap;
-    max-width: ${({ isSelf }) => (isSelf ? '82%' : '78%' )};
+    max-width: ${({ hasNewline, isSelf }) => (isSelf && hasNewline ? '82%' : !isSelf && hasNewline? '78%' : 'auto')};
     justify-content: ${({ isSelf }) => (isSelf ? 'flex-end' : 'flex-start')};
     margin-left: ${({ isSelf, showProfileTime }) => (!isSelf && !showProfileTime ? '39px' : '0px')}; 
 `; //bottom margin-left : profile pic length
 
 
-const MessageBubbleContent = styled.View<{ isSelf: boolean;}>`
-    padding: 8px 15px;
+const MessageBubbleContent = styled.View<{ isSelf: boolean; hasNewline: boolean}>`
+    padding: 3px 5px;
     border-radius: 10px;
     background-color: ${({ isSelf }) => (isSelf ? '#E4F1EE' : '#FFFFFF')};
     flex-shrink: 1;
-    max-width: 78%;
+    max-width: ${({hasNewline})=>(hasNewline? 'auto': '100%')};
 `;
-
+// max-width: 78%;
 
 const ImageContainer = styled.View<{ isSelf: boolean;}>`
     border-radius: 10px;
     flex: 1;
     //flex-shrink: 1;
     max-width: 78%;
-    align-items: ${({ isSelf}) => (isSelf? 'flex-end' : 'flex-start')};
+    align-self: ${({ isSelf}) => (isSelf? 'flex-end' : 'flex-start')};
     
 `;
 
