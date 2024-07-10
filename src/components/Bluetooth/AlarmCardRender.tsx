@@ -31,7 +31,7 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
     <View style={styles.modalContent}>
       <View style={styles.headerText}>
         <Text style={styles.alarmCnt}>{`${item.overlapCount}번 스쳐간 인연입니다.`}</Text>
-        <Text style={styles.alarmCnt}>{restTime > 0 ? `${restTime}분 남음` : "1분 미만"}</Text>
+        <Text style={styles.alarmCnt}>{restTime >= 5 ? "방금 전" : restTime > 0 ? `${restTime}분 남음` : "1분 미만"}</Text>
       </View>
       {expandedCardId === item.id ? (
         <>
