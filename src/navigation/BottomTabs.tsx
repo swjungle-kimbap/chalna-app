@@ -66,7 +66,7 @@ const BottomTabs = () => {
             let iconSource;
             switch (route.name) {
               case '인연':
-                iconSource = require("../assets/Icons/MypageIcon.png");
+                iconSource = require("../assets/Icons/Airplane.png");
                 break
               case '지도':
                 iconSource = require("../assets/Icons/MapIcon.png");
