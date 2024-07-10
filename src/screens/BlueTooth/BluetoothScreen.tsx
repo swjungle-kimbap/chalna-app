@@ -1,4 +1,4 @@
-import { Animated, Modal, NativeEventEmitter, NativeModules, StyleSheet, TouchableWithoutFeedback, View } from "react-native";
+import { Animated, Modal, NativeEventEmitter, NativeModules, StyleSheet, TouchableWithoutFeedback, View, Image } from "react-native";
 import AlarmButton from "../../components/Bluetooth/AlarmButton";
 import MessageBox from "../../components/Bluetooth/MessageBox";
 import Text from "../../components/common/Text";
@@ -22,6 +22,7 @@ import Button from '../../components/common/Button';
 import DancingText from "../../components/Bluetooth/DancingText";
 import DancingWords from "../../components/Bluetooth/DancingWords";
 import useFadeText from "../../hooks/useFadeText";
+import GifDisplay from '../../components/Bluetooth/GifDisplay';
 
 interface BluetoothScreenPrams {
   route: {
@@ -253,9 +254,9 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
           {isScanning ? <Text style={styles.findText}>10m 이내에 인연을 찾고 있습니다</Text> :
             <Text style={styles.findText}>주변의 사람을 찾을 수 없습니다.</Text>
           }
-          <RoundBox style={styles.content}>
-            <Text>디자인</Text>
-          </RoundBox>
+            <RoundBox style={styles.noBorderContent}>
+              <GifDisplay source={require('../../assets/animations/circleFinding.gif')} style={styles.gifLarge} />
+            </RoundBox>
           <View style={styles.msgContent}>
           {showMsgBox ?
           <Modal
@@ -352,6 +353,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  noBorderContent: {
+    marginTop: 50,
+    marginBottom: 70,
+    height: 200,
+    width: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 0, // 테두리를 없앱니다.
+    shadowColor: 'transparent', // 그림자를 없앱니다.
+    elevation: 0, // 안드로이드에서의 그림자 제거
+  },
+  gifLarge: {
+    width: 300, // 원하는 너비로 설정합니다.
+    height: 300, // 원하는 높이로 설정합니다.
+  },
   background: {
     backgroundColor: "#fff",
     flex: 1,
@@ -374,6 +390,11 @@ const styles = StyleSheet.create({
     color: 'blue',
     textAlign: 'center',
   },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+},
 });
 
 export default BluetoothScreen;
