@@ -144,6 +144,9 @@ dependencies {
     implementation project(':react-native-config')
     // kakao login
     implementation "com.kakao.sdk:v2-user:2.2.0" // Add the Kakao SDK dependency
+
+    // For animated GIF support
+    implementation 'com.facebook.fresco:animated-gif:2.5.0'
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
