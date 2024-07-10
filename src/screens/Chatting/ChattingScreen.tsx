@@ -101,7 +101,7 @@ const ChattingScreen: React.FC = () => {
 
     const AnnouncementMsg = () => {
         if (chatRoomType === 'LOCAL') {
-            return "거리가 멀어지면 채팅이 종료됩니다." + chatRoomInfo.description;
+            return "거리가 멀어지면 채팅이 종료됩니다."; // + chatRoomInfo.description;
         } else if (chatRoomType === 'MATCH') {
             return "상대와 5분동안 대화할 수 있습니다."
         } else {
