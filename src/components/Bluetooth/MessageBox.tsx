@@ -13,6 +13,7 @@ import ImageResizer from 'react-native-image-resizer';
 import FastImage from 'react-native-fast-image';
 import { useSetRecoilState } from 'recoil';
 import { MsgSendCntState } from '../../recoil/atoms';
+import { handleImagePicker, handleUploadS3 } from '../../service/FileHandling';
 
 const ignorePatterns = [
   /No task registered for key shortService\d+/,
@@ -45,87 +46,15 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
   const [selectedImage, setSelectedImage] = useState(null);
   const setMsgSendCnt = useSetRecoilState(MsgSendCntState);
 
-  const handleSelectImage = () => {
+  const handleSelectImage = async () => {
     setFileId(0);
-    launchImageLibrary({mediaType: 'photo', includeBase64: false}, (response) => {
-      if (response.didCancel) {
-          console.log('이미지 선택 취소');
-      } else if (response.errorMessage) {
-        console.log('error : ', response.errorMessage);
-      } else if (response.assets && response.assets.length > 0 ) {
-        console.log('이미지 선택 완료')
-        setSelectedImage(response.assets[0]);
-        setImageUrl(response.assets[0].uri);
-      }
-    })
+    const image = await handleImagePicker();
+    if (image) {
+      setImageUrl(image.uri);
+      setSelectedImage(image);
+    }
   }
 
-  const uploadImageToS3 = async () => {
-    console.log('선택된 이미지 :', selectedImage);
-    // 유효성 검사 추가하기 
-    if(!selectedImage) {
-      return null;
-    }
-    const { uri, fileName, fileSize, type: contentType} = selectedImage;
-    
-    // 서버로 전송해서 업로드 프리사인드 url 받아오기
-    try {
-      const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}`, "파일 업로드", {
-        fileName,
-        fileSize,
-        contentType
-    });
-    console.log("서버로 받은 데이터 : ", JSON.stringify(metadataResponse?.data?.data));
-    const {fileId, presignedUrl} = metadataResponse?.data?.data;
-
-    // 이미지 리사이징 
-    const resizedImage = await ImageResizer.createResizedImage(
-      uri,
-      1500, // 너비를 500으로 조정
-      1500, // 높이를 500으로 조정
-      'JPEG', // 이미지 형식
-      100, // 품질 (0-100)
-      0, // 회전 (회전이 필요하면 EXIF 데이터에 따라 수정 가능)
-      null,
-      true,
-      { onlyScaleDown: true }
-  );
-
-    const resizedUri = resizedImage.uri;
-    const file = await fetch(resizedUri);
-    const blob = await file.blob();
-    const uploadResponse = await fetch(presignedUrl, {
-      headers: {'Content-Type': selectedImage.type},
-      method: 'PUT',
-      body: blob
-    })
-
-    if (uploadResponse.ok) {
-      console.log('인연 보내기 : s3 파일에 업로드 성공')
-
-      const uploadedUrl = presignedUrl.split('?')[0]; 
-      console.log(uploadedUrl);
-      // const isValidUrl = await checkUrlValidity(uploadedUrl);
-      const isValidUrl = true;
-      if (isValidUrl) {
-        console.log('S3 파일에 업로드 성공');
-        // const content =  {uploadedUrl, fileId};
-        setFileId(fileId);
-        return fileId; // 업로드된 파일의 URL,fileId 반환
-      } else {
-        Alert.alert('실패', '업로드된 이미지 URL이 유효하지 않습니다.');
-        return null;
-      }
-    } else {
-      Alert.alert('실패', '이미지 업로드에 실패했습니다.');
-      return null;
-    }
-    } catch (error) {
-      console.error('인연보내기 사진 error :' ,error);
-      Alert.alert('실패', '이미지 업로드 중 오류가 발생했습니다.');
-      return null;
-    }
-  };
   const sendMsg = async ( uuids:Set<string>, fileId : number ) => {
     let response = null;
     if (selectedTag ==='텍스트') {
@@ -150,17 +79,18 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
     if (!validState) {
       return;
     }
-    console.log(fileId);
     let updateFileId = fileId;
     if (selectedTag ==='사진' && !updateFileId) {
-      updateFileId = await uploadImageToS3();
-      setFileId(updateFileId);
+      const {presignedUrl, fileId} = await handleUploadS3(selectedImage);
+      updateFileId = fileId;
+      setFileId(fileId);
     }
     await sendMsg(uuids, updateFileId);
     fadeInAndMoveUp();
     setShowMsgBox(false);
     if (sendCountsRef.current === 0)
       return;
+
     setIsBlocked(true);
     setBlockedTime(Date.now());
     setRemainingTime(sendDelayedTime);
@@ -203,7 +133,6 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
   
     return true;
   };
-
 
   return (
     <> 

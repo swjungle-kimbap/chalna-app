@@ -213,6 +213,7 @@ const styles = StyleSheet.create({
   closebutton: {
     width: 20,
     height: 20,
+    color: 'black',
   },
   friendListPage: {
     flex:1,
