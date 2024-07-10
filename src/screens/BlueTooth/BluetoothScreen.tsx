@@ -1,4 +1,4 @@
-import { Animated, Modal, NativeEventEmitter, NativeModules, StyleSheet, TouchableWithoutFeedback, View } from "react-native";
+import { Animated, Modal, NativeEventEmitter, NativeModules, StyleSheet, TouchableWithoutFeedback, View, Image } from "react-native";
 import AlarmButton from "../../components/Bluetooth/AlarmButton";
 import MessageBox from "../../components/Bluetooth/MessageBox";
 import Text from "../../components/common/Text";
@@ -12,7 +12,7 @@ import requestPermissions from "../../utils/requestPermissions";
 import requestBluetooth from "../../utils/requestBluetooth";
 import showPermissionAlert from "../../utils/showPermissionAlert";
 import { PERMISSIONS } from "react-native-permissions";
-import { useEffect, useRef, useState } from "react";
+import {useEffect, useRef, useState } from "react";
 import RoundBox from "../../components/common/RoundBox";
 import useBackground from "../../hooks/useBackground";
 import { addDevice } from "../../service/Background";
@@ -22,6 +22,10 @@ import Button from '../../components/common/Button';
 import DancingText from "../../components/Bluetooth/DancingText";
 import DancingWords from "../../components/Bluetooth/DancingWords";
 import useFadeText from "../../hooks/useFadeText";
+import GifDisplay from '../../components/Bluetooth/GifDisplay';
+import MessageGif from "../../components/Bluetooth/MessageGif";
+import LottieView from "lottie-react-native";
+
 
 interface BluetoothScreenPrams {
   route: {
@@ -42,8 +46,8 @@ interface BleScanInfo {
   txPower: number,
 }
 
-const uuidSet = new Set<string>(); 
-const uuidTime = new Map(); 
+const uuidSet = new Set<string>();
+const uuidTime = new Map();
 const uuidTimeoutID = new Map();
 const kFileters = new Map();
 const scanDelayedTime = 5 * 1000;
@@ -68,8 +72,25 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   const [detectCnt, setDetectCnt] = useState(0);
   const [remainingTime, setRemainingTime] = useState(30);
   const msgSendCnt = useRecoilValue(MsgSendCntState);
-  
+
   const [fadeInAndMoveUp, fadeAnim, translateY] = useFadeText();
+  const fadeInAnim = useRef(new Animated.Value(0)).current;
+  const animationRef = useRef(null);
+
+  useEffect(() => {
+    if (isScanning) {
+      animationRef.current.play();
+    }
+  }, [isScanning]);
+
+useEffect(() => {
+    Animated.timing(fadeInAnim, {
+      toValue: detectCnt > 0 ? 1 : 0,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, [showMsgBox]);
+
   useBackground(isScanning);
 
   useEffect(() => {
@@ -93,8 +114,8 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
               return prevTime - 1;
             setIsBlocked(false);
             clearInterval(timerId);
-            return 30; 
-          }); 
+            return 30;
+          });
         }, 1000);
       } else {
         setIsBlocked(false);
@@ -120,7 +141,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
     const currentTime = new Date().getTime();
     if (isRssiTracking)
       updateRssi(uuid, rssi);
-    
+
     if (isBlocked) {
       if (uuidSet.size > 0) {
         uuidSet.clear();
@@ -148,7 +169,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
       setDetectCnt(prev => {
         if (prev > 0)
           return prev-1
-        else 
+        else
           return 0;
         });
       if (isRssiTracking) {
@@ -214,7 +235,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
         return false;
       }
     } else {
-      return true; 
+      return true;
     }
   };
 
@@ -236,6 +257,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
     }
   };
 
+
   return (
     <>
       {isRssiTracking && (
@@ -245,37 +267,27 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
           </View>
           <RssiTracking closeModal={()=>setShowTracking(false)} modalVisible = {showTracking} items={rssiMap}/>
         </>
-      )} 
+      )}
       <View style={styles.background}>
         <BleButton bleON={isScanning} bleHanddler={handleBLEButton} />
         <AlarmButton notificationId={notificationId} />
         <View style={styles.contentContainer}>
-          {isScanning ? <Text style={styles.findText}>10m 이내에 인연을 찾고 있습니다</Text> :
-            <Text style={styles.findText}>주변의 사람을 찾을 수 없습니다.</Text>
+          {isScanning && (
+            <RoundBox style={styles.noBorderContent}>
+               <LottieView ref={animationRef} source={require('../../assets/animations/WaveAnimation.json')} style={styles.gifLarge} speed={2.5} loop />
+              {!detectCnt &&
+                  <Text style={styles.findText}>10m 이내에 인연을 찾고 있습니다</Text>
+              }
+            </RoundBox>
+          )
           }
-          <RoundBox style={styles.content}>
-            <Text>디자인</Text>
-          </RoundBox>
-          <View style={styles.msgContent}>
-          {showMsgBox ?
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={showMsgBox}
-            onRequestClose={()=>{setShowMsgBox(false)}}
-          >
-            <TouchableWithoutFeedback onPress={()=>{setShowMsgBox(false)}}>
-              <View style={styles.modalOverlay}>
-                <TouchableWithoutFeedback>
-                  <View style={styles.modalContent}>
+          <View >
+          {detectCnt > 0 ?
+          <Animated.View style={[{ opacity: 1, transform: [{ translateY: translateY }] }]}>
                     <MessageBox uuids={uuidSet} setShowMsgBox={setShowMsgBox} setRemainingTime={setRemainingTime}
                       fadeInAndMoveUp={fadeInAndMoveUp}/>
-                  </View>
-                </TouchableWithoutFeedback>
-              </View>
-            </TouchableWithoutFeedback>
-          </Modal> : (
-           isBlocked ?  
+          </Animated.View> : (
+           isBlocked ?
             <>
             <Animated.View
               style={{
@@ -287,14 +299,17 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
             </Animated.View>
             <Text style={styles.blockText}>인연 메세지는</Text>
             <Text style={styles.blockText2}>{remainingTime}초 뒤에 다시 보낼 수 있습니다.</Text>
-            </> : 
-            isScanning ? detectCnt ?  
+            </> :
+            isScanning ?
+            detectCnt ?
             <>
-              <Text style={styles.findText}>주위의 {detectCnt}명의 인연을 만났습니다!</Text>
-              <DancingText setShowMsgBox = {setShowMsgBox}/>                
-            </> : 
+              <View style={styles.detectedContainer}>
+                <Text style={styles.findText2}>주위 {detectCnt}명의 인연을 찾았습니다!</Text>
+                <MessageGif setShowMsgBox={setShowMsgBox}/>
+                <Text style={styles.findText2}>클릭해서 메시지를 보내세요!</Text>
+              </View>
+            </> :
             <>
-            <DancingWords/>
             </> : (
               <Text style={styles.findText}>블루투스 버튼을 눌러 주세요!</Text>
           ))}
@@ -317,11 +332,11 @@ const styles = StyleSheet.create({
   msgContent: {
     height: 100,
   },
+  modalContainer:{
+      width: '100%',
+      height: 300,
+  },
   modalContent: {
-    position: 'absolute',
-    width: '95%',
-    bottom: 80, 
-    right: 5,
   },
   modalOverlay: {
     flex: 1,
@@ -352,6 +367,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  noBorderContent: {
+    marginTop: 50,
+    marginBottom: 70,
+    height: 200,
+    width: 400,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 0, // 테두리를 없앱니다.
+    shadowColor: 'transparent', // 그림자를 없앱니다.
+    elevation: 0, // 안드로이드에서의 그림자 제거
+  },
+  gifLarge: {
+    width: 400, // 원하는 너비로 설정합니다.
+    height: 400, // 원하는 높이로 설정합니다.
+  },
+  gifMedium: {
+    width: 150, // 원하는 너비로 설정합니다.
+    height: 150, // 원하는 높이로 설정합니다.
+  },
   background: {
     backgroundColor: "#fff",
     flex: 1,
@@ -362,8 +396,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   findText: {
-    fontSize: 20,
+    fontSize: 14,
     marginBottom: 20,
+    color: 'gray',
+  },
+  findText2: {
+    fontSize: 15,
+    marginBottom: 5,
   },
   searchText: {
     fontSize: 30,
@@ -374,6 +413,17 @@ const styles = StyleSheet.create({
     color: 'blue',
     textAlign: 'center',
   },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  detectedContainer: {
+    alignItems: 'center',
+    marginVertical: 20, // 텍스트와 GIF 사이의 간격
+  },
+  gifWrapper: {
+    zIndex: -1, // Text 요소가 GIF 위에 표시되도록 설정
+  },
 });
-
 export default BluetoothScreen;

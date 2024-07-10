@@ -43,11 +43,13 @@ const MenuModal: React.FC<MenuModalProps> = ({ title, isVisible, onClose,
                     onPress={onClose} />
 
                 <TitleText>{titleContent}</TitleText>
-                <ImageTextButton title={menu1} onPress={onMenu1}  style={{marginBottom:20, marginTop:20}} />
+
                 {menu2 && <ImageTextButton title={menu2} onPress={onMenu2} style={{marginBottom:20}} />}
                 {menu3 && <ImageTextButton title={menu3} onPress={onMenu3}  style={{marginBottom:20}}/>}
 
                 {members && <MemberList members={members} chatRoomId={chatRoomId} chatRoomType={chatRoomType}/>}
+
+                <ImageTextButton title={menu1} onPress={onMenu1}  style={{marginBottom:20, marginTop:'auto'}} />
 
             </View>
         </Modal>
@@ -63,7 +65,7 @@ const styles = StyleSheet.create({
     modalContent: {
         position:'absolute',
         right:0,
-        width: '65%',
+        width: '70%',
         height: '100%',
         backgroundColor: 'white',
         padding: 22,

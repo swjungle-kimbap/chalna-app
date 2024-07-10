@@ -16,6 +16,7 @@ export type chatRoomMember = {
     memberId:number,
     username:string,
     profileImageId: number,
+    isJoined: boolean,
 }
 
 export type chatroomInfoAndMsg= {
@@ -29,10 +30,11 @@ export type chatroomInfoAndMsg= {
 export type ChatRoom = {
     id: number;
     type: string;
-    memberCount: number;
+    memberCount?: number;
     members: chatRoomMember[];
     recentMessage?: ChatMessage;
     unreadMessageCount?: number;
+    lastReceivedAt?: string;
     createdAt: string;
     updatedAt?: string;
 }
@@ -42,6 +44,7 @@ export type chatRoomMemberImage = {
     memberId:number,
     username:string,
     profileImageId: number,
+    isJoined: boolean,
 }
 
 export type ChatRoomLocal = {
@@ -52,7 +55,7 @@ export type ChatRoomLocal = {
     recentMessage?: ChatMessage;
     messages?: directedChatMessage[];
     unreadMessageCount?: number;
-    createdAt?: string;
+    lastReceivedAt?: string;
+    createdAt: string;
     updatedAt?: string;
-    removedAt?: string | null;
 }

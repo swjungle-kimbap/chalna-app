@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Text from './Text';
+import FastImage from "react-native-fast-image";
 
 interface HeaderProps {
     title?: string;
@@ -22,7 +23,7 @@ const CustomHeader: React.FC<HeaderProps> = ({ title,titleSmall, subtitle, onBac
                     <Image source={require('../../assets/Icons/goBackIcon.png')} style={styles.icon} />
                 </TouchableOpacity>)
             }
-            <View style={styles.titleContainer}>
+            <View style={showBtn ? styles.titleContainerWithBtn: styles.titleContainer}>
                 {title && <Text variant='subtitle' children={title} />}
                 {titleSmall && <Text variant='mainBold' children={titleSmall} />}
                 {subtitle && <Text variant='sub'>{subtitle}</Text>}
@@ -30,7 +31,7 @@ const CustomHeader: React.FC<HeaderProps> = ({ title,titleSmall, subtitle, onBac
             <View style={styles.rightIcons}>
                 {onBtnPress!==null && showBtn && (
                     <TouchableOpacity onPress={onBtnPress} style={styles.iconButton}>
-                        <Image source={require('../../assets/Icons/addFriendIcon.png')} style={styles.icon} />
+                        <FastImage source={require('../../assets/Icons/Announcement.png')} style={styles.icon} />
                     </TouchableOpacity>
                 )}
                 {onMenuPress!==null && useMenu && (
@@ -70,6 +71,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingLeft: 20,
         paddingRight: 20,
+        flexDirection: "column",
+    },
+    titleContainerWithBtn: {
+        alignItems: 'center',
+        paddingLeft: 34,
         flexDirection: "column",
     },
     rightIcons: {
