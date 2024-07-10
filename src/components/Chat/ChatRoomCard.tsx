@@ -112,7 +112,7 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
                                     {chatRoomType==='LOCAL'? chatRoomName: usernames}
                                 </Text>
                                 <Text variant={'sub'} align={'left'} style={{ color: chatRoomType==='MATCH'? '#006a81': 'grey', marginRight: 3 }}>
-                                    {memberCnt===2?'':memberCnt}
+                                    {chatRoomType==='FRIEND'? '':memberCnt}
                                 </Text>
                                 {chatRoomType==='LOCAL' && (
                                     <Text variant={'sub'} style={styles.lastUpdate}>{distance ? '('+distance+')' : " "}</Text>

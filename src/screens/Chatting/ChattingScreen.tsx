@@ -53,7 +53,7 @@ import ImageResizer from 'react-native-image-resizer';
 import DateHeader from '../../components/Chat/DateHeader';
 import { handleDownloadProfile } from '../../service/Friends/FriendListAPI';
 import {sendFriendRequest} from "../../service/Friends/FriendRelationService";
-
+import Announcement from "../../components/Chat/Announcement";
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -76,7 +76,8 @@ const ChattingScreen = () => {
     const [profilePicture, setProfilePicture] = useState("");
     const profileImageMap = useRecoilValue(ProfileImageMapState);
 
-    const otherIdRef = useRef<number | null>(null);
+    const [showAnnouncement, setShowAnnouncement] = useState<boolean>(true); // State for showing announcement
+
     const chatMessageType = useRef('CHAT');
 
     useBackToScreen("로그인 성공", { screen: "채팅목록", params: { screen: "채팅 목록" } });
@@ -102,7 +103,22 @@ const ChattingScreen = () => {
         return distanceInMeters > 50 ? '50m+' : `${distanceInMeters}m`;
     };
 
-    // const scrollViewRef = useRef<ScrollView>(null);
+
+    const AnnouncementMsg = ()=>{
+        if (chatRoomType==='LOCAL'){
+            return chatRoomInfo.description;
+        } else if(chatRoomType==='MATCH'){
+            return "인연이 성사되었습니다! 5분동안 대화가 가능합니다."
+        } else {
+            return ""
+        }
+    }
+    // console.log("Announcement: ", AnnouncementMsg());
+    useEffect(() => {
+        if (chatRoomType !== 'LOCAL' && chatRoomType !== 'MATCH') {
+            setShowAnnouncement(false);
+        }
+    }, [chatRoomType]);
 
 
     const updateRoomInfo = async () => {
@@ -305,6 +321,7 @@ const ChattingScreen = () => {
     };
 
     useEffect(() => {
+
         const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', handleKeyboardDidShow);
         const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', handleKeyboardDidHide);
         return () => {
@@ -432,19 +449,20 @@ const ChattingScreen = () => {
                 } catch (error) {
                     console.error('채팅방 메세지 목록조회 실패:', error);
                 } finally {
-
                     console.log("로딩 끝");
                     setLoading(false);
+
                 }
             };
 
-            fetchMessages();
             setupWebSocket();
+            fetchMessages();
 
             return () => {
                 console.log("loose focus");
                 WebSocketManager.disconnect();
                 setMessages(null)
+                setUsername(" ")
                 // resetUnreadCountForChatRoom(Number(chatRoomId));
             };
         }, [chatRoomId, currentUserId])
@@ -475,6 +493,7 @@ const ChattingScreen = () => {
             deleteChat(navigation, chatRoomId); // 채팅방 나가기 api 호출
             toggleModal(); // 모달 닫기
             removeChatRoom(Number(chatRoomId)); // Remove chatroom from MMKV storage
+            WebSocketManager.disconnect();
         } catch (error) {
             console.error('Failed to delete chat:', error);
         }
@@ -534,13 +553,20 @@ const ChattingScreen = () => {
                         }
                     });
                 }}
-                showBtn={false}
+                showBtn={chatRoomType==='LOCAL' || chatRoomType==='MATCH'}
+                onBtnPress={()=> setShowAnnouncement(!showAnnouncement)}
                 onMenuPress={toggleModal}
                 useNav={true}
                 useMenu={true}
             />
             {/*<Text>{chatRoomType}: {WebSocketManager.isConnected() ? 'Connected' : ' - '} </Text>*/}
             <View style={styles.container}>
+                {showAnnouncement && (
+                    <Announcement
+                        message={ AnnouncementMsg()}
+                        onClose={() => setShowAnnouncement(false)}
+                    />
+                )}
                 <View style={styles.scrollView}>
                     <FlatList
                         data={messages?.slice().reverse()} // Reverse the order of messages

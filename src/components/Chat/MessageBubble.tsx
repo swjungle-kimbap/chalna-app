@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { View, Image, Modal, TouchableOpacity, Button, Alert, Linking, StyleSheet } from 'react-native';
 import styled from 'styled-components/native';
 import ImageTextButton from "../common/Button";
@@ -141,44 +141,44 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
 
 
     // Android 11 이상 버전의 권한 요청
-async function requestExternalStoragePermission() {
-    try {
-        if (Platform.OS === 'android') {
-            if (Number(Platform.Version) >= 30) { // Android 11(R) 이상
-                console.log(Number(Platform.Version));
-                const readGranted = await PermissionsAndroid.request(
-                    PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-                    {
-                        title: 'Storage Permission Required',
-                        message: 'This app needs access to your storage to read photos.',
-                        buttonNeutral: 'Ask Me Later',
-                        buttonNegative: 'Cancel',
-                        buttonPositive: 'OK',
-                    }
-                );
-                const manageGranted = (readGranted === PermissionsAndroid.RESULTS.GRANTED);
-                if (!manageGranted) {
-                    Alert.alert(
-                        'Storage Permission Required',
-                        'This app needs access to manage all files on your device. Please grant this permission in the settings.',
-                        [
-                            {
-                                text: 'Cancel',
-                                style: 'cancel',
-                            },
-                            {
-                                text: 'OK',
-                                onPress: () => Linking.openSettings(),
-                            },
-                        ],
+    async function requestExternalStoragePermission() {
+        try {
+            if (Platform.OS === 'android') {
+                if (Number(Platform.Version) >= 30) { // Android 11(R) 이상
+                    console.log(Number(Platform.Version));
+                    const readGranted = await PermissionsAndroid.request(
+                        PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+                        {
+                            title: 'Storage Permission Required',
+                            message: 'This app needs access to your storage to read photos.',
+                            buttonNeutral: 'Ask Me Later',
+                            buttonNegative: 'Cancel',
+                            buttonPositive: 'OK',
+                        }
                     );
-                    return false;
+                    const manageGranted = (readGranted === PermissionsAndroid.RESULTS.GRANTED);
+                    if (!manageGranted) {
+                        Alert.alert(
+                            'Storage Permission Required',
+                            'This app needs access to manage all files on your device. Please grant this permission in the settings.',
+                            [
+                                {
+                                    text: 'Cancel',
+                                    style: 'cancel',
+                                },
+                                {
+                                    text: 'OK',
+                                    onPress: () => Linking.openSettings(),
+                                },
+                            ],
+                        );
+                        return false;
+                    }
+                    return true;
+                } else { // Android 10(Q) 이하
+                    return await requestLegacyExternalStoragePermission();
                 }
-                return true;
-            } else { // Android 10(Q) 이하
-                return await requestLegacyExternalStoragePermission();
-            }
-        } else {
+            } else {
             return true; // iOS에서 권한 요청은 별도로 처리
         }
     } catch (err) {
@@ -266,22 +266,27 @@ async function requestExternalStoragePermission() {
         } else if (type === 'FILE' && message.preSignedUrl) {
             console.log(message.preSignedUrl);
             return (
+                <ImageContainer isSelf={isSelf} >
+                    <TouchableOpacity onPress={openImageModal}>
 
-                <TouchableOpacity onPress={openImageModal}>
+                    <Image
+                        source={{ uri: message.preSignedUrl }}
+                        style={{ width: 200, height: 200, borderRadius: 10 }}
+                        resizeMode={"contain"}
+                    />
 
-                <Image
-                    source={{ uri: message.preSignedUrl }}
-                    style={{ width: 200, height: 200, borderRadius: 10 }}
-                    resizeMode={"contain"}
-                />
-
-                </TouchableOpacity>
+                    </TouchableOpacity>
+                </ImageContainer>
             );
 
 
         } else if (typeof message === 'object') {
+            return(
             // Handle other object types if necessary
-            return <Text variant="sub" style={{ color: "#444444" }}>{JSON.stringify(message)}</Text>;
+                <MessageBubbleContent isSelf={isSelf}>
+                    <Text variant="sub" style={{ color: "#444444" }}>{JSON.stringify(message)}</Text>;
+                </MessageBubbleContent>
+            )
         } else {
             return null;
         }
@@ -320,15 +325,15 @@ async function requestExternalStoragePermission() {
                         )}
                     </AnnouncementMessageBubble>
                 ) : type==='TIMEOUT'? (
-                    <AnnouncementMessageBubble style={{backgroundColor: '#c0c0c0'}}>
+                    <AnnouncementMessageBubble style={{backgroundColor: '#c0c0c0'}} isUser={false}>
                         <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
                     </AnnouncementMessageBubble>
                 ) : type==='USER_JOIN'? (
-                    <AnnouncementMessageBubble style={{backgroundColor: 'transparent'}}>
-                        <Text variant="sub" style={{color:"#444444"}}>{message+'님이 대화에 참여하셨습니다.'}</Text>
+                    <AnnouncementMessageBubble style={{backgroundColor: 'transparent'}} isUser={true}>
+                        <Text variant="sub" style={{color:"#444444"}}>{message+'님이 대화에 참여했습니다.'}</Text>
                     </AnnouncementMessageBubble>
                 ) : type==='USER_LEAVE'? (
-                    <AnnouncementMessageBubble style={{backgroundColor: 'transparent'}}>
+                    <AnnouncementMessageBubble style={{backgroundColor: 'transparent'}} isUser={true}>
                         <Text variant="sub" style={{color:"#444444"}}>{message+'님이 나갔습니다.'}</Text>
                     </AnnouncementMessageBubble>
                 ) : (
@@ -470,26 +475,36 @@ const BubbleContainer = styled.View<{ isSelf: boolean , notChat: boolean}>`
     align-items: ${({ isSelf, notChat }) => (notChat? 'center': isSelf ? 'flex-end' : 'flex-start')};
 `;
 
-const MessageContainer = styled.View<{ isSelf: boolean; hasNewline: boolean; showProfileTime: boolean }>`
+const MessageContainer = styled.View<{ isSelf: boolean;  showProfileTime: boolean }>`
     flex-direction: row;
     align-items: flex-end;
     flex-wrap: wrap;
-    max-width: ${({ hasNewline, isSelf }) => (isSelf && hasNewline ? '82%' : !isSelf && hasNewline? '78%' : 'auto')};
+    max-width: ${({ isSelf }) => (isSelf ? '82%' : '78%' )};
     justify-content: ${({ isSelf }) => (isSelf ? 'flex-end' : 'flex-start')};
     margin-left: ${({ isSelf, showProfileTime }) => (!isSelf && !showProfileTime ? '39px' : '0px')}; 
 `; //bottom margin-left : profile pic length
 
 
-const MessageBubbleContent = styled.View<{ isSelf: boolean; hasNewline: boolean; isFile: boolean}>`
+const MessageBubbleContent = styled.View<{ isSelf: boolean;}>`
     padding: 8px 15px;
     border-radius: 10px;
-    background-color: ${({ isFile, isSelf }) => (isFile? 'transparent': isSelf ? '#E4F1EE' : '#FFFFFF')};
+    background-color: ${({ isSelf }) => (isSelf ? '#E4F1EE' : '#FFFFFF')};
     flex-shrink: 1;
     max-width: 78%;
 `;
 
-const AnnouncementMessageBubble = styled.View`
-    padding: 10px 15px;
+
+const ImageContainer = styled.View<{ isSelf: boolean;}>`
+    border-radius: 10px;
+    flex: 1;
+    //flex-shrink: 1;
+    max-width: 78%;
+    align-items: ${({ isSelf}) => (isSelf? 'flex-end' : 'flex-start')};
+    
+`;
+
+const AnnouncementMessageBubble = styled.View<{isUser: boolean;}>`
+    padding: ${({ isUser}) => (isUser? '0px 0px 0px 0px' : '10px 15px 10px 15px')};
     border-radius: 20px;
     background-color: #C6DBDA;
 `;
