@@ -65,8 +65,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     //     }
     // };
 
-    console.log('senderId ', senderId);
-
     const handleAccept = async () => {
         const response = await acceptFriendRequest(senderId, chatRoomId);
         console.log('수락 요청 응답: ',response);
@@ -305,7 +303,7 @@ async function requestExternalStoragePermission() {
                     source={ require('../../assets/images/anonymous.png')}
                     style={styles.profilePicture }
                     />
-                    )}                    
+                    )}
                     {/* <ProfilePicture source={{ uri: profilePicture || 'https://www.refugee-action.org.uk/wp-content/uploads/2016/10/anonymous-user.png' }} /> */}
                 </TouchableOpacity>
             )}
@@ -330,7 +328,7 @@ async function requestExternalStoragePermission() {
 
                     <MessageContainer isSelf={isSelf} showProfileTime={showProfileTime}>
                         {isSelf && (<DateReadStatusContainer>
-                                {/*<ReadStatus isSelf={isSelf} variant="sub">{unreadCnt>0? unreadCnt:''}</ReadStatus>*/}
+                                <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt>0? unreadCnt:''}</ReadStatus>
                                 {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
                         </DateReadStatusContainer>)}
 
@@ -343,7 +341,7 @@ async function requestExternalStoragePermission() {
                         )}
 
                         {!isSelf && (<DateReadStatusContainer>
-                            {/*<ReadStatus isSelf={isSelf} variant="sub">{unreadCnt>0? unreadCnt:''}</ReadStatus>*/}
+                            <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt>0? unreadCnt:''}</ReadStatus>
                             {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{formattedTime}</DateTime>}
                         </DateReadStatusContainer>)}
                     </MessageContainer>
@@ -371,7 +369,7 @@ async function requestExternalStoragePermission() {
                         source={ require('../../assets/images/anonymous.png')}
                         style={styles.profilePictureModal }
                         />
-                        )} 
+                        )}
                         <NameBtnContainer>
                             <Text variant="subtitle" >{username}</Text>
                             { chatRoomType==='FRIEND'? (
