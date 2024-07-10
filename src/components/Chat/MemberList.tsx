@@ -34,7 +34,7 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
 
     return (
         <View style={styles.container}>
-            <Text> 참여자 목록</Text>
+            {/*<Text> 참여자 목록</Text>*/}
             <FlatList
                 data={sortedMembers}
                 keyExtractor={(item) => item.memberId.toString()}
@@ -48,11 +48,13 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
                         />}
                         <Text style={styles.memberText}>{item.username}</Text>
                         {item.memberId !==currentUserId ? (
-                            <ImageTextButton
-                                iconSource={require('../../assets/Icons/addFriendIcon.png')}
-                                imageStyle={{height: 18, width: 18, marginTop:2}}
-                                onPress={()=>handleSend(item.memberId)}
-                            />
+                            <View style={{marginLeft:'auto'}}>
+                                <ImageTextButton
+                                    iconSource={require('../../assets/Icons/addFriendIcon.png')}
+                                    imageStyle={{height: 18, width: 18, marginTop:2, marginLeft: "auto"}}
+                                    onPress={()=>handleSend(item.memberId)}
+                                />
+                            </View>
                         ): (
                             <View style = {styles.badgeContainer} >
                                 <Text style={styles.badgeText}>나</Text>
@@ -95,7 +97,7 @@ const styles = StyleSheet.create({
         height: 20,
         justifyContent: 'center',
         alignItems: 'center',
-        marginLeft: 10,
+        marginLeft: 'auto',
         marginTop: 2,
     },
     badgeText: {

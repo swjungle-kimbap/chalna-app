@@ -72,7 +72,7 @@ const ChattingScreen: React.FC = () => {
     const [profilePicture, setProfilePicture] = useState<string>("");
     const profileImageMap = useRecoilValue(ProfileImageMapState);
 
-    const [showAnnouncement, setShowAnnouncement] = useState<boolean>(true); // State for showing announcement
+    const [showAnnouncement, setShowAnnouncement] = useState<boolean>(false); // State for showing announcement
 
     const chatMessageType = useRef<string>('CHAT');
 
@@ -101,17 +101,17 @@ const ChattingScreen: React.FC = () => {
 
     const AnnouncementMsg = () => {
         if (chatRoomType === 'LOCAL') {
-            return chatRoomInfo.description;
+            return "거리가 멀어지면 채팅이 종료됩니다."; // + chatRoomInfo.description;
         } else if (chatRoomType === 'MATCH') {
-            return "인연이 성사되었습니다! 5분동안 대화가 가능합니다."
+            return "상대와 5분동안 대화할 수 있습니다."
         } else {
             return ""
         }
     }
 
     useEffect(() => {
-        if (chatRoomType !== 'LOCAL' && chatRoomType !== 'MATCH') {
-            setShowAnnouncement(false);
+        if (chatRoomType === 'LOCAL' || chatRoomType === 'MATCH') {
+            setShowAnnouncement(true);
         }
     }, [chatRoomType]);
 
@@ -513,8 +513,7 @@ const ChattingScreen: React.FC = () => {
                         }
                     });
                 }}
-                showBtn={chatRoomType === 'LOCAL' || chatRoomType === 'MATCH'}
-                onBtnPress={() => setShowAnnouncement(!showAnnouncement)}
+                showBtn={false}
                 onMenuPress={toggleModal}
                 useNav={true}
                 useMenu={true}
@@ -641,7 +640,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     scrollView: {
-        justifyContent: 'flex-end',
+        justifyContent: 'flex-start',
         flex: 1,
         paddingTop: 5,
     },
