@@ -60,7 +60,7 @@ const BottomTabs = () => {
 
   }
   return (
-      <Tab.Navigator initialRouteName="블루투스"
+      <Tab.Navigator initialRouteName="지도"
         screenOptions={({ route }) => ({
           tabBarIcon: ({ color, size }) => {
             let iconSource;

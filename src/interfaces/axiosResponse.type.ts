@@ -63,6 +63,7 @@ export interface LocalChat extends Position{
   description: string,
   chatRoomId: number,
   distance?: number,
+  imageId: number,
 }
 
 export interface SetLocalChatResponse {

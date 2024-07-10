@@ -124,41 +124,29 @@ const styles = StyleSheet.create({
   },
   photoRemoveButton: {
     position: 'relative',
-    width: 20,
-    height: 20,
+    width: 13,
+    height: 13,
     bottom: 20,
-    right:20
   },
   closebutton: {
-    width: 20,
-    height: 20,
+    width: 13,
+    height: 13,
     color: 'black',
   },
   photoButton: {
     alignSelf: 'flex-start',
     fontSize: 15,
-    marginVertical: 5,
-    marginLeft: 10,
   },
   fullScreenImage: {
     width: 60,
-    height: '100%',
-  },
-  ImageBox: {
-    height: 150,
-    width: '100%',
-    padding: 10,
-    justifyContent:'center',
-    borderColor: '#000',
-    color: '#333',
-    borderWidth: 1,
-    borderRadius: 10,
-    marginBottom: 10,
+    height: 60,
   },
   textInput: {
     flex: 1,
     color: 'black',
     width: '100%',
+    margin:0,
+    padding:0,
   },
   buttonContainer: {
     width: '75%',
@@ -206,13 +194,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   outlinedInput: {
-    paddingHorizontal: 5,
     borderBottomWidth: 1,
     borderColor: '#000',
-    borderRadius: 10,
     flexDirection: 'row',
     justifyContent:'space-between',
     alignItems: 'center',
+    marginVertical: 10,
   },
 });
 
