@@ -23,6 +23,7 @@ import DancingText from "../../components/Bluetooth/DancingText";
 import DancingWords from "../../components/Bluetooth/DancingWords";
 import useFadeText from "../../hooks/useFadeText";
 import GifDisplay from '../../components/Bluetooth/GifDisplay';
+import MessageGif from "../../components/Bluetooth/MessageGif";
 
 interface BluetoothScreenPrams {
   route: {
@@ -251,12 +252,14 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
         <BleButton bleON={isScanning} bleHanddler={handleBLEButton} />
         <AlarmButton notificationId={notificationId} />
         <View style={styles.contentContainer}>
-          {isScanning ? <Text style={styles.findText}>10m 이내에 인연을 찾고 있습니다</Text> :
-            <Text style={styles.findText}>주변의 사람을 찾을 수 없습니다.</Text>
-          }
+          {isScanning ? (
             <RoundBox style={styles.noBorderContent}>
+              <Text style={styles.findText}>10m 이내에 인연을 찾고 있습니다</Text>
               <GifDisplay source={require('../../assets/animations/circleFinding.gif')} style={styles.gifLarge} />
             </RoundBox>
+          ) :
+            <Text style={styles.findText}>주변의 사람을 찾을 수 없습니다.</Text>
+          }
           <View style={styles.msgContent}>
           {showMsgBox ?
           <Modal
@@ -291,8 +294,11 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
             </> : 
             isScanning ? detectCnt ?  
             <>
-              <Text style={styles.findText}>주위의 {detectCnt}명의 인연을 만났습니다!</Text>
-              <DancingText setShowMsgBox = {setShowMsgBox}/>                
+              <View style={styles.detectedContainer}>
+                <Text style={styles.findText2}>주위 {detectCnt}명의 인연을 만났습니다!</Text>
+                <MessageGif setShowMsgBox={setShowMsgBox}/>
+                <Text style={styles.findText2}>클릭해서 메시지를 보내세요!</Text>
+              </View>         
             </> : 
             <>
             <DancingWords/>
@@ -357,7 +363,7 @@ const styles = StyleSheet.create({
     marginTop: 50,
     marginBottom: 70,
     height: 200,
-    width: 200,
+    width: 400,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 0, // 테두리를 없앱니다.
@@ -367,6 +373,10 @@ const styles = StyleSheet.create({
   gifLarge: {
     width: 300, // 원하는 너비로 설정합니다.
     height: 300, // 원하는 높이로 설정합니다.
+  },
+  gifMedium: {
+    width: 150, // 원하는 너비로 설정합니다.
+    height: 150, // 원하는 높이로 설정합니다.
   },
   background: {
     backgroundColor: "#fff",
@@ -379,7 +389,11 @@ const styles = StyleSheet.create({
   },
   findText: {
     fontSize: 20,
-    marginBottom: 20,
+    marginBottom: 30,
+  },
+  findText2: {
+    fontSize: 20,
+    marginBottom: 5,
   },
   searchText: {
     fontSize: 30,
@@ -394,7 +408,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-},
+  },
+  detectedContainer: {
+    alignItems: 'center',
+    marginBottom: 20, // 텍스트와 GIF 사이의 간격
+  },
+  gifWrapper: {
+    zIndex: -1, // Text 요소가 GIF 위에 표시되도록 설정
+  },
 });
-
 export default BluetoothScreen;
