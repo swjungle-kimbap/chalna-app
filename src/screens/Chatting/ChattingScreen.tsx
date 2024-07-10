@@ -315,16 +315,16 @@ const ChattingScreen = () => {
 
     const handleKeyboardDidShow = () => {
         setShowScrollToEndButton(false);
-        // if (isUserAtBottom.current) {
-        flatListRef.current?.scrollToOffset({animated: true, offset: 0});
-        // }
+        if (isUserAtBottom.current) {
+            flatListRef.current?.scrollToOffset({animated: true, offset: 0});
+        }
     };
 
     const handleKeyboardDidHide = () => {
         setShowScrollToEndButton(false);
-        // if (isUserAtBottom.current) {
-        flatListRef.current?.scrollToOffset({animated: true, offset: 0});
-        // }
+        if (isUserAtBottom.current) {
+            flatListRef.current?.scrollToOffset({animated: true, offset: 0});
+        }
     };
 
     useEffect(() => {
@@ -495,8 +495,8 @@ const ChattingScreen = () => {
 
     const handleScroll = (event) => {
         const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-        const buffer = 400; // Adjust buffer as necessary
-        const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - buffer;
+        const buffer = 100; // Adjust buffer as necessary
+        const isAtBottom = contentOffset.y <= buffer; // inverted라서 offset 0 기준으로 잡아야함
         isUserAtBottom.current = isAtBottom;
         setShowScrollToEndButton(!isAtBottom);
         if (isAtBottom) {
