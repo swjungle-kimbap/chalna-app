@@ -5,7 +5,7 @@ import { urls } from '../axios/config';
 import { axiosGet, axiosPatch } from '../axios/axios.method';
 import { Alert } from 'react-native';
 
-interface FileImage {
+export interface FileImage {
   uri: string;
   fileName: string;
   fileSize: number;
@@ -39,7 +39,7 @@ export const handleImagePicker = (): Promise<FileImage|null> => {
   });
 };
 
-export const handleUploadS3 = async (image:FileImage):Promise<FileResponse> => {
+export const handleUploadS3 = async (image:FileImage, needPresignedUrl=true):Promise<FileResponse> => {
   if (!image) return;
   const { uri, fileName, fileSize, type: contentType } = image;
 
@@ -61,10 +61,13 @@ export const handleUploadS3 = async (image:FileImage):Promise<FileResponse> => {
     })
 
     if (uploadResponse.ok) {
-      const downloadResponse = await axiosGet<AxiosResponse<DownloadFileResponse>>(`${urls.FILE_DOWNLOAD_URL}${fileResponse.fileId}`,"프로필 다운로드" );
-      const { presignedUrl }= downloadResponse?.data?.data;
-      fileResponse.presignedUrl = presignedUrl;
+      if (needPresignedUrl) {
+        const downloadResponse = await axiosGet<AxiosResponse<DownloadFileResponse>>(`${urls.FILE_DOWNLOAD_URL}${fileResponse.fileId}`,"프로필 다운로드" );
+        const { presignedUrl }= downloadResponse?.data?.data;
+        fileResponse.presignedUrl = presignedUrl;
+      }
       return fileResponse;
+      
     } else {
       console.log('이미지상태:', uploadResponse.status);
       Alert.alert('실패', '이미지 업로드에 실패했습니다.');
