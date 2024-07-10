@@ -1,5 +1,5 @@
-import RoundBox from "../../components/common/RoundBox";
-import Button from '../../components/common/Button';
+import RoundBox from "../common/RoundBox";
+import Button from '../common/Button';
 import { StyleSheet } from 'react-native';
 
 type BleButtonProps = {
