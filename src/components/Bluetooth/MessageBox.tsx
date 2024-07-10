@@ -45,6 +45,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
   const [fileId, setFileId] = useMMKVNumber("map.fileId", userMMKVStorage); 
   const [selectedImage, setSelectedImage] = useState(null);
   const setMsgSendCnt = useSetRecoilState(MsgSendCntState);
+  const [textInputHeight, setTextInputHeight] = useState(40); // 기본 높이 설정
 
   const sendMsg = async ( uuids:Set<string>, fileId : number ) => {
     let response = null;
@@ -66,13 +67,9 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
   } 
 
   const handleSendingMessage = async () => {
-    const validState = checkValid();
-    if (!validState) {
-      return;
-    }
     let updateFileId = fileId;
     if (selectedTag ==='사진' && !updateFileId) {
-      const {presignedUrl, fileId} = await handleUploadS3(selectedImage);
+      const {presignedUrl, fileId} = await handleUploadS3(selectedImage, false);
       updateFileId = fileId;
       setFileId(fileId);
     }
@@ -117,20 +114,15 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
     setFileId(0);
   };
 
-  const checkValid = () => {
-    if (selectedTag ==='사진'){
-      if (!imageUrl){
-        Alert.alert('사진 없음', '사진을 선택해 주세요!');
-        return false
-      }
+  const handleContentSizeChange = (contentWidth, contentHeight) => {
+    const lineHeight = 10; 
+    const maxHeight = lineHeight * 5; 
+
+    if (contentHeight <= maxHeight) {
+      setTextInputHeight(contentHeight);
     } else {
-      if (msgText.length < 5) {
-        Alert.alert('내용을 더 채워 주세요', '5글자 이상 입력해 주세요!');
-        return false;
-      } 
+      setTextInputHeight(maxHeight);
     }
-  
-    return true;
   };
 
   return (
@@ -138,7 +130,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
       <RoundBox width='95%' style={styles.msgBox}>
         <View style={styles.titleContainer}>
           <Text variant='title' style={styles.title}>인연 메세지 <Button title='💬' onPress={() => {
-            Alert.alert("인연 메세지 작성",`${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요! 메세지를 받기 위해 블루투스 버튼을 켜주세요`)}
+            Alert.alert("인연 메세지 작성",`${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요!`)}
           }/> 
           </Text>
           {tags.map((tag) => (
@@ -149,6 +141,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
         </View>
         <View style={styles.textInputContainer}>
           {selectedTag === "텍스트" ? (
+            <>
             <TextInput
             value={msgText}
             style={styles.textInput}
@@ -156,9 +149,19 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
             placeholder="메세지를 입력하세요"
             placeholderTextColor="#333"
             editable={!selectedImage} 
-          />
+            multiline
+            maxLength={100}
+            onContentSizeChange={(e) =>
+              handleContentSizeChange(e.nativeEvent.contentSize.width, e.nativeEvent.contentSize.height)
+            }
+            />
+            { msgText.length < 5 ? <Text style={styles.charCount}>메세지를 5글자 이상 입력해주세요</Text> :
+              msgText.length > 100 ? <Text style={styles.charCount}>메세지를 100글자 이하로 입력해주세요</Text> :
+              <Button title="보내기" titleStyle={{color: '#000'}} onPress={handleSendingMessage} /> }
+            </>
           ): (
-            <View style={[styles.ImageBox, {height:imageUrl? 150 : 50}]}>
+            <>
+            <View style={[styles.ImageBox, {height:imageUrl? 180 : 50}]}>
               {imageUrl ? (
                 <>
                 <FastImage
@@ -174,19 +177,24 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
                 <Button title='사진을 추가해주세요🖼️' onPress={handleSelectImage}/> 
               )}
             </View>
+            { imageUrl &&
+              <Button title={'보내기'} variant='main' titleStyle={{color: '#000'}}
+              onPress={handleSendingMessage}/> }
+            </>      
           )}
       </View>
-        <Button title={'보내기'} variant='main' titleStyle={{color: '#000'}}
-          onPress={handleSendingMessage}/>
-      </RoundBox>
+        </RoundBox>
     </>
   );
 };
 
 const styles = StyleSheet.create({
+  charCount: {
+    color: '#999',
+  },
   animatedText : {
     color:'black',
-},
+  },
   fullScreenImage: {
     width: '100%',
     height: 150,
@@ -196,7 +204,7 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 10,
     justifyContent:'center',
-    borderColor: '#000',
+    borderColor: '#333',
     color: '#333',
     borderWidth: 1,
     borderRadius: 10,
@@ -279,7 +287,6 @@ const styles = StyleSheet.create({
   textInputContainer: {
     position: 'relative',
     width: '100%',
-    marginBottom: 10,
   },
 
 });
