@@ -42,7 +42,7 @@ export const fetchChatRoomContent =
 export const deleteChat = async (navigation: any, chatRoomId:string):Promise<boolean|any> => {
     Alert.alert(
         "채팅방 나가기",
-        "나간 채팅방으로는 재진입이 불가능합니다. 정말 나가시겠습니까?",
+        "정말 나가시겠습니까?",
         [   { text: "취소", style: "cancel" },
                     { text: "나가기",
                         onPress: async () => {
@@ -50,7 +50,6 @@ export const deleteChat = async (navigation: any, chatRoomId:string):Promise<boo
                                 await axiosDelete(
                                     urls.CHATROOM_LEAVE_URL+`${chatRoomId}`
                                 );
-                                Alert.alert("채팅방 삭제 완료");
                                 if (navigation!=='none'){
                                     navigation.navigate('채팅 목록');
                                 }

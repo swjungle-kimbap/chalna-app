@@ -17,6 +17,8 @@ interface ChatRoomCardProps {
     memberCnt: number;
     lastMsg?: string | null;
     lastUpdate?: string;
+    description?: string;
+    distance?: string;
     navigation: any;
     chatRoomType: string;
     chatRoomId: number; // chatRoomId
@@ -28,7 +30,8 @@ interface ChatRoomCardProps {
 const DefaultImgUrl = '../../assets/images/anonymous.png';
 
 const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
-                                                       lastMsg, lastUpdate, usernames, members, memberCnt
+                                                       lastMsg, lastUpdate, description, distance
+                                                       , usernames, members, memberCnt
                                                        , navigation, chatRoomType, chatRoomId
                                                        , unReadMsg, onDelete }) => {
     const profileImageMap = useRecoilValue(ProfileImageMapState);
@@ -103,26 +106,27 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
 
                     <View style={styles.content}>
                         <View style={styles.header}>
-
-
-                            <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}>
-                                {chatRoomType==='LOCAL'? chatRoomName: usernames}
-                            </Text>
-                            <View style={styles.bottomRow}>
-                                <Text variant={'sub'} align={'left'} style={{ color: chatRoomType==='MATCH'? 'green': 'grey' }}>
-                                    {memberCnt===2?'':memberCnt}
+                                <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}
+                                      variant={chatRoomType=='MATCH'?"title":"main"}
+                                >
+                                    {chatRoomType==='LOCAL'? chatRoomName: usernames}
                                 </Text>
+                                <Text variant={'main'} align={'left'} style={{ color: 'grey', marginRight: 5, size:14 }}>
+                                    {chatRoomType==='FRIEND'? '':memberCnt}
+                                </Text>
+                                {chatRoomType==='LOCAL' && (
+                                    <Text variant={'sub'} style={styles.lastUpdate}>{distance ? '('+distance+')' : " "}</Text>
+                                )}
                                 {unReadMsg ? (
                                     <View style={styles.unreadBadge}>
-                                        <Text style={styles.unreadText}>{unReadMsg}</Text>
+                                        <Text  style={styles.unreadText}>{unReadMsg}</Text>
                                     </View>
                                 ) : null}
-                            </View>
-                        </View>
 
+                        </View>
                         <View style={styles.bottomRow}>
-                            <Text style={styles.lastMsg} numberOfLines={1}  align={'left'} >{truncatedMsg || " "}</Text>
-                            <Text style={styles.lastUpdate}>{lastUpdate ? lastUpdate : " "}</Text>
+                            <Text variant={'sub'} style={styles.lastMsg} numberOfLines={1}  align={'left'} >{truncatedMsg || " "}</Text>
+                            <Text variant={'sub'} style={styles.lastUpdate}>{lastUpdate ? lastUpdate : " "}</Text>
                         </View>
                     </View>
                 </View>
@@ -152,29 +156,30 @@ const styles = StyleSheet.create({
         backgroundColor:'#ffffff'
     },
     waitCard: {
-        backgroundColor:'#ececec'
+        backgroundColor: 'f3f3f3'// '#eeeeee'
     },
     localCard: {
-        backgroundColor: '#d5ead6'
+        // backgroundColor: '#d9ebfa'
+        backgroundColor: '#E4F1EE'
     },
     header: {
         flexDirection: 'row',
         alignItems:'center',
+        marginBottom: 5,
     },
     content: {
         flex: 1,
         marginLeft: 10, // Space between the image and the content
+        flexDirection: 'column'
     },
     usernames: {
+        alignItems:'center',
         fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 5,
-        marginRight:10,
-        color: '#5A5A5A',
+        marginRight:5,
         flex: 1, // Ensure the username takes up available space
     },
     matchUsername: {
-        color: 'green',
+        color: '#006a81',
     },
     lastMsg: {
         fontSize: 14,
@@ -196,7 +201,8 @@ const styles = StyleSheet.create({
     },
     unreadBadge: {
         // flex: 1,
-        backgroundColor: 'green',
+        alignContent:'flex-end',
+        backgroundColor: '#006a81',
         marginLeft: 'auto',
         borderRadius: 10,
         paddingHorizontal: 8,
@@ -211,7 +217,7 @@ const styles = StyleSheet.create({
         marginLeft:5,
         width: 45,
         height: 45,
-        // borderRadius: 25,
+        borderRadius: 20,
     },
     deleteButton: {
         backgroundColor: 'red',
