@@ -120,11 +120,7 @@ const ChattingListScreen = ({ navigation }) => {
 
     //recent message 넣기
     const getLastMsg = (room: ChatRoom) =>{
-        if (room.type === 'LOCAL') {
-            return getChatRoomInfo(room.id, joinedLocalChatList).description;
-        } else {
             return room.recentMessage ? (room.recentMessage.type == "FILE" ? "사진": room.recentMessage.content) : "";
-        }
     }
 
     const calculateDistanceInMeters = (distanceInKm) => {
@@ -143,12 +139,7 @@ const ChattingListScreen = ({ navigation }) => {
 
     // 몇명
     const getLastUpdate = (room: ChatRoom) =>{
-        if (room.type === 'LOCAL') {
-            return distanceDisplay(room.id);
-        } else {
-            return room.recentMessage ?
-                formatDateToKoreanTime(room.recentMessage.createdAt) : '';
-        }
+        return room.recentMessage ? formatDateToKoreanTime(room.recentMessage.createdAt) : '';
     }
 
     if (loading) {
@@ -180,6 +171,8 @@ const ChattingListScreen = ({ navigation }) => {
                                 members={item.members.filter(member => member.memberId !== currentUserId)}
                                 lastMsg={getLastMsg(item)}
                                 lastUpdate={getLastUpdate(item)}
+                                description={getChatRoomInfo(item.id, joinedLocalChatList)?getChatRoomInfo(item.id, joinedLocalChatList).description:''}
+                                distance={getChatRoomInfo(item.id, joinedLocalChatList)?distanceDisplay(item.id):''}
                                 navigation={navigation}
                                 chatRoomType={item.type}
                                 chatRoomId={item.id}
