@@ -71,6 +71,7 @@ const ChattingScreen = () => {
     const [username, setUsername] = useState<string>('');
     const [members, setMembers] = useState<chatRoomMember[]>([]);
     const [selectedImage, setSelectedImage] = useState<any>(null);
+    const [disconnected, setDisconnected] = useState<boolean>(false); // Add this line
     const chatRoomIdRef = useRef<string>(chatRoomId)
     const [profilePicture, setProfilePicture] = useState("");
     const profileImageMap = useRecoilValue(ProfileImageMapState);
@@ -183,32 +184,32 @@ const ChattingScreen = () => {
             const { fileId, presignedUrl } = metadataResponse?.data?.data;
 
 
-        // 이미지를 리사이징
-        const resizedImage = await ImageResizer.createResizedImage(
-            uri,
-            1500, // 너비를 500으로 조정
-            1500, // 높이를 500으로 조정
-            'JPEG', // 이미지 형식
-            100, // 품질 (0-100)
-            0, // 회전 (회전이 필요하면 EXIF 데이터에 따라 수정 가능)
-            null,
-            true,
-            { onlyScaleDown: true }
-        );
+            // 이미지를 리사이징
+            const resizedImage = await ImageResizer.createResizedImage(
+                uri,
+                1500, // 너비를 500으로 조정
+                1500, // 높이를 500으로 조정
+                'JPEG', // 이미지 형식
+                100, // 품질 (0-100)
+                0, // 회전 (회전이 필요하면 EXIF 데이터에 따라 수정 가능)
+                null,
+                true,
+                { onlyScaleDown: true }
+            );
 
-        const resizedUri = resizedImage.uri;
+            const resizedUri = resizedImage.uri;
 
 
-        // 프리사인드 URL을 사용하여 S3에 파일 업로드
-        const file = await fetch(resizedUri);
-        const blob = await file.blob();
-          const uploadResponse = await fetch(presignedUrl, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': selectedImage.type
-          },
-          body: blob
-        });
+            // 프리사인드 URL을 사용하여 S3에 파일 업로드
+            const file = await fetch(resizedUri);
+            const blob = await file.blob();
+            const uploadResponse = await fetch(presignedUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': selectedImage.type
+                },
+                body: blob
+            });
 
             if (uploadResponse.ok) {
                 console.log('S3 파일에 업로드 성공');
@@ -246,13 +247,13 @@ const ChattingScreen = () => {
                         parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt);
 
                         if(!(chatRoomType ==='FRIEND' && parsedMessage.type==='TIMEOUT')){
-                        // 메세지 렌더링 & 저장 & 스크롤 업데이트
+                            // 메세지 렌더링 & 저장 & 스크롤 업데이트
                             setMessages((prevMessages) => (prevMessages ? [...prevMessages, parsedMessage] : [parsedMessage]));
                             if (isUserAtBottom.current) {
                                 flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
                                 setShowScrollToEndButton(false);
                                 if (parsedMessage.senderId!==currentUserId){
-                                    setShowNewMessageBadge(true);
+                                    setShowNewMessageBadge(false);
                                 }
                             } else {
                                 setShowScrollToEndButton(true);
@@ -285,13 +286,13 @@ const ChattingScreen = () => {
                         if (parsedMessage.type === 'USER_ENTER') {
                             const lastLeaveAt = parsedMessage.content.lastLeaveAt;
                             console.log('user enter since ', lastLeaveAt);
-                                decrementUnreadCountBeforeTimestamp(chatRoomId, lastLeaveAt); // readCount update
-                                 // load again
-                                 const fetchMessages = async () => {
-                                     const fetchedMessages = await getChatMessages(chatRoomId);
-                                     setMessages(fetchedMessages || []);
-                                 };
-                                 fetchMessages();
+                            decrementUnreadCountBeforeTimestamp(chatRoomId, lastLeaveAt); // readCount update
+                            // load again
+                            const fetchMessages = async () => {
+                                const fetchedMessages = await getChatMessages(chatRoomId);
+                                setMessages(fetchedMessages || []);
+                            };
+                            fetchMessages();
                         }
                     }
                 } catch (error) {
@@ -315,14 +316,14 @@ const ChattingScreen = () => {
     const handleKeyboardDidShow = () => {
         setShowScrollToEndButton(false);
         // if (isUserAtBottom.current) {
-            flatListRef.current?.scrollToEnd({ animated: true });
+        flatListRef.current?.scrollToEnd({ animated: true });
         // }
     };
 
     const handleKeyboardDidHide = () => {
         setShowScrollToEndButton(false);
         // if (isUserAtBottom.current) {
-            flatListRef.current?.scrollToEnd({ animated: true });
+        flatListRef.current?.scrollToEnd({ animated: true });
         // }
     };
 
@@ -330,16 +331,45 @@ const ChattingScreen = () => {
         const handleAppStateChange = (nextAppState: AppStateStatus) => {
             if (nextAppState === 'background' || nextAppState === 'inactive') {
                 WebSocketManager.disconnect();
+                setDisconnected(true); // Set disconnected to true
             } else {
                 chatRoomId = chatRoomIdRef.current
                 setupWebSocket();
+                if (disconnected) {
+                    const fetchNewMessages = async() => {
+                        const responseData = await fetchChatRoomContent(chatRoomId, currentUserId);
+                        if (responseData) {
+                            // 메세지 형식 붙이기
+                            const fetchedNewMessages: directedChatMessage[] = (responseData.messages || []).map((msg: ChatMessage) => ({
+                                ...msg,
+                                isSelf: msg.senderId === currentUserId,
+                                formatedTime: formatDateToKoreanTime(msg.createdAt)
+                            }));
+                            // 렌더링
+                            setMessages((prevMessages) => (prevMessages ? [...prevMessages, ...fetchedNewMessages] : fetchedNewMessages));
+                            if (isUserAtBottom.current) {
+                                flatListRef.current?.scrollToOffset({animated: true, offset: 0});
+                                setShowScrollToEndButton(false);
+                                setShowNewMessageBadge(false);
+                            }
+                            // 메세지 저장
+                            if (fetchedNewMessages && fetchedNewMessages.length > 0) {
+                                console.log("Disconnect 후 api 호출 채팅데이터: ", fetchedNewMessages);
+                                saveChatMessages(chatRoomId, fetchedNewMessages);
+                            }
+                        }
+                    };
+                    fetchNewMessages();
+                    setDisconnected(false);
+                }
             }
         };
         const subscription = AppState.addEventListener('change', handleAppStateChange);
         return () => {
             subscription.remove();
         };
-    }, []);
+    }, [disconnected, currentUserId]);
+     // Add disconnected to dependency array
 
     useFocusEffect(
         useCallback(() => {
@@ -737,3 +767,5 @@ const styles = StyleSheet.create({
 });
 
 export default ChattingScreen;
+
+
