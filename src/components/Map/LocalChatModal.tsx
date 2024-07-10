@@ -6,7 +6,6 @@ import { useRecoilState, useRecoilValue } from 'recoil';
 import { getLocalChatRefreshState, locationState } from '../../recoil/atoms';
 import { makeLocalChat } from '../../service/LocalChat';
 import FastImage from 'react-native-fast-image';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import { handleImagePicker } from '../../service/FileHandling';
 
 export interface LocalChatModalProps{
@@ -71,7 +70,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
                       resizeMode={FastImage.resizeMode.contain}
                     />
                     <Button iconSource={require('../../assets/buttons/CloseButton.png')} imageStyle={styles.photoRemoveButton}
-                    onPress={handleRemoveImage}/>
+                      onPress={handleRemoveImage}/>
                     </>
                   }
                   <TextInput
@@ -148,32 +147,10 @@ const styles = StyleSheet.create({
     margin:0,
     padding:0,
   },
-  buttonContainer: {
-    width: '75%',
-    position: 'absolute',
-    bottom: 10, 
-    right: 10,
-    zIndex: 2,
-    borderTopWidth: 2,
-  },
-  selectedImage: {
-    width: 50,
-    height: 50,
-  },
-  removeImageButtonText: {
-      color: 'white',
-      fontSize: 18,
-  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     height: '70%',
-  },
-  subText: {
-    alignSelf: 'flex-start',
-    fontSize: 15,
-    marginVertical: 5,
-    paddingLeft: 5,
   },
   inputBox: {
     width: '80%',

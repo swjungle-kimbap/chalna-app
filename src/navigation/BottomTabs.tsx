@@ -1,5 +1,5 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { Image, StyleSheet, ActivityIndicator, View } from 'react-native';
 import MapScreen from '../screens/Map/MapScreen';
 import FontTheme from "../styles/FontTheme";
 import MypageStackScreen from "./MypageStack";
@@ -56,9 +56,11 @@ const BottomTabs = () => {
   }, [setLastLocation, setProfileImageMap]);
 
   if (isLoading) {
-    return <ActivityIndicator size="large" color="#3EB297" />
-
-  }
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    )}
   return (
       <Tab.Navigator initialRouteName="지도"
         screenOptions={({ route }) => ({
@@ -112,6 +114,11 @@ const BottomTabs = () => {
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   tabContainer: {
       position: 'static',
       left: '2.5%',
