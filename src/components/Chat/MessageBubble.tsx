@@ -332,11 +332,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                     <AnnouncementMessageBubble style={{backgroundColor: '#c0c0c0'}} isUser={false}>
                         <Text variant="sub" style={{color:"#444444"}}>{message}</Text>
                     </AnnouncementMessageBubble>
-                ) : type==='USER_JOIN'? (
+                ) : type==='USER_JOIN'? chatRoomType!=='FRIEND' && (
                     <AnnouncementMessageBubble style={{backgroundColor: 'transparent'}} isUser={true}>
                         <Text variant="sub" style={{color:"#444444"}}>{message+'님이 대화에 참여했습니다.'}</Text>
                     </AnnouncementMessageBubble>
-                ) : type==='USER_LEAVE'? (
+                ) : type==='USER_LEAVE'? chatRoomType!=='FRIEND' && (
                     <AnnouncementMessageBubble style={{backgroundColor: 'transparent'}} isUser={true}>
                         <Text variant="sub" style={{color:"#444444"}}>{message+'님이 나갔습니다.'}</Text>
                     </AnnouncementMessageBubble>
