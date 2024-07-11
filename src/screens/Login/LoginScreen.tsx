@@ -18,6 +18,7 @@ import { getMMKVObject, loginMMKVStorage, setMMKVObject, setUserMMKVStorage } fr
 import { setDefaultMMKVString } from "../../utils/mmkvStorage";
 
 LogBox.ignoreLogs(['new NativeEventEmitter']); 
+LogBox.ignoreAllLogs();
 
 const LoginScreen: React.FC = () => {
   const setDeviceUUID = useSetRecoilState<string>(DeviceUUIDState);

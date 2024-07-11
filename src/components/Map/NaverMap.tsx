@@ -64,7 +64,7 @@ export const NaverMap: React.FC = ({}) => {
           },
           { 
             accuracy: { android: "high" },
-            interval: 3000,
+            interval: 4000,
             distanceFilter: 3,
             enableHighAccuracy: true,
             showLocationDialog: true,

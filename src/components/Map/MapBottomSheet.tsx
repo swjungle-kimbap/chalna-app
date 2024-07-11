@@ -2,7 +2,7 @@ import React, { useCallback, useRef, useMemo, useState, useEffect } from "react"
 import { StyleSheet, View, TouchableOpacity, Image, Dimensions, LogBox } from "react-native";
 import BottomSheet, {BottomSheetView , BottomSheetFlatList, BottomSheetScrollView}from "@gorhom/bottom-sheet";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { LocalChatListState, ProfileImageMapState } from "../../recoil/atoms";
+import { LocalChatListState, locationState, ProfileImageMapState } from "../../recoil/atoms";
 import RoundBox from "../common/RoundBox";
 import Text from "../common/Text";
 import Button from "../common/Button";
@@ -44,15 +44,15 @@ const MapBottomSheet = ({cameraMove, setShowLocalChatModal}) => {
     const localChat:LocalChat = item.localChat;
     const profilePicture = profileImageMap.get(localChat.imageId);
     const distance = Math.round(localChat.distance * 1000);
-
+    console.log(distance)
     return (
       <TouchableOpacity onPress={() => {
           onTapCard({longitude: localChat.longitude, latitude: localChat.latitude})
           handleSnapPress(1);
         }}>
-        <RoundBox key={index} style={{elevation: 0}}> 
+        <RoundBox key={index} style={{elevation: 0, backgroundColor: distance > 50 ? 'gray' : 'white'}}> 
           <View style={{justifyContent:'space-between', flexDirection: 'row'}}>
-            <View style={styles.chatRoomText}>
+            <View style={styles.chatRoomText }>
               {(profilePicture !== defaultImg) ?
               (<FastImage
                 style={styles.fullScreenImage}
@@ -62,18 +62,18 @@ const MapBottomSheet = ({cameraMove, setShowLocalChatModal}) => {
               <Image source={require(defaultImg)} style={styles.fullScreenImage}/>)}
               <View style={{flexDirection: 'column', justifyContent:'flex-start'}}>
                 <View style={{flexDirection: 'row'}}>
-                  <Text style={styles.titleText}>{localChat.name}</Text>
-                  <Text style={styles.numberText}>{localChat.chatRoomMemberCount}</Text>
+                  <Text style={[styles.titleText, distance > 50 && {color: '#f2f2f2'}]}>{localChat.name}</Text>
+                  <Text style={[styles.numberText, distance > 50 && {color: '#e6e6e6'}]}>{localChat.chatRoomMemberCount}</Text>
                 </View>
-                <Text style={styles.descriptionText}>{localChat.description}</Text> 
+                <Text style={[styles.descriptionText, distance > 50 && {color: '#d9d9d9'}]}>{localChat.description}</Text> 
               </View>
             </View>
-            <Text style={styles.distanceText}>{distance}m</Text>
+            <Text style={[styles.distanceText, distance > 50 && {color: '#cccccc'}]}>{distance}m</Text>
           </View>
         </RoundBox>
       </TouchableOpacity>
     );
-}, []);
+}, [localChatList]);
 
 const RenderHeader = useCallback(() => (
   <TouchableOpacity style={styles.headerContainer} 
