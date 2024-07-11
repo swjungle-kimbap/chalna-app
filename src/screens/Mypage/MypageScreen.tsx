@@ -3,7 +3,7 @@ import { RootStackParamList } from "../../interfaces/Navigation";
 import { Image, StyleSheet, View } from "react-native";
 import InlineButton from "../../components/Mypage/InlineButton";
 import UserCard from "../../components/Mypage/UserCard";
-import { logoutAlert } from "../../service/Setting";
+import { logoutAlert, withdrawlAlert } from "../../service/Setting";
 
 type MypageScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, '앱 설정'>
@@ -23,7 +23,7 @@ const MypageScreen: React.FC<MypageScreenProps> = ({navigation}) => {
           </View>
         </InlineButton>
         <InlineButton onPressfunc={logoutAlert} textstyle={styles.textPos} text="로그 아웃"/>
-        <InlineButton onPressfunc={()=>{}} textstyle={{paddingTop:2, color:"#979797"}} text="계정 탈퇴"/>
+        <InlineButton onPressfunc={withdrawlAlert} textstyle={{paddingTop:2, color:"#979797"}} text="계정 탈퇴"/>
       </View>
     </View>
   );

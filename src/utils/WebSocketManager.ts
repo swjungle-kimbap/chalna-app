@@ -28,7 +28,7 @@ class WebSocketManager {
             debug: (str) => {
                 console.log(str);
             },
-            reconnectDelay: 2000,
+            reconnectDelay: 1000,
             heartbeatIncoming: 10000,
             heartbeatOutgoing: 10000,
             webSocketFactory: () => {
@@ -78,7 +78,7 @@ class WebSocketManager {
     sendMessage = <sendMessageProps>(chatRoomId, message, type) => {
         const messageBody = this.parseMsgToSend(message, type);
         if (this.client) {
-            this.client.publish({ destination: `/api/send/chat/${chatRoomId}/sendMessage`, body: messageBody });
+            this.client.publish({ destination: `/api/send/${chatRoomId}`, body: messageBody });
         }
     };
 

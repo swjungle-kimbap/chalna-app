@@ -1,185 +1,419 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, TextInput, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, AppState, AppStateStatus, Alert, Image, KeyboardAvoidingView } from 'react-native';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import {
+    View,
+    TextInput,
+    StyleSheet,
+    ActivityIndicator,
+    Keyboard,
+    AppState,
+    AppStateStatus,
+    TouchableOpacity,
+    Image,
+    FlatList,
+    NativeScrollEvent,
+    NativeSyntheticEvent
+} from 'react-native';
 import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRecoilValue } from "recoil";
-import { userInfoState } from "../../recoil/atoms";
-import { LoginResponse } from "../../interfaces";
-import { getKeychain } from "../../utils/keychain";
+import { userInfoState, ProfileImageMapState, JoinedLocalChatListState } from "../../recoil/atoms";
+import { LoginResponse, User } from "../../interfaces";
 import { SWRConfig } from 'swr';
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
 import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
-import {deleteChat, fetchChatRoomContent} from "../../service/Chatting/chattingAPI";
-import { sendFriendRequest } from "../../service/FriendRelationService";
+import { deleteChat, fetchChatRoomContent } from "../../service/Chatting/chattingAPI";
 import 'text-encoding-polyfill';
 import CustomHeader from "../../components/common/CustomHeader";
 import MenuModal from "../../components/common/MenuModal";
 import ImageTextButton from "../../components/common/Button";
 import { navigate } from '../../navigation/RootNavigation';
-import { Keyboard } from 'react-native';
 import useBackToScreen from '../../hooks/useBackToScreen';
-import {chatRoomMember, ChatMessage, directedChatMessage} from "../../interfaces/Chatting";
-import {formatDateToKoreanTime} from "../../service/Chatting/DateHelpers"
+import {
+    chatRoomMember, ChatMessage, directedChatMessage,
+    ChatRoomLocal, chatroomInfoAndMsg
+} from "../../interfaces/Chatting.type";
+import { formatDateToKoreanTime, formatDateHeader } from "../../service/Chatting/DateHelpers";
 import Text from '../../components/common/Text';
-
+import {
+    saveChatMessages, getChatMessages, removeChatRoom,
+    saveChatRoomInfo, decrementUnreadCountBeforeTimestamp
+} from '../../service/Chatting/mmkvChatStorage';
+import { getMMKVString, setMMKVString, getMMKVObject, setMMKVObject, removeMMKVItem, loginMMKVStorage } from "../../utils/mmkvStorage";
+import { IMessage } from "@stomp/stompjs";
+import { launchImageLibrary, ImageLibraryOptions, ImagePickerResponse } from 'react-native-image-picker'; // Import ImagePicker
+import { axiosPost } from '../../axios/axios.method';
+import { urls } from "../../axios/config";
+import { AxiosResponse } from "axios";
+import { FileResponse } from "../../interfaces";
+import RNFS from "react-native-fs";
+import ImageResizer from 'react-native-image-resizer';
+import DateHeader from '../../components/Chat/DateHeader';
+import { handleDownloadProfile } from '../../service/Friends/FriendListAPI';
+import {sendFriendRequest} from "../../service/Friends/FriendRelationService";
+import Announcement from "../../components/Chat/Announcement";
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
-// lastLeaveAt timestamp 저장: 소켓통신 끊을 때
-// 첫 입장시 값이 없으면 createdAt으로 대체
-// 소켓통신 끊어졌을동안에 온 메세지: 화면 로딩시 저장? or 올때마다 저장? batch로 저장하면 그렇게 큰 부하가 있을까?
-
-
-const ChattingScreen = () => {
+const ChattingScreen: React.FC = () => {
     const route = useRoute<ChattingScreenRouteProp>();
-    const { chatRoomId } = route.params;
+    let { chatRoomId } = route.params;
     const navigation = useNavigation();
 
-    // MyId 저장해둔 것 가져오기
     const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
-    // 메세지 입력창
     const [messageContent, setMessageContent] = useState<string>('');
-    // 화면에 띄우는 메세지들
     const [messages, setMessages] = useState<directedChatMessage[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [chatRoomType, setChatRoomType] = useState<string>('');
     const [username, setUsername] = useState<string>('');
+    const [members, setMembers] = useState<chatRoomMember[]>([]);
+    const [selectedImage, setSelectedImage] = useState<any>(null);
 
-    const otherIdRef = useRef< number | null>(null);
-    const friendNameRef = useRef<string>('');
+    const chatRoomIdRef = useRef<string>(chatRoomId);
+    const [profilePicture, setProfilePicture] = useState<string>("");
+    const profileImageMap = useRecoilValue(ProfileImageMapState);
 
-    useBackToScreen("로그인 성공", {screen: "채팅목록", params: { screen: "채팅 목록",}});
+    const [showAnnouncement, setShowAnnouncement] = useState<boolean>(false); // State for showing announcement
 
+    const chatMessageType = useRef<string>('CHAT');
 
-    // 채팅방 연결하고 실시간으로 메세지 보내고 받기
-    const setupWebSocket = async () => {
+    useBackToScreen("로그인 성공", { screen: "채팅목록", params: { screen: "채팅 목록" } });
+
+    const flatListRef = useRef<FlatList<directedChatMessage>>(null);
+    const isUserAtBottom = useRef<boolean>(true);
+    const [showScrollToEndButton, setShowScrollToEndButton] = useState<boolean>(false);
+    const [showNewMessageBadge, setShowNewMessageBadge] = useState<boolean>(false);
+
+    const joinedLocalChatList = useRecoilValue(JoinedLocalChatListState);
+    const chatRoomInfo = useMemo(() => {
+        const chatRoom = joinedLocalChatList.find(room => room.chatRoomId === Number(chatRoomId));
+        return chatRoom ? { name: chatRoom.name, distance: chatRoom.distance, description: chatRoom.description } : { name: 'Unknown Chat Room', distance: 0, description: '' };
+    }, [chatRoomId, joinedLocalChatList]);
+
+    const calculateDistanceInMeters = (distanceInKm: number) => {
+        const distanceInMeters = distanceInKm * 1000;
+        return Math.round(distanceInMeters);
+    };
+
+    const distanceDisplay = () => {
+        const distanceInMeters = calculateDistanceInMeters(chatRoomInfo.distance);
+        return distanceInMeters > 50 ? '50m+' : `${distanceInMeters}m`;
+    };
+
+    const AnnouncementMsg = () => {
+        if (chatRoomType === 'LOCAL') {
+            return "거리가 멀어지면 채팅이 종료됩니다."; // + chatRoomInfo.description;
+        } else if (chatRoomType === 'MATCH') {
+            return "상대와 5분동안 대화할 수 있습니다."
+        } else {
+            return ""
+        }
+    }
+
+    useEffect(() => {
+        if (chatRoomType === 'LOCAL' || chatRoomType === 'MATCH') {
+            setShowAnnouncement(true);
+        }
+    }, [chatRoomType]);
+
+    const updateRoomInfo = async () => {
+        const responseData: chatroomInfoAndMsg = await fetchChatRoomContent(chatRoomId, currentUserId);
+        console.log('Update & Render Room info after Befriending');
+        if (responseData) {
+            const usernames = responseData.members
+                .filter((member: chatRoomMember) => member.memberId !== currentUserId)
+                .map((member: chatRoomMember) => member.username);
+
+            setChatRoomType(responseData.type);
+            setMembers(responseData.members);
+            setUsername(usernames.join(', ')); // for chatroom title
+            const chatRoomInfo: ChatRoomLocal = {
+                id: parseInt(chatRoomId, 10),
+                type: responseData.type,
+                members: responseData.members
+            }
+            saveChatRoomInfo(chatRoomInfo);
+        }
+        // 프로필 이미지 로드
+        const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
+        if (filteredMembers[0].profileImageId) {
+            const findProfileImageId = filteredMembers[0].profileImageId;
+            const newprofile = profileImageMap.get(findProfileImageId);
+            if (newprofile)
+                setProfilePicture(newprofile);
+            else {
+                const newProfileImageUri = await handleDownloadProfile(findProfileImageId);
+                profileImageMap.set(findProfileImageId, newProfileImageUri);
+                setProfilePicture(newProfileImageUri);
+            }
+        } else {
+            setProfilePicture("");
+        }
+    };
+
+    const handleSelectImage = () => {
+        chatRoomIdRef.current = chatRoomId;
+        const options: ImageLibraryOptions = { mediaType: 'photo', includeBase64: false };
+        launchImageLibrary(options, (response: ImagePickerResponse) => {
+            if (response.didCancel) {
+                console.log('이미지 선택 취소');
+            } else if (response.errorMessage) {
+                console.log('ImagePicker Error: ', response.errorMessage);
+            } else if (response.assets && response.assets.length > 0) {
+                console.log("이미지 선택 완료");
+                setSelectedImage(response.assets[0]);
+                chatMessageType.current = 'FILE';
+            }
+        });
+    };
+
+    const handleRemoveImage = () => {
+        setSelectedImage(null);
+        chatMessageType.current = 'CHAT';
+    };
+
+    const handleUploadAndSend = async () => {
+        console.log("선택된 이미지 : ", selectedImage);
+        if (!selectedImage) {
+            sendMessage();
+            return;
+        }
+        const { uri, fileName, fileSize, type: contentType } = selectedImage;
+
         try {
-            const accessToken = await getKeychain('accessToken');
+            console.log("파일 서버로 전송중..");
+            const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}`, "파일 업로드", {
+                fileName,
+                fileSize,
+                contentType
+            });
 
+            console.log("콘텐츠 타입 :", selectedImage.type);
+
+            console.log("서버로 받은 데이터 : ", JSON.stringify(metadataResponse?.data?.data));
+            const { fileId, presignedUrl } = metadataResponse?.data?.data;
+
+            const resizedImage = await ImageResizer.createResizedImage(
+                uri,
+                1500, // 너비를 1500으로 조정
+                1500, // 높이를 1500으로 조정
+                'JPEG', // 이미지 형식
+                100, // 품질 (0-100)
+                0, // 회전 (회전이 필요하면 EXIF 데이터에 따라 수정 가능)
+                null,
+                true,
+                { onlyScaleDown: true }
+            );
+
+            const resizedUri = resizedImage.uri;
+
+            const file = await fetch(resizedUri);
+            const blob = await file.blob();
+            const uploadResponse = await fetch(presignedUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': selectedImage.type
+                },
+                body: blob
+            });
+
+            if (uploadResponse.ok) {
+                console.log('S3 파일에 업로드 성공');
+                console.log('S3 업로드하고 진짜 자기 파일 url : ', uploadResponse.url);
+
+                WebSocketManager.sendMessage(chatRoomId, fileId, 'FILE');
+
+                console.log('소켓에 전송 완료');
+                setSelectedImage(null);
+
+            } else {
+                console.log('실패');
+            }
+
+            chatMessageType.current = "CHAT";
+
+        } catch (error) {
+            console.error('Error 메시지: ', error);
+        }
+    };
+
+    const setupWebSocket = async (callback?: () => void) => {
+        try {
+            const accessToken = loginMMKVStorage.getString('login.accessToken');
             WebSocketManager.connect(chatRoomId, accessToken, (message: IMessage) => {
                 console.log('Received message: ' + message.body);
                 try {
-                    const parsedMessage = JSON.parse(message.body);
-                    if ((parsedMessage.type === 'CHAT'||parsedMessage.type==='FRIEND_REQUEST' )
-                        && parsedMessage.content && parsedMessage.senderId !== 0)
-                    {
-                        parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
+                    const parsedMessage: directedChatMessage = JSON.parse(message.body);
 
-                        // 친구요청 수락시 채팅방 타입 변경
-                        if (parsedMessage.type==='FRIEND_REQUEST' && parsedMessage.content==='친구가 되었습니다!\n' +
-                            '대화를 이어가보세요.'){
-                            console.log("친구 맺기 성공!!!")
-                            //타입 & 대화명 변경
-                            setChatRoomType('FRIEND');
-                            setUsername(friendNameRef.current);
-                            console.log("친구 맺기 성공! 채팅룸 타입: ",chatRoomType);
-                            // chatRoomTypeRef.current='FRIEND';
+                    // 저장할 메세지 필터링
+                    if (parsedMessage.type !== 'USER_ENTER' && parsedMessage.content) {
+                        parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
+                        parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt);
+
+                        console.log('Parsed MSG: ', parsedMessage);
+
+                        if (!(chatRoomType === 'FRIEND' && parsedMessage.type === 'TIMEOUT')) {
+                            setMessages((prevMessages) => ( prevMessages? [...prevMessages, parsedMessage]: [parsedMessage]));
+                            if (isUserAtBottom.current) {
+                                flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                                setShowScrollToEndButton(false);
+                                if (parsedMessage.senderId !== currentUserId) {
+                                    setShowNewMessageBadge(false);
+                                }
+                            } else {
+                                setShowScrollToEndButton(true);
+                                if (parsedMessage.senderId !== currentUserId) {
+                                    setShowNewMessageBadge(true);
+                                }
+                                setTimeout(() => setShowNewMessageBadge(false), 3000);
+                            }
+                            saveChatMessages(chatRoomId, [parsedMessage]);
                         }
-                        // 수신 메세지 화면에 표기
-                        setMessages((prevMessages) => [...prevMessages, parsedMessage]);
-                        scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
-                    } else {  //채팅방에 표시안하는 메세지 여기서 처리
-                        // TIMEOUT 메세지 오면 채팅방 타입 변경
-                        // 이미 친구가 된 상태에서 5분이 지나면 상태변경 하지않음
-                        if (parsedMessage.type==='TIMEOUT' && parsedMessage.senderId===0 && chatRoomType!=='FRIEND' ){
+
+                        if (parsedMessage.type === 'FRIEND_REQUEST' && parsedMessage.content.includes('친구가 되었습니다!')) {
+                            updateRoomInfo();
+                        }
+
+                        if (parsedMessage.type === 'TIMEOUT' && chatRoomType !== 'FRIEND') {
                             setChatRoomType('WAITING');
-                            setMessages((prevMessages) => [...prevMessages, parsedMessage]);
-                            scrollViewRef.current?.scrollToEnd({ animated: true });
-                            console.log("5분지남! 채팅기능 비활성화 & 채팅룸타입 변경: ",chatRoomType);
-                            // chatRoomTypeRef.current='WAITING';
                         }
-                        // type==='USER_ENTER' 메세지 관련 상태로직 필요시 추가 -> senderId 확인 필요 0인지 userId인지
+
+                    } else {
+                        if (parsedMessage.type === 'USER_ENTER') {
+                            const lastLeaveAt = parsedMessage.content.lastLeaveAt;
+                            console.log('user enter since ', lastLeaveAt);
+                            decrementUnreadCountBeforeTimestamp(chatRoomId, lastLeaveAt);
+                            const updateMessages = async () => {
+                                const updatedMessages = await getChatMessages(chatRoomId);
+                                setMessages(updatedMessages || []);
+                            };
+                            updateMessages();
+                        }
                     }
-                } catch (error) { //양식과 다른 메세지 형태를 받는 경우
-                    console.error('Failed to parse received message:', error);
+                } catch (error) {
+                    console.log(error);
                 }
             });
+
+            if (callback) {
+                callback();
+            }
+
         } catch (error) {
             console.error('Failed to set up WebSocket:', error);
         }
     };
 
-    // auto scroll. 1) 새로운 메세지 받은 경우 2) 키보드 상태에 따라 스크롤 아래로
-    const scrollViewRef = useRef<ScrollView>(null);
-
-    // 키보드 상태 변화감지 -> 스크롤 맨아래로 이동
     useEffect(() => {
-        const keyboardDidShowListener = Keyboard.addListener(
-            'keyboardDidShow',
-            (e) => handleKeyboardDidShow(e)
-        );
-        const keyboardDidHideListener = Keyboard.addListener(
-            'keyboardDidHide',
-            handleKeyboardDidHide
-        );
-
+        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', handleKeyboardDidShow);
+        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', handleKeyboardDidHide);
         return () => {
             keyboardDidShowListener.remove();
             keyboardDidHideListener.remove();
         };
     }, []);
 
-    // 키보드 나왔을 때 액션
-    const handleKeyboardDidShow = (e) => {
-        const keyboardHeight = e.endCoordinates.height;
-        scrollViewRef.current.scrollToEnd({ animated: true });
-    };
-    // 키보드 들어갔을 때 액션
-    const handleKeyboardDidHide = () => {
-        scrollViewRef.current.scrollToEnd({ animated: true });
+    const handleKeyboardDidShow = () => {
+        setShowScrollToEndButton(false);
+        if (isUserAtBottom.current) {
+            flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+        }
     };
 
-    // Get out of screen -> disconnect
+    const handleKeyboardDidHide = () => {
+        setShowScrollToEndButton(false);
+        if (isUserAtBottom.current) {
+            flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+        }
+    };
+
     useEffect(() => {
-        const handleAppStateChange = (nextAppState: AppStateStatus) => {
+        const handleAppStateChange = async (nextAppState: AppStateStatus) => {
             if (nextAppState === 'background' || nextAppState === 'inactive') {
                 WebSocketManager.disconnect();
-                // 여기서 timestamp 저장
             } else {
-                setupWebSocket();
-            }
-        };
-        const subscription = AppState.addEventListener('change', handleAppStateChange);
-        return () => {
-            subscription.remove();
-        };
-    }, []);
-
-
-    useFocusEffect(
-        useCallback(() => {
-            const currentTimestamp = new Date().toISOString().slice(0, 19);
-            console.log("Focused", currentTimestamp);
-
-            // Fetch initial messages from the API
-            const fetchMessages = async () => {
-                try {
-                    setLoading(true);
-                    // lastLeaveAt 형태확인/Null일때 createdAt으로 대체하는 로직 추가
-                    const responseData = await fetchChatRoomContent(chatRoomId, '2024-06-23T10:32:40', currentUserId);
-                    // 채팅방 타입, 유저네임, 받은 메세지 리턴받아서 화면에 렌더링
-                    if (responseData){
-                        console.log('chatRoomType: ', responseData.type);
-                        const usernames = responseData.members
-                            .filter((member: chatRoomMember) => member.memberId !== currentUserId)
-                            .map((member: chatRoomMember) => responseData.type === 'FRIEND' ? member.username : `익명${member.memberId}`);
-                        console.log('username: ',usernames);
-                        // 메세지 목록
-                        const fetchedMessages: directedChatMessage[] = (responseData.list || []).map((msg: ChatMessage) => ({
+                chatRoomId = chatRoomIdRef.current;
+                setupWebSocket(async () => {
+                    const responseData = await fetchChatRoomContent(chatRoomId, currentUserId);
+                    if (responseData) {
+                        const fetchedNewMessages: directedChatMessage[] = (responseData.messages || []).map((msg: ChatMessage) => ({
                             ...msg,
                             isSelf: msg.senderId === currentUserId,
                             formatedTime: formatDateToKoreanTime(msg.createdAt)
                         }));
-                        console.log("응답 메세지 목록: ", responseData.list);
-                        console.log("fetched msg: ", fetchedMessages);
+                        setMessages((prevMessages) => (prevMessages ? [...prevMessages, ...fetchedNewMessages] : fetchedNewMessages));
+                        if (isUserAtBottom.current) {
+                            flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                            setShowScrollToEndButton(false);
+                            setShowNewMessageBadge(false);
+                        }
+                        if (fetchedNewMessages && fetchedNewMessages.length > 0) {
+                            console.log("Disconnect 후 api 호출 채팅데이터: ", fetchedNewMessages);
+                            saveChatMessages(chatRoomId, fetchedNewMessages);
+                        }
+                    }
+                });
+            }
+        };
+
+        const subscription = AppState.addEventListener('change', handleAppStateChange);
+        return () => {
+            subscription.remove();
+        };
+    }, [currentUserId]);
+
+    useFocusEffect(
+        useCallback(() => {
+            const fetchMessages = async () => {
+                try {
+                    setLoading(true);
+
+                    const responseData = await fetchChatRoomContent(chatRoomId, currentUserId);
+                    if (responseData) {
+                        const fetchedMessages: directedChatMessage[] = (responseData.messages || []).map((msg: ChatMessage) => ({
+                            ...msg,
+                            isSelf: msg.senderId === currentUserId,
+                            formatedTime: formatDateToKoreanTime(msg.createdAt)
+                        }));
+
+                        if (fetchedMessages && fetchedMessages.length > 0) {
+                            console.log("api 호출 채팅데이터: ", fetchedMessages);
+                            saveChatMessages(chatRoomId, fetchedMessages);
+                        }
+
+                        const usernames = responseData.members
+                            .filter((member: chatRoomMember) => member.memberId !== currentUserId)
+                            .map((member: chatRoomMember) => member.username);
 
                         setChatRoomType(responseData.type);
-                        setUsername(usernames);
-                        setMessages(fetchedMessages);
-                    } else {
-                        console.log("no data to load");
-                    }
+                        setMembers(responseData.members);
+                        setUsername(usernames.join(', '));
 
+                        const storedMessages = await getChatMessages(chatRoomId);
+                        setMessages(storedMessages);
+                        console.log("저장된 메세지 렌더링");
+
+                        const chatRoomInfo: ChatRoomLocal = {
+                            id: parseInt(chatRoomId, 10),
+                            type: responseData.type,
+                            members: responseData.members
+                        }
+                        saveChatRoomInfo(chatRoomInfo);
+
+                        const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
+                        if (responseData.type === 'FRIEND' && filteredMembers.length === 1 && filteredMembers[0].profileImageId) {
+                            const findProfileImageId = filteredMembers[0].profileImageId;
+                            const newprofile = profileImageMap.get(findProfileImageId);
+                            if (newprofile)
+                                setProfilePicture(newprofile);
+                            else {
+                                const newProfileImageUri = await handleDownloadProfile(findProfileImageId);
+                                profileImageMap.set(findProfileImageId, newProfileImageUri);
+                                setProfilePicture(newProfileImageUri);
+                            }
+                        } else {
+                            setProfilePicture("");
+                        }
+                    }
                 } catch (error) {
                     console.error('채팅방 메세지 목록조회 실패:', error);
                 } finally {
@@ -187,40 +421,75 @@ const ChattingScreen = () => {
                 }
             };
 
-            fetchMessages(); // 첫 입장시 메세지 로드 & 로두 후 소켓통신 열기
-            setupWebSocket(); // 소켓통신 열기
+            setupWebSocket(fetchMessages);
 
             return () => {
-                const leaveTimestamp = new Date().toISOString();
-                console.log("Unfocused", leaveTimestamp);
+                console.log("loose focus");
                 WebSocketManager.disconnect();
+                setMessages(null);
+                setUsername(" ");
             };
         }, [chatRoomId, currentUserId])
     );
 
-    // 일반 메세지 전송
     const sendMessage = () => {
-        if (chatRoomType=== 'WAITING'){ //WAITING 상태 통신 로직 개선 필요
+        if (chatRoomType === 'WAITING')
             return;
+
+        if (chatMessageType.current !== 'FILE' && messageContent === '')
+            return;
+
+        if (chatMessageType.current === 'CHAT') {
+            WebSocketManager.sendMessage(chatRoomId, messageContent, 'CHAT');
+            setMessageContent('');
+        } else {
+            handleUploadAndSend();
         }
-        WebSocketManager.sendMessage(chatRoomId, messageContent, 'CHAT');
-        // setMessages((prevMessages) => [...prevMessages, { ...messageObject, isSelf: true, createdAt: new Date().toISOString() }]);
-        setMessageContent(''); //  입력창 초기화
-        // scrollViewRef.current?.scrollToEnd({ animated: true }); // Auto-scroll to the bottom
     };
 
     const toggleModal = () => {
         setIsModalVisible(!isModalVisible);
     };
 
-    // 채팅방 나가기
     const handleMenu1Action = () => {
-        try{
-            deleteChat(navigation, chatRoomId);
-            toggleModal();
-        } catch (error){
-
+        try {
+            WebSocketManager.disconnect(); // socket 통신 끊기
+            deleteChat(navigation, chatRoomId); // 채팅방 나가기 api 호출
+            toggleModal(); // 모달 닫기
+            removeChatRoom(Number(chatRoomId)); // Remove chatroom from MMKV storage
+            WebSocketManager.disconnect();
+        } catch (error) {
+            console.error('Failed to delete chat:', error);
         }
+    };
+
+    const memberIdToUsernameMap = useMemo(() => {
+        const map = new Map<number, string>();
+        members.forEach(member => {
+            map.set(member.memberId, member.username);
+        });
+        return map;
+    }, [members]);
+
+    const getUsernameBySenderId = (senderId: number) => {
+        return memberIdToUsernameMap.get(senderId) || '(알 수 없는 사용자)';
+    }
+
+    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const { contentOffset } = event.nativeEvent;
+        const buffer = 300; // Adjust buffer as necessary
+        const isAtBottom = contentOffset.y <= buffer; // inverted라서 offset 0 기준으로 잡아야함
+        isUserAtBottom.current = isAtBottom;
+        setShowScrollToEndButton(!isAtBottom);
+        if (isAtBottom) {
+            setShowNewMessageBadge(false);
+        }
+    };
+
+    const scrollToBottom = () => {
+        flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+        setShowScrollToEndButton(false);
+        setShowNewMessageBadge(false);
     };
 
     if (loading) {
@@ -231,87 +500,136 @@ const ChattingScreen = () => {
         );
     }
 
-
-    // 연결상태 표기 나중에 추가
-
-
     return (
         <SWRConfig value={{}}>
-                <CustomHeader
-                    title={username}
-                    onBackPress={()=>{
-                        navigate("로그인 성공", {
-                            screen: "채팅목록",
-                            params: {
-                                screen: "채팅 목록",
-                            }
-                        });
-                        navigation.navigate("채팅 목록");
-                    }}
-                    showBtn={false} // 버튼 보이지 않기
-                    onMenuPress={toggleModal}
-                    useNav={true}
-                    useMenu={true}
+            <CustomHeader
+                titleSmall={chatRoomType === 'LOCAL' ? chatRoomInfo.name : username ? username : '(알 수 없는 사용자)'}
+                subtitle={chatRoomType === 'LOCAL' ? distanceDisplay() : ''}
+                onBackPress={() => {
+                    navigate("로그인 성공", {
+                        screen: "채팅목록",
+                        params: {
+                            screen: "채팅 목록",
+                        }
+                    });
+                }}
+                showBtn={false}
+                onMenuPress={toggleModal}
+                useNav={true}
+                useMenu={true}
+            />
+            <View style={styles.container}>
+                {showAnnouncement && (
+                    <Announcement
+                        message={AnnouncementMsg()}
+                        onClose={() => setShowAnnouncement(false)}
+                    />
+                )}
+                <View style={styles.scrollView}>
+                    <FlatList
+                        data={messages?.slice().reverse()} // Reverse the order of messages
+                        keyExtractor={(item, index) => `${item.id}-${index}`}
+                        renderItem={({ item, index }) => {
+                            // show profile(image & name)
+                            const reverseIndex = messages.length - 1 - index;
+                            const showProfileTime = reverseIndex < 5 ||
+                                (!messages[reverseIndex - 1] || messages[reverseIndex - 1].senderId !== item.senderId || messages[reverseIndex - 1].type === 'FRIEND_REQUEST') ||
+                                (!messages[reverseIndex - 1] || messages[reverseIndex - 1].formatedTime !== item.formatedTime);
 
-                />
-                <Text>Status: {WebSocketManager.isConnected() ? 'Connected' : 'Not Connected'} </Text>
-                    <View style={styles.container}>
-                        <ScrollView
-                            contentContainerStyle={styles.scrollView}
-                            ref={scrollViewRef}
-                            onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })} // Auto-scroll to the bottom on content change
-                        >
-                            {Array.isArray(messages) && messages.map((msg, index) => {
-                                const showProfile = index === 0 || messages[index - 1].senderId !== msg.senderId;
-                                const showTime = index === 0 || messages[index - 1].formatedTime !== msg.formatedTime;
+                            // show date header
+                            const previousMessage = messages[reverseIndex - 1];
+                            const showDateHeader = !previousMessage || new Date(item.createdAt).toDateString() !== new Date(previousMessage.createdAt).toDateString();
 
-                                return (
+                            return (
+                                <>
                                     <MessageBubble
-                                        key={index}
-                                        message={msg.content}
-                                        datetime={msg.formatedTime}
-                                        isSelf={msg.isSelf}
-                                        type={msg.type}
-                                        unreadCnt={1}
+                                        message={item.content}
+                                        datetime={item.formatedTime}
+                                        isSelf={item.isSelf}
+                                        type={item.type}
+                                        unreadCnt={item.unreadCount}
                                         chatRoomId={Number(chatRoomId)}
-                                        otherId={otherIdRef.current}
+                                        senderId={item.senderId}
                                         chatRoomType={chatRoomType}
-                                        profilePicture={msg.isSelf ? '' : 'https://img.freepik.com/premium-photo/full-frame-shot-rippled-water_1048944-5521428.jpg?size=626&ext=jpg&ga=GA1.1.2034235092.1718206967&semt=ais_user'}
-                                        username={msg.isSelf ? '' : '익명12'}
-                                        showProfileTime={showProfile || showTime}
+                                        profilePicture={profilePicture}
+                                        username={getUsernameBySenderId(item.senderId)}
+                                        showProfileTime={showProfileTime}
                                     />
-                                );
-                            })}
-                        </ScrollView>
-                        <View style={chatRoomType !== 'WAITING' ? styles.inputContainer : styles.disabledInputContainer}>
-                            <TextInput
-                                style={styles.input}
-                                value={messageContent}
-                                onChangeText={setMessageContent}
-                                placeholder={chatRoomType === 'WAITING' ? '5분이 지났습니다.\n' +
-                                    '대화를 이어가려면 친구요청을 보내보세요.' : ''}
-                                placeholderTextColor={'#a9a9a9'}
-                                multiline
-                                textBreakStrategy="highQuality"
-                                editable={chatRoomType !== 'WAITING'}
+                                    {showDateHeader && <DateHeader date={formatDateHeader(item.createdAt)} />}
+                                </>
+                            );
+                        }}
+                        ref={flatListRef}
+                        inverted
+                        onContentSizeChange={() => {
+                            if (isUserAtBottom.current) {
+                                flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                            } else {
+                                setShowScrollToEndButton(true);
+                            }
+                        }}
+                        onScroll={handleScroll}
+                    />
+                </View>
+                {showScrollToEndButton && (
+                    <TouchableOpacity style={styles.scrollToEndButton} onPress={scrollToBottom}>
+                        <Text style={styles.scrollToEndButtonText}>↓</Text>
+                    </TouchableOpacity>
+                )}
+                {showNewMessageBadge && (
+                    <TouchableOpacity style={styles.newMessageBadge} onPress={scrollToBottom}>
+                        <Text style={styles.newMessageBadgeText}>새로운 메세지</Text>
+                    </TouchableOpacity>
+                )}
+                {chatRoomType !== 'WAITING' && (
+                    <View style={styles.inputContainer}>
+                        <ImageTextButton
+                            iconSource={require('../../assets/Icons/addImageIcon.png')}
+                            imageStyle={{ height: 20, width: 20, marginLeft: 12 }}
+                            onPress={handleSelectImage}
+                        />
+                        {selectedImage && (
+                            <View style={styles.selectedImageContainer}>
+                                <Image
+                                    source={{ uri: selectedImage.uri }}
+                                    style={styles.selectedImage}
+                                />
+                                <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageButton}>
+                                    <Text style={styles.removeImageButtonText}>×</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+                        <TextInput
+                            style={styles.input}
+                            value={messageContent}
+                            onChangeText={setMessageContent}
+                            placeholder={''}
+                            placeholderTextColor={'#3b3b3b'}
+                            multiline
+                            textBreakStrategy="highQuality"
+                            editable={chatRoomType !== 'WAITING'}
+                        />
+                        {chatRoomType !== 'WAITING' && (
+                            <ImageTextButton
+                                onPress={sendMessage}
+                                iconSource={require('../../assets/Icons/sendMsgIcon.png')}
+                                disabled={chatRoomType === 'WAITING'}
+                                imageStyle={{ height: 15, width: 15 }}
+                                containerStyle={{ paddingRight: 15 }}
                             />
-                            {chatRoomType!=='WAITING' && (
-                                <ImageTextButton
-                                    onPress={sendMessage}
-                                    iconSource={require('../../assets/Icons/sendMsgIcon.png')}
-                                    disabled={chatRoomType==='WAITING' || messageContent===''}
-                                    imageStyle={{height:15, width:15}}
-                                    containerStyle={{paddingRight:15}}
-                            />)}
-                        </View>
-                        <MenuModal
-                            isVisible = {isModalVisible}
-                            onClose={toggleModal}
-                            menu1={'채팅방 나가기'}
-                            onMenu1={handleMenu1Action}
-                            />
-
+                        )}
                     </View>
+                )}
+                <MenuModal
+                    isVisible={isModalVisible}
+                    onClose={toggleModal}
+                    menu1={'채팅방 나가기'}
+                    onMenu1={handleMenu1Action}
+                    members={members}
+                    chatRoomId={Number(chatRoomId)}
+                    chatRoomType={chatRoomType}
+                />
+            </View>
         </SWRConfig>
     );
 };
@@ -319,13 +637,12 @@ const ChattingScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingHorizontal: 20,
+        paddingHorizontal: 10,
     },
     scrollView: {
-        flexGrow: 1,
         justifyContent: 'flex-start',
-        alignItems: 'center',
-        paddingTop: 10,
+        flex: 1,
+        paddingTop: 5,
     },
     inputContainer: {
         verticalAlign: 'top',
@@ -333,73 +650,91 @@ const styles = StyleSheet.create({
         borderColor: "#ececec",
         flexDirection: 'row',
         borderRadius: 20,
-        borderWidth:0.8,
+        borderWidth: 0.8,
         alignItems: 'center',
         justifyContent: 'space-between',
         marginTop: 10,
-        marginBottom: 15,
-        shadowOffset: { width: 0, height: 4 },  // Direction and distance of the shadow
-        shadowOpacity: 0.25,        // Opacity of the shadow
+        marginBottom: 10,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
         shadowRadius: 5,
+        minHeight: 50,
     },
     input: {
         flex: 1,
         padding: 10,
-        marginLeft: 10,
         color: '#a9a9a9',
-
-    },
-    status: {
-        marginTop: 20,
-        textAlign: 'center',
-        fontSize: 16,
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    menuButton: {
-        position: 'absolute',
-        bottom: 20,
-        right: 20,
-        backgroundColor: '#007BFF',
-        borderRadius: 30,
-        padding: 10,
-    },
-    menuButtonText: {
-        color: '#fff',
-        fontSize: 16,
-    },
-    modal: {
-        justifyContent: 'flex-end',
-        margin: 0,
-    },
-    modalContent: {
-        backgroundColor: 'white',
-        padding: 22,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        alignItems: 'center',
-    },
-    topRightButton: {
-        position: 'absolute',
-        top: 10,
-        left: 10,
-        backgroundColor: 'transparent',
-        padding: 10,
-    },
-    topRightButtonImage: {
-        width: 30,
-        height: 30,
-        resizeMode: 'contain',
-    },
     disabledInputContainer: {
         flex: 1,
         padding: 10,
         marginLeft: 10,
-        backgroundColor: '#f0f0f0', // greyed-out background color
-        color: '#a9a9a9', // greyed-out text color
+        backgroundColor: '#f0f0f0',
+        color: '#a9a9a9',
+    },
+    imagePickerButton: {
+        paddingHorizontal: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    addButtonText: {
+        color: 'black',
+        fontSize: 24,
+        fontWeight: 'bold',
+    },
+    selectedImageContainer: {
+        position: 'relative',
+        marginLeft: 10,
+    },
+    selectedImage: {
+        width: 50,
+        height: 50,
+    },
+    removeImageButton: {
+        position: 'absolute',
+        top: -10,
+        right: -10,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        borderRadius: 12,
+        width: 24,
+        height: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    removeImageButtonText: {
+        color: 'white',
+        fontSize: 18,
+    },
+    scrollToEndButton: {
+        position: 'absolute',
+        right: 15,
+        bottom: 62,
+        backgroundColor: 'rgba(27, 116, 118, 0.4)',
+        borderRadius: 20,
+        height: 20,
+        width: 20,
+    },
+    scrollToEndButtonText: {
+        color: 'white',
+        fontSize: 14,
+    },
+    newMessageBadge: {
+        position: 'absolute',
+        alignSelf: 'center',
+        backgroundColor: 'rgba(27, 116, 118, 0.4)',
+        minWidth: 85,
+        bottom: 62,
+        borderRadius: 20,
+        height: 20,
+    },
+    newMessageBadgeText: {
+        color: 'white',
+        fontSize: 12,
     },
 });
 

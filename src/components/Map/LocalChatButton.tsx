@@ -1,12 +1,10 @@
 import RoundBox from "../../components/common/RoundBox";
 import Button from '../../components/common/Button';
 import { StyleSheet } from 'react-native';
-import { useState } from "react";
 import LocalChatModal from "./LocalChatModal";
 import { handleCheckPermission } from "../../service/LocalChat";
 
-const LocalChatButton = () => {
-  const [showLocalChatModal, setShowLocalChatModal] = useState<boolean>(false);
+const LocalChatButton = ({showLocalChatModal, setShowLocalChatModal}) => {
 
   const openModal = () => {
     const success = handleCheckPermission();
@@ -38,7 +36,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     top: 20,
-    right: 80,
+    right: 20,
     height: 50, 
     width: 50,
     borderRadius: 30, 

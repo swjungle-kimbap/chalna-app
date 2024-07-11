@@ -1,73 +1,142 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import InlineButton from "../../components/Mypage/InlineButton";
 import Toggle from "../../components/common/Toggle";
-import { Text, StyleSheet, TextInput, View, Alert, FlatList } from "react-native";
+import { Text, StyleSheet, TextInput, View, Alert, FlatList,
+  Keyboard, TouchableWithoutFeedback 
+ } from "react-native";
 import FontTheme from '../../styles/FontTheme';
 import Button from '../../components/common/Button';
 import RenderKeyword from "../../components/Mypage/RenderKeyword";
-
-const keywords = ["a", "basdfdsafasd", "가가가가가가가가가가"];
+import { SavedKeywords } from "../../interfaces";
+import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
+import { useFocusEffect } from "@react-navigation/core";
+import { axiosDelete, axiosPatch, axiosPost } from "../../axios/axios.method";
+import { urls } from "../../axios/config";
+import { getMMKVObject, setMMKVObject, userMMKVStorage } from "../../utils/mmkvStorage";
+import { useMMKVBoolean } from "react-native-mmkv";
+import { useSetRecoilState } from "recoil";
+import { DeveloperModeState } from "../../recoil/atoms";
+import Config from "react-native-config";
 
 const KeywordSelectScreen: React.FC = ({}) => {
-  const [isKeyword, setIsKeyword] = useState<boolean>(false);
-  const [keyword, setKeyword] = useState<string>("키워드를 추가해 주세요");
-  const [keywordList, setKeywordList] = useState<Array<string>>([]);
+  const [isKeywordAlarm, setIsKeywordAlarm] = useMMKVBoolean('mypage.isKeywordAlarm', userMMKVStorage);
+  const [keyword, setKeyword] = useState<string>("");
+  const [keywordList, setKeywordList] = useState<string[]>([]);
+  const inputRef = useRef<TextInput>(null);
+  const setDevelopMode = useSetRecoilState(DeveloperModeState);
 
   useEffect(()=> {
-    
-  })
+    if (keyword === Config.DEVELOPMODE)
+      setDevelopMode(true);
+  }, [keyword])
+
+  useEffect(() => {
+    const savedKeywords = getMMKVObject<SavedKeywords>("mypage.savedKeywords");
+    if (savedKeywords && savedKeywords.interestKeyword) {
+      setKeywordList(savedKeywords.interestKeyword);
+    }
+  }, [])
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setMMKVObject<SavedKeywords>("mypage.savedKeywords", { interestKeyword: keywordList });
+      };
+    }, [keywordList])
+  );
+
+  useChangeBackgroundSave<SavedKeywords>("mypage.savedKeywords", {interestKeyword:keywordList});
 
   const handleDeleteKeyword = (item) => {
-    const filteredKeywordList = keywords.filter((value) => value !== item); 
+    const filteredKeywordList = keywordList.filter((value) => value !== item); 
     setKeywordList(filteredKeywordList);
+    axiosDelete(`${urls.DELETE_ALL_KEYWORDS_URL}/${item}`, "선호 키워드 삭제")
+  }
+
+  const handleAllDeleteKeyword = () => {
+    axiosDelete(urls.DELETE_ALL_KEYWORDS_URL, "선호 키워드 전체 삭제")
+    setKeywordList([]);
   }
 
   const handleAddKeyword = () => {
-    keywords.push(keyword);
+    if (keywordList.includes(keyword)) {
+      Alert.alert("부적절한 입력", "중복된 값을 넣었습니다.");
+      return;
+    }
+
+    if (keyword.trim() === "" ) {
+      Alert.alert("부적절한 입력", "값을 입력해 주세요.");
+      return;
+    }
+
+    if (keywordList && keywordList.length > 20 ) {
+      Alert.alert("허용 갯수 초과", "더 이상 추가할 수 없습니다!");
+      return;
+    }
+
+    axiosPost(urls.ADD_KEYWORD_URL, "선호 키워드 추가", {interestKeyword: keyword});
+    setKeywordList([...keywordList, keyword]);
+    setKeyword(""); 
+  }
+
+  useEffect(() => {
+    if (isKeywordAlarm && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isKeywordAlarm]); 
+
+  const handleIsKeywordAlarm = (value) => {
+    setIsKeywordAlarm(value)
+    axiosPatch(urls.PATCH_APP_SETTING_URL, "앱 설정", {isKeywordAlarm: value});
   }
 
   return (
-    <View style={styles.background}>
-      <View style={styles.mypage}>
-        <InlineButton text="키워드 알림 설정" textstyle={{ paddingTop: 10 }} horizon="bottom">
-          <Toggle value={isKeyword} toggleHandler={(value) => setIsKeyword(value)} />
-        </InlineButton>
-        {isKeyword && (
-          <>
-            <View style={styles.headerText}>
-              <Text style={styles.text}>
-                선호 키워드 추가 [{keywords.length}/20]
-                <Button
-                  title="💬"
-                  onPress={() => {
-                    Alert.alert("선호 키워드 설정", "인연 메세지에서 설정된 키워드가 포함된 알림만 받아요!");
-                  }}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.background}>
+        <View style={styles.mypage}>
+          <InlineButton text="인연 키워드 설정" textstyle={{ paddingTop: 10 }} horizon="bottom">
+            <Toggle value={isKeywordAlarm} toggleHandler={handleIsKeywordAlarm} />
+          </InlineButton>
+          {isKeywordAlarm && (
+            <>
+              <View style={styles.headerText}>
+                <Text style={styles.text}>
+                  선호 키워드 추가 [{keywordList ? keywordList.length: 0}/20]
+                  <Button
+                    title="  💬"
+                    onPress={() => {
+                      Alert.alert("선호 키워드 설정", "키워드가 포함된 인연 메시지만 받을 수 있어요!");
+                    }}
+                  />
+                </Text>
+                <Button title="전체 삭제" titleStyle={styles.alldeleteButton} onPress={handleAllDeleteKeyword}/>
+              </View>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.textInput}
+                  value={keyword}
+                  onChangeText={(value) => setKeyword(value)}
+                  maxLength={15}
+                  ref={inputRef}
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => handleAddKeyword()} 
                 />
-              </Text>
-              <Button title="전체 삭제" titleStyle={styles.alldeleteButton} />
-            </View>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.textInput}
-                value={keyword}
-                onChangeText={(value) => setKeyword(value)}
-                maxLength={15}
+                <Button iconSource={require('../../assets/buttons/addButton.png')} 
+                  imageStyle={styles.addButton} onPress={handleAddKeyword}/>
+              </View>
+              <FlatList
+                data={keywordList}
+                renderItem={({ item }) => ( 
+                  <RenderKeyword item={item} itemDelete={handleDeleteKeyword} /> 
+                )}
+                keyExtractor={(_, index) => index.toString()}
+                style={{ maxHeight: '75%' }}
               />
-              <Button iconSource={require('../../assets/buttons/addButton.png')} 
-                imageStyle={styles.addButton} onPress={handleAddKeyword}/>
-            </View>
-            <FlatList
-              data={keywords}
-              renderItem={({ item }) => ( 
-                <RenderKeyword item={item} itemDelete={handleDeleteKeyword} /> 
-              )}
-              keyExtractor={(_, index) => index.toString()}
-              style={{ maxHeight: '75%' }}
-            />
-          </>
-        )}
+            </>
+          )}
+        </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -114,6 +183,7 @@ const styles = StyleSheet.create({
   textInput: {
     color: '#333',
     paddingLeft: 10,
+    width:"80%"
   },
   text: {
     fontSize: 15,

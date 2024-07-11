@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Chalna</string>
     <string name="kakao_app_key">6a05303fe23522c0f219617085d86dde</string>
+    <string name="default_notification_channel_id">default_channel</string>
 </resources>

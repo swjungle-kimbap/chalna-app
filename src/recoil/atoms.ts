@@ -1,7 +1,5 @@
 import { atom } from "recoil";
-import { LoginResponse, Position } from "../interfaces";
-import { IsNearbyState } from "./atomtypes";
-import { Friend } from "../screens/Friends/FriendsScreen";
+import { Friend, LocalChatData, LocalChatRoomData, LoginResponse, Position } from "../interfaces";
 
 export const locationState = atom<Position>({
   key: 'location',
@@ -17,6 +15,7 @@ export const userInfoState = atom<LoginResponse>({
     message : "",
     username : "",
     profileImageUrl : "",
+    profileImageId: 0,
     id : 0,
   }
 })
@@ -27,26 +26,13 @@ export const AlarmCountState = atom<number>({
   }
 )
 
-export const showMsgBoxState = atom<boolean>({
-  key: 'showMsgBox',
-  default: false
-  }
-)
 
-export const isNearbyState = atom<IsNearbyState>({
-  key: 'isNearby',
-  default: {
-    isNearby: false,
-    lastMeetTime: 0
-  }
-})
-
-export const FriendsListState = atom<Friend[]>({
+export const ProfileImageMapState = atom<Map<number, string>>({
   key: 'FriendsList',
-  default: []
+  default: new Map([[0, '../../assets/images/anonymous.png']])
 })
 
-export const JoinedLocalChatListState = atom({
+export const JoinedLocalChatListState = atom<LocalChatRoomData[]>({
   key: 'JoinedLocalChatList',
   default: []
 })
@@ -59,4 +45,39 @@ export const DeviceUUIDState = atom<string>({
 export const getLocalChatRefreshState = atom<boolean>({
   key: 'getLocalChatRefresh',
   default: false,
+})
+
+export const isKeywordAlarmState = atom<boolean>({
+  key: 'isKeywordAlarm',
+  default: false,
+})
+
+export const isDisturbState = atom<boolean>({
+  key: 'isDisturb',
+  default: false,
+})
+
+export const isRssiTrackingState = atom<boolean>({
+  key: 'isRssiTracking',
+  default: false,
+})
+
+export const FlyingModeState = atom<boolean>({
+  key: 'flyingMode',
+  default: false,
+})
+
+export const DeveloperModeState = atom<boolean>({
+  key: 'DeveloperMode',
+  default: false,
+})
+
+export const MsgSendCntState = atom<number>({
+  key: 'MsgSendCnt',
+  default: 0,
+})
+
+export const LocalChatListState = atom<LocalChatData[]>({
+  key: 'LocalChatList',
+  default: []
 })

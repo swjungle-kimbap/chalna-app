@@ -1,53 +1,137 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, {useEffect, useMemo, useState} from 'react';
+import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
+import { useRecoilValue } from 'recoil';
+import { ProfileImageMapState } from '../../recoil/atoms';
+import FastImage, { Source } from 'react-native-fast-image';
+import { chatRoomMemberImage } from '../../interfaces/Chatting.type';
+import { handleDownloadProfile } from '../../service/Friends/FriendListAPI';
+import {JoinedLocalChatListState, userInfoState} from "../../recoil/atoms";
+import {LocalChatRoomData, LoginResponse} from "../../interfaces";
+import Text from '../../components/common/Text';
 
 interface ChatRoomCardProps {
     numMember: number;
     usernames: string;
+    members: chatRoomMemberImage[]
+    memberCnt: number;
     lastMsg?: string | null;
     lastUpdate?: string;
+    description?: string;
+    distance?: string;
     navigation: any;
     chatRoomType: string;
     chatRoomId: number; // chatRoomId
     unReadMsg?: number;
+    onDelete: (chatRoomId: number) =>void;
 }
 
-const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return `${date.getHours()}:${date.getMinutes() < 10 ? '0' : ''}${date.getMinutes()}`;
-};
 
-const ChatRoomCard: React.FC<ChatRoomCardProps> = ({ lastMsg, lastUpdate, usernames, navigation, chatRoomType, chatRoomId, unReadMsg }) => {
+const DefaultImgUrl = '../../assets/images/anonymous.png';
+
+const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
+                                                       lastMsg, lastUpdate, description, distance
+                                                       , usernames, members, memberCnt
+                                                       , navigation, chatRoomType, chatRoomId
+                                                       , unReadMsg, onDelete }) => {
+    const profileImageMap = useRecoilValue(ProfileImageMapState);
+    const [profilePicture, setProfilePicture] = useState("");
+    useEffect(() => {
+        const fetchProfileImage = async () => {
+            if (chatRoomType === 'FRIEND' && members.length === 1 && members[0].profileImageId) {
+                const findProfileImageId = members[0].profileImageId;
+                const newprofile = profileImageMap.get(findProfileImageId);
+                if (newprofile)
+                    setProfilePicture(newprofile);
+                else {
+                    const newProfileImageUri = await handleDownloadProfile(findProfileImageId);
+                    profileImageMap.set(findProfileImageId, newProfileImageUri);
+                    setProfilePicture(newProfileImageUri);
+                }
+            } else {
+                setProfilePicture("");
+            }
+        }
+        fetchProfileImage();
+    }, [members])
+
+    const renderRightActions = () => (
+        <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(chatRoomId)}>
+            <Text style={styles.deleteButtonText}>삭제</Text>
+        </TouchableOpacity>
+    );
+    const joinedLocalChatList = useRecoilValue(JoinedLocalChatListState);
+    const chatRoomName = useMemo(() => {
+        const chatRoom = joinedLocalChatList.find(room => room.chatRoomId === chatRoomId);
+        return chatRoom ? chatRoom.name : 'Unknown Chat Room';
+    }, [chatRoomId, joinedLocalChatList]);
+
+    const truncateString = (str, num) => {
+        const newLineIndex = str.indexOf('\n');
+        if (newLineIndex !== -1 && newLineIndex < num) {
+            return str.slice(0, newLineIndex);
+        } else if (str.length > num) {
+            return str.slice(0, num) + '...';
+        }
+        return str;
+    };
+    const truncatedMsg = truncateString(lastMsg || " ", 15);
+
+
     return (
-        <TouchableOpacity
-            onPress={() => navigation.navigate('채팅', { chatRoomId })}
-            style={[
-                styles.card,
-                chatRoomType === 'FRIEND' ? styles.friendCard : chatRoomType === 'MATCH' ? styles.matchCard : styles.waitCard
-            ]} // Conditional styles
-        >
-            <View style={styles.row}>
-                <Image
-                    source={require('../../assets/images/anonymous.png')} // Replace with your image path
+        <Swipeable renderRightActions={renderRightActions}>
+            <TouchableOpacity
+                onPress={() => navigation.navigate('채팅', { chatRoomId })}
+                style={[
+                    styles.card,
+                    chatRoomType === 'FRIEND' ? styles.friendCard :
+                        chatRoomType === 'MATCH' ? styles.matchCard :
+                            chatRoomType==='LOCAL'? styles.localCard :styles.waitCard
+                ]} // Conditional styles
+            >
+                <View style={styles.row}>
+                    {(profilePicture) ?
+                    (<FastImage
                     style={styles.image}
-                />
-                <View style={styles.content}>
-                    <View style={styles.header}>
-                        <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}>{usernames}</Text>
-                        {unReadMsg ? (
-                            <View style={styles.unreadBadge}>
-                                <Text style={styles.unreadText}>{unReadMsg}</Text>
-                            </View>
-                        ) : null}
-                    </View>
-                    <Text style={styles.lastMsg}>{lastMsg || "대화를 시작해보세요"}</Text>
-                    <View style={styles.bottomRow}>
-                        <Text style={styles.status}>{/* Status message here */}</Text>
-                        <Text style={styles.lastUpdate}>{lastUpdate ? formatTime(lastUpdate) : " "}</Text>
+                    source={{uri: profilePicture, priority: FastImage.priority.normal } as Source}
+                    resizeMode={FastImage.resizeMode.cover}
+                    />) : (
+                    <Image
+                    source={ //chatRoomType!=='LOCAL'?
+                        require(DefaultImgUrl)}
+                        // : require('../../assets/images/localChatRoom.png')} // Replace with your image path
+                    style={ styles.image }
+                    />
+                    )}
+
+                    <View style={styles.content}>
+                        <View style={styles.header}>
+                                <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}
+                                      variant={chatRoomType=='MATCH'?"title":"main"}
+                                >
+                                    {chatRoomType==='LOCAL'? chatRoomName: usernames}
+                                </Text>
+                                <Text variant={'main'} align={'left'} style={{ color: 'grey', marginRight: 5, size:14 }}>
+                                    {chatRoomType==='FRIEND'? '':memberCnt}
+                                </Text>
+                                {chatRoomType==='LOCAL' && (
+                                    <Text variant={'sub'} style={styles.lastUpdate}>{distance ? '('+distance+')' : " "}</Text>
+                                )}
+                                {unReadMsg ? (
+                                    <View style={styles.unreadBadge}>
+                                        <Text  style={styles.unreadText}>{unReadMsg}</Text>
+                                    </View>
+                                ) : null}
+
+                        </View>
+                        <View style={styles.bottomRow}>
+                            <Text variant={'sub'} style={styles.lastMsg} numberOfLines={1}  align={'left'} >{truncatedMsg || " "}</Text>
+                            <Text variant={'sub'} style={styles.lastUpdate}>{lastUpdate ? lastUpdate : " "}</Text>
+                        </View>
                     </View>
                 </View>
-            </View>
-        </TouchableOpacity>
+            </TouchableOpacity>
+        </Swipeable>
     );
 }
 
@@ -72,26 +156,30 @@ const styles = StyleSheet.create({
         backgroundColor:'#ffffff'
     },
     waitCard: {
-        backgroundColor:'#ececec'
+        backgroundColor: 'f3f3f3'// '#eeeeee'
+    },
+    localCard: {
+        // backgroundColor: '#d9ebfa'
+        backgroundColor: '#E4F1EE'
     },
     header: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        alignItems:'center',
+        marginBottom: 5,
     },
     content: {
         flex: 1,
         marginLeft: 10, // Space between the image and the content
+        flexDirection: 'column'
     },
     usernames: {
+        alignItems:'center',
         fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 5,
-        color: '#5A5A5A',
+        marginRight:5,
         flex: 1, // Ensure the username takes up available space
     },
     matchUsername: {
-        color: 'green',
+        color: '#006a81',
     },
     lastMsg: {
         fontSize: 14,
@@ -112,10 +200,12 @@ const styles = StyleSheet.create({
         color: '#999',
     },
     unreadBadge: {
-        backgroundColor: 'green',
+        // flex: 1,
+        alignContent:'flex-end',
+        backgroundColor: '#006a81',
+        marginLeft: 'auto',
         borderRadius: 10,
         paddingHorizontal: 8,
-        paddingVertical: 2,
     },
     unreadText: {
         color: 'white',
@@ -127,7 +217,26 @@ const styles = StyleSheet.create({
         marginLeft:5,
         width: 45,
         height: 45,
+        borderRadius: 20,
     },
+    deleteButton: {
+        backgroundColor: 'red',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: 80,
+    },
+    deleteButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+    },
+    // localChatIcon:{
+    //     marginHorizontal: 16,
+    //     marginTop: 10,
+    //     marginBottom: 15,
+    //     width: 21,
+    //     height: 20,
+    // }
+
 });
 
 export default ChatRoomCard;

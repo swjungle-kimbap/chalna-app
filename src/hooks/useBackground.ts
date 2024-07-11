@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useRef } from "react"
 import { AppState, AppStateStatus } from "react-native";
 import { startBackgroundService, endBackgroundService } from "../service/Background";
-import { setAsyncObject } from "../utils/asyncStorage";
-import { SavedMessageData } from "../interfaces";
 
-const useBackground = (saveData: SavedMessageData) => {
+const useBackground = (isScanning: boolean) => {
   const appState = useRef(AppState.currentState);
 
   const handleAppStateChange = useCallback(
@@ -18,9 +16,7 @@ const useBackground = (saveData: SavedMessageData) => {
       } else if (nextAppState === 'background') {
         console.log('App has gone to the background!');
         const checkIsScanning = async () => {
-          console.log(saveData, "in useBackground");
-          await setAsyncObject<SavedMessageData>("savedMessageData", saveData);
-          if (saveData.isScanning) {
+          if (isScanning) {
             console.log('Scanning is continued in background!');
             await startBackgroundService(); 
           }
@@ -29,7 +25,7 @@ const useBackground = (saveData: SavedMessageData) => {
       }
       appState.current = nextAppState;
     },
-    [saveData]
+    [isScanning]
   );
 
   useEffect(() => {

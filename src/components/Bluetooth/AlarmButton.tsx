@@ -2,18 +2,22 @@ import Button from '../common/Button'
 import RoundBox from '../common/RoundBox';
 import { StyleSheet }from 'react-native';
 import AlarmModal from './AlarmModal';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRecoilValue } from 'recoil';
 import { AlarmCountState } from '../../recoil/atoms';
 import Text from '../common/Text';
 
 interface AlarmButtonPrams {
-  notificationId : number
+  notificationId : string
 }
 
 const AlarmButton : React.FC<AlarmButtonPrams> = ({notificationId}) => {
-  const [modalVisible, setModalVisible] = useState(notificationId ? true : false);
+  const [modalVisible, setModalVisible] = useState(false);
   const alarmCount = useRecoilValue(AlarmCountState);
+  
+  useEffect(() => {
+    setModalVisible(notificationId ? true : false);
+  }, [notificationId]);
 
   const openModal = () => {
     setModalVisible(true);

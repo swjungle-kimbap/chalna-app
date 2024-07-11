@@ -24,10 +24,14 @@
 
   <uses-permission android:name="android.permission.INTERNET" />
   <!--file system-->
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-  <uses-permission android:name="android.permission.CAMERA" />
+ <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.WRITE_MEDIA_IMAGES" />
+
+  <uses-permission android:name="android.permission.CAMERA" />
+   <uses-permission android:name="android.permission.IMAGES" />
+   <!-- android:requestLegacyExternalStorage="true" -->
 
   <application
     android:name=".MainApplication"
@@ -35,7 +39,9 @@
     android:icon="@mipmap/ic_launcher"
     android:roundIcon="@mipmap/ic_launcher_round"
     android:allowBackup="true"
-    android:theme="@style/AppTheme">
+    android:theme="@style/AppTheme"
+  
+   >
     <!-- kakao login android:allowBackup="true" -->
     <meta-data
     android:name="com.kakao.sdk.AppKey"
@@ -44,12 +50,18 @@
     <meta-data
         android:name="com.naver.maps.map.CLIENT_ID"
         android:value="${NAVER_MAP_CLINET_ID}" />
+    <!-- fcm default notification channel -->
+    <meta-data
+      android:name="com.google.firebase.messaging.default_notification_channel_id"
+      android:value="@string/default_notification_channel_id"
+      tools:replace="android:value"/>
     <activity
       android:name=".MainActivity"
       android:label="@string/app_name"
       android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
       android:launchMode="singleTask"
       android:windowSoftInputMode="adjustResize"
+      android:requestLegacyExternalStorage="true"
       android:exported="true">
       <intent-filter>
           <action android:name="android.intent.action.MAIN" />
@@ -73,16 +85,43 @@
         <data android:host="oauth" android:scheme="kakao${KAKAO_NATIVE_APP_KEY}" />
       </intent-filter>
     </activity>
+
+
     <!-- react-native-background-actions -->
     <service android:name="com.asterinet.react.bgactions.RNBackgroundActionsTask" android:foregroundServiceType="shortService"/>
+
     <!-- [START firebase_service] -->
+
+    <!-- Firebase Messaging Service -->
     <service
-        android:name=".fcm.MyFirebaseMessagingService"
-        android:exported="true">
-        <intent-filter>
-            <action android:name="com.google.firebase.MESSAGING_EVENT" />
-        </intent-filter>
+      android:name="io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService"
+      android:exported="true"
+      tools:replace="android:exported">
+      <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+      </intent-filter>
     </service>
-    <!-- [END firebase_service] -->
+
+    <service
+      android:name="io.invertase.firebase.messaging.ReactNativeFirebaseMessagingHeadlessService"
+      android:exported="true"
+      tools:replace="android:exported"/>
+
+    <receiver
+      android:enabled="true"
+      android:exported="true"
+      android:permission="com.google.android.c2dm.permission.SEND"
+      android:name="com.google.firebase.iid.FirebaseInstanceIdReceiver">
+      <intent-filter>
+        <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+        <category android:name="${applicationId}" />
+      </intent-filter>
+    </receiver>
+
+    <receiver android:name=".fcm.NotificationReceiver" />
+
+    <service android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationActions"
+      android:permission="android.permission.BIND_JOB_SERVICE"
+      android:exported="true"/>
   </application>
 </manifest>

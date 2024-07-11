@@ -9,15 +9,16 @@ interface InlineButtonProps {
   textstyle?: TextStyle;
   text:string;
   horizon?: 'top' | 'bottom' | 'none'
+  isdisable?: boolean
 }
 
-const InlineButton: React.FC<InlineButtonProps> = ({children, text, onPressfunc, textstyle, horizon='top'}) => {
+const InlineButton: React.FC<InlineButtonProps> = ({children, text, onPressfunc, textstyle, horizon='top', isdisable}) => {
   return (
     <>
       {horizon === 'top' && <HorizontalLine />}
       {
         onPressfunc ? (
-        <TouchableOpacity onPress={onPressfunc}>
+        <TouchableOpacity onPress={onPressfunc} disabled={isdisable}>
           <View style={styles.settingButtonWrapper}>
             <Text style={[styles.text, textstyle]}>{text}</Text>
             {children}

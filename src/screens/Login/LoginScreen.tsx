@@ -3,27 +3,27 @@ import { ActivityIndicator, Alert, Image, StyleSheet, View } from "react-native"
 import { useEffect, useRef, useState } from "react";
 import { endBackgroundService } from "../../service/Background";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { DeviceUUIDState, locationState, userInfoState } from "../../recoil/atoms";
-import { getAsyncObject } from "../../utils/asyncStorage";
-import { Position } from "../../interfaces";
+import { DeviceUUIDState, userInfoState } from "../../recoil/atoms";
+import { LoginResponse } from "../../interfaces";
 import RoundBox from "../../components/common/RoundBox";
 import Button from "../../components/common/Button";
 import { SignUpByWithKakao, logIn } from "../../service/kakaoLoginSignup";
 import { navigate } from "../../navigation/RootNavigation";
-import {  getKeychain, setKeychain } from "../../utils/keychain";
 import requestPermissions from "../../utils/requestPermissions";
 import { PERMISSIONS } from "react-native-permissions";
 import messaging from '@react-native-firebase/messaging';
 import uuid from 'react-native-uuid'
 import { LogBox } from 'react-native';
+import { getMMKVObject, loginMMKVStorage, setMMKVObject, setUserMMKVStorage } from "../../utils/mmkvStorage";
+import { setDefaultMMKVString } from "../../utils/mmkvStorage";
+
 LogBox.ignoreLogs(['new NativeEventEmitter']); 
 
 const LoginScreen: React.FC = () => {
-  const setLocation = useSetRecoilState(locationState);
-  const [userInfo, setUserInfo] = useRecoilState(userInfoState);
+  const setDeviceUUID = useSetRecoilState<string>(DeviceUUIDState);
+  const [userInfo, setUserInfo] = useRecoilState<LoginResponse>(userInfoState);
   const [isLoading, setIsLoading] = useState(true);
   const fcmTokenRef = useRef<string>("");
-  const setDeviceUUID = useSetRecoilState<string>(DeviceUUIDState);
   const deviceUUIDRef = useRef<string>("");
   const loginTokenRef = useRef<string>("");
 
@@ -35,12 +35,11 @@ const LoginScreen: React.FC = () => {
         if (!hasPermission) {
           return null;
         } else {
-          const storedToken = await getKeychain('fcmToken');
+          const storedToken = loginMMKVStorage.getString('login.fcmToken');
           if (!storedToken) {
             const token = await messaging().getToken();
             fcmTokenRef.current = token;
-            console.log('New FCM Token:', token);
-            await setKeychain('fcmToken', token);
+            loginMMKVStorage.set('login.fcmToken', token);
           } else {
             fcmTokenRef.current = storedToken;
           }
@@ -50,15 +49,13 @@ const LoginScreen: React.FC = () => {
       }
     };
 
-    const initializeDeviceUUID = async () => {
+    const initializeDeviceUUID = () => {
       try {
-        //await deleteKeychain('deviceUUID'); // test
-        const UUID = await getKeychain('deviceUUID');
+        const UUID = loginMMKVStorage.getString('login.deviceUUID');
         if (!UUID) {
           const newDeviceUUID: string = uuid.v4().slice(0, -2) + '00' as string;
           deviceUUIDRef.current = newDeviceUUID;
-          await setKeychain('deviceUUID', newDeviceUUID);
-          console.log("DeviceUUID:", newDeviceUUID);
+          loginMMKVStorage.set('login.deviceUUID', newDeviceUUID);
         } else {
           deviceUUIDRef.current = UUID;
           console.log("DeviceUUID:", UUID);
@@ -69,23 +66,24 @@ const LoginScreen: React.FC = () => {
       }
     };
 
-    const getLoginToken = async () => {
-      loginTokenRef.current = await getKeychain('loginToken');
-    };
-
     const autoLogin = async () => {
       try {
-        const lastLocation: Position | null = await getAsyncObject<Position>('lastLocation');
-        if (lastLocation) setLocation(lastLocation);
-
         await initializeFCMToken();
-        await initializeDeviceUUID();
-        await getLoginToken();
+        initializeDeviceUUID();
+        loginTokenRef.current = loginMMKVStorage.getString('login.loginToken');
         
         if (loginTokenRef.current && deviceUUIDRef.current && fcmTokenRef.current) {
           const loginResponse = await logIn(loginTokenRef.current, deviceUUIDRef.current, fcmTokenRef.current);
           if (loginResponse) {
-            setUserInfo(loginResponse);
+            setUserMMKVStorage(loginResponse.id.toString());
+            setDefaultMMKVString('currentUserId', loginResponse.id.toString()); // 기본 저장소에 현재 사용자 ID 설정
+            const newUserInfo = getMMKVObject<LoginResponse>("mypage.userInfo");
+            if (newUserInfo)
+              setUserInfo(newUserInfo);
+            else {
+              setUserInfo(loginResponse);
+              setMMKVObject<LoginResponse>("mypage.userInfo", loginResponse);
+            }
             navigate("로그인 성공");
           }
         }
@@ -96,23 +94,32 @@ const LoginScreen: React.FC = () => {
     };
 
     autoLogin();
-    return () => messaging().onTokenRefresh(async (token: string) => {
-      console.log('FCM Token refreshed:', token);
-      await setKeychain('fcmToken', token);
-    });
   }, []);
+
+  useEffect(() => {
+    const refreshFCM = () => messaging().onTokenRefresh((token: string) => {
+      loginMMKVStorage.set('login.fcmToken', token);
+      console.log('FCM Token refreshed:', token);
+    });
+
+    return refreshFCM();
+  }, [userInfo])
 
   const handleLogin = async () => {
     try {
       const loginResponse = await SignUpByWithKakao(deviceUUIDRef.current, fcmTokenRef.current);
       if (loginResponse) {
-        await Alert.alert("로그인 완료!", "환영합니다~🎉 \n메세지를 작성한뒤 인연 보내기를 눌러보세요!");
-        setUserInfo(loginResponse);
-      }
-       
-      if (loginResponse)
+        Alert.alert("로그인 완료!", "환영합니다~🎉 \n메세지를 작성한뒤 인연 보내기를 눌러보세요!");
+        setUserMMKVStorage(loginResponse.id.toString());
+        const newUserInfo = getMMKVObject<LoginResponse>("mypage.userInfo");
+        if (newUserInfo)
+          setUserInfo(newUserInfo);
+        else {
+          setUserInfo(loginResponse);
+          setMMKVObject<LoginResponse>("mypage.userInfo", loginResponse);
+        }
         navigate("로그인 성공");
-
+      }
     } catch {
       console.log("로그인 실패");
       Alert.alert("로그인 실패", "다시 로그인해 주세요");
