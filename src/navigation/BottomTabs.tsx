@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Keyboard, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Keyboard, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MapScreen from '../screens/Map/MapScreen';
 import FontTheme from "../styles/FontTheme";
@@ -71,75 +71,82 @@ const BottomTabs = () => {
         initialize();
     }, [setLastLocation, setProfileImageMap]);
 
-    if (isLoading) {
-        return <ActivityIndicator size="large" color="#3EB297" />
-    }
-
+  if (isLoading) {
     return (
-        <Tab.Navigator initialRouteName="블루투스"
-                       screenOptions={({ route }) => ({
-                           tabBarIcon: ({ color, size }) => {
-                               let iconSource;
-                               switch (route.name) {
-                                   case '인연':
-                                       iconSource = require("../assets/Icons/Airplane.png");
-                                       break
-                                   case '지도':
-                                       iconSource = require("../assets/Icons/MapIcon.png");
-                                       break;
-                                   case '채팅목록':
-                                       iconSource = require("../assets/Icons/MessageIcon.png");
-                                       break;
-                                   case '친구목록':
-                                       iconSource = require("../assets/Icons/FriendsIcon.png");
-                                       break;
-                               }
-                               return <Image source={iconSource} resizeMode="contain"
-                                             style={{ width: size, height: size, tintColor: color, marginTop: 7 }} />;
-                           },
-                           tabBarLabel: ({ focused }) => {
-                               let labelStyle = {
-                                   fontFamily: focused ? FontTheme.fonts.title : FontTheme.fonts.sub,
-                                   fontSize: focused ? 12 : 10,
-                                   color: focused ? '#3EB297' : 'gray',
-                                   marginBottom: 4,
-                               };
-                               return <Text style={labelStyle}>{route.name}</Text>;
-                           },
-                           tabBarActiveTintColor: '#3EB297',
-                           tabBarStyle: [styles.tabContainer, { display: isKeyboardVisible ? 'none' : 'flex' }],
-                           tabBarLabelStyle: {
-                               fontFamily: FontTheme.fonts.main,
-                               fontSize: 10,
-                           },
-                           tabBarLabelShown: false,
-                           headerTitleStyle: {
-                               fontFamily: FontTheme.fonts.title,
-                               fontSize: 20,
-                           },
-                           headerShown: false
-                       })}>
-            <Tab.Screen name="인연" component={BluetoothScreen} />
-            <Tab.Screen name="지도" component={MapScreen} />
-            <Tab.Screen name="채팅목록" component={ChattingStackScreen} />
-            <Tab.Screen name="친구목록" component={FriendsStackScreen} />
-        </Tab.Navigator>
-    )
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    )}
+  return (
+      <Tab.Navigator initialRouteName="지도"
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ color, size }) => {
+            let iconSource;
+            switch (route.name) {
+              case '인연':
+                iconSource = require("../assets/Icons/MypageIcon.png");
+                break
+              case '지도':
+                iconSource = require("../assets/Icons/MapIcon.png");
+                break;
+              case '채팅목록':
+                iconSource = require("../assets/Icons/MessageIcon.png");
+                break;
+              case '친구목록' :
+                iconSource = require("../assets/Icons/FriendsIcon.png");;
+                break;
+            }
+            return <Image source={iconSource} resizeMode="contain"
+                    style={{ width: size, height: size, tintColor: color, marginTop: 7 }} />;
+          },
+          tabBarLabel: ({ focused }) => {
+            let labelStyle = {
+              fontFamily: focused ? FontTheme.fonts.title : FontTheme.fonts.sub,
+              fontSize: focused ? 12 : 10,
+              color: focused ? '#3EB297' : 'gray',
+              marginBottom: 4,
+            };
+            return <Text style={labelStyle}>{route.name}</Text>;
+          },
+          tabBarActiveTintColor: '#3EB297',
+          tabBarStyle: styles.tabContainer,
+          tabBarLabelStyle : {
+            fontFamily: FontTheme.fonts.main,
+            fontSize: 10,
+          },
+          tabBarLabelShown: false,
+          headerTitleStyle: {
+            fontFamily: FontTheme.fonts.title,
+            fontSize: 20,
+          },
+          headerShown: false
+        })}>
+      <Tab.Screen name="인연" component={BluetoothScreen}/>    
+      <Tab.Screen name="지도" component={MapScreen}/>
+      <Tab.Screen name="채팅목록" component={ChattingStackScreen}/>
+      <Tab.Screen name="친구목록" component={FriendsStackScreen} />
+    </Tab.Navigator>
+  )
 }
 
 const styles = StyleSheet.create({
-    tabContainer: {
-        position: 'static',
-        left: '2.5%',
-        bottom: 10,
-        width: '95%',
-        height: 50,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 15,
-        justifyContent: 'space-around',
-        paddingHorizontal: 10,
-        alignItems: 'center',
-    },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tabContainer: {
+      position: 'static',
+      left: '2.5%',
+      bottom: 10,
+      width: '95%',
+      height: 50,
+      backgroundColor: '#FFFFFF',
+      borderRadius: 15,
+      justifyContent: 'space-around',
+      paddingHorizontal: 10,
+      alignItems: 'center',
+  },
 });
 
 export default BottomTabs;

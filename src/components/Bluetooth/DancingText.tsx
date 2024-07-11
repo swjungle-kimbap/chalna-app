@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import FontTheme from '../../styles/FontTheme';
 
-const DancingText = ({ setShowMsgBox }) => {
+const DancingText = ({ handleBLEButton }) => {
   const moveAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -12,18 +12,13 @@ const DancingText = ({ setShowMsgBox }) => {
       if (!isMounted) return;
       Animated.sequence([
         Animated.timing(moveAnim, {
-          toValue: -10,
-          duration: 500,
+          toValue: -30,
+          duration: 1000,
           useNativeDriver: true,
         }),
         Animated.timing(moveAnim, {
-          toValue: 10,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(moveAnim, {
-          toValue: 0,
-          duration: 500,
+          toValue: 30,
+          duration: 1000,
           useNativeDriver: true,
         }),
       ]).start(() => isMounted && animate());
@@ -37,10 +32,10 @@ const DancingText = ({ setShowMsgBox }) => {
   }, [moveAnim]);
   
   return (
-    <TouchableOpacity onPress={() => setShowMsgBox(true)}>
+    <TouchableOpacity onPress={handleBLEButton}>
       <View style={styles.container}>
         <Animated.Text style={[styles.text, { transform: [{ translateY: moveAnim }] }]}>
-          메세지 보내기
+          눌러서 시작하기!
         </Animated.Text>
       </View>
     </TouchableOpacity>
@@ -54,9 +49,8 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 20,
-    marginTop: 20,
+    color: 'gray',
     fontFamily: FontTheme.fonts.main,
-    color: 'black'
   },
 });
 

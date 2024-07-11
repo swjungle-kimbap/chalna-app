@@ -47,7 +47,7 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
       if (validAlarms) {
         validAlarms.forEach((alarm) => {
           if (remainTime.get(alarm.id)) return;
-          const deleterestTime = alarm.createdAt + 280000 - Date.now();
+          const deleterestTime = alarm.createdAt + 300000 - Date.now();
           if (deleterestTime <= 0) return;
           const deleteRestTime = Math.floor((deleterestTime) / (60*1000));
           remainTime.set(alarm.id, deleteRestTime);

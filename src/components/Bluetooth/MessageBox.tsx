@@ -13,6 +13,7 @@ import ImageResizer from 'react-native-image-resizer';
 import FastImage from 'react-native-fast-image';
 import { useSetRecoilState } from 'recoil';
 import { MsgSendCntState } from '../../recoil/atoms';
+import { handleImagePicker, handleUploadS3 } from '../../service/FileHandling';
 
 const ignorePatterns = [
   /No task registered for key shortService\d+/,
@@ -25,7 +26,6 @@ ignorePatterns.forEach(pattern => {
 
 interface MessageBoxPrams {
   uuids: Set<string>;
-  setShowMsgBox: React.Dispatch<React.SetStateAction<boolean>>;
   setRemainingTime: React.Dispatch<React.SetStateAction<number>>;
   fadeInAndMoveUp: () => void;
 }
@@ -34,7 +34,7 @@ const sendDelayedTime = 30;
 
 const tags = ['텍스트', '사진'];
 
-const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemainingTime, fadeInAndMoveUp})  => {
+const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, fadeInAndMoveUp})  => {
   const [msgText, setMsgText] = useMMKVString("map.msgText", userMMKVStorage);
   const [isBlocked, setIsBlocked] = useMMKVBoolean("map.isBlocked", userMMKVStorage);
   const [blockedTime, setBlockedTime] = useMMKVNumber("map.blockedTime", userMMKVStorage);
@@ -44,88 +44,8 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
   const [fileId, setFileId] = useMMKVNumber("map.fileId", userMMKVStorage); 
   const [selectedImage, setSelectedImage] = useState(null);
   const setMsgSendCnt = useSetRecoilState(MsgSendCntState);
+  const [textInputHeight, setTextInputHeight] = useState(40); // 기본 높이 설정
 
-  const handleSelectImage = () => {
-    setFileId(0);
-    launchImageLibrary({mediaType: 'photo', includeBase64: false}, (response) => {
-      if (response.didCancel) {
-          console.log('이미지 선택 취소');
-      } else if (response.errorMessage) {
-        console.log('error : ', response.errorMessage);
-      } else if (response.assets && response.assets.length > 0 ) {
-        console.log('이미지 선택 완료')
-        setSelectedImage(response.assets[0]);
-        setImageUrl(response.assets[0].uri);
-      }
-    })
-  }
-
-  const uploadImageToS3 = async () => {
-    console.log('선택된 이미지 :', selectedImage);
-    // 유효성 검사 추가하기 
-    if(!selectedImage) {
-      return null;
-    }
-    const { uri, fileName, fileSize, type: contentType} = selectedImage;
-    
-    // 서버로 전송해서 업로드 프리사인드 url 받아오기
-    try {
-      const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}`, "파일 업로드", {
-        fileName,
-        fileSize,
-        contentType
-    });
-    console.log("서버로 받은 데이터 : ", JSON.stringify(metadataResponse?.data?.data));
-    const {fileId, presignedUrl} = metadataResponse?.data?.data;
-
-    // 이미지 리사이징 
-    const resizedImage = await ImageResizer.createResizedImage(
-      uri,
-      1500, // 너비를 500으로 조정
-      1500, // 높이를 500으로 조정
-      'JPEG', // 이미지 형식
-      100, // 품질 (0-100)
-      0, // 회전 (회전이 필요하면 EXIF 데이터에 따라 수정 가능)
-      null,
-      true,
-      { onlyScaleDown: true }
-  );
-
-    const resizedUri = resizedImage.uri;
-    const file = await fetch(resizedUri);
-    const blob = await file.blob();
-    const uploadResponse = await fetch(presignedUrl, {
-      headers: {'Content-Type': selectedImage.type},
-      method: 'PUT',
-      body: blob
-    })
-
-    if (uploadResponse.ok) {
-      console.log('인연 보내기 : s3 파일에 업로드 성공')
-
-      const uploadedUrl = presignedUrl.split('?')[0]; 
-      console.log(uploadedUrl);
-      // const isValidUrl = await checkUrlValidity(uploadedUrl);
-      const isValidUrl = true;
-      if (isValidUrl) {
-        console.log('S3 파일에 업로드 성공');
-        // const content =  {uploadedUrl, fileId};
-        setFileId(fileId);
-        return fileId; // 업로드된 파일의 URL,fileId 반환
-      } else {
-        Alert.alert('실패', '업로드된 이미지 URL이 유효하지 않습니다.');
-        return null;
-      }
-    } else {
-      Alert.alert('실패', '이미지 업로드에 실패했습니다.');
-      return null;
-    }
-    } catch (error) {
-      console.error('인연보내기 사진 error :' ,error);
-      Alert.alert('실패', '이미지 업로드 중 오류가 발생했습니다.');
-      return null;
-    }
-  };
   const sendMsg = async ( uuids:Set<string>, fileId : number ) => {
     let response = null;
     if (selectedTag ==='텍스트') {
@@ -146,21 +66,17 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
   } 
 
   const handleSendingMessage = async () => {
-    const validState = checkValid();
-    if (!validState) {
-      return;
-    }
-    console.log(fileId);
     let updateFileId = fileId;
     if (selectedTag ==='사진' && !updateFileId) {
-      updateFileId = await uploadImageToS3();
-      setFileId(updateFileId);
+      const {presignedUrl, fileId} = await handleUploadS3(selectedImage, false);
+      updateFileId = fileId;
+      setFileId(fileId);
     }
     await sendMsg(uuids, updateFileId);
     fadeInAndMoveUp();
-    setShowMsgBox(false);
     if (sendCountsRef.current === 0)
       return;
+
     setIsBlocked(true);
     setBlockedTime(Date.now());
     setRemainingTime(sendDelayedTime);
@@ -181,36 +97,38 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
     }, 1000);
   }
   
-  // 이미지 제거 함수 추가
+  const handleSelectImage = async () => {
+    setFileId(0);
+    const image = await handleImagePicker();
+    if (image) {
+      setImageUrl(image.uri);
+      setSelectedImage(image);
+    }
+  }
+
   const handleRemoveImage = () => {
     setSelectedImage(null);
     setImageUrl('');
     setFileId(0);
   };
 
-  const checkValid = () => {
-    if (selectedTag ==='사진'){
-      if (!imageUrl){
-        Alert.alert('사진 없음', '사진을 선택해 주세요!');
-        return false
-      }
-    } else {
-      if (msgText.length < 5) {
-        Alert.alert('내용을 더 채워 주세요', '5글자 이상 입력해 주세요!');
-        return false;
-      } 
-    }
-  
-    return true;
-  };
+  const handleContentSizeChange = (contentWidth, contentHeight) => {
+    const lineHeight = 10; 
+    const maxHeight = lineHeight * 5; 
 
+    if (contentHeight <= maxHeight) {
+      setTextInputHeight(contentHeight);
+    } else {
+      setTextInputHeight(maxHeight);
+    }
+  };
 
   return (
     <> 
-      <RoundBox width='95%' style={styles.msgBox}>
+      <RoundBox style={styles.msgBox}>
         <View style={styles.titleContainer}>
           <Text variant='title' style={styles.title}>인연 메세지 <Button title='💬' onPress={() => {
-            Alert.alert("인연 메세지 작성",`${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요! 메세지를 받기 위해 블루투스 버튼을 켜주세요`)}
+            Alert.alert("인연 메세지 작성",`${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요!`)}
           }/> 
           </Text>
           {tags.map((tag) => (
@@ -221,6 +139,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
         </View>
         <View style={styles.textInputContainer}>
           {selectedTag === "텍스트" ? (
+            <>
             <TextInput
             value={msgText}
             style={styles.textInput}
@@ -228,9 +147,19 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
             placeholder="메세지를 입력하세요"
             placeholderTextColor="#333"
             editable={!selectedImage} 
-          />
+            multiline
+            maxLength={100}
+            onContentSizeChange={(e) =>
+              handleContentSizeChange(e.nativeEvent.contentSize.width, e.nativeEvent.contentSize.height)
+            }
+            />
+            { msgText.length < 5 ? <Text style={styles.charCount}>메세지를 5글자 이상 입력해주세요</Text> :
+              msgText.length > 100 ? <Text style={styles.charCount}>메세지를 100글자 이하로 입력해주세요</Text> :
+              <Button title="보내기" titleStyle={{color: '#000'}} onPress={handleSendingMessage} /> }
+            </>
           ): (
-            <View style={[styles.ImageBox, {height:imageUrl? 150 : 50}]}>
+            <>
+            <View style={[styles.ImageBox, {height:imageUrl? 160 : 50}]}>
               {imageUrl ? (
                 <>
                 <FastImage
@@ -246,19 +175,24 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
                 <Button title='사진을 추가해주세요🖼️' onPress={handleSelectImage}/> 
               )}
             </View>
+            { imageUrl &&
+              <Button title={'보내기'} variant='main' titleStyle={{color: '#000'}}
+              onPress={handleSendingMessage}/> }
+            </>      
           )}
       </View>
-        <Button title={'보내기'} variant='main' titleStyle={{color: '#000'}}
-          onPress={handleSendingMessage}/>
-      </RoundBox>
+        </RoundBox>
     </>
   );
 };
 
 const styles = StyleSheet.create({
+  charCount: {
+    color: '#999',
+  },
   animatedText : {
     color:'black',
-},
+  },
   fullScreenImage: {
     width: '100%',
     height: 150,
@@ -268,7 +202,7 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 10,
     justifyContent:'center',
-    borderColor: '#000',
+    borderColor: '#333',
     color: '#333',
     borderWidth: 1,
     borderRadius: 10,
@@ -280,19 +214,6 @@ const styles = StyleSheet.create({
   selectedTag: {
     color: '#000', 
   },
-  TVButton: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-    top: 20,
-    left: 80,
-    height: 40, 
-    width: 40,
-    borderRadius: 20, 
-    paddingVertical: 2, // 상하 여백 설정
-    paddingHorizontal: 3, // 좌우 여백 설정
-    zIndex:3
-  },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -301,7 +222,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   msgBox: {
-    width: '95%',
+    width: '90%',
     paddingTop: 0,
     padding: 20,
     borderTopWidth: 4,
@@ -320,9 +241,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     marginBottom: 10,
-  },
-  textInputWithImage: {
-    paddingLeft: 70, // 이미지 오른쪽에 텍스트가 올 수 있도록 패딩 추가
   },
   buttonContainer: {
     width: '75%',
@@ -352,11 +270,9 @@ const styles = StyleSheet.create({
       fontSize: 18,
   },
   textInputContainer: {
-    position: 'relative',
-    width: '100%',
-    marginBottom: 10,
+    justifyContent:'center',
+    alignItems:'center',
   },
-
 });
 
 export default MessageBox;

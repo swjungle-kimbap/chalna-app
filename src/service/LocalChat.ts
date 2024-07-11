@@ -7,6 +7,7 @@ import requestPermissions from "../utils/requestPermissions";
 import showPermissionAlert from "../utils/showPermissionAlert";
 import { PERMISSIONS } from "react-native-permissions";
 import { removeChatRoom } from './Chatting/mmkvChatStorage';
+import { handleUploadS3 } from "./FileHandling";
 
 const requiredPermissions = [PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION];
 
@@ -24,12 +25,19 @@ export const joinLocalChat = async (localChat:LocalChat, distance:number, setRef
   };
 }
 
-export const makeLocalChat = async (name, description, currentLocation) : Promise<LocalChat> => {
+export const makeLocalChat = async (name, description, currentLocation, image) : Promise<LocalChat> => {
+  let presignedUrl, fileId = 0;
+  if (image){
+    const response = await handleUploadS3(image, false);
+    fileId = response.fileId;
+  }
+    
   if (name.length && description.length) {
     const response = await axiosPost<SetLocalChatResponse>(
       urls.SET_LOCAL_CHAT_URL, "장소 채팅 만들기", {
       name,
       description,
+      imageId: fileId,
       latitude: currentLocation.latitude,
       longitude: currentLocation.longitude
     } as SetLocalChatRequest);

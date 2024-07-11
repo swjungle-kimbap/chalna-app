@@ -63,6 +63,8 @@ export interface LocalChat extends Position{
   description: string,
   chatRoomId: number,
   distance?: number,
+  imageId: number,
+  chatRoomMemberCount: number,
 }
 
 export interface SetLocalChatResponse {
@@ -90,6 +92,7 @@ export interface FileResponse {
 
 export interface DownloadFileResponse {
   presignedUrl:string
+
 }
 
 export interface SendMatchResponse {

@@ -1,18 +1,16 @@
 import FontTheme from '../../styles/FontTheme';
 import Button from "../../components/common/Button"
-import { StyleSheet, View, Text , Alert , Modal, TouchableOpacity} from "react-native";
+import { StyleSheet, View, Text , Modal, TouchableOpacity, Alert} from "react-native";
 import { useRecoilState } from "recoil";
 import { userInfoState } from "../../recoil/atoms";
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import EditModal from './EditModal';
 import { LoginResponse } from '../../interfaces';
-import { axiosGet, axiosPatch } from '../../axios/axios.method';
+import { axiosPatch } from '../../axios/axios.method';
 import { urls } from '../../axios/config';
 import { setMMKVObject } from '../../utils/mmkvStorage';
-import { launchImageLibrary } from 'react-native-image-picker';
-import { AxiosResponse } from "axios";
-import { FileResponse, DownloadFileResponse } from "../../interfaces";
 import FastImage, { Source } from 'react-native-fast-image';
+import { handleImagePicker, handleUploadS3 } from '../../service/FileHandling';
 import RNFS from 'react-native-fs';
 
 const DefaultImgUrl = '../../assets/images/anonymous.png';
@@ -24,8 +22,8 @@ const UserCard = () => {
   const [userInfo, setUserInfo] = useRecoilState<LoginResponse>(userInfoState);
   const [showNameEditModal, setShowNameEditModal] = useState<boolean>(false);
   const [showStatusEditModal, setShowStatusEditModal] = useState<boolean>(false);
-  const [selectedImage, setSelectedImage] = useState(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const ImageRef = useRef(null);
 
   const setUsername = (username) => {
     const newUseInfo = {...userInfo, username};
@@ -39,64 +37,6 @@ const UserCard = () => {
     axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", {message});
     setMMKVObject<LoginResponse>("mypage.userInfo", newUseInfo);
   }
-  const handleImagePicker = () => {
-    launchImageLibrary({ mediaType: 'photo' }, (response) => {
-      if (response.didCancel) {
-        console.log('이미지 선택 취소');
-      } else if (response.errorMessage) {
-        console.log('ImagePicker error: ', response.errorMessage);
-      } else {
-        const source = { uri: response.assets[0].uri };
-        setSelectedImage(source);
-        handleUploadAndSend(response.assets[0]);
-      }
-    });
-  };
-  const handleUploadAndSend = async (image) => {
-    if (!image) return;
-
-    const { uri, fileName, fileSize, type: contentType } = image;
-
-    try {
-      const metadataResponse = await axiosPatch<AxiosResponse<FileResponse>>(`${urls.USER_INFO_PROFILEIMG_URL}`, "프로필 업로드", {
-        fileName,
-        fileSize,
-        contentType
-      });
-
-      const { fileId, presignedUrl } = metadataResponse?.data?.data;
-
-      // s3에 업로드
-      const file = await fetch(uri);
-      const blob = await file.blob();
-      const uploadResponse = await fetch(presignedUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': contentType
-        },
-        body: blob
-      });
-
-      if (uploadResponse.ok) {
-
-        try {
-          const downloadResponse = await axiosGet<AxiosResponse<DownloadFileResponse>>(`${urls.FILE_DOWNLOAD_URL}${fileId}`,"프로필 다운로드" );
-
-          const { presignedUrl }= downloadResponse?.data?.data;
-          await downloadAndStoreImage(presignedUrl);
-
-        }catch(error) {
-          console.error(error);
-        }
-
-      } else {
-        console.log('이미지상태:',uploadResponse.status);
-        Alert.alert('실패', '이미지 업로드에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const downloadAndStoreImage = async (url) => {
     try {
@@ -107,9 +47,8 @@ const UserCard = () => {
         toFile: localFilePath, // 로컬다운경로 
       }).promise;
       console.log(localFilePath);
-
-      if (downloadResult.statusCode === 200) {
-                                                                           
+  
+      if (downloadResult.statusCode === 200) {                                                                 
         setUserInfo({ ...userInfo, profileImageUrl: `file://${localFilePath}` });
         axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", { profileImageUrl: `file://${localFilePath}` });
         setMMKVObject<LoginResponse>("mypage.userInfo", { ...userInfo, profileImageUrl: `file://${localFilePath}` });
@@ -128,7 +67,12 @@ const UserCard = () => {
     axiosPatch(urls.USER_INFO_EDIT_URL, "프로필 이미지 기본으로 변경", { profileImageUrl: DefaultImgUrl });
     setMMKVObject<LoginResponse>("mypage.userInfo", { ...userInfo, profileImageUrl: DefaultImgUrl });
   };
-  console.log({profileImageUrl : userInfo.profileImageUrl})
+
+  const handleImagePick = async () => {
+    const image = await handleImagePicker();
+    const {presignedUrl, fileId} = await handleUploadS3(image);
+    await downloadAndStoreImage(presignedUrl);
+  }
   return (
   <>
     {showNameEditModal && (<EditModal value={userInfo.username} setValue={setUsername} maxLength={10}
@@ -151,11 +95,11 @@ const UserCard = () => {
             </TouchableOpacity>
             ): (
             <>
-              <Button iconSource={require(DefaultImgUrl)} onPress={handleImagePicker} imageStyle={styles.avatar} /> 
+              <Button iconSource={require(DefaultImgUrl)} onPress={handleImagePick} imageStyle={styles.avatar} /> 
               <Button
               iconSource={require(photoIconUrl)}
               imageStyle={styles.photoIcon}
-              onPress={handleImagePicker}
+              onPress={handleImagePick}
               />
           </>)}
           </View>
@@ -193,7 +137,7 @@ const UserCard = () => {
           />
         </View>
         <View style={styles.buttonContainer}>
-          <Button title="다른 이미지 선택" onPress={handleImagePicker} titleStyle={styles.Button} />
+          <Button title="다른 이미지 선택" onPress={handleImagePick} titleStyle={styles.Button} />
           <Button title="기본 이미지로 변경" onPress={() => {
             resetToDefaultImage();
             setModalVisible(false);

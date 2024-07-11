@@ -1,4 +1,4 @@
-import { Animated, Modal, NativeEventEmitter, NativeModules, StyleSheet, TouchableWithoutFeedback, View, Image } from "react-native";
+import { Animated, Modal, NativeEventEmitter, NativeModules, StyleSheet, TouchableWithoutFeedback, View, Image, Keyboard } from "react-native";
 import AlarmButton from "../../components/Bluetooth/AlarmButton";
 import MessageBox from "../../components/Bluetooth/MessageBox";
 import Text from "../../components/common/Text";
@@ -61,7 +61,6 @@ const requiredPermissions = [
 
 const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   const { notificationId = "" } = route.params ?? {};
-  const [showMsgBox, setShowMsgBox] = useState(false);
   const isRssiTracking = useRecoilValue(isRssiTrackingState);
   const deviceUUID = useRecoilValue(DeviceUUIDState);
   const [isScanning, setIsScanning] = useMMKVBoolean("map.isScanning", userMMKVStorage);
@@ -72,24 +71,37 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   const [detectCnt, setDetectCnt] = useState(0);
   const [remainingTime, setRemainingTime] = useState(30);
   const msgSendCnt = useRecoilValue(MsgSendCntState);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   const [fadeInAndMoveUp, fadeAnim, translateY] = useFadeText();
-  const fadeInAnim = useRef(new Animated.Value(0)).current;
   const animationRef = useRef(null);
 
   useEffect(() => {
-    if (isScanning) {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      }
+    );
+
+    // cleanup function
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isKeyboardVisible && isScanning) {
       animationRef.current.play();
     }
-  }, [isScanning]);
-
-useEffect(() => {
-    Animated.timing(fadeInAnim, {
-      toValue: detectCnt > 0 ? 1 : 0,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
-  }, [showMsgBox]);
+  }, [isScanning, isKeyboardVisible]);
 
   useBackground(isScanning);
 
@@ -272,48 +284,27 @@ useEffect(() => {
         <BleButton bleON={isScanning} bleHanddler={handleBLEButton} />
         <AlarmButton notificationId={notificationId} />
         <View style={styles.contentContainer}>
-          {isScanning && (
-            <RoundBox style={styles.noBorderContent}>
-               <LottieView ref={animationRef} source={require('../../assets/animations/WaveAnimation.json')} style={styles.gifLarge} speed={2.5} loop />
-              {!detectCnt &&
-                  <Text style={styles.findText}>10m 이내에 인연을 찾고 있습니다</Text>
-              }
-            </RoundBox>
-          )
-          }
-          <View >
-          {detectCnt > 0 ?
-          <Animated.View style={[{ opacity: 1, transform: [{ translateY: translateY }] }]}>
-                    <MessageBox uuids={uuidSet} setShowMsgBox={setShowMsgBox} setRemainingTime={setRemainingTime}
-                      fadeInAndMoveUp={fadeInAndMoveUp}/>
-          </Animated.View> : (
-           isBlocked ?
+          {!isScanning ? <DancingText handleBLEButton={handleBLEButton}/> :
+          ( 
+          <>
+          {!isKeyboardVisible && <LottieView ref={animationRef} source={require('../../assets/animations/WaveAnimation.json')} style={styles.gifLarge} speed={2.5} loop />}
+          {isBlocked ?
             <>
             <Animated.View
-              style={{
-                opacity: fadeAnim,
-                transform: [{ translateY: translateY }],
-              }}>
-              <Text variant='sub'style={{fontSize: 15}}>{msgSendCnt ? `${msgSendCnt}명에게 인연 메세지를 보냈습니다.` :
+              style={{opacity: fadeAnim, transform: [{ translateY: translateY }] }}>
+              <Text variant='sub' style={{fontSize: 15}}>{msgSendCnt ? `${msgSendCnt}명에게 인연 메세지를 보냈습니다.` :
                 "메세지를 보낼 수 없는 대상입니다. 다시 보내 주세요!"}</Text>
             </Animated.View>
             <Text style={styles.blockText}>인연 메세지는</Text>
             <Text style={styles.blockText2}>{remainingTime}초 뒤에 다시 보낼 수 있습니다.</Text>
-            </> :
-            isScanning ?
-            detectCnt ?
-            <>
-              <View style={styles.detectedContainer}>
-                <Text style={styles.findText2}>주위 {detectCnt}명의 인연을 찾았습니다!</Text>
-                <MessageGif setShowMsgBox={setShowMsgBox}/>
-                <Text style={styles.findText2}>클릭해서 메시지를 보내세요!</Text>
-              </View>
-            </> :
-            <>
-            </> : (
-              <Text style={styles.findText}>블루투스 버튼을 눌러 주세요!</Text>
-          ))}
-          </View>
+            </> 
+          : detectCnt > 0 ? 
+          <>
+            <Text style={styles.findText2}>주위 {detectCnt}명의 인연을 찾았습니다!</Text>
+            <MessageBox uuids={uuidSet} setRemainingTime={setRemainingTime} fadeInAndMoveUp={fadeInAndMoveUp}/>
+          </> : <Text style={styles.findText}>주위의 인연을 찾고 있습니다.</Text>}
+          </>
+          )}
         </View>
       </View>
     </>
@@ -321,6 +312,9 @@ useEffect(() => {
 };
 
 const styles = StyleSheet.create({
+  contentContainer: {
+    alignItems: 'center'
+  },
   blockText2: {
     marginTop: 10,
     fontSize: 20,
@@ -328,23 +322,6 @@ const styles = StyleSheet.create({
   blockText: {
     marginTop: 40,
     fontSize: 20,
-  },
-  msgContent: {
-    height: 100,
-  },
-  modalContainer:{
-      width: '100%',
-      height: 300,
-  },
-  modalContent: {
-  },
-  modalOverlay: {
-    flex: 1,
-  },
-  sendButton: {
-    padding: 12,
-    borderTopWidth: 4,
-    borderColor: '#14F12A'
   },
   TVButton: {
     position: 'absolute',
@@ -358,14 +335,6 @@ const styles = StyleSheet.create({
     paddingVertical: 2, // 상하 여백 설정
     paddingHorizontal: 3, // 좌우 여백 설정
     zIndex:3
-  },
-  content: {
-    marginTop: 50,
-    marginBottom: 70,
-    height: 200,
-    width: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   noBorderContent: {
     marginTop: 50,
@@ -382,45 +351,21 @@ const styles = StyleSheet.create({
     width: 400, // 원하는 너비로 설정합니다.
     height: 400, // 원하는 높이로 설정합니다.
   },
-  gifMedium: {
-    width: 150, // 원하는 너비로 설정합니다.
-    height: 150, // 원하는 높이로 설정합니다.
-  },
   background: {
     backgroundColor: "#fff",
-    flex: 1,
-  },
-  contentContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   findText: {
-    fontSize: 14,
+    fontSize: 20,
     marginBottom: 20,
     color: 'gray',
   },
   findText2: {
     fontSize: 15,
+    color:'gray',
     marginBottom: 5,
-  },
-  searchText: {
-    fontSize: 30,
-    marginTop: 20,
-  },
-  notSearchText: {
-    fontSize: 17,
-    color: 'blue',
-    textAlign: 'center',
-  },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  detectedContainer: {
-    alignItems: 'center',
-    marginVertical: 20, // 텍스트와 GIF 사이의 간격
   },
   gifWrapper: {
     zIndex: -1, // Text 요소가 GIF 위에 표시되도록 설정
