@@ -45,7 +45,7 @@ export interface GetLocalChatResponse {
 
 export interface LocalChatRoomData extends Position {
   chatRoomId: number,
-  distance: number,
+  distance?: number,
   name: string,
   description: string,
 }

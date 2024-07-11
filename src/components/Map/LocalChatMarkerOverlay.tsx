@@ -10,7 +10,8 @@ import { Position } from '../../interfaces';
 import { getLocalChatRefreshState, JoinedLocalChatListState, LocalChatListState, locationState, ProfileImageMapState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useFocusEffect } from "@react-navigation/core";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import Geolocation from "react-native-geolocation-service";
+import { Alert } from "react-native";
 
 const LocalChatDelayedTime = 10 * 1000;
 const defaultImg = require('../../assets/Icons/LocalChatIcon.png');
@@ -32,42 +33,16 @@ const LocalChatMarkerOverlay = () => {
       updatedLocationRef.current = currentLocation;
       setLocationUpdate(currentLocation);
       const updateLocalChatRoom = async () => {
-        const updatedLocalChatRoomData = await Promise.all(joinedLocalChatList.map(async (item) => {
-          const distance = calDistance(currentLocation, {latitude: item.latitude, longitude: item.longitude});
-          if (distance >= 0.08) {
-            await ChatDisconnectOut(item.chatRoomId, setRefresh);
+        const updatedLocalChatRoomData: LocalChatRoomData[] = [];
+        // Update localChatList
+        const updatedLocalChatList = await Promise.all(localChatList.map(async (item) => {
+          const localChat = item.localChat;
+          const distance = calDistance(currentLocation, { latitude: localChat.latitude, longitude: localChat.longitude });
+          if (item.isJoined && distance >= 0.08) {
+            await ChatDisconnectOut(localChat.chatRoomId, setRefresh);
             return null;
           }
-          return {
-            ...item,
-            distance
-          };
-        }));
-    
-        setJoinedLocalChatList(updatedLocalChatRoomData.filter(item => item !== null));
-      }
-      updateLocalChatRoom();
-      //console.log({joinedLocalChatList})
-    }
-  }, [currentLocation]);
 
-  const fetchLocalChatList = async () => {
-    if (currentLocation) {
-      const localChatReqeustBody = {
-        params: {
-          latitude: currentLocation.latitude,
-          longitude: currentLocation.longitude,
-          distance: 400,
-        }
-      } as AxiosRequestConfig;
-      const response = await axiosGet<GetLocalChatResponse>(
-        urls.GET_LOCAL_CHAT_URL, "주변 장소 채팅 조회", localChatReqeustBody, false);
-
-      if (response.data.data) {
-        const updatedLocalChatRoomData: LocalChatRoomData[] = [];
-        const updatedLocalChatList = response.data.data.map((item) => {
-          const localChat = item.localChat;
-          const distance = calDistance(currentLocation, {latitude: localChat.latitude, longitude: localChat.longitude});
           if (item.isJoined) {
             updatedLocalChatRoomData.push({
               chatRoomId: localChat.chatRoomId,
@@ -78,6 +53,7 @@ const LocalChatMarkerOverlay = () => {
               distance
             })
           }
+
           return {
             ...item,
             localChat: {
@@ -85,12 +61,74 @@ const LocalChatMarkerOverlay = () => {
               distance,
             },
           };
-        });
-        setLocalChatList(updatedLocalChatList);
-        setJoinedLocalChatList(updatedLocalChatRoomData);
+        }));
+      
+        setJoinedLocalChatList(updatedLocalChatRoomData.filter(item => item !== null));
+        setLocalChatList(updatedLocalChatList.filter(item => item !== null));
       }
+      updateLocalChatRoom();
     }
-    //console.log('updated!!');
+  }, [currentLocation, joinedLocalChatList]);
+
+  const fetchLocalChatList = async () => {
+    try {
+      // 위치 정보 가져오기
+      Geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+
+            const localChatReqeustBody = {
+              params: {
+                latitude,
+                longitude,
+                distance: 400,
+              }
+            } as AxiosRequestConfig;
+            const response = await axiosGet<GetLocalChatResponse>(
+              urls.GET_LOCAL_CHAT_URL, "주변 장소 채팅 조회", localChatReqeustBody, false);
+  
+            if (response.data.data) {
+              const updatedLocalChatRoomData: LocalChatRoomData[] = [];
+              const updatedLocalChatList = response.data.data.map((item) => {
+                const localChat = item.localChat;
+                const distance = calDistance(currentLocation, {latitude: localChat.latitude, longitude: localChat.longitude});
+                if (item.isJoined) {
+                  updatedLocalChatRoomData.push({
+                    chatRoomId: localChat.chatRoomId,
+                    description: localChat.description,
+                    name: localChat.name,
+                    latitude: localChat.latitude,
+                    longitude: localChat.longitude,
+                    distance
+                  })
+                }
+                return {
+                  ...item,
+                  localChat: {
+                    ...localChat,
+                    distance,
+                  },
+                };
+              });
+              setLocalChatList(updatedLocalChatList);
+              setJoinedLocalChatList(updatedLocalChatRoomData);
+            }
+          } catch (error) {
+            console.error("채팅 리스트 요청 실패", error.message);
+            Alert.alert("채팅 리스트 요청 실패", "채팅 리스트를 가져오는데 실패하였습니다.");
+          }
+        },
+        (error) => {
+          console.error("위치 정보 가져오기 실패", error.code, error.message);
+          Alert.alert("위치 정보 가져오기 실패", "현재 위치 정보를 가져오는데 실패하였습니다.");
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+      );
+    } catch (error) {
+      console.error("위치정보 습득 실패", error.message);
+      Alert.alert("위치정보 습득 실패", "현재 위치 정보를 가져오는데 실패하였습니다.");
+    }
   };
 
   useEffect(() => {
@@ -99,11 +137,10 @@ const LocalChatMarkerOverlay = () => {
 
   useFocusEffect(
     useCallback(() => {
-      fetchLocalChatList();
-        const interval = setInterval(() => {
-          fetchLocalChatList();
-        }, LocalChatDelayedTime);
-        return () => clearInterval(interval);
+      const interval = setInterval(() => {
+        fetchLocalChatList();
+      }, LocalChatDelayedTime);
+      return () => clearInterval(interval);
     }, [])
   );
 
@@ -149,8 +186,7 @@ const LocalChatMarkerOverlay = () => {
               key={localChat.id}
               latitude={localChat.latitude}
               longitude={localChat.longitude}
-              onTap={item.isOwner ? () => localChatDelete(localChat, distance, setRefresh) : 
-                item.isJoined ? () => localChatOut(localChat, distance, setRefresh) :
+              onTap={item.isJoined ? () => localChatOut(localChat, distance, setRefresh) :
                 () => localChatJoin(localChat, distance, setRefresh)
               }
               image={ImgSource}
