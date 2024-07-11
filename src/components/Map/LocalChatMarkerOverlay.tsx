@@ -11,9 +11,8 @@ import { getLocalChatRefreshState, JoinedLocalChatListState, LocalChatListState,
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useFocusEffect } from "@react-navigation/core";
 import Geolocation from "react-native-geolocation-service";
-import { Alert } from "react-native";
 
-const LocalChatDelayedTime = 15 * 1000;
+const LocalChatDelayedTime = 10 * 1000;
 const defaultImg = require('../../assets/Icons/LocalChatIcon.png');
 
 const LocalChatMarkerOverlay = () => {
@@ -187,7 +186,7 @@ const LocalChatMarkerOverlay = () => {
                 () => localChatJoin(localChat, distance, setRefresh)
               }
               image={ImgSource}
-              tintColor={distance > 0.05 ? 'gray': 'lightgreen'}
+              tintColor={ImgSource !== defaultImg ? 'black' : distance > 0.05 ? 'gray': 'lightgreen'}
               width={ImgSource !== defaultImg? 50 : 40}
               height={ImgSource !== defaultImg? 50 : 40}
               caption={{ text: localChat.name }}

@@ -1,4 +1,4 @@
-import { Animated, Modal, NativeEventEmitter, NativeModules, StyleSheet, TouchableWithoutFeedback, View, Image, Keyboard } from "react-native";
+import { Animated, Modal, NativeEventEmitter, NativeModules, StyleSheet, TouchableWithoutFeedback, View, Image, Keyboard, Dimensions } from "react-native";
 import AlarmButton from "../../components/Bluetooth/AlarmButton";
 import MessageBox from "../../components/Bluetooth/MessageBox";
 import Text from "../../components/common/Text";
@@ -25,6 +25,7 @@ import useFadeText from "../../hooks/useFadeText";
 import GifDisplay from '../../components/Bluetooth/GifDisplay';
 import MessageGif from "../../components/Bluetooth/MessageGif";
 import LottieView from "lottie-react-native";
+import { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 
 interface BluetoothScreenPrams {
@@ -72,7 +73,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   const [remainingTime, setRemainingTime] = useState(30);
   const msgSendCnt = useRecoilValue(MsgSendCntState);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-
+  const [showMsgBox, setShowMsgBox] = useState(false);
   const [fadeInAndMoveUp, fadeAnim, translateY] = useFadeText();
   const animationRef = useRef(null);
 
@@ -287,7 +288,12 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
           {!isScanning ? <DancingText handleBLEButton={handleBLEButton}/> :
           ( 
           <>
-          {!isKeyboardVisible && <LottieView ref={animationRef} source={require('../../assets/animations/WaveAnimation.json')} style={styles.gifLarge} speed={2.5} loop />}
+          {!isKeyboardVisible && 
+          <>
+          {/* <View style={styles.container}>{lights}</View> */}
+          <LottieView ref={animationRef} source={require('../../assets/animations/WaveAnimation.json')} style={styles.gifLarge} speed={2.5} loop />
+          </>
+          }
           {isBlocked ?
             <>
             <Animated.View
@@ -298,10 +304,11 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
             <Text style={styles.blockText}>인연 메세지는</Text>
             <Text style={styles.blockText2}>{remainingTime}초 뒤에 다시 보낼 수 있습니다.</Text>
             </> 
-          : detectCnt > 0 ? 
+          : detectCnt > 0 ? showMsgBox ? 
+          <MessageBox uuids={uuidSet} setRemainingTime={setRemainingTime} setShowMsgBox ={setShowMsgBox} fadeInAndMoveUp={fadeInAndMoveUp}/> :
           <>
             <Text style={styles.findText2}>주위 {detectCnt}명의 인연을 찾았습니다!</Text>
-            <MessageBox uuids={uuidSet} setRemainingTime={setRemainingTime} fadeInAndMoveUp={fadeInAndMoveUp}/>
+            <MessageGif setShowMsgBox={setShowMsgBox}/>
           </> : <Text style={styles.findText}>주위의 인연을 찾고 있습니다.</Text>}
           </>
           )}
@@ -348,8 +355,8 @@ const styles = StyleSheet.create({
     elevation: 0, // 안드로이드에서의 그림자 제거
   },
   gifLarge: {
-    width: 400, // 원하는 너비로 설정합니다.
-    height: 400, // 원하는 높이로 설정합니다.
+    width: 350, // 원하는 너비로 설정합니다.
+    height: 350, // 원하는 높이로 설정합니다.
   },
   background: {
     backgroundColor: "#fff",

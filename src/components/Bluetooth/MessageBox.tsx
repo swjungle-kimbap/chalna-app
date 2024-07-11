@@ -8,8 +8,6 @@ import { axiosPost } from '../../axios/axios.method';
 import { urls } from '../../axios/config';
 import {  userMMKVStorage } from '../../utils/mmkvStorage';
 import { useMMKVBoolean, useMMKVNumber, useMMKVString } from 'react-native-mmkv';
-import { launchImageLibrary } from 'react-native-image-picker';
-import ImageResizer from 'react-native-image-resizer';
 import FastImage from 'react-native-fast-image';
 import { useSetRecoilState } from 'recoil';
 import { MsgSendCntState } from '../../recoil/atoms';
@@ -27,6 +25,7 @@ ignorePatterns.forEach(pattern => {
 interface MessageBoxPrams {
   uuids: Set<string>;
   setRemainingTime: React.Dispatch<React.SetStateAction<number>>;
+  setShowMsgBox: React.Dispatch<React.SetStateAction<boolean>>;
   fadeInAndMoveUp: () => void;
 }
 
@@ -34,7 +33,7 @@ const sendDelayedTime = 30;
 
 const tags = ['텍스트', '사진'];
 
-const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, fadeInAndMoveUp})  => {
+const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShowMsgBox, fadeInAndMoveUp})  => {
   const [msgText, setMsgText] = useMMKVString("map.msgText", userMMKVStorage);
   const [isBlocked, setIsBlocked] = useMMKVBoolean("map.isBlocked", userMMKVStorage);
   const [blockedTime, setBlockedTime] = useMMKVNumber("map.blockedTime", userMMKVStorage);
@@ -73,6 +72,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, fadeInA
       setFileId(fileId);
     }
     await sendMsg(uuids, updateFileId);
+    setShowMsgBox(false);
     fadeInAndMoveUp();
     if (sendCountsRef.current === 0)
       return;
@@ -159,7 +159,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, fadeInA
             </>
           ): (
             <>
-            <View style={[styles.ImageBox, {height:imageUrl? 160 : 50}]}>
+            <View style={[styles.ImageBox, {height:imageUrl? 140 : 50}]}>
               {imageUrl ? (
                 <>
                 <FastImage
@@ -195,10 +195,10 @@ const styles = StyleSheet.create({
   },
   fullScreenImage: {
     width: '100%',
-    height: 150,
+    height: 130,
   },
   ImageBox: {
-    height: 150,
+    height: 140,
     width: '100%',
     padding: 10,
     justifyContent:'center',
