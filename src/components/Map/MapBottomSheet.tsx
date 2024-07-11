@@ -19,7 +19,7 @@ const MapBottomSheet = ({cameraMove, setShowLocalChatModal}) => {
   const localChatList = useRecoilValue(LocalChatListState);
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const [profileImageMap, setProfileImageMap] = useRecoilState(ProfileImageMapState);
-  const snapPoints = useMemo(() => [Math.floor(screenHeight * 3/100), Math.floor(screenHeight * 30/100), Math.floor(screenHeight * 70/100)], []);
+  const snapPoints = useMemo(() => [Math.floor(screenHeight * 3/100), Math.floor(screenHeight * 38/100), Math.floor(screenHeight * 70/100)], []);
   const [height, setHeight] = useState(snapPoints[0]);
   const [isBottom, setIsBottom] = useState(true);
 
@@ -44,7 +44,7 @@ const MapBottomSheet = ({cameraMove, setShowLocalChatModal}) => {
     const localChat:LocalChat = item.localChat;
     const profilePicture = profileImageMap.get(localChat.imageId);
     const distance = Math.round(localChat.distance * 1000);
-    console.log(distance)
+
     return (
       <TouchableOpacity onPress={() => {
           onTapCard({longitude: localChat.longitude, latitude: localChat.latitude})
@@ -60,10 +60,11 @@ const MapBottomSheet = ({cameraMove, setShowLocalChatModal}) => {
                 resizeMode={FastImage.resizeMode.cover}
                 />) : (
               <Image source={require(defaultImg)} style={styles.fullScreenImage}/>)}
-              <View style={{flexDirection: 'column', justifyContent:'flex-start'}}>
+              <View style={{alignItems:'flex-start'}}>
                 <View style={{flexDirection: 'row'}}>
                   <Text style={[styles.titleText, distance > 50 && {color: '#f2f2f2'}]}>{localChat.name}</Text>
                   <Text style={[styles.numberText, distance > 50 && {color: '#e6e6e6'}]}>{localChat.chatRoomMemberCount}</Text>
+                  {item.isJoined && <Text style={[styles.numberText, distance > 50 && {color: '#e6e6e6'}]}>참가중</Text> }
                 </View>
                 <Text style={[styles.descriptionText, distance > 50 && {color: '#d9d9d9'}]}>{localChat.description}</Text> 
               </View>
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
   descriptionText: {
     fontSize: 13,
     color: '#666',
-    textAlign:'left'
+    paddingLeft: 10,
   },
   chatRoomText: {
     flexDirection:'row',
