@@ -13,7 +13,7 @@ import { useFocusEffect } from "@react-navigation/core";
 import Geolocation from "react-native-geolocation-service";
 import { Alert } from "react-native";
 
-const LocalChatDelayedTime = 10 * 1000;
+const LocalChatDelayedTime = 15 * 1000;
 const defaultImg = require('../../assets/Icons/LocalChatIcon.png');
 
 const LocalChatMarkerOverlay = () => {
@@ -92,7 +92,7 @@ const LocalChatMarkerOverlay = () => {
               const updatedLocalChatRoomData: LocalChatRoomData[] = [];
               const updatedLocalChatList = response.data.data.map((item) => {
                 const localChat = item.localChat;
-                const distance = calDistance(currentLocation, {latitude: localChat.latitude, longitude: localChat.longitude});
+                const distance = calDistance({latitude, longitude}, {latitude: localChat.latitude, longitude: localChat.longitude});
                 if (item.isJoined) {
                   updatedLocalChatRoomData.push({
                     chatRoomId: localChat.chatRoomId,
@@ -116,18 +116,15 @@ const LocalChatMarkerOverlay = () => {
             }
           } catch (error) {
             console.error("채팅 리스트 요청 실패", error.message);
-            Alert.alert("채팅 리스트 요청 실패", "채팅 리스트를 가져오는데 실패하였습니다.");
           }
         },
         (error) => {
           console.error("위치 정보 가져오기 실패", error.code, error.message);
-          Alert.alert("위치 정보 가져오기 실패", "현재 위치 정보를 가져오는데 실패하였습니다.");
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
       );
     } catch (error) {
       console.error("위치정보 습득 실패", error.message);
-      Alert.alert("위치정보 습득 실패", "현재 위치 정보를 가져오는데 실패하였습니다.");
     }
   };
 
