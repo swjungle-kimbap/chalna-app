@@ -10,8 +10,9 @@ import FastImage, { Source } from "react-native-fast-image";
 import { LocalChat } from "../../interfaces";
 
 LogBox.ignoreLogs([
-  "[Reanimated] Tried to modify key 'reduceMotion' of an object which has been already passed to a worklet."
-]);
+  "[Reanimated] Tried to modify key `reduceMotion` of an object which has been already passed to a worklet. See https://docs.swmansion.com/react-native-reanimated/docs/guides/troubleshooting#tried-to-modify-key-of-an-object-which-has-been-converted-to-a-shareable for more details."]);
+
+const defaultImg = '../../assets/images/anonymous.png';
 
 const MapBottomSheet = ({cameraMove, setShowLocalChatModal}) => {
   const sheetRef = useRef<BottomSheet>(null);
@@ -52,13 +53,13 @@ const MapBottomSheet = ({cameraMove, setShowLocalChatModal}) => {
         <RoundBox key={index} style={{elevation: 0}}> 
           <View style={{justifyContent:'space-between', flexDirection: 'row'}}>
             <View style={styles.chatRoomText}>
-              {(profilePicture) ?
+              {(profilePicture !== defaultImg) ?
               (<FastImage
                 style={styles.fullScreenImage}
                 source={{uri: profilePicture, priority: FastImage.priority.normal } as Source}
                 resizeMode={FastImage.resizeMode.cover}
                 />) : (
-              <Image source={require('../../assets/images/anonymous.png')} style={styles.fullScreenImage}/>)}
+              <Image source={require(defaultImg)} style={styles.fullScreenImage}/>)}
               <View style={{flexDirection: 'column', justifyContent:'flex-start'}}>
                 <View style={{flexDirection: 'row'}}>
                   <Text style={styles.titleText}>{localChat.name}</Text>
@@ -99,6 +100,7 @@ const RenderHeader = useCallback(() => (
         snapPoints={snapPoints}
         onChange={handleSheetChanges}
       > 
+      <Text style={styles.headText}>장소 채팅방 목록</Text>
       {localChatList.length ? 
         <BottomSheetFlatList 
           data={localChatList || []} 
@@ -144,6 +146,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  headText: {
+    color: 'black',
+    fontSize: 18,
   },
   titleText: {
     color: 'black',

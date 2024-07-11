@@ -11,7 +11,7 @@ import { locationState } from "../../recoil/atoms";
 import { Position } from '../../interfaces';
 import useChangeBackgroundSave from "../../hooks/useChangeBackgroundSave";
 import requestPermissions from "../../utils/requestPermissions";
-import ArrowButton from "../Bluetooth/ArrowButton";
+import ArrowButton from "./ArrowButton";
 import KalmanFilter from 'kalmanjs'
 import MapBottomSheet from "./MapBottomSheet";
 

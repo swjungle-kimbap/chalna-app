@@ -26,7 +26,6 @@ ignorePatterns.forEach(pattern => {
 
 interface MessageBoxPrams {
   uuids: Set<string>;
-  setShowMsgBox: React.Dispatch<React.SetStateAction<boolean>>;
   setRemainingTime: React.Dispatch<React.SetStateAction<number>>;
   fadeInAndMoveUp: () => void;
 }
@@ -35,7 +34,7 @@ const sendDelayedTime = 30;
 
 const tags = ['텍스트', '사진'];
 
-const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemainingTime, fadeInAndMoveUp})  => {
+const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, fadeInAndMoveUp})  => {
   const [msgText, setMsgText] = useMMKVString("map.msgText", userMMKVStorage);
   const [isBlocked, setIsBlocked] = useMMKVBoolean("map.isBlocked", userMMKVStorage);
   const [blockedTime, setBlockedTime] = useMMKVNumber("map.blockedTime", userMMKVStorage);
@@ -75,7 +74,6 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
     }
     await sendMsg(uuids, updateFileId);
     fadeInAndMoveUp();
-    setShowMsgBox(false);
     if (sendCountsRef.current === 0)
       return;
 
@@ -127,7 +125,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
 
   return (
     <> 
-      <RoundBox width='95%' style={styles.msgBox}>
+      <RoundBox style={styles.msgBox}>
         <View style={styles.titleContainer}>
           <Text variant='title' style={styles.title}>인연 메세지 <Button title='💬' onPress={() => {
             Alert.alert("인연 메세지 작성",`${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요!`)}
@@ -161,7 +159,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setShowMsgBox, setRemaini
             </>
           ): (
             <>
-            <View style={[styles.ImageBox, {height:imageUrl? 180 : 50}]}>
+            <View style={[styles.ImageBox, {height:imageUrl? 160 : 50}]}>
               {imageUrl ? (
                 <>
                 <FastImage
@@ -216,19 +214,6 @@ const styles = StyleSheet.create({
   selectedTag: {
     color: '#000', 
   },
-  TVButton: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-    top: 20,
-    left: 80,
-    height: 40, 
-    width: 40,
-    borderRadius: 20, 
-    paddingVertical: 2, // 상하 여백 설정
-    paddingHorizontal: 3, // 좌우 여백 설정
-    zIndex:3
-  },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -237,7 +222,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   msgBox: {
-    width: '95%',
+    width: '90%',
     paddingTop: 0,
     padding: 20,
     borderTopWidth: 4,
@@ -285,10 +270,9 @@ const styles = StyleSheet.create({
       fontSize: 18,
   },
   textInputContainer: {
-    position: 'relative',
-    width: '100%',
+    justifyContent:'center',
+    alignItems:'center',
   },
-
 });
 
 export default MessageBox;
