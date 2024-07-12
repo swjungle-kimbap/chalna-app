@@ -160,7 +160,6 @@ const LocalChatMarkerOverlay = () => {
       try {
         const markerPromises = localChatList.map(async (item) => {
           const localChat = item.localChat;
-          const distance = calDistance(currentLocation, { latitude: localChat.latitude, longitude: localChat.longitude });
           const ImageId = localChat.imageId;
           let savedSource = null, ImgSource = defaultImg;
           if (ImageId) {
@@ -182,15 +181,15 @@ const LocalChatMarkerOverlay = () => {
               key={localChat.id}
               latitude={localChat.latitude}
               longitude={localChat.longitude}
-              onTap={item.isJoined ? () => localChatOut(localChat, distance, setRefresh) :
-                () => localChatJoin(localChat, distance, setRefresh)
+              onTap={item.isJoined ? () => localChatOut(localChat, localChat.distance, setRefresh) :
+                () => localChatJoin(localChat, localChat.distance, setRefresh)
               }
               image={ImgSource}
-              tintColor={ImgSource !== defaultImg ? 'black' : distance > 0.05 ? 'gray': 'lightgreen'}
+              tintColor={ImgSource !== defaultImg ? 'black' : localChat.distance > 0.05 ? 'gray': 'lightgreen'}
               width={ImgSource !== defaultImg? 50 : 40}
               height={ImgSource !== defaultImg? 50 : 40}
               caption={{ text: localChat.name }}
-              isHideCollidedMarkers={distance < 0.5 ? false: true}
+              isHideCollidedMarkers={localChat.distance < 0.5 ? false: true}
               isHideCollidedCaptions={true}
             />
           );
