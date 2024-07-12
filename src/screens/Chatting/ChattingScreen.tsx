@@ -18,7 +18,7 @@ import { useRecoilValue } from "recoil";
 import { userInfoState, ProfileImageMapState, JoinedLocalChatListState } from "../../recoil/atoms";
 import { LoginResponse, User } from "../../interfaces";
 import { SWRConfig } from 'swr';
-import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
+import MessageBubble from '../../components/Chat/MessageBubble/MessageBubble2'; // Adjust the path as necessary
 import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
 import { deleteChat, fetchChatRoomContent } from "../../service/Chatting/chattingAPI";
 import 'text-encoding-polyfill';
@@ -37,7 +37,7 @@ import {
     saveChatMessages, getChatMessages, removeChatRoom,
     saveChatRoomInfo, decrementUnreadCountBeforeTimestamp
 } from '../../service/Chatting/mmkvChatStorage';
-import { getMMKVString, setMMKVString, getMMKVObject, setMMKVObject, removeMMKVItem, loginMMKVStorage } from "../../utils/mmkvStorage";
+import { getMMKVString, loginMMKVStorage } from "../../utils/mmkvStorage";
 import { IMessage } from "@stomp/stompjs";
 import { launchImageLibrary, ImageLibraryOptions, ImagePickerResponse } from 'react-native-image-picker'; // Import ImagePicker
 import { axiosPost } from '../../axios/axios.method';
@@ -48,7 +48,6 @@ import RNFS from "react-native-fs";
 import ImageResizer from 'react-native-image-resizer';
 import DateHeader from '../../components/Chat/DateHeader';
 import { handleDownloadProfile } from '../../service/Friends/FriendListAPI';
-import {sendFriendRequest} from "../../service/Friends/FriendRelationService";
 import Announcement from "../../components/Chat/Announcement";
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
@@ -67,6 +66,9 @@ const ChattingScreen: React.FC = () => {
     const [username, setUsername] = useState<string>('');
     const [members, setMembers] = useState<chatRoomMember[]>([]);
     const [selectedImage, setSelectedImage] = useState<any>(null);
+
+    // paging
+    const [viewableItems, setViewableItems] = useState<number[]>([]);
 
     const chatRoomIdRef = useRef<string>(chatRoomId);
     const [profilePicture, setProfilePicture] = useState<string>("");
@@ -217,20 +219,14 @@ const ChattingScreen: React.FC = () => {
             });
 
             if (uploadResponse.ok) {
-                console.log('S3 파일에 업로드 성공');
                 console.log('S3 업로드하고 진짜 자기 파일 url : ', uploadResponse.url);
-
                 WebSocketManager.sendMessage(chatRoomId, fileId, 'FILE');
-
-                console.log('소켓에 전송 완료');
                 setSelectedImage(null);
 
             } else {
                 console.log('실패');
             }
-
             chatMessageType.current = "CHAT";
-
         } catch (error) {
             console.error('Error 메시지: ', error);
         }
@@ -492,6 +488,16 @@ const ChattingScreen: React.FC = () => {
         setShowNewMessageBadge(false);
     };
 
+    // Viewable Items
+    const onViewableItemsChanged = useCallback(({ viewableItems }) => {
+        setViewableItems(viewableItems.map(item => item.index));
+    }, []);
+
+    const viewabilityConfig = {
+        itemVisiblePercentThreshold: 50,
+    };
+
+
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -554,6 +560,7 @@ const ChattingScreen: React.FC = () => {
                                         profilePicture={profilePicture}
                                         username={getUsernameBySenderId(item.senderId)}
                                         showProfileTime={showProfileTime}
+                                        isViewable={viewableItems.includes(index)}
                                     />
                                     {showDateHeader && <DateHeader date={formatDateHeader(item.createdAt)} />}
                                 </>
