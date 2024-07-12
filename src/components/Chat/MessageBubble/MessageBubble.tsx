@@ -46,7 +46,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
         if (typeof message === 'string') {
             return <Text variant="sub" style={styles.messageText}>{message}</Text>;
         } else if (type === 'FILE' && message.preSignedUrl) {
-            if (!isViewable) return null;
+            // if (!isViewable) return null;
             return (
                 <TouchableOpacity onPress={toggleImageModal}>
                     <FastImage
@@ -136,23 +136,24 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
     );
 
     const renderUserMessage = () => (
-        <MessageContainer isSelf={isSelf} showProfileTime={showProfileTime}>
-            {isSelf && (
-                <DateReadStatusContainer>
-                    <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt > 0 ? unreadCnt : ''}</ReadStatus>
-                    {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{datetime}</DateTime>}
-                </DateReadStatusContainer>
-            )}
-            <MessageContent isSelf={isSelf} isFile={type==='FILE'}>
-                {renderMessageContent()}
-            </MessageContent>
-            {!isSelf && (
-                <DateReadStatusContainer>
-                    <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt > 0 ? unreadCnt : ''}</ReadStatus>
-                    {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{datetime}</DateTime>}
-                </DateReadStatusContainer>
-            )}
-        </MessageContainer>
+            <MessageContainer isSelf={isSelf} showProfileTime={showProfileTime}>
+                    {isSelf && (
+                        <DateReadStatusContainer>
+                            <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt > 0 ? unreadCnt : ''}</ReadStatus>
+                            {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{datetime}</DateTime>}
+                        </DateReadStatusContainer>
+                    )}
+                    <MessageContent isSelf={isSelf} isFile={type==='FILE'}>
+                        {renderMessageContent()}
+                    </MessageContent>
+
+                    {!isSelf && (
+                        <DateReadStatusContainer>
+                            <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt > 0 ? unreadCnt : ''}</ReadStatus>
+                            {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{datetime}</DateTime>}
+                        </DateReadStatusContainer>
+                    )}
+            </MessageContainer>
     );
 
     const renderMessageBubble = () => {
@@ -230,9 +231,10 @@ const Container = styled.View<{ isSelf: boolean; notChat: boolean }>`
     max-width: 80%;
     align-self: ${({ notChat, isSelf }) => (notChat ? 'center' : isSelf ? 'flex-end' : 'flex-start')};
     flex-direction: ${({ isSelf }) => (isSelf ? 'row-reverse' : 'row')};
-    margin-top: ${({ notChat }) => (notChat ? '15px' : '5px')};
-    margin-bottom: ${({ notChat }) => (notChat ? '15px' : '5px')};
+    margin-top: ${({ notChat }) => (notChat ? '5px' : '5px')};
+    margin-bottom: ${({ notChat }) => (notChat ? '5px' : '5px')};
 `;
+
 
 const styles = StyleSheet.create({
     profilePicture: {
@@ -252,11 +254,17 @@ const styles = StyleSheet.create({
         color: "#444444",
     },
     messageImage: {
-        width: 150,
-        height: 150,
+        borderRadius: 10,
+        width: 160,
+        height: 120,
         resizeMode: "cover",
     },
 });
+
+const MessageContentContainer = styled.View<{ isSelf: boolean }>`
+    flex-direction: ${({ isSelf }) => (isSelf ? 'row-reverse' : 'row')};
+    align-items: flex-end;
+`;
 
 const AnnouncementMessageBubble = styled.View`
     padding: 10px 15px;
