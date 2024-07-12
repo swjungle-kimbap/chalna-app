@@ -17,7 +17,6 @@ export interface LogoutResponse {
 export interface LoginResponse {
   message: string,
   username: string,
-  profileImageUrl: string,
   profileImageId: number,
   id: number,
 }
