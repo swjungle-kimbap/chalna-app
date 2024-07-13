@@ -48,8 +48,11 @@ const uuidSet = new Set<string>();
 const uuidTime = new Map();
 const uuidTimeoutID = new Map();
 const kFileters = new Map();
-const scanDelayedTime = 5 * 1000;
+const scanDelayedTime = 10 * 1000;
 const sendDelayedTime = 30 * 1000;
+
+// 주영 테스트
+const uuidSet2 = new Set<string>();
 
 const requiredPermissions = [
   PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
@@ -66,16 +69,37 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   const [blockedTime, setBlockedTime] = useMMKVNumber("map.blockedTime", userMMKVStorage);
   const [showTracking, setShowTracking] = useState(false);
   const [rssiMap, setRssiMap] = useState<Map<string, number>>(null);
-  const [detectCnt, setDetectCnt] = useState(0);
   const [remainingTime, setRemainingTime] = useState(30);
   const msgSendCnt = useRecoilValue(MsgSendCntState);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [showMsgBox, setShowMsgBox] = useState(false);
   const [fadeInAndMoveUp, fadeAnim, translateY] = useFadeText();
-  const animationRef = useRef(null);
   const [uuids, setUuids] = useState<Set<string>>(new Set());
-  const fadeAnim2 = useRef(new Animated.Value(1)).current;
-  const updateTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  //테스트용 임니당
+  const [uuids2, setUuids2] = useState<Set<string>>(new Set());
+  const [uuidSet2, setUuidSet2] = useState(new Set<string>());
+  const desiredCount = 6; // 원하는 갯수 설정
+
+  // useEffect(() => {
+  //   const intervalId = setInterval(() => {
+  //     setUuidSet2((prevSet) => {
+  //       const newSet = new Set(prevSet);
+  //       if (newSet.size === 0) {
+  //         for (let i = 0; i < desiredCount; i++) {
+  //           newSet.add(`random-uuid-${i + 1}`);
+  //         }
+  //       } else {
+  //         newSet.clear();
+  //       }
+  //       setUuids2(new Set(newSet)); // uuids2를 uuidSet2와 동기화
+  //       return newSet;
+  //     });
+  //   }, 5*1000); // 5초마다 변경
+  
+  //   return () => clearInterval(intervalId); // Cleanup interval on unmount
+  // }, [desiredCount]);
+
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -157,14 +181,12 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
           clearTimeout(timeoutId);
         }
         uuidTimeoutID.clear();
-        setDetectCnt(0);
       }
       return;
     }
 
     if (!uuidSet.has(uuid)) {
       uuidSet.add(uuid);
-      setDetectCnt(prev => prev+1);
     } else {
       if (uuidTimeoutID[uuid]) {
         clearTimeout(uuidTimeoutID[uuid]);
@@ -173,12 +195,6 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
     uuidTime[uuid] = currentTime;
     uuidTimeoutID[uuid] = setTimeout(() => {
       uuidSet.delete(uuid);
-      setDetectCnt(prev => {
-        if (prev > 0)
-          return prev-1
-        else
-          return 0;
-        });
       if (isRssiTracking) {
         setRssiMap(prevMap => {
           const newMap = new Map(prevMap);
@@ -260,7 +276,6 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
           clearTimeout(timeoutId);
         }
         uuidTimeoutID.clear();
-        setDetectCnt(0);
       }
     }
   };
@@ -284,6 +299,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
               <>
                 <BleMainComponent 
                   isKeyboardVisible={isKeyboardVisible}
+                  //uuids={uuids2}
                   uuids={uuids}
                 />
                 <BleBottomComponent
@@ -292,8 +308,8 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
                   translateY={translateY}
                   msgSendCnt={msgSendCnt}
                   remainingTime={remainingTime}
-                  detectCnt={detectCnt}
                   showMsgBox={showMsgBox}
+                  //uuidSet={uuidSet2}
                   uuidSet={uuidSet}
                   setRemainingTime={setRemainingTime}
                   setShowMsgBox={setShowMsgBox}
@@ -309,7 +325,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: "#fff",
+    backgroundColor: "#ABD4D4",
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
