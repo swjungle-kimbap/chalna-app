@@ -55,12 +55,16 @@ const BleBottomComponent: React.FC<BleBottomComponentProps> = ({
           />
         ) : (
           <>
-            <Text style={styles.findTextSmall}>주위 {detectCnt}명의 인연을 찾았습니다!</Text>
-            <MessageGif setShowMsgBox={setShowMsgBox} />
+            <View style={styles.bleBottomSubContainer}>
+              <Text style={styles.findTextSmall}>주위 {detectCnt}명의 인연을 찾았습니다!</Text>
+              <MessageGif setShowMsgBox={setShowMsgBox} />
+            </View>
           </>
         )
       ) : (
-        <Text style={styles.findText}>주위의 인연을 찾고 있습니다.</Text>
+        <View style={styles.bleBottomSubContainer}>
+          <Text style={styles.findText}>주위의 인연을 찾고 있습니다.</Text>
+        </View>
       )}
     </View>
   );
