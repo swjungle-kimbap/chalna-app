@@ -1,4 +1,4 @@
-import { SafeAreaView, Animated, Modal, NativeEventEmitter, NativeModules, StyleSheet, TouchableWithoutFeedback, View, Image, Keyboard, Dimensions } from "react-native";
+import { SafeAreaView, Animated, Modal, NativeEventEmitter, NativeModules, StyleSheet, TouchableWithoutFeedback, View, Image, Dimensions } from "react-native";
 import AlarmButton from "../../components/Bluetooth/AlarmButton";
 import MessageBox from "../../components/Bluetooth/MessageBox";
 import Text from "../../components/common/Text";
@@ -48,7 +48,7 @@ const uuidSet = new Set<string>();
 const uuidTime = new Map();
 const uuidTimeoutID = new Map();
 const kFileters = new Map();
-const scanDelayedTime = 10 * 1000;
+const scanDelayedTime = 5 * 1000;
 const sendDelayedTime = 30 * 1000;
 
 // 주영 테스트
@@ -71,7 +71,6 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   const [rssiMap, setRssiMap] = useState<Map<string, number>>(null);
   const [remainingTime, setRemainingTime] = useState(30);
   const msgSendCnt = useRecoilValue(MsgSendCntState);
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [showMsgBox, setShowMsgBox] = useState(false);
   const [fadeInAndMoveUp, fadeAnim, translateY] = useFadeText();
   const [uuids, setUuids] = useState<Set<string>>(new Set());
@@ -95,32 +94,13 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   //       setUuids2(new Set(newSet)); // uuids2를 uuidSet2와 동기화
   //       return newSet;
   //     });
-  //   }, 5*1000); // 5초마다 변경
+  //   }, 10*1000); // 5초마다 변경
   
   //   return () => clearInterval(intervalId); // Cleanup interval on unmount
   // }, [desiredCount]);
 
 
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
-      () => {
-        setKeyboardVisible(true);
-      }
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        setKeyboardVisible(false);
-      }
-    );
 
-    // cleanup function
-    return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
-    };
-  }, []);
 
   useBackground(isScanning);
 
@@ -298,7 +278,6 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
             (
               <>
                 <BleMainComponent 
-                  isKeyboardVisible={isKeyboardVisible}
                   //uuids={uuids2}
                   uuids={uuids}
                 />
@@ -334,7 +313,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between', // 상하 배치
     alignItems: 'center',
-    paddingBottom: 30,
+    paddingBottom: 10,
   },
   TVButton: {
     position: 'absolute',
