@@ -21,10 +21,8 @@ import Button from '../../components/common/Button';
 import DancingText from "../../components/Bluetooth/DancingText";
 import DancingWords from "../../components/Bluetooth/DancingWords";
 import useFadeText from "../../hooks/useFadeText";
-import GifDisplay from '../../components/Bluetooth/GifDisplay';
-import MessageGif from "../../components/Bluetooth/MessageGif";
-import LottieView from "lottie-react-native";
-import DetectDisplay from "../../components/Bluetooth/DetectDisplay";
+import BleMainComponent from "../../components/Bluetooth/BleMainComponent";
+import BleBottomComponent from "../../components/Bluetooth/BleBottomComponent";
 import { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 interface BluetoothScreenPrams {
@@ -100,12 +98,6 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
     };
   }, []);
 
-  useEffect(() => {
-    if (!isKeyboardVisible && isScanning) {
-      animationRef.current.play();
-    }
-  }, [isScanning, isKeyboardVisible]);
-
   useBackground(isScanning);
 
   useEffect(() => {
@@ -152,21 +144,6 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
     });
   };
 
-  useEffect(() => {
-    if (detectCnt === 0) {
-      Animated.timing(fadeAnim2, {
-        toValue: 0,
-        duration: 4000, // fade out 지속 시간을 4000ms로 설정
-        useNativeDriver: true,
-      }).start();
-    } else {
-      Animated.timing(fadeAnim2, {
-        toValue: 1,
-        duration: 500, // fade in 지속 시간을 500ms로 설정
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [detectCnt]);
   const handleSetIsNearby = (uuid: string, rssi: number, isBlocked = false) => {
     const currentTime = new Date().getTime();
     if (isRssiTracking)
@@ -305,32 +282,23 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
           {!isScanning ? <DancingText handleBLEButton={handleBLEButton} /> :
             (
               <>
-                {!isKeyboardVisible &&
-                  <>
-                    <SafeAreaView style={styles.container}>
-                      <Animated.View style={{ ...styles.container, opacity: fadeAnim2 }}>
-                        <DetectDisplay uuids={uuids} />
-                      </Animated.View>
-                    </SafeAreaView>
-                    <LottieView ref={animationRef} source={require('../../assets/animations/WaveAnimation.json')} style={styles.gifLarge} speed={2.5} loop />
-                  </>
-                }
-                {isBlocked ?
-                  <>
-                    <Animated.View
-                      style={{ opacity: fadeAnim, transform: [{ translateY: translateY }] }}>
-                      <Text variant='sub' style={{ fontSize: 15 }}>{msgSendCnt ? `${msgSendCnt}명에게 인연 메세지를 보냈습니다.` :
-                        "메세지를 보낼 수 없는 대상입니다. 다시 보내 주세요!"}</Text>
-                    </Animated.View>
-                    <Text style={styles.blockText}>인연 메세지는</Text>
-                    <Text style={styles.blockText2}>{remainingTime}초 뒤에 다시 보낼 수 있습니다.</Text>
-                  </>
-                  : detectCnt > 0 ? showMsgBox ?
-                    <MessageBox uuids={uuidSet} setRemainingTime={setRemainingTime} setShowMsgBox={setShowMsgBox} fadeInAndMoveUp={fadeInAndMoveUp} /> :
-                    <>
-                      <Text style={styles.findText2}>주위 {detectCnt}명의 인연을 찾았습니다!</Text>
-                      <MessageGif setShowMsgBox={setShowMsgBox} />
-                    </> : <Text style={styles.findText}>주위의 인연을 찾고 있습니다.</Text>}
+                <BleMainComponent 
+                  isKeyboardVisible={isKeyboardVisible}
+                  uuids={uuids}
+                />
+                <BleBottomComponent
+                  isBlocked={isBlocked}
+                  fadeAnim={fadeAnim}
+                  translateY={translateY}
+                  msgSendCnt={msgSendCnt}
+                  remainingTime={remainingTime}
+                  detectCnt={detectCnt}
+                  showMsgBox={showMsgBox}
+                  uuidSet={uuidSet}
+                  setRemainingTime={setRemainingTime}
+                  setShowMsgBox={setShowMsgBox}
+                  fadeInAndMoveUp={fadeInAndMoveUp}
+                />
               </>
             )}
         </View>
@@ -340,20 +308,9 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   contentContainer: {
+    top: -20,
     alignItems: 'center'
-  },
-  blockText2: {
-    marginTop: 10,
-    fontSize: 20,
-  },
-  blockText: {
-    marginTop: 40,
-    fontSize: 20,
   },
   TVButton: {
     position: 'absolute',
@@ -368,39 +325,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3, // 좌우 여백 설정
     zIndex: 3
   },
-  noBorderContent: {
-    marginTop: 50,
-    marginBottom: 70,
-    height: 200,
-    width: 400,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 0, // 테두리를 없앱니다.
-    shadowColor: 'transparent', // 그림자를 없앱니다.
-    elevation: 0
-  },
-  gifLarge: {
-    width: 350, // 원하는 너비로 설정합니다.
-    height: 350, // 원하는 높이로 설정합니다.
-  },
   background: {
     backgroundColor: "#fff",
     flex: 1,
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  findText: {
-    fontSize: 20,
-    marginBottom: 20,
-    color: 'gray',
-  },
-  findText2: {
-    fontSize: 15,
-    color:'gray',
-    marginBottom: 5,
-  },
-  gifWrapper: {
-    zIndex: -1, // Text 요소가 GIF 위에 표시되도록 설정
-  },
+  }
 });
 export default BluetoothScreen;

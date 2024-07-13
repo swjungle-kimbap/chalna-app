@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, Animated } from 'react-native';
 import FastImage from 'react-native-fast-image';
+import styles from './BleComponent.style';
 
 interface DetectDisplayProps {
   uuids: Set<string>;
@@ -33,7 +34,7 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
   }, [uuids, fadeAnimMap]);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.imageContainer}>
       {Array.from(uuids).map((uuid) => (
         <Animated.View key={uuid} style={{ ...styles.imageContainer, opacity: fadeAnimMap.get(uuid) }}>
           <FastImage
@@ -47,19 +48,5 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  imageContainer: {
-    margin: 5,
-  },
-  image: {
-    width: 50,
-    height: 50,
-  },
-});
 
 export default DetectDisplay;
