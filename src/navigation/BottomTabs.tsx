@@ -9,7 +9,7 @@ import { useRecoilState, useSetRecoilState } from 'recoil';
 import { locationState } from '../recoil/atoms';
 import { getMMKVObject, getMMKVString } from '../utils/mmkvStorage';
 import { AxiosResponse, Friend, Position } from '../interfaces';
-import { initUserSetting } from '../service/Setting';
+import { useLogoutAndWithdrawal } from '../service/Setting';
 import { axiosGet } from "../axios/axios.method";
 import { urls } from "../axios/config";
 import BluetoothScreen from "../screens/BlueTooth/BluetoothScreen";
@@ -22,6 +22,7 @@ const BottomTabs = () => {
     const setLastLocation = useSetRecoilState(locationState);
     const [isLoading, setIsLoading] = useState(true);
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+    const { initUserSetting } = useLogoutAndWithdrawal();
 
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
