@@ -86,8 +86,9 @@ export const ChatDisconnectOut = async (chatRoomId:number, setRefresh:Function) 
     if (response?.data?.data === "성공")
       Alert.alert("로컬 채팅 종료", "거리가 멀어져 채팅방과 연결이 종료가 되었습니다!");
 
-    removeChatRoom(chatRoomId); 
-    setRefresh((prev)=>!prev);
+    removeChatRoom(chatRoomId);
+    if (setRefresh)
+      setRefresh((prev)=>!prev);
   } catch (error) {
     const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
     Alert.alert("Error", errorMessage);
@@ -110,7 +111,7 @@ export const ChatOut = async (chatRoomId:number, setRefresh:Function) => {
 
 export const localChatOut = async (localChat:LocalChat, setRefresh:Function) => {
   const granted = await handleCheckPermission();
-  if (granted) 
+  if (!granted) 
     return
   
   Alert.alert(localChat.name, "이미 들어간 채팅방입니다! 나가시겠습니까?",
