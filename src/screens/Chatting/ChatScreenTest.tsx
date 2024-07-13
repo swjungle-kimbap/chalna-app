@@ -1,7 +1,4 @@
-
-<script src="http://143.248.225.26:8097"></script>
-
-import React, {useEffect, useState, useCallback, useRef, useMemo, Profiler} from 'react';
+import React, {useEffect, useState, useCallback, useRef, useMemo} from 'react';
 import {
     View,
     TextInput,
@@ -19,19 +16,17 @@ import {
 import {RouteProp, useRoute, useFocusEffect, useNavigation} from "@react-navigation/native";
 import {useRecoilValue} from "recoil";
 import {userInfoState, ProfileImageMapState, JoinedLocalChatListState} from "../../recoil/atoms";
-import {LoginResponse, User} from "../../interfaces";
+import {LoginResponse} from "../../interfaces";
 import {SWRConfig} from 'swr';
 import MessageBubble from '../../components/Chat/MessageBubble/MessageBubble'; // Adjust the path as necessary
 import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
 import {deleteChat, fetchChatRoomContent} from "../../service/Chatting/chattingAPI";
-import 'text-encoding-polyfill';
 import CustomHeader from "../../components/common/CustomHeader";
 import MenuModal from "../../components/common/MenuModal";
 import ImageTextButton from "../../components/common/Button";
 import {navigate} from '../../navigation/RootNavigation';
-import useBackToScreen from '../../hooks/useBackToScreen';
 import {
-    chatRoomMember, ChatMessage, directedChatMessage,
+    chatRoomMember, directedChatMessage,
     ChatRoomLocal, chatroomInfoAndMsg
 } from "../../interfaces/Chatting.type";
 import {formatDateToKoreanTime, formatDateHeader} from "../../service/Chatting/DateHelpers";
@@ -47,32 +42,11 @@ import {axiosPost} from '../../axios/axios.method';
 import {urls} from "../../axios/config";
 import {AxiosResponse} from "axios";
 import {FileResponse} from "../../interfaces";
-import RNFS from "react-native-fs";
 import ImageResizer from 'react-native-image-resizer';
 import DateHeader from '../../components/Chat/DateHeader';
 import {handleDownloadProfile} from '../../service/Friends/FriendListAPI';
 import Announcement from "../../components/Chat/Announcement";
 import {useBuffer} from "../../utils/BufferContext";
-
-const onRenderCallback = (
-    id, // the "id" prop of the Profiler tree that has just committed
-    phase, // either "mount" (if the tree just mounted) or "update" (if it re-rendered)
-    actualDuration, // time spent rendering the committed update
-    baseDuration, // estimated time to render the entire subtree without memoization
-    startTime, // when React began rendering this update
-    commitTime, // when React committed this update
-    interactions // the Set of interactions belonging to this update
-) => {
-    console.log({
-        id,
-        phase,
-        actualDuration,
-        baseDuration,
-        startTime,
-        commitTime,
-        interactions
-    });
-};
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -91,18 +65,14 @@ const ChattingScreen: React.FC = () => {
     const [members, setMembers] = useState<chatRoomMember[]>([]);
     const [selectedImage, setSelectedImage] = useState<any>(null);
 
-    // paging
-    const [viewableItems, setViewableItems] = useState<number[]>([]);
-
     const isInitialLoadCompleteRef = useRef<boolean>(false);
     const { socketMessageBuffer, addMessageToBuffer, clearBuffer } = useBuffer();
 
     const chatRoomIdRef = useRef<string>(chatRoomId);
     const [profilePicture, setProfilePicture] = useState<string>("");
     const profileImageMap = useRecoilValue(ProfileImageMapState);
-    const sentMessageIDs = useRef<Set<string>>(new Set());
 
-    const [showAnnouncement, setShowAnnouncement] = useState<boolean>(false); // State for showing announcement
+    const [showAnnouncement, setShowAnnouncement] = useState<boolean>(false);
 
     const chatMessageType = useRef<string>('CHAT');
 
@@ -270,11 +240,9 @@ const ChattingScreen: React.FC = () => {
         if (isInitialLoadCompleteRef.current) {
             // Add the new message to the existing state
             setMessages(prevMessages => {
-                const updatedMessages = [...(prevMessages || []), newMessage];
-                // Save updated messages to storage every 20 messages
-                if (updatedMessages.length % 20 === 0) {
-                    saveChatMessages(chatRoomId, updatedMessages);
-                    clearBuffer(); // Clear the buffer
+                const updatedMessages = [...prevMessages, newMessage];
+                if (updatedMessages.length >= 20) {
+                    saveChatMessages(chatRoomId, updatedMessages); // Save updated messages to storage
                 }
                 return updatedMessages; // Keep all messages
             });
@@ -283,7 +251,6 @@ const ChattingScreen: React.FC = () => {
             socketMessageBuffer.push(newMessage);
         }
     };
-
 
     const setupWebSocket = async (callback?: () => void) => {
         try {
@@ -382,9 +349,9 @@ const ChattingScreen: React.FC = () => {
             } else {
                 const savedRoute = getMMKVString('currentRouteName');
                 if (savedRoute === '채팅') {
-                chatRoomId = chatRoomIdRef.current;
-                setupWebSocket(()=>fetchMessages(false));
-            }
+                    chatRoomId = chatRoomIdRef.current;
+                    setupWebSocket(() => fetchMessages(false));
+                }
             }
         };
 
@@ -394,116 +361,110 @@ const ChattingScreen: React.FC = () => {
         };
     }, [currentUserId]);
 
-        const fetchMessages = async (isInitialLoad: boolean) => {
-            try {
+    const fetchMessages = async (isInitialLoad: boolean) => {
+        try {
+            setLoading(true);
 
-                if (isInitialLoad){
-                    console.log("-----------initial Load------------");
-                    setLoading(true);
-                    // Step 1: Load stored messages and information first
-                    const latestMessages = await getChatMessages(chatRoomId, 20, null);
-                    console.log('latest MSGs: ', latestMessages)
-                    if (latestMessages && latestMessages.length > 0) {
-                        setMessages(latestMessages); // Load latest messages
-                        console.log("Loaded latest messages from local storage");
-                    }
-                    // Load basic chat room information from stored data
-                    const chatRoomInfo = getChatRoomInfo(chatRoomId); // Assuming this function exists
-                    if (chatRoomInfo) {
-                        setChatRoomType(chatRoomInfo.type);
-                        setMembers(chatRoomInfo.members);
-
-                        if (chatRoomInfo.name) {
-                            setUsername(chatRoomInfo.name);
-                        } else {
-                            const usernames = chatRoomInfo.members
-                                .filter((member: chatRoomMember) => member.memberId !== currentUserId)
-                                .map((member: chatRoomMember) => member.username)
-                                .join(', ');
-                            setUsername(usernames);
-                        }
-                    }
-                    setLoading(false);
+            if (isInitialLoad){
+                // Step 1: Load stored messages and information first
+                const storedMessages = await getChatMessages(chatRoomId);
+                if (storedMessages && storedMessages.length > 0) {
+                    setMessages(storedMessages); // Load all stored messages
+                    console.log("Loaded messages from local storage");
                 }
 
-                // Step 2: Fetch the latest data from the API
-                const responseData = await fetchChatRoomContent(chatRoomId, currentUserId);
-                if (responseData) {
-                    const fetchedMessages: directedChatMessage[] = (responseData.messages || []).map((msg: ChatMessage) => ({
-                        ...msg,
-                        isSelf: msg.senderId === currentUserId,
-                        formatedTime: formatDateToKoreanTime(msg.createdAt)
-                    }));
+                // Load basic chat room information from stored data
+                const chatRoomInfo = getChatRoomInfo(chatRoomId); // Assuming this function exists
+                if (chatRoomInfo) {
+                    setChatRoomType(chatRoomInfo.type);
+                    setMembers(chatRoomInfo.members);
 
-                    if (fetchedMessages.length > 0) {
-                        console.log("API fetched messages: ", fetchedMessages);
-                        // saveChatMessages(chatRoomId, fetchedMessages);
-
-                        // Merge fetched messages with stored messages and keep all messages
-                        setMessages(prevMessages => {
-                            const allMessages = [
-                                ...(prevMessages || []),
-                                ...fetchedMessages,
-                                ...(socketMessageBuffer || [])
-                            ].filter(msg => msg !== null && msg !== undefined);
-                            saveChatMessages(chatRoomId, allMessages); // Save merged messages to storage
-                            return allMessages;
-                        });
-                        socketMessageBuffer.length = 0; // Clear the buffer
-                    }
-
-                    const usernames = responseData.members
-                        .filter((member: chatRoomMember) => member.memberId !== currentUserId)
-                        .map((member: chatRoomMember) => member.username)
-                        .join(', ');
-
-                    setChatRoomType(responseData.type);
-                    setMembers(responseData.members);
-                    setUsername(usernames);
-
-                    const chatRoomName = responseData.type === 'local' ? 'Local Chat Room' : usernames;
-
-                    const chatRoomInfo: ChatRoomLocal = {
-                        id: parseInt(chatRoomId, 10),
-                        type: responseData.type,
-                        members: responseData.members,
-                        name: chatRoomName
-                    };
-                    saveChatRoomInfo(chatRoomInfo);
-
-                    const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
-                    if (responseData.type === 'FRIEND' && filteredMembers.length === 1 && filteredMembers[0].profileImageId) {
-                        const findProfileImageId = filteredMembers[0].profileImageId;
-                        const newprofile = profileImageMap.get(findProfileImageId);
-
-                        if (newprofile) {
-                            setProfilePicture(newprofile);
-                        } else {
-                            const newProfileImageUri = await handleDownloadProfile(findProfileImageId);
-                            profileImageMap.set(findProfileImageId, newProfileImageUri);
-                            setProfilePicture(newProfileImageUri);
-                        }
+                    if (chatRoomInfo.name) {
+                        setUsername(chatRoomInfo.name);
                     } else {
-                        setProfilePicture("");
+                        const usernames = chatRoomInfo.members
+                            .filter((member: chatRoomMember) => member.memberId !== currentUserId)
+                            .map((member: chatRoomMember) => member.username)
+                            .join(', ');
+                        setUsername(usernames);
                     }
                 }
-                isInitialLoadCompleteRef.current = true;
-
-            } catch (error) {
-                console.error('Failed to fetch chat room messages:', error);
+                setLoading(false);
             }
-        };
+
+            // Step 2: Fetch the latest data from the API
+            const responseData = await fetchChatRoomContent(chatRoomId, currentUserId);
+            if (responseData) {
+                const fetchedMessages: directedChatMessage[] = (responseData.messages || []).map((msg: ChatMessage) => ({
+                    ...msg,
+                    isSelf: msg.senderId === currentUserId,
+                    formatedTime: formatDateToKoreanTime(msg.createdAt)
+                }));
+
+                if (fetchedMessages.length > 0) {
+                    console.log("API fetched messages: ", fetchedMessages);
+                    // saveChatMessages(chatRoomId, fetchedMessages);
+
+                    // Merge fetched messages with stored messages and keep all messages
+                    setMessages(prevMessages => {
+                        const allMessages = [...prevMessages, ...fetchedMessages, ...socketMessageBuffer];
+                        saveChatMessages(chatRoomId, allMessages); // Save merged messages to storage
+                        return allMessages;
+                    });
+                    socketMessageBuffer.length = 0; // Clear the buffer
+                }
+
+                const usernames = responseData.members
+                    .filter((member: chatRoomMember) => member.memberId !== currentUserId)
+                    .map((member: chatRoomMember) => member.username)
+                    .join(', ');
+
+                setChatRoomType(responseData.type);
+                setMembers(responseData.members);
+                setUsername(usernames);
+
+                const chatRoomName = responseData.type === 'local' ? 'Local Chat Room' : usernames;
+
+                const chatRoomInfo: ChatRoomLocal = {
+                    id: parseInt(chatRoomId, 10),
+                    type: responseData.type,
+                    members: responseData.members,
+                    name: chatRoomName
+                };
+                saveChatRoomInfo(chatRoomInfo);
+
+                const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
+                if (responseData.type === 'FRIEND' && filteredMembers.length === 1 && filteredMembers[0].profileImageId) {
+                    const findProfileImageId = filteredMembers[0].profileImageId;
+                    const newprofile = profileImageMap.get(findProfileImageId);
+
+                    if (newprofile) {
+                        setProfilePicture(newprofile);
+                    } else {
+                        const newProfileImageUri = await handleDownloadProfile(findProfileImageId);
+                        profileImageMap.set(findProfileImageId, newProfileImageUri);
+                        setProfilePicture(newProfileImageUri);
+                    }
+                } else {
+                    setProfilePicture("");
+                }
+            }
+            isInitialLoadCompleteRef.current = true;
+
+        } catch (error) {
+            console.error('Failed to fetch chat room messages:', error);
+        }
+    };
 
     useFocusEffect(
         useCallback(() => {
-            isInitialLoadCompleteRef.current=false;
-            const socketMessageBuffer: directedChatMessage[] = [];
-            setupWebSocket(()=>fetchMessages(true));
+            isInitialLoadCompleteRef.current = false;
+            setupWebSocket(() => fetchMessages(true));
 
             return () => {
-                console.log("loose focus");
+                console.log("lose focus");
                 WebSocketManager.disconnect();
-                setMessages(null);
+                setMessages([]);
                 setUsername(" ");
             };
 
@@ -570,17 +531,13 @@ const ChattingScreen: React.FC = () => {
         setShowNewMessageBadge(false);
     };
 
-
     const fetchEarlierMessages = async () => {
-        const lastMessageId = messages.length > 0 ? messages[0].id : null;
-        const moreMessages = await getChatMessages(chatRoomId, 20, lastMessageId); // Load more messages with lastMessageId
-        if (moreMessages && moreMessages.length > 0) {
-            setMessages(prevMessages => [...moreMessages, ...(prevMessages || [])]);
+        const storedMessages = await getChatMessages(chatRoomId, messages.length + 20); // Load more messages
+        if (storedMessages && storedMessages.length > messages.length) {
+            setMessages(storedMessages);
         }
     };
 
-
-    // Viewable Items
     const onViewableItemsChanged = useCallback(({viewableItems}) => {
         setViewableItems(viewableItems.map(item => item.index));
     }, []);
@@ -588,7 +545,6 @@ const ChattingScreen: React.FC = () => {
     const viewabilityConfig = {
         itemVisiblePercentThreshold: 50,
     };
-
 
     if (loading) {
         return (
