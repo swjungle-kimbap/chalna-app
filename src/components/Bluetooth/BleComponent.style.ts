@@ -3,15 +3,19 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   // BleMainComponent style
   bleMainContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: 20,
   },
   detectContainer: {
-    marginBottom: 20, // DetectDisplay와 LottieView 사이의 간격을 설정
+    height: 100, // 고정 높이 설정
+    marginTop: 30, // DetectDisplay와 LottieView 사이의 간격을 설정
   },
   lottieImage: {
     width: 350,
     height: 350,
+    marginTop: -50
   },
   // DetectDisplay style
   imageContainer: {
@@ -25,7 +29,9 @@ const styles = StyleSheet.create({
   },
   // BleBottomComponent style
   bleBottomContainer: {
-    bottom: 0,
+    height: 150, // 고정 높이 설정
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   messageText: {
     fontSize: 15,
@@ -43,22 +49,27 @@ const styles = StyleSheet.create({
   },
   findText: {
     fontSize: 20,
-    marginBottom: 20,
+    marginBottom: 40,
     color: 'gray',
     textAlign: 'center', // 텍스트 가운데 정렬 추가
   },
+  bleBottomSubContainer: {
+    width: 300, // 고정 너비
+    height: '100%', // 고정 높이
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 60
+  },
   findTextSmall: {
-    fontSize: 15,
+    fontSize: 16,
     color: 'gray',
-    marginBottom: 15, // 5에서 20으로 증가
+    marginBottom: 10, // 5에서 20으로 증가
     textAlign: 'center', // 텍스트 가운데 정렬 추가
   },
   // MessageGif style
   messageButtonContainer: {
-    position: 'absolute', // 절대 위치 추가
     alignSelf: 'center', // 가운데 정렬 추가
     alignItems: 'center',
-    marginBottom: 10, // marginTop 추가
   },
   messageGif: {
     width: 150,
