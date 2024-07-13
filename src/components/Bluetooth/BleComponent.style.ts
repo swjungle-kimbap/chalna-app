@@ -64,16 +64,16 @@ const styles = StyleSheet.create({
   },
   bleBottomSubContainer: {
     width: 300, // 고정 너비
-    height: '100%', // 고정 높이
+    height: '50%', // 고정 높이
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 60,
+    marginBottom: 50,
   },
   findTextSmall: {
     fontSize: 16,
     color: 'gray',
-    marginBottom: 10, // 5에서 20으로 증가
     textAlign: 'center', // 텍스트 가운데 정렬 추가
+    marginBottom: -40,
   },
   // MessageGif style
   messageButtonContainer: {
