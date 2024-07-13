@@ -1,5 +1,5 @@
 import { atom } from "recoil";
-import { Friend, LocalChatData, LocalChatRoomData, LoginResponse, Position } from "../interfaces";
+import { LocalChatData, LoginResponse, Position } from "../interfaces";
 
 export const locationState = atom<Position>({
   key: 'location',
@@ -14,7 +14,6 @@ export const userInfoState = atom<LoginResponse>({
   default: {
     message : "",
     username : "",
-    profileImageUrl : "",
     profileImageId: 0,
     id : 0,
   }
@@ -25,17 +24,6 @@ export const AlarmCountState = atom<number>({
   default: 0
   }
 )
-
-
-export const ProfileImageMapState = atom<Map<number, string>>({
-  key: 'FriendsList',
-  default: new Map([[0, '../../assets/images/anonymous.png']])
-})
-
-export const JoinedLocalChatListState = atom<LocalChatRoomData[]>({
-  key: 'JoinedLocalChatList',
-  default: []
-})
 
 export const DeviceUUIDState = atom<string>({
   key: 'DeviceUUID',

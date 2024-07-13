@@ -10,9 +10,8 @@ export const urls = {
     SIGNUP_URL: getFullUrl(Config.SIGNUP_PATH),
     LOGOUT_URL: getFullUrl(Config.LOGOUT_PATH),
 
-    USER_INFO_EDIT_URL: getFullUrl(Config.USER_INFO_PROFILE_PATH),
+    PATCH_USER_INFO_URL: getFullUrl(Config.PATCH_USER_INFO_PATH),
     WITHDRAWAL_URL: getFullUrl(Config.USER_INFO_PATH),
-    USER_INFO_PROFILEIMG_URL: getFullUrl(Config.USER_INFO_PROFILEIMG_PATH),
 
     PATCH_APP_SETTING_URL: getFullUrl(Config.APP_SETTING_PATH),
     DISTURB_ALARM_URL: getFullUrl(Config.ALARM_DISTURB_PATH),

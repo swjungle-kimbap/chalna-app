@@ -1,6 +1,6 @@
 import Text from "../../components/common/Text";
 import { ActivityIndicator, Alert, Image, StyleSheet, View } from "react-native";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { endBackgroundService } from "../../service/Background";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { DeviceUUIDState, userInfoState } from "../../recoil/atoms";

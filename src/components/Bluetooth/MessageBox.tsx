@@ -11,7 +11,7 @@ import { useMMKVBoolean, useMMKVNumber, useMMKVString } from 'react-native-mmkv'
 import FastImage from 'react-native-fast-image';
 import { useSetRecoilState } from 'recoil';
 import { MsgSendCntState } from '../../recoil/atoms';
-import { handleImagePicker, handleUploadS3 } from '../../service/FileHandling';
+import { handleImagePicker, uploadImage } from '../../utils/FileHandling';
 
 const ignorePatterns = [
   /No task registered for key shortService\d+/,
@@ -67,7 +67,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
   const handleSendingMessage = async () => {
     let updateFileId = fileId;
     if (selectedTag ==='사진' && !updateFileId) {
-      const {presignedUrl, fileId} = await handleUploadS3(selectedImage, false);
+      const {uri, fileId} = await uploadImage(selectedImage, "IMAGE");
       updateFileId = fileId;
       setFileId(fileId);
     }

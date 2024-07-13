@@ -15,10 +15,10 @@ export const addDevice = async (_uuid: string, _date: number) => {
   const currentTime = new Date(_date).getTime();
   const lastMeetTime = loginMMKVStorage.getNumber(`DeviceUUID.${_uuid}`);
   if (!lastMeetTime) {
-    loginMMKVStorage.set(`DeviceUUID.${_uuid}`, currentTime);
+    loginMMKVStorage.set(`DeviceUUID.${_uuid}`, currentTime + DelayedTime);
     await sendRelationCnt(_uuid);
-  } else if (new Date(lastMeetTime).getTime() + DelayedTime < currentTime) {
-    loginMMKVStorage.set(`DeviceUUID.${_uuid}`, currentTime);
+  } else if (new Date(lastMeetTime).getTime() < currentTime) {
+    loginMMKVStorage.set(`DeviceUUID.${_uuid}`, currentTime + DelayedTime);
     await sendRelationCnt(_uuid);
   }
 }

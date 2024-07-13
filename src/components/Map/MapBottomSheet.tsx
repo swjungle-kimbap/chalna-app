@@ -1,24 +1,21 @@
-import React, { useCallback, useRef, useMemo, useState, useEffect } from "react";
+import React, { useCallback, useRef, useMemo, useState } from "react";
 import { StyleSheet, View, TouchableOpacity, Image, Dimensions, LogBox } from "react-native";
-import BottomSheet, {BottomSheetView , BottomSheetFlatList, BottomSheetScrollView}from "@gorhom/bottom-sheet";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { LocalChatListState, locationState, ProfileImageMapState } from "../../recoil/atoms";
+import BottomSheet, {BottomSheetView , BottomSheetFlatList}from "@gorhom/bottom-sheet";
+import { useRecoilValue } from "recoil";
+import { LocalChatListState } from "../../recoil/atoms";
 import RoundBox from "../common/RoundBox";
 import Text from "../common/Text";
 import Button from "../common/Button";
-import FastImage, { Source } from "react-native-fast-image";
 import { LocalChat } from "../../interfaces";
+import ProfileImage from "../common/ProfileImage";
 
 LogBox.ignoreLogs([
   "[Reanimated] Tried to modify key `reduceMotion` of an object which has been already passed to a worklet. See https://docs.swmansion.com/react-native-reanimated/docs/guides/troubleshooting#tried-to-modify-key-of-an-object-which-has-been-converted-to-a-shareable for more details."]);
-
-const defaultImg = '../../assets/images/anonymous.png';
 
 const MapBottomSheet = ({cameraMove, setShowLocalChatModal}) => {
   const sheetRef = useRef<BottomSheet>(null);
   const localChatList = useRecoilValue(LocalChatListState);
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-  const [profileImageMap, setProfileImageMap] = useRecoilState(ProfileImageMapState);
   const snapPoints = useMemo(() => [Math.floor(screenHeight * 3/100), Math.floor(screenHeight * 38/100), Math.floor(screenHeight * 70/100)], []);
   const [height, setHeight] = useState(snapPoints[0]);
   const [isBottom, setIsBottom] = useState(true);
@@ -42,7 +39,6 @@ const MapBottomSheet = ({cameraMove, setShowLocalChatModal}) => {
 
   const LocalChatRender = useCallback(({ item, index }) => {
     const localChat:LocalChat = item.localChat;
-    const profilePicture = profileImageMap.get(localChat.imageId);
     const distance = Math.round(localChat.distance * 1000);
 
     return (
@@ -53,13 +49,7 @@ const MapBottomSheet = ({cameraMove, setShowLocalChatModal}) => {
         <RoundBox key={index} style={{elevation: 0, backgroundColor: distance > 50 ? 'gray' : 'white'}}> 
           <View style={{justifyContent:'space-between', flexDirection: 'row'}}>
             <View style={styles.chatRoomText }>
-              {(profilePicture !== defaultImg) ?
-              (<FastImage
-                style={styles.fullScreenImage}
-                source={{uri: profilePicture, priority: FastImage.priority.normal } as Source}
-                resizeMode={FastImage.resizeMode.cover}
-                />) : (
-              <Image source={require(defaultImg)} style={styles.fullScreenImage}/>)}
+              <ProfileImage profileImageId={localChat.imageId} avatarStyle={styles.fullScreenImage} />
               <View style={{alignItems:'flex-start'}}>
                 <View style={{flexDirection: 'row'}}>
                   <Text style={[styles.titleText, distance > 50 && {color: '#f2f2f2'}]}>{localChat.name}</Text>

@@ -3,26 +3,23 @@ import { View, Keyboard, Image, StyleSheet, ActivityIndicator } from 'react-nati
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MapScreen from '../screens/Map/MapScreen';
 import FontTheme from "../styles/FontTheme";
-import MypageStackScreen from "./MypageStack";
 import FriendsStackScreen from "./FriendsStack";
 import ChattingStackScreen from "./ChattingStack";
 import { useRecoilState, useSetRecoilState } from 'recoil';
-import { locationState, ProfileImageMapState } from '../recoil/atoms';
-import { getMMKVObject, setMMKVObject } from '../utils/mmkvStorage';
+import { locationState } from '../recoil/atoms';
+import { getMMKVObject, getMMKVString } from '../utils/mmkvStorage';
 import { AxiosResponse, Friend, Position } from '../interfaces';
 import { initUserSetting } from '../service/Setting';
 import { axiosGet } from "../axios/axios.method";
 import { urls } from "../axios/config";
-import { handleDownloadProfile } from "../service/Friends/FriendListAPI";
 import BluetoothScreen from "../screens/BlueTooth/BluetoothScreen";
 import Text from "../components/common/Text";
+import { getImageUri } from '../utils/FileHandling';
 
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
     const setLastLocation = useSetRecoilState(locationState);
-    setMMKVObject('user.profileImgMap', new Map([[0, '../../assets/images/anonymous.png']]));
-    const [profileImageMap, setProfileImageMap] = useRecoilState(ProfileImageMapState)
     const [isLoading, setIsLoading] = useState(true);
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -41,35 +38,30 @@ const BottomTabs = () => {
     }, []);
 
     useEffect(() => {
-        const initialize = async () => {
-            const lastLocation = getMMKVObject<Position>('map.lastLocation');
-            if (lastLocation) {
-                setLastLocation(lastLocation);
-            }
-            initUserSetting();
+      const initialize = async () => {
+          const lastLocation = getMMKVObject<Position>('map.lastLocation');
+          if (lastLocation) {
+              setLastLocation(lastLocation);
+          }
+          await initUserSetting();
 
-            try {
-                const response = await axiosGet<AxiosResponse<Friend[]>>(urls.GET_FRIEND_LIST_URL);
-                console.log("friend api response: ", response.data.data);
-                const friends = response.data.data;
-                for (const friend of friends) {
-                    const profileImageUri = profileImageMap.get(friend.profileImageId);
-                    console.log(profileImageUri, friend.profileImageId);
-                    if (!profileImageUri && friend.profileImageId) {
-                        const newProfileImageUri = await handleDownloadProfile(friend.profileImageId);
-                        profileImageMap.set(friend.profileImageId, newProfileImageUri);
-                        console.log('새로 다운받은 프로필 이미지 : ', newProfileImageUri);
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching friend list or updating profile images: ", error);
-            } finally {
-                setIsLoading(false);
+          try {
+            const response = await axiosGet<AxiosResponse<Friend[]>>(urls.GET_FRIEND_LIST_URL);
+            const friends = response.data.data;
+            for (const friend of friends) {
+              if (friend.profileImageId) {
+                await getImageUri(friend.profileImageId);
+              }
             }
-        };
+          } catch (error) {
+              console.error("Error fetching friend list or updating profile images: ", error);
+          } finally {
+              setIsLoading(false);
+          }
+      };
 
-        initialize();
-    }, [setLastLocation, setProfileImageMap]);
+      initialize();
+    }, [setLastLocation]);
 
   if (isLoading) {
     return (

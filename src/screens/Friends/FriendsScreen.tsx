@@ -1,7 +1,6 @@
 import React, {useState, useCallback, useMemo} from 'react';
 import { View, FlatList, TextInput, StyleSheet, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
-import styled from 'styled-components/native';
 import Text from '../../components/common/Text';
 import FriendCard from '../../components/FriendCard';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -11,14 +10,13 @@ import {urls} from '../../axios/config';
 import {useRecoilState} from 'recoil';
 import {
   getKoreanInitials,
-  handleDownloadProfile,
 } from '../../service/Friends/FriendListAPI';
-import {ProfileImageMapState, userInfoState} from '../../recoil/atoms';
+import {userInfoState} from '../../recoil/atoms';
 import {navigate} from '../../navigation/RootNavigation';
 import FontTheme from '../../styles/FontTheme';
-import FastImage, { Source } from 'react-native-fast-image';
 import Button from '../../components/common/Button';
 import HorizontalLine from '../../components/Mypage/HorizontalLine';
+import ProfileImage from '../../components/common/ProfileImage';
 
 interface ApiResponse {
   status: string;
@@ -30,7 +28,6 @@ type FriendsScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, '친구 목록'>;
 };
 
-const DefaultImgUrl = '../../assets/images/anonymous.png';
 
 const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
   const [friendsList, setFriendsList] = useState([]);
@@ -40,7 +37,6 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useRecoilState(userInfoState);
-  const [profileImageMap, setProfileImageMap] = useRecoilState(ProfileImageMapState);
   const [myprofileVisible, setMyprofileVisible] = useState(true);
 
   useFocusEffect(
@@ -53,24 +49,6 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
           );
           console.log('friend api response: ', response.data.data);
           const friends = response.data.data;
-          const updatedProfileImageMap = new Map(profileImageMap);
-
-          for (const friend of friends) {
-            const profileImageUri = updatedProfileImageMap.get(
-              friend.profileImageId,
-            );
-            if (!profileImageUri && friend.profileImageId) {
-              const newProfileImageUri = await handleDownloadProfile(
-                friend.profileImageId,
-              );
-              updatedProfileImageMap.set(
-                friend.profileImageId,
-                newProfileImageUri,
-              );
-              console.log('새로 다운받은 프로필 이미지 : ', newProfileImageUri);
-            }
-          }
-          setProfileImageMap(updatedProfileImageMap);
           setFriendsList(friends);
         } catch (error) {
           setError('Failed to fetch friends');
@@ -131,24 +109,13 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
       </View>
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
-          {userInfo.profileImageUrl !== DefaultImgUrl && userInfo.profileImageUrl ? (            
-            <FastImage
-              style={styles.avatar}
-              source={{uri: userInfo.profileImageUrl, priority: FastImage.priority.normal } as Source}
-              resizeMode={FastImage.resizeMode.cover}
-              />
-            ): (
-            <>
-              <Button iconSource={require(DefaultImgUrl)} imageStyle={styles.avatar} /> 
-          </>)}
-          </View>
-        <View>
-          <View style={styles.username}>
-            <Text style={styles.text}>{userInfo.username}</Text>
-          </View>
-          <View style={styles.username}>
-            <Text style={styles.statusMessage}>{userInfo.message}</Text>
-          </View>
+          <ProfileImage profileImageId={userInfo.profileImageId} avatarStyle={styles.avatar}/>
+        </View>
+        <View style={styles.username}>
+          <Text style={styles.text}>{userInfo.username}</Text>
+        </View>
+        <View style={styles.username}>
+          <Text style={styles.statusMessage}>{userInfo.message}</Text>
         </View>
       </View>
     </View>

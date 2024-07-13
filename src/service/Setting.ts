@@ -4,6 +4,8 @@ import { navigate } from "../navigation/RootNavigation";
 import { urls } from "../axios/config";
 import { LogoutResponse } from "../interfaces";
 import { loginMMKVStorage, userMMKVStorage } from "../utils/mmkvStorage";
+import RNFS from 'react-native-fs';
+import FastImage from "react-native-fast-image";
 
 export const logoutAlert = () => {
   Alert.alert("로그아웃", "로그아웃 하시겠습니까?",
@@ -41,6 +43,9 @@ export const withdrawlAlert = () => {
           loginMMKVStorage.delete("accessToken");
           loginMMKVStorage.delete("refreshToken");
           userMMKVStorage.clearAll();
+          loginMMKVStorage.clearAll();
+          FastImage.clearDiskCache();
+          FastImage.clearMemoryCache();
           navigate("로그인")
           console.log('user Storage 데이터 전부 삭제 완료');
         },

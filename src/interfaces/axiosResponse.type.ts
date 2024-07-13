@@ -17,7 +17,6 @@ export interface LogoutResponse {
 export interface LoginResponse {
   message: string,
   username: string,
-  profileImageUrl: string,
   profileImageId: number,
   id: number,
 }
@@ -41,13 +40,6 @@ export interface GetLocalChatResponse {
   code: string,
   data: LocalChatData[],
   message: string
-}
-
-export interface LocalChatRoomData extends Position {
-  chatRoomId: number,
-  distance?: number,
-  name: string,
-  description: string,
 }
 
 export interface LocalChatData {

@@ -8,6 +8,7 @@ import RNFS from 'react-native-fs';
 import FriendRequestActions from './FriendRequestActions';
 import ImagePreviewModal from "./ImagePreviewModal";
 import UserProfileModal from "./UserProfileModal";
+import ProfileImage from '../../common/ProfileImage';
 
 interface MessageBubbleProps {
     message: any;
