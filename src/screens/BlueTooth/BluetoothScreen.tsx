@@ -1,4 +1,4 @@
-import { Animated, Modal, NativeEventEmitter, NativeModules, StyleSheet, TouchableWithoutFeedback, View, Image, Keyboard, Dimensions } from "react-native";
+import { SafeAreaView, Animated, Modal, NativeEventEmitter, NativeModules, StyleSheet, TouchableWithoutFeedback, View, Image, Keyboard, Dimensions } from "react-native";
 import AlarmButton from "../../components/Bluetooth/AlarmButton";
 import MessageBox from "../../components/Bluetooth/MessageBox";
 import Text from "../../components/common/Text";
@@ -12,11 +12,10 @@ import requestPermissions from "../../utils/requestPermissions";
 import requestBluetooth from "../../utils/requestBluetooth";
 import showPermissionAlert from "../../utils/showPermissionAlert";
 import { PERMISSIONS } from "react-native-permissions";
-import {useEffect, useRef, useState } from "react";
-import RoundBox from "../../components/common/RoundBox";
+import { useEffect, useRef, useState } from "react";
 import useBackground from "../../hooks/useBackground";
 import { addDevice } from "../../service/Background";
-import KalmanFilter from 'kalmanjs'
+import KalmanFilter from 'kalmanjs';
 import RssiTracking from "../../components/Bluetooth/RssiTracking";
 import Button from '../../components/common/Button';
 import DancingText from "../../components/Bluetooth/DancingText";
@@ -25,13 +24,13 @@ import useFadeText from "../../hooks/useFadeText";
 import GifDisplay from '../../components/Bluetooth/GifDisplay';
 import MessageGif from "../../components/Bluetooth/MessageGif";
 import LottieView from "lottie-react-native";
+import DetectDisplay from "../../components/Bluetooth/DetectDisplay";
 import { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-
 
 interface BluetoothScreenPrams {
   route: {
     params?: {
-      notificationId? : string;
+      notificationId?: string;
     }
   }
 }
@@ -40,7 +39,7 @@ interface BleScanInfo {
   advFlag: number,
   companyId: number,
   deviceAddress: string,
-  deviceName: string|null,
+  deviceName: string | null,
   manufData: number[],
   rssi: number,
   serviceUuids: string[],
@@ -76,6 +75,9 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   const [showMsgBox, setShowMsgBox] = useState(false);
   const [fadeInAndMoveUp, fadeAnim, translateY] = useFadeText();
   const animationRef = useRef(null);
+  const [uuids, setUuids] = useState<Set<string>>(new Set());
+  const fadeAnim2 = useRef(new Animated.Value(1)).current;
+  const updateTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -150,7 +152,22 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
     });
   };
 
-  const handleSetIsNearby = (uuid: string, rssi:number, isBlocked = false) => {
+  useEffect(() => {
+    if (detectCnt === 0) {
+      Animated.timing(fadeAnim2, {
+        toValue: 0,
+        duration: 4000, // fade out 지속 시간을 4000ms로 설정
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(fadeAnim2, {
+        toValue: 1,
+        duration: 500, // fade in 지속 시간을 500ms로 설정
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [detectCnt]);
+  const handleSetIsNearby = (uuid: string, rssi: number, isBlocked = false) => {
     const currentTime = new Date().getTime();
     if (isRssiTracking)
       updateRssi(uuid, rssi);
@@ -178,7 +195,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
     }
     uuidTime[uuid] = currentTime;
     uuidTimeoutID[uuid] = setTimeout(() => {
-      uuidSet.delete(uuid)
+      uuidSet.delete(uuid);
       setDetectCnt(prev => {
         if (prev > 0)
           return prev-1
@@ -192,11 +209,13 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
           return newMap;
         });
       }
-    }, scanDelayedTime)
+      setUuids(new Set(uuidSet));
+    }, scanDelayedTime);
+    setUuids(new Set(uuidSet));
   };
 
   useEffect(() => {
-    const RSSIvalue =  userMMKVStorage.getNumber("bluetooth.rssivalue");
+    const RSSIvalue = userMMKVStorage.getNumber("bluetooth.rssivalue");
     const { BLEAdvertiser } = NativeModules;
     const eventEmitter = new NativeEventEmitter(BLEAdvertiser);
     eventEmitter.removeAllListeners('onDeviceFound');
@@ -209,7 +228,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
               kFileters[event.serviceUuids[i]] = new KalmanFilter();
               kf = kFileters[event.serviceUuids[i]];
             }
-            const filterdRSSI = kf.filter(event.rssi)
+            const filterdRSSI = kf.filter(event.rssi);
             if (filterdRSSI < RSSIvalue) return;
             handleSetIsNearby(event.serviceUuids[i], filterdRSSI, isBlocked);
           } else {
@@ -218,9 +237,8 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
           addDevice(event.serviceUuids[i], new Date().getTime());
         }
       }
-    })
-  }, [isScanning, isBlocked, isRssiTracking, handleSetIsNearby])
-
+    });
+  }, [isScanning, isBlocked, isRssiTracking, handleSetIsNearby]);
 
   const startScan = async () => {
     if (!isScanning) {
@@ -270,48 +288,51 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
     }
   };
 
-
   return (
     <>
       {isRssiTracking && (
         <>
           <View style={styles.TVButton}>
-            <Button title='CCTV' onPress={()=>setShowTracking(true)} titleStyle={{color: 'white' , fontSize: 10}}/>
+            <Button title='CCTV' onPress={() => setShowTracking(true)} titleStyle={{ color: 'white', fontSize: 10 }} />
           </View>
-          <RssiTracking closeModal={()=>setShowTracking(false)} modalVisible = {showTracking} items={rssiMap}/>
+          <RssiTracking closeModal={() => setShowTracking(false)} modalVisible={showTracking} items={rssiMap} />
         </>
       )}
       <View style={styles.background}>
         <BleButton bleON={isScanning} bleHanddler={handleBLEButton} />
         <AlarmButton notificationId={notificationId} />
         <View style={styles.contentContainer}>
-          {!isScanning ? <DancingText handleBLEButton={handleBLEButton}/> :
-          ( 
-          <>
-          {!isKeyboardVisible && 
-          <>
-          {/* <View style={styles.container}>{lights}</View> */}
-          <LottieView ref={animationRef} source={require('../../assets/animations/WaveAnimation.json')} style={styles.gifLarge} speed={2.5} loop />
-          </>
-          }
-          {isBlocked ?
-            <>
-            <Animated.View
-              style={{opacity: fadeAnim, transform: [{ translateY: translateY }] }}>
-              <Text variant='sub' style={{fontSize: 15}}>{msgSendCnt ? `${msgSendCnt}명에게 인연 메세지를 보냈습니다.` :
-                "메세지를 보낼 수 없는 대상입니다. 다시 보내 주세요!"}</Text>
-            </Animated.View>
-            <Text style={styles.blockText}>인연 메세지는</Text>
-            <Text style={styles.blockText2}>{remainingTime}초 뒤에 다시 보낼 수 있습니다.</Text>
-            </> 
-          : detectCnt > 0 ? showMsgBox ? 
-          <MessageBox uuids={uuidSet} setRemainingTime={setRemainingTime} setShowMsgBox ={setShowMsgBox} fadeInAndMoveUp={fadeInAndMoveUp}/> :
-          <>
-            <Text style={styles.findText2}>주위 {detectCnt}명의 인연을 찾았습니다!</Text>
-            <MessageGif setShowMsgBox={setShowMsgBox}/>
-          </> : <Text style={styles.findText}>주위의 인연을 찾고 있습니다.</Text>}
-          </>
-          )}
+          {!isScanning ? <DancingText handleBLEButton={handleBLEButton} /> :
+            (
+              <>
+                {!isKeyboardVisible &&
+                  <>
+                    <SafeAreaView style={styles.container}>
+                      <Animated.View style={{ ...styles.container, opacity: fadeAnim2 }}>
+                        <DetectDisplay uuids={uuids} />
+                      </Animated.View>
+                    </SafeAreaView>
+                    <LottieView ref={animationRef} source={require('../../assets/animations/WaveAnimation.json')} style={styles.gifLarge} speed={2.5} loop />
+                  </>
+                }
+                {isBlocked ?
+                  <>
+                    <Animated.View
+                      style={{ opacity: fadeAnim, transform: [{ translateY: translateY }] }}>
+                      <Text variant='sub' style={{ fontSize: 15 }}>{msgSendCnt ? `${msgSendCnt}명에게 인연 메세지를 보냈습니다.` :
+                        "메세지를 보낼 수 없는 대상입니다. 다시 보내 주세요!"}</Text>
+                    </Animated.View>
+                    <Text style={styles.blockText}>인연 메세지는</Text>
+                    <Text style={styles.blockText2}>{remainingTime}초 뒤에 다시 보낼 수 있습니다.</Text>
+                  </>
+                  : detectCnt > 0 ? showMsgBox ?
+                    <MessageBox uuids={uuidSet} setRemainingTime={setRemainingTime} setShowMsgBox={setShowMsgBox} fadeInAndMoveUp={fadeInAndMoveUp} /> :
+                    <>
+                      <Text style={styles.findText2}>주위 {detectCnt}명의 인연을 찾았습니다!</Text>
+                      <MessageGif setShowMsgBox={setShowMsgBox} />
+                    </> : <Text style={styles.findText}>주위의 인연을 찾고 있습니다.</Text>}
+              </>
+            )}
         </View>
       </View>
     </>
@@ -319,6 +340,10 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   contentContainer: {
     alignItems: 'center'
   },
@@ -336,12 +361,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     top: 20,
     left: 80,
-    height: 40, 
+    height: 40,
     width: 40,
-    borderRadius: 20, 
+    borderRadius: 20,
     paddingVertical: 2, // 상하 여백 설정
     paddingHorizontal: 3, // 좌우 여백 설정
-    zIndex:3
+    zIndex: 3
   },
   noBorderContent: {
     marginTop: 50,
@@ -352,7 +377,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 0, // 테두리를 없앱니다.
     shadowColor: 'transparent', // 그림자를 없앱니다.
-    elevation: 0, // 안드로이드에서의 그림자 제거
+    elevation: 0
   },
   gifLarge: {
     width: 350, // 원하는 너비로 설정합니다.
