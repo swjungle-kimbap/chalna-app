@@ -308,9 +308,17 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
+  background: {
+    backgroundColor: "#fff",
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   contentContainer: {
-    top: -20,
-    alignItems: 'center'
+    flex: 1,
+    justifyContent: 'space-between', // 상하 배치
+    alignItems: 'center',
+    paddingBottom: 30,
   },
   TVButton: {
     position: 'absolute',
@@ -324,13 +332,6 @@ const styles = StyleSheet.create({
     paddingVertical: 2, // 상하 여백 설정
     paddingHorizontal: 3, // 좌우 여백 설정
     zIndex: 3
-  },
-  background: {
-    backgroundColor: "#fff",
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   }
 });
 export default BluetoothScreen;
