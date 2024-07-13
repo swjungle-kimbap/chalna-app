@@ -44,6 +44,7 @@ const DancingText = ({ handleBLEButton }) => {
 
 const styles = StyleSheet.create({
   container: {
+    marginTop: 300,
     justifyContent: 'center',
     alignItems: 'center',
   },
