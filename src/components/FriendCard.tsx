@@ -8,6 +8,7 @@ import Button from './common/Button';
 import { axiosGet } from "../axios/axios.method";
 import {urls} from "../axios/config";
 import ProfileImage from './common/ProfileImage';
+import { useModal } from '../context/ModalContext';
 
 interface FriendCardProps {
     user: Friend;
@@ -30,6 +31,9 @@ interface ApiResponse {
   }
 
 const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, navigation, options}) => {
+
+    const {showModal} = useModal();
+
     const handlePress = () => {
         onExpand();
     };
@@ -45,13 +49,17 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
                     navigation.navigate("채팅", { chatRoomId: chatRoomId });
                 }
                 catch {
-                    Alert.alert('Error', '채팅방을 찾을 수 없습니다.');
+                    // Alert.alert('Error', '채팅방을 찾을 수 없습니다.');
+                    showModal('친구랑 대화하기', '채팅방을 찾을 수 없습니다.',()=>{},undefined,false);
+
                 }
             } else {
-                Alert.alert('Error', 'chatroomId를 찾을 수 없습니다.');
+                // Alert.alert('Error', 'chatroomId를 찾을 수 없습니다.');
+                showModal('친구랑 대화하기', '채팅방을 찾을 수 없습니다.',()=>{},undefined,false);
             }
         } catch (error) {
-            Alert.alert('Error', '대화 실패');
+            // Alert.alert('Error', '대화 실패');
+            showModal('Error', '대화 실패',()=>{},undefined,false);
             console.error('Error fetching chatroomId:', error);
         }
     };
