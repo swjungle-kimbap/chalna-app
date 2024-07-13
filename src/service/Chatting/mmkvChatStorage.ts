@@ -20,24 +20,29 @@ export const getChatRoomList = (): ChatRoomLocal[] | null => {
     return chatRoomListString ? JSON.parse(chatRoomListString) : null;
 };
 
+
 // Save a single chat room info
 export const saveChatRoomInfo = (chatRoom: ChatRoomLocal) => {
     console.log('saveChatRoomInfo');
     const chatRooms = getChatRoomList() || [];
-    const existingChatRoom = chatRooms.find(room => room.id === chatRoom.id);
+    let chatRoomIndex = chatRooms.findIndex(room => room.id === chatRoom.id);
 
-    if (existingChatRoom) {
-        const updatedChatRoom = { ...existingChatRoom };
+    if (chatRoomIndex !== -1) {
+        const existingChatRoom = chatRooms[chatRoomIndex];
+        let isUpdated = false;
 
         // Update only fields that are different
         Object.keys(chatRoom).forEach((key) => {
             if (chatRoom[key] !== existingChatRoom[key]) {
-                updatedChatRoom[key] = chatRoom[key];
+                existingChatRoom[key] = chatRoom[key];
+                isUpdated = true;
             }
         });
 
-        const updatedChatRooms = chatRooms.map(room => room.id === chatRoom.id ? updatedChatRoom : room);
-        saveChatRoomList(updatedChatRooms);
+        if (isUpdated) {
+            chatRooms[chatRoomIndex] = existingChatRoom;
+            saveChatRoomList(chatRooms);
+        }
 
     } else {
         // If chat room doesn't exist, add it
@@ -51,39 +56,38 @@ export const saveChatRoomInfo = (chatRoom: ChatRoomLocal) => {
 export const getChatRoomInfo = (chatRoomId: number): ChatRoomLocal | null => {
     console.log('getChatRoomInfo');
     const chatRooms = getChatRoomList();
-    return chatRooms ? chatRooms.find(room => room.id === chatRoomId) || null : null;
+    return chatRooms?.find(room => room.id === chatRoomId) || null;
 };
 
 
 // Remove a chat room from storage
 export const removeChatRoom = (chatRoomId: number) => {
+    console.log('removeChatRoom');
     // Remove associated chat messages
     removeChatMessages(chatRoomId.toString());
     // Retrieve the current chat room list
     const chatRoomList = getChatRoomList();
-    if (chatRoomList) {
-        // Filter out the chat room to be removed
-        const updatedChatRoomList = chatRoomList.filter(room => room.id !== chatRoomId);
-        // Save the updated chat room list back to storage
-        userMMKVStorage.set('chatRoomList', JSON.stringify(updatedChatRoomList));
+    if (!chatRoomList) {
+        return;
     }
-
+    // Filter out the chat room to be removed
+    const updatedChatRoomList = chatRoomList.filter(room => room.id !== chatRoomId);
+    // Save the updated chat room list back to storage
+    saveChatRoomList(updatedChatRoomList);
 };
 
-
-
-// // Save chat messages for a specific chat room
-// export const saveChatMessages = (chatRoomId: string, newMessages: directedChatMessage[]) => {
-//     console.log('save chat message');
-//     const existingMessages = getChatMessages(chatRoomId) || [];
-//     const updatedMessages = [...existingMessages, ...newMessages];
-//     userMMKVStorage.set(`chatMessages_${chatRoomId}`, JSON.stringify(updatedMessages));
-// };
 
 // Save chat messages for a specific chat room
 export const saveChatMessages = (chatRoomId: string, newMessages: directedChatMessage[]) => {
     console.log('save chat message');
-    const existingMessages = getChatMessages(chatRoomId) || [];
+
+    // Retrieve existing messages
+    const existingMessagesString = userMMKVStorage.getString(`chatMessages_${chatRoomId}`);
+    let existingMessages: directedChatMessage[] = [];
+
+    if (existingMessagesString) {
+        existingMessages = JSON.parse(existingMessagesString);
+    }
 
     // Create a map of existing messages by id for quick lookup
     const messageMap = new Map<number, directedChatMessage>();
@@ -99,6 +103,7 @@ export const saveChatMessages = (chatRoomId: string, newMessages: directedChatMe
     // Convert map back to array
     const updatedMessages = Array.from(messageMap.values());
 
+    // Save updated messages
     userMMKVStorage.set(`chatMessages_${chatRoomId}`, JSON.stringify(updatedMessages));
 };
 
@@ -109,7 +114,6 @@ export const getChatMessages = (chatRoomId: string): directedChatMessage[] | nul
     const messagesString = userMMKVStorage.getString(`chatMessages_${chatRoomId}`);
     return messagesString ? JSON.parse(messagesString) : null;
 };
-
 
 
 // Retrieve the last inserted message for a specific chat room
@@ -124,7 +128,6 @@ export const getLastInsertedMessage = (chatRoomId: string): directedChatMessage 
     const lastMessage = messages[messages.length - 1];
     return lastMessage;
 };
-
 
 // Reset unread count for a specific chat room ===============================
 export const resetUnreadCountForChatRoom = (chatRoomId: number) => {
@@ -144,13 +147,10 @@ export const resetUnreadCountForChatRoom = (chatRoomId: number) => {
     saveChatRoomList(updatedChatRooms);
 };
 
-
 // Remove chat messages for a specific chat room
 export const removeChatMessages = (chatRoomId: string) => {
     userMMKVStorage.delete(`chatMessages_${chatRoomId}`);
 };
-
-
 
 export const decrementUnreadCountBeforeTimestamp = (chatRoomId: string, timestamp: string) => {
     console.log('decrement unread count before timestamp');
@@ -203,4 +203,3 @@ export const createChatRoomLocal = (fcmData: ChatFCM): ChatRoomLocal => {
         updatedAt: new Date().toISOString() // Assuming the current time as updatedAt
     };
 }
-
