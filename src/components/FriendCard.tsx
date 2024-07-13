@@ -5,7 +5,7 @@ import RoundBox from './common/RoundBox';
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../interfaces";
 import Button from './common/Button';
-import { axiosGet } from "../axios/axios.method";
+import { axiosGet, axiosPost } from "../axios/axios.method";
 import {urls} from "../axios/config";
 import ProfileImage from './common/ProfileImage';
 import { useModal } from '../context/ModalContext';
@@ -45,7 +45,7 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
             if (response.data && response.data.data && response.data.data.chatRoomId) {
                 const { chatRoomId } = response.data.data;
                 try {
-                    await axiosPost(`${urls.CHATROOM_JOIN_URL}${chatRoomId}`); // 채팅방 참여 api 호출
+                    await axiosPost(`${urls.CHATROOM_JOIN_URL}/${chatRoomId}`); // 채팅방 참여 api 호출
                     navigation.navigate("채팅", { chatRoomId: chatRoomId });
                 }
                 catch {

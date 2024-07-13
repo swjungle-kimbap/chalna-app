@@ -16,7 +16,11 @@ import uuid from 'react-native-uuid'
 import { LogBox } from 'react-native';
 import { getMMKVObject, loginMMKVStorage, setMMKVObject, setUserMMKVStorage } from "../../utils/mmkvStorage";
 import { setDefaultMMKVString } from "../../utils/mmkvStorage";
+
 import { useModal } from '../../context/ModalContext';
+
+import { black } from "react-native-paper/lib/typescript/styles/themes/v2/colors";
+
 
 LogBox.ignoreLogs(['new NativeEventEmitter']); 
 LogBox.ignoreAllLogs();
@@ -144,7 +148,8 @@ const LoginScreen: React.FC = () => {
       {isLoading ? (
         <>
           <View style={styles.loadingConatiner}>
-            <ActivityIndicator size="large" color="#0000ff" />
+            <Text variant="sub" style={styles.autoLoginText}>로그인 중</Text>
+            <ActivityIndicator size="small" color="#3EB297" />
           </View>
         </>
       ) : ( 
@@ -163,6 +168,11 @@ const LoginScreen: React.FC = () => {
   );
 }
 const styles = StyleSheet.create({
+  autoLoginText: {
+    fontSize: 16,
+    marginBottom: 20,
+    color: "black",
+  },
   container: {
     flex: 1,
     justifyContent: 'center',

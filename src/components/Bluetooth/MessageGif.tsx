@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import FontTheme from '../../styles/FontTheme';
 import FastImage from 'react-native-fast-image';
+import LottieView from 'lottie-react-native';
 
 const MessageGif = ({ setShowMsgBox }) => {
   const moveAnim = useRef(new Animated.Value(0)).current;
@@ -40,11 +41,22 @@ const MessageGif = ({ setShowMsgBox }) => {
   return (
     <TouchableOpacity onPress={() => setShowMsgBox(true)}>
         <View style={styles.container}>
-            <FastImage
-                source={require('../../assets/animations/message.gif')}
+            <Animated.View style={{ transform: [{ translateY: moveAnim }] }}>
+                <LottieView
+                    source={require('../../assets/animations/paperplane.json')}
+    
+
+                    autoPlay
+                    loop
+                    style={styles.lottie}
+                />
+            </Animated.View>
+            {/* <FastImage
+                // source={require('../../assets/animations/message.gif')}
+                source={require('../../assets/animations/paperplane2.gif')}
                 style={[styles.gif]}
                 resizeMode={FastImage.resizeMode.contain}
-            />
+            /> */}
         </View>
     </TouchableOpacity>
   );
@@ -61,10 +73,27 @@ const styles = StyleSheet.create({
     fontFamily: FontTheme.fonts.main,
     color: 'black'
   },
-  gif: {
-    width: 150,
-    height: 150,
-},
+  lottie: {
+    width: 250,
+    height: 250,
+  },
 });
+
+// // const styles = StyleSheet.create({
+// //   container: {
+// //     justifyContent: 'center',
+// //     alignItems: 'center',
+// //   },
+// //   text: {
+// //     fontSize: 20,
+// //     marginTop: 20,
+// //     fontFamily: FontTheme.fonts.main,
+// //     color: 'black'
+// //   },
+// //   gif: {
+// //     width: 300,
+// //     height: 300,
+// // },
+// });
 
 export default MessageGif;

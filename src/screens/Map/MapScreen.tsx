@@ -14,6 +14,8 @@ import LocalChatButton from "../../components/Map/LocalChatButton";
 import ArrowButton from "../../components/Map/ArrowButton";
 import MapBottomSheet from "../../components/Map/MapBottomSheet";
 import LocalChatMarkerOverlay from "../../components/Map/LocalChatMarkerOverlay";
+import Text from "../../components/common/Text";
+import showPermissionAlert from "../../utils/showPermissionAlert";
 
 LogBox.ignoreLogs(['Called stopObserving with existing subscriptions.'])
 const latkfilter = new KalmanFilter();
@@ -25,12 +27,17 @@ const MapScreen: React.FC = ({}) => {
   const flyingMode = useRecoilValue(FlyingModeState);
   const watchId = useRef<number | null>(null);
   const [showLocalChatModal, setShowLocalChatModal] = useState<boolean>(false);
-
+  const [isgranted, setIsgranted] = useState(true);
   useChangeBackgroundSave<Position>('map.lastLocation', currentLocation);
 
   useEffect(() => {
     const startWatchPosition = async () => {
-      const granted = await requestPermissions([PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION])
+      let granted = await requestPermissions([PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION])
+      setIsgranted(granted);
+      // while (!granted) {
+      //   showPermissionAlert("위치");
+      //   granted = await requestPermissions([PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION])
+      // }
       if (granted) {
         watchId.current = Geolocation.watchPosition(
           (position) => {
@@ -41,6 +48,7 @@ const MapScreen: React.FC = ({}) => {
             //console.log({ latitude:filteredLatitude, longitude:filteredlongitude });
           },
           (e:GeoError) => {
+            setIsgranted(false);
             if (e.code === 1) {
               Alert.alert(
                 "위치 권한 필요",
@@ -70,7 +78,8 @@ const MapScreen: React.FC = ({}) => {
             showLocationDialog: true,
           }
         );
-    }}
+    }
+  }
     
     if (!flyingMode) {
       startWatchPosition();
@@ -84,7 +93,7 @@ const MapScreen: React.FC = ({}) => {
         mapViewRef.current.setLocationTrackingMode("NoFollow");
       }
     }
-  }, [flyingMode]);
+  }, [flyingMode, isgranted]);
   
   const cameraMove = (newLocation) => {
     mapViewRef.current.animateCameraTo({...newLocation});
@@ -92,14 +101,23 @@ const MapScreen: React.FC = ({}) => {
 
   return (
     <>
+    {!isgranted ?
     <NaverMapView
-    style={{flex: 1, zIndex:1}}
+      style={{flex: 1, zIndex:1}}
       initialCamera={{
       latitude : currentLocation.latitude,
       longitude : currentLocation.longitude,
       zoom:18}}
       ref={mapViewRef}
-      >
+      /> : 
+      <NaverMapView
+      style={{flex: 1, zIndex:1}}
+        initialCamera={{
+        latitude : currentLocation.latitude,
+        longitude : currentLocation.longitude,
+        zoom:18}}
+        ref={mapViewRef}
+        >
       <LocalChatMarkerOverlay/>
       <NaverMapMarkerOverlay
         isHideCollidedCaptions={true}
@@ -114,14 +132,17 @@ const MapScreen: React.FC = ({}) => {
         height={30}
         zIndex={3}
       />
-    </NaverMapView>
+    </NaverMapView>}
+    {isgranted && <>
     <LocalChatButton showLocalChatModal={showLocalChatModal} setShowLocalChatModal={setShowLocalChatModal}/>
+   </>}
+   {isgranted && 
+    <View style={styles.bottomSheet}>
+      <MapBottomSheet cameraMove={cameraMove} setShowLocalChatModal={setShowLocalChatModal}/>
+    </View>}
     {flyingMode && (
       <ArrowButton cameraMove = {cameraMove} />
     )}
-    <View style={styles.bottomSheet}>
-      <MapBottomSheet cameraMove={cameraMove} setShowLocalChatModal={setShowLocalChatModal}/>
-    </View>
   </>
 );
 }
