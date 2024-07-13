@@ -1,14 +1,15 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import FontTheme from '../../styles/FontTheme';
 import FastImage from 'react-native-fast-image';
-import styles from './BleComponent.style';
+import LottieView from 'lottie-react-native';
 
 const MessageGif = ({ setShowMsgBox }) => {
   const moveAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     let isMounted = true;
-
+    
     const animate = () => {
       if (!isMounted) return;
       Animated.sequence([
@@ -36,18 +37,63 @@ const MessageGif = ({ setShowMsgBox }) => {
       isMounted = false;
     };
   }, [moveAnim]);
-
+  
   return (
     <TouchableOpacity onPress={() => setShowMsgBox(true)}>
-      <Animated.View style={[styles.messageButtonContainer, { transform: [{ translateY: moveAnim }] }]}>
-        <FastImage
-          source={require('../../assets/animations/message.gif')}
-          style={styles.messageGif}
-          resizeMode={FastImage.resizeMode.contain}
-        />
-      </Animated.View>
+        <View style={styles.container}>
+            <Animated.View style={{ transform: [{ translateY: moveAnim }] }}>
+                <LottieView
+                    source={require('../../assets/animations/paperplane.json')}
+    
+
+                    autoPlay
+                    loop
+                    style={styles.lottie}
+                />
+            </Animated.View>
+            {/* <FastImage
+                // source={require('../../assets/animations/message.gif')}
+                source={require('../../assets/animations/paperplane2.gif')}
+                style={[styles.gif]}
+                resizeMode={FastImage.resizeMode.contain}
+            /> */}
+        </View>
     </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  text: {
+    fontSize: 20,
+    marginTop: 20,
+    fontFamily: FontTheme.fonts.main,
+    color: 'black'
+  },
+  lottie: {
+    width: 250,
+    height: 250,
+  },
+});
+
+// // const styles = StyleSheet.create({
+// //   container: {
+// //     justifyContent: 'center',
+// //     alignItems: 'center',
+// //   },
+// //   text: {
+// //     fontSize: 20,
+// //     marginTop: 20,
+// //     fontFamily: FontTheme.fonts.main,
+// //     color: 'black'
+// //   },
+// //   gif: {
+// //     width: 300,
+// //     height: 300,
+// // },
+// });
 
 export default MessageGif;
