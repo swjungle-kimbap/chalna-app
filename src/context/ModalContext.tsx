@@ -5,12 +5,13 @@ interface ModalContent {
   content: string;
   onConfirm: () => void;
   onCancel: () => void;
+  showCancel?: boolean;
 }
 
 interface ModalContextProps {
   modalVisible: boolean;
   modalContent: ModalContent;
-  showModal: (title: string, content: string, onConfirm: () => void, onCancel: () => void) => void;
+  showModal: (title: string, content: string, onConfirm: () => void, onCancel?: () => void, showCancel?: boolean) => void;
   hideModal: () => void;
 }
 
@@ -18,7 +19,8 @@ const defaultModalContent: ModalContent = {
   title: '',
   content: '',
   onConfirm: () => {},
-  onCancel: () => {},
+  onCancel: undefined,
+  showCancel: true
 };
 
 const ModalContext = createContext<ModalContextProps>({
@@ -40,8 +42,8 @@ export const ModalProvider = ({ children }: ModalProviderProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState<ModalContent>(defaultModalContent);
 
-  const showModal = (title: string, content: string, onConfirm: () => void, onCancel: () => void) => {
-    setModalContent({ title, content, onConfirm, onCancel });
+  const showModal = (title: string, content: string, onConfirm: () => void, onCancel?: () => void, showCancel: boolean = true) => {
+    setModalContent({ title, content, onConfirm, onCancel , showCancel});
     setModalVisible(true);
   };
 

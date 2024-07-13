@@ -16,6 +16,7 @@ import uuid from 'react-native-uuid'
 import { LogBox } from 'react-native';
 import { getMMKVObject, loginMMKVStorage, setMMKVObject, setUserMMKVStorage } from "../../utils/mmkvStorage";
 import { setDefaultMMKVString } from "../../utils/mmkvStorage";
+import { useModal } from '../../context/ModalContext';
 
 LogBox.ignoreLogs(['new NativeEventEmitter']); 
 LogBox.ignoreAllLogs();
@@ -27,6 +28,7 @@ const LoginScreen: React.FC = () => {
   const fcmTokenRef = useRef<string>("");
   const deviceUUIDRef = useRef<string>("");
   const loginTokenRef = useRef<string>("");
+  const { showModal } = useModal();
 
   useEffect(() => {
     endBackgroundService();
@@ -106,11 +108,17 @@ const LoginScreen: React.FC = () => {
     return refreshFCM();
   }, [userInfo])
 
+
   const handleLogin = async () => {
     try {
       const loginResponse = await SignUpByWithKakao(deviceUUIDRef.current, fcmTokenRef.current);
       if (loginResponse) {
-        Alert.alert("로그인 완료!", "환영합니다~🎉 \n메세지를 작성한뒤 인연 보내기를 눌러보세요!");
+        // Alert.alert("로그인 완료!", "환영합니다~🎉 \n메세지를 작성한뒤 인연 보내기를 눌러보세요!");
+        showModal(
+          '로그인 완료!', 
+          '환영합니다~🎉 \n메세지를 작성한뒤 인연 보내기를 눌러보세요!', 
+          () => {}, undefined,false
+        );
         setUserMMKVStorage(loginResponse.id.toString());
         const newUserInfo = getMMKVObject<LoginResponse>("mypage.userInfo");
         if (newUserInfo)

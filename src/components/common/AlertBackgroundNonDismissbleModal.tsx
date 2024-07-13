@@ -16,12 +16,27 @@ const BackgroundNonDismissibleModal = () => {
           <Text style={styles.modalTitle}>{modalContent.title}</Text>
           <Text style={styles.modalText}>{modalContent.content}</Text>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => { modalContent.onCancel(); hideModal(); }}>
+          {modalContent.showCancel && (
+              <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => { modalContent.onCancel && modalContent.onCancel(); hideModal(); }}>
+                <Text style={styles.buttonCancelText}>취소</Text>
+              </TouchableOpacity>
+            )}
+                      <TouchableOpacity
+              style={[
+                styles.button,
+                styles.confirmButton,
+                !modalContent.showCancel && styles.confirmButtonSingle
+              ]}
+              onPress={() => { modalContent.onConfirm && modalContent.onConfirm(); hideModal(); }}
+            >
+              <Text style={styles.buttonConfirmText}>확인</Text>
+            </TouchableOpacity>
+            {/* <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => { modalContent.onCancel(); hideModal(); }}>
               <Text style={styles.buttonCancelText}>취소</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={() => { modalContent.onConfirm(); hideModal(); }}>
               <Text style={styles.buttonConfirmText}>확인</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
       </View>
@@ -70,14 +85,17 @@ const styles = StyleSheet.create({
     borderRadius: 0,
   },
   cancelButton: {
-    backgroundColor: '#BDBDBD',
+    backgroundColor: '#D9D9DA',
     marginRight: 0,
     borderBottomLeftRadius: 10
   },
   confirmButton: {
     backgroundColor: '#6DB9C4',
     marginLeft: 0,
-    borderBottomRightRadius: 10
+    borderBottomRightRadius: 10,
+  },
+  confirmButtonSingle: {
+    borderBottomLeftRadius: 10,
   },
   buttonConfirmText: {
     color: 'white',
