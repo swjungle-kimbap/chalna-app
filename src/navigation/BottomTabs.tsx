@@ -43,7 +43,8 @@ const BottomTabs = () => {
           if (lastLocation) {
               setLastLocation(lastLocation);
           }
-          await initUserSetting();
+          setIsLoading(false);
+          initUserSetting();
 
           try {
             const response = await axiosGet<AxiosResponse<Friend[]>>(urls.GET_FRIEND_LIST_URL);
@@ -55,9 +56,7 @@ const BottomTabs = () => {
             }
           } catch (error) {
               console.error("Error fetching friend list or updating profile images: ", error);
-          } finally {
-              setIsLoading(false);
-          }
+          } 
       };
 
       initialize();
