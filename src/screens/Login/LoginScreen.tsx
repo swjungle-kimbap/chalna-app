@@ -113,7 +113,7 @@ const LoginScreen: React.FC = () => {
     try {
       const loginResponse = await SignUpByWithKakao(deviceUUIDRef.current, fcmTokenRef.current);
       if (loginResponse) {
-        // Alert.alert("로그인 완료!", "환영합니다~🎉 \n메세지를 작성한뒤 인연 보내기를 눌러보세요!");
+  
         showModal(
           '로그인 완료!', 
           '환영합니다~🎉 \n메세지를 작성한뒤 인연 보내기를 눌러보세요!', 
@@ -131,7 +131,11 @@ const LoginScreen: React.FC = () => {
       }
     } catch {
       console.log("로그인 실패");
-      Alert.alert("로그인 실패", "다시 로그인해 주세요");
+      showModal(
+        '로그인 실패', 
+        '다시 로그인해 주세요', 
+        () => {}, undefined,false
+      );
     }
   };
 
