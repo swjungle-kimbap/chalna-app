@@ -125,7 +125,7 @@ const BottomTabs = () => {
                 iconSource = require("../assets/Icons/MapIcon.png");
                 break;
               case '대화':
-                iconSource = focused ? require("../assets/Icons/ChatingIcon.png")
+                iconSource = focused ? require("../assets/Icons/ChatingIcon_focus.png")
                 : require ("../assets/Icons/ChatingIcon.png");
                 break;
               case '친구' :
