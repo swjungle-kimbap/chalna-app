@@ -10,7 +10,6 @@ interface BleBottomComponentProps {
   translateY: Animated.Value;
   msgSendCnt: number;
   remainingTime: number;
-  detectCnt: number;
   showMsgBox: boolean;
   uuidSet: Set<string>;
   setRemainingTime: (time: number) => void;
@@ -25,7 +24,6 @@ const BleBottomComponent: React.FC<BleBottomComponentProps> = ({
   translateY,
   msgSendCnt,
   remainingTime,
-  detectCnt,
   showMsgBox,
   uuidSet,
   setRemainingTime,
@@ -45,7 +43,7 @@ const BleBottomComponent: React.FC<BleBottomComponentProps> = ({
           <Text style={styles.blockText}>인연 메세지는</Text>
           <Text style={styles.blockText2}>{remainingTime}초 뒤에 다시 보낼 수 있습니다.</Text>
         </>
-      ) : detectCnt > 0 ? (
+      ) : uuidSet.size > 0 ? (
         showMsgBox ? (
           <MessageBox
             uuids={uuidSet}
@@ -56,7 +54,7 @@ const BleBottomComponent: React.FC<BleBottomComponentProps> = ({
         ) : (
           <>
             <View style={styles.bleBottomSubContainer}>
-              <Text style={styles.findTextSmall}>주위 {detectCnt}명의 인연을 찾았습니다!</Text>
+              <Text style={styles.findTextSmall}>주위 {uuidSet.size}명의 인연을 찾았습니다!</Text>
               <MessageGif setShowMsgBox={setShowMsgBox} />
             </View>
           </>
