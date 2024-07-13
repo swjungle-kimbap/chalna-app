@@ -44,6 +44,7 @@ export const urls = {
     CHATROOM_LIST_URL: getFullUrl(Config.CHATROOM_PATH),
     CHATROOM_MSG_URL: getFullUrl(Config.CHATROOM_CHAT_MSG_PATH),
     CHATROOM_LEAVE_URL: getFullUrl(Config.CHATROOM_LEAVE_PATH),
+    CHATROOM_JOIN_URL: getFullUrl(Config.CHATROOM_JOIN_PATH),
 
     SET_CUR_POS_URL: getFullUrl(Config.SET_CUR_POS_PATH),
 
@@ -54,5 +55,5 @@ export const urls = {
 
     FILE_UPLOAD_URL: getFullUrl(Config.FILE_UPLOAD_PATH),
     FILE_DOWNLOAD_URL: getFullUrl(Config.FILE_DOWNLOAD_PATH)
-    
+
 };

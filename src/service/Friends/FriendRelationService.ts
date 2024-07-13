@@ -20,7 +20,7 @@ export const sendFriendRequest = (otherId: number): Promise<boolean> => {
                                 resolve(true);
                             } catch (error) {
                                 const errorMessage = error.response?.data?.message || error.message || '친구 요청 전송이 실패했습니다.';
-                                Alert.alert("Error", errorMessage);
+                                Alert.alert("Alert", errorMessage);
                                 resolve(false);
                             }
                     }
@@ -50,7 +50,7 @@ export const acceptFriendRequest = async (otherId: number, chatRoomId: number) =
                             resolve(true);
                         } catch (error) {
                             const errorMessage = error.response?.data?.message || error.message || '친구 요청을 수락할 수 없습니다.';
-                            Alert.alert('Error', errorMessage);
+                            Alert.alert('Alert', errorMessage);
                             resolve(false);
                         }
                     }

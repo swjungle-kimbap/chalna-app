@@ -40,7 +40,13 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
             console.log(response.data);
             if (response.data && response.data.data && response.data.data.chatRoomId) {
                 const { chatRoomId } = response.data.data;
-                navigation.navigate("채팅", { chatRoomId: chatRoomId });
+                try {
+                    await axiosPost(`${urls.CHATROOM_JOIN_URL}${chatRoomId}`); // 채팅방 참여 api 호출
+                    navigation.navigate("채팅", { chatRoomId: chatRoomId });
+                }
+                catch {
+                    Alert.alert('Error', '채팅방을 찾을 수 없습니다.');
+                }
             } else {
                 Alert.alert('Error', 'chatroomId를 찾을 수 없습니다.');
             }
