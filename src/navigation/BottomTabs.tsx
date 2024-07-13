@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Keyboard, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Keyboard, Image, StyleSheet, ActivityIndicator,Animated } from 'react-native';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MapScreen from '../screens/Map/MapScreen';
 import FontTheme from "../styles/FontTheme";
@@ -17,6 +17,7 @@ import Text from "../components/common/Text";
 import { getImageUri } from '../utils/FileHandling';
 
 const Tab = createBottomTabNavigator();
+
 
 const BottomTabs = () => {
     const setLastLocation = useSetRecoilState(locationState);
@@ -71,31 +72,46 @@ const BottomTabs = () => {
   return (
       <Tab.Navigator initialRouteName="지도"
         screenOptions={({ route }) => ({
-          tabBarIcon: ({ color, size }) => {
+          tabBarIcon: ({ focused,color, size }) => {
             let iconSource;
             switch (route.name) {
               case '인연':
-                iconSource = require("../assets/Icons/Airplane.png");
+                iconSource = focused ? require ("../assets/Icons/PaperPlaneIcon_focus.png")
+                : require ("../assets/Icons/PaperPlaneIcon.png");
                 break
               case '지도':
                 iconSource = require("../assets/Icons/MapIcon.png");
                 break;
-              case '채팅목록':
-                iconSource = require("../assets/Icons/MessageIcon.png");
+              case '대화':
+                iconSource = focused ? require("../assets/Icons/ChatingIcon.png")
+                : require ("../assets/Icons/ChatingIcon.png");
                 break;
-              case '친구목록' :
-                iconSource = require("../assets/Icons/FriendsIcon.png");;
-                break;
+              case '친구' :
+                iconSource = require("../assets/Icons/FriendsIcon.png")
             }
-            return <Image source={iconSource} resizeMode="contain"
-                    style={{ width: size, height: size, tintColor: color, marginTop: 7 }} />;
+            const animatedValue = new Animated.Value(focused ? 1.5 : 1.0);
+
+            if (focused) {
+                Animated.spring(animatedValue, {
+                    toValue: 1.2,
+                    friction: 7,
+                    tension: 5,
+                    useNativeDriver: true,
+                }).start();
+            }
+
+            return <Animated.View style={{ transform: [{ scale: animatedValue }] }}>
+                    <Image source={iconSource} resizeMode="contain"
+                    style={{ width: size, height: size, tintColor: color, marginTop: 7,marginBottom: 12 }} />
+                    </Animated.View>;
           },
           tabBarLabel: ({ focused }) => {
+            
             let labelStyle = {
-              fontFamily: focused ? FontTheme.fonts.title : FontTheme.fonts.sub,
-              fontSize: focused ? 12 : 10,
+              fontFamily: focused ? FontTheme.fonts.title : FontTheme.fonts.title,
+              fontSize: focused ? 13 : 11,
               color: focused ? '#3EB297' : 'gray',
-              marginBottom: 4,
+              marginBottom: 6,
             };
             return <Text style={labelStyle}>{route.name}</Text>;
           },
@@ -114,8 +130,8 @@ const BottomTabs = () => {
         })}>
       <Tab.Screen name="인연" component={BluetoothScreen}/>    
       <Tab.Screen name="지도" component={MapScreen}/>
-      <Tab.Screen name="채팅목록" component={ChattingStackScreen}/>
-      <Tab.Screen name="친구목록" component={FriendsStackScreen} />
+      <Tab.Screen name="대화" component={ChattingStackScreen}/>
+      <Tab.Screen name="친구" component={FriendsStackScreen} />
     </Tab.Navigator>
   )
 }
@@ -128,14 +144,11 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
       position: 'static',
-      left: '2.5%',
-      bottom: 10,
-      width: '95%',
-      height: 50,
+      width: '100%',
+      height: 65,
       backgroundColor: '#FFFFFF',
-      borderRadius: 15,
-      justifyContent: 'space-around',
       paddingHorizontal: 10,
+      paddingVertical: 12,
       alignItems: 'center',
   },
 });
