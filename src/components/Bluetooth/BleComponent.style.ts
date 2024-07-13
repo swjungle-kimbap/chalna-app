@@ -10,20 +10,29 @@ const styles = StyleSheet.create({
   },
   detectContainer: {
     height: 100, // 고정 높이 설정
-    marginTop: 30, // DetectDisplay와 LottieView 사이의 간격을 설정
+    top: '20%',
+    position: 'absolute',
+    zIndex: 2,
   },
   lottieImage: {
-    width: 350,
-    height: 350,
-    marginTop: -50
+    width: 600,
+    height: 600,
+    top: '5%',
+    position: 'absolute',
+    zIndex: 1,
   },
   // DetectDisplay style
-  imageContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  detectIconContainer: {
+    position: 'relative', // 자식 요소의 절대 위치를 위해 설정
+    width: 350, // lottieImage와 동일한 너비
+    height: 350, // lottieImage와 동일한 높이
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  image: {
+  detectIconWrapper: {
+    position: 'absolute',
+  },
+  detectIcon: {
     width: 50,
     height: 50,
   },
@@ -58,7 +67,7 @@ const styles = StyleSheet.create({
     height: '100%', // 고정 높이
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 60
+    marginBottom: 60,
   },
   findTextSmall: {
     fontSize: 16,
