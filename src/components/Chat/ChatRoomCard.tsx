@@ -1,19 +1,14 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useRecoilValue } from 'recoil';
-import { ProfileImageMapState } from '../../recoil/atoms';
-import FastImage, { Source } from 'react-native-fast-image';
-import { chatRoomMemberImage } from '../../interfaces/Chatting.type';
-import { handleDownloadProfile } from '../../service/Friends/FriendListAPI';
-import {JoinedLocalChatListState, userInfoState} from "../../recoil/atoms";
-import {LocalChatRoomData, LoginResponse} from "../../interfaces";
 import Text from '../../components/common/Text';
+import ProfileImage from '../common/ProfileImage';
 
 interface ChatRoomCardProps {
     numMember: number;
     usernames: string;
-    members: chatRoomMemberImage[]
+    profileImageId: number;
     memberCnt: number;
     lastMsg?: string | null;
     lastUpdate?: string;
@@ -26,45 +21,17 @@ interface ChatRoomCardProps {
     onDelete: (chatRoomId: number) =>void;
 }
 
-
-const DefaultImgUrl = '../../assets/images/anonymous.png';
-
 const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
-                                                       lastMsg, lastUpdate, description, distance
-                                                       , usernames, members, memberCnt
+                                                       lastMsg, lastUpdate, distance
+                                                       , usernames, profileImageId, memberCnt
                                                        , navigation, chatRoomType, chatRoomId
                                                        , unReadMsg, onDelete }) => {
-    const profileImageMap = useRecoilValue(ProfileImageMapState);
-    const [profilePicture, setProfilePicture] = useState("");
-    useEffect(() => {
-        const fetchProfileImage = async () => {
-            if (chatRoomType === 'FRIEND' && members.length === 1 && members[0].profileImageId) {
-                const findProfileImageId = members[0].profileImageId;
-                const newprofile = profileImageMap.get(findProfileImageId);
-                if (newprofile)
-                    setProfilePicture(newprofile);
-                else {
-                    const newProfileImageUri = await handleDownloadProfile(findProfileImageId);
-                    profileImageMap.set(findProfileImageId, newProfileImageUri);
-                    setProfilePicture(newProfileImageUri);
-                }
-            } else {
-                setProfilePicture("");
-            }
-        }
-        fetchProfileImage();
-    }, [members])
 
     const renderRightActions = () => (
         <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(chatRoomId)}>
             <Text style={styles.deleteButtonText}>삭제</Text>
         </TouchableOpacity>
     );
-    const joinedLocalChatList = useRecoilValue(JoinedLocalChatListState);
-    const chatRoomName = useMemo(() => {
-        const chatRoom = joinedLocalChatList.find(room => room.chatRoomId === chatRoomId);
-        return chatRoom ? chatRoom.name : 'Unknown Chat Room';
-    }, [chatRoomId, joinedLocalChatList]);
 
     const truncateString = (str, num) => {
         const newLineIndex = str.indexOf('\n');
@@ -90,39 +57,25 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
                 ]} // Conditional styles
             >
                 <View style={styles.row}>
-                    {(profilePicture) ?
-                    (<FastImage
-                    style={styles.image}
-                    source={{uri: profilePicture, priority: FastImage.priority.normal } as Source}
-                    resizeMode={FastImage.resizeMode.cover}
-                    />) : (
-                    <Image
-                    source={ //chatRoomType!=='LOCAL'?
-                        require(DefaultImgUrl)}
-                        // : require('../../assets/images/localChatRoom.png')} // Replace with your image path
-                    style={ styles.image }
-                    />
-                    )}
-
+                    <ProfileImage profileImageId={profileImageId} avatarStyle={styles.image}/>
                     <View style={styles.content}>
                         <View style={styles.header}>
-                                <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}
-                                      variant={chatRoomType=='MATCH'?"title":"main"}
-                                >
-                                    {chatRoomType==='LOCAL'? chatRoomName: usernames}
-                                </Text>
-                                <Text variant={'main'} align={'left'} style={{ color: 'grey', marginRight: 5, size:14 }}>
-                                    {chatRoomType==='FRIEND'? '':memberCnt}
-                                </Text>
-                                {chatRoomType==='LOCAL' && (
-                                    <Text variant={'sub'} style={styles.lastUpdate}>{distance ? '('+distance+')' : " "}</Text>
-                                )}
-                                {unReadMsg ? (
-                                    <View style={styles.unreadBadge}>
-                                        <Text  style={styles.unreadText}>{unReadMsg}</Text>
-                                    </View>
-                                ) : null}
-
+                            <Text style={[styles.usernames, chatRoomType === 'MATCH' && styles.matchUsername]}
+                                    variant={chatRoomType=='MATCH'?"title":"main"}
+                            >
+                                {usernames}
+                            </Text>
+                            <Text variant={'main'} align={'left'} style={{ color: 'grey', marginRight: 5, size:14 }}>
+                                {chatRoomType==='FRIEND'? '':memberCnt}
+                            </Text>
+                            {chatRoomType==='LOCAL' && (
+                                <Text variant={'sub'} style={styles.lastUpdate}>{distance}</Text>
+                            )}
+                            {unReadMsg ? (
+                                <View style={styles.unreadBadge}>
+                                    <Text  style={styles.unreadText}>{unReadMsg}</Text>
+                                </View>
+                            ) : null}
                         </View>
                         <View style={styles.bottomRow}>
                             <Text variant={'sub'} style={styles.lastMsg} numberOfLines={1}  align={'left'} >{truncatedMsg || " "}</Text>

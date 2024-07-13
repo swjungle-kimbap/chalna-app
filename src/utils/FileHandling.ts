@@ -1,9 +1,12 @@
 import { launchImageLibrary } from 'react-native-image-picker';
 import { AxiosResponse } from "axios";
-import { FileResponse, DownloadFileResponse } from "../interfaces";
+import { FileResponse, DownloadFileResponse, FileRequest } from "../interfaces";
 import { urls } from '../axios/config';
-import { axiosGet, axiosPatch } from '../axios/axios.method';
+import { axiosGet, axiosPost } from '../axios/axios.method';
 import { Alert } from 'react-native';
+import RNFS from 'react-native-fs';
+import { getMMKVString, setMMKVString } from './mmkvStorage';
+import ImageResizer from 'react-native-image-resizer';
 
 export interface FileImage {
   uri: string;
@@ -39,40 +42,86 @@ export const handleImagePicker = (): Promise<FileImage|null> => {
   });
 };
 
-export const handleUploadS3 = async (image:FileImage, needPresignedUrl=true):Promise<FileResponse> => {
+export const uploadImage = async (image:FileImage, fileType:'IMAGE' |'PROFILEIMAGE'):Promise<{uri:string, fileId:number}> => {
   if (!image) return;
   const { uri, fileName, fileSize, type: contentType } = image;
 
   try {
-    const metadataResponse = await axiosPatch<AxiosResponse<FileResponse>>(`${urls.USER_INFO_PROFILEIMG_URL}`, "프로필 업로드", {
+    const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}`, "파일 업로드", {
       fileName,
       fileSize,
-      contentType
-    });
-    const fileResponse = metadataResponse?.data?.data;
+      contentType,
+      fileType
+    } as FileRequest);
+    const {presignedUrl: uploadPresignedUrl, fileId} = metadataResponse?.data?.data;
+  
+    const resizedImage = await ImageResizer.createResizedImage(
+      uri,
+      fileType === 'IMAGE' ? 1500 : 500, 
+      fileType === 'IMAGE' ? 1500 : 500, 
+      'JPEG', 
+      80, 
+      0, 
+      null,
+      true,
+      { onlyScaleDown: true }
+    );
+    RNFS.unlink(uri);
     
     // s3에 업로드
-    const file = await fetch(uri);
+    const file = await fetch(resizedImage.uri);
     const blob = await file.blob();
-    const uploadResponse = await fetch(fileResponse.presignedUrl, {
+    await fetch(uploadPresignedUrl, {
       headers: {'Content-Type': contentType},
       method: 'PUT',
       body: blob
     })
+    setMMKVString(`image.${fileId}`, resizedImage.uri);
+    return {uri: resizedImage.uri, fileId};
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
 
-    if (uploadResponse.ok) {
-      if (needPresignedUrl) {
-        const downloadResponse = await axiosGet<AxiosResponse<DownloadFileResponse>>(`${urls.FILE_DOWNLOAD_URL}${fileResponse.fileId}`,"프로필 다운로드" );
-        const { presignedUrl }= downloadResponse?.data?.data;
-        fileResponse.presignedUrl = presignedUrl;
-      }
-      return fileResponse;
-      
+const downloadImage = async (url:string, imageId: number) => {
+  try {
+    const timestamp = new Date().getTime();
+    const localFilePath = `${RNFS.CachesDirectoryPath}/cache/${timestamp}.jpg`; 
+    const downloadResult = await RNFS.downloadFile({
+      fromUrl: url, 
+      toFile: localFilePath, // 로컬다운경로 
+    }).promise;
+
+    if (downloadResult.statusCode === 200) {   
+      const savePath = localFilePath;
+      setMMKVString(`image.${imageId}`, savePath);
+      return savePath;
     } else {
-      console.log('이미지상태:', uploadResponse.status);
-      Alert.alert('실패', '이미지 업로드에 실패했습니다.');
-      return null;
+      console.log('이미지 다운로드 중 실패했습니다.', downloadResult);
+      Alert.alert('다운로드 실패', '이미지 다운로드에 실패했습니다.');
     }
+  } catch (error) {
+    console.log('이미지 다운로드 중 오류가 발생했습니다.');
+    Alert.alert('다운로드 실패', '이미지 다운로드에 실패했습니다.');
+  }
+};
+
+export const getImageUri = async (imageId: number) => {
+  if (!imageId)
+    return null;
+
+  const profileImageUri = getMMKVString(`image.${imageId}`);
+  if (profileImageUri)
+    return profileImageUri;
+  
+  try {
+    const downloadResponse = await axiosGet<AxiosResponse<DownloadFileResponse>>(
+          `${urls.FILE_DOWNLOAD_URL}${imageId}`, "이미지 다운로드 url");
+    const { presignedUrl } = downloadResponse.data.data;
+    // const imgUri = await downloadImage(presignedUrl, imageId);
+    setMMKVString(`image.${imageId}`, presignedUrl);
+    return presignedUrl
   } catch (error) {
     console.error(error);
     return null;

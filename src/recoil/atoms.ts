@@ -1,5 +1,5 @@
 import { atom } from "recoil";
-import { Friend, LocalChatData, LocalChatRoomData, LoginResponse, Position } from "../interfaces";
+import { LocalChatData, LoginResponse, Position } from "../interfaces";
 
 export const locationState = atom<Position>({
   key: 'location',
@@ -24,11 +24,6 @@ export const AlarmCountState = atom<number>({
   default: 0
   }
 )
-
-export const JoinedLocalChatListState = atom<LocalChatRoomData[]>({
-  key: 'JoinedLocalChatList',
-  default: []
-})
 
 export const DeviceUUIDState = atom<string>({
   key: 'DeviceUUID',

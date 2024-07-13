@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRecoilValue } from "recoil";
-import { userInfoState, ProfileImageMapState, JoinedLocalChatListState } from "../../recoil/atoms";
+import { userInfoState, JoinedLocalChatListState, LocalChatListState } from "../../recoil/atoms";
 import { LoginResponse, User } from "../../interfaces";
 import { SWRConfig } from 'swr';
 import MessageBubble from '../../components/Chat/MessageBubble'; // Adjust the path as necessary
@@ -47,9 +47,9 @@ import { FileResponse } from "../../interfaces";
 import RNFS from "react-native-fs";
 import ImageResizer from 'react-native-image-resizer';
 import DateHeader from '../../components/Chat/DateHeader';
-import { handleDownloadProfile } from '../../service/Friends/FriendListAPI';
 import {sendFriendRequest} from "../../service/Friends/FriendRelationService";
 import Announcement from "../../components/Chat/Announcement";
+import { getImageUri } from '../../utils/FileHandling';
 
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
@@ -70,24 +70,21 @@ const ChattingScreen: React.FC = () => {
 
     const chatRoomIdRef = useRef<string>(chatRoomId);
     const [profilePicture, setProfilePicture] = useState<string>("");
-    const profileImageMap = useRecoilValue(ProfileImageMapState);
 
     const [showAnnouncement, setShowAnnouncement] = useState<boolean>(false); // State for showing announcement
 
     const chatMessageType = useRef<string>('CHAT');
-
-    useBackToScreen("로그인 성공", { screen: "채팅목록", params: { screen: "채팅 목록" } });
 
     const flatListRef = useRef<FlatList<directedChatMessage>>(null);
     const isUserAtBottom = useRef<boolean>(true);
     const [showScrollToEndButton, setShowScrollToEndButton] = useState<boolean>(false);
     const [showNewMessageBadge, setShowNewMessageBadge] = useState<boolean>(false);
 
-    const joinedLocalChatList = useRecoilValue(JoinedLocalChatListState);
+    const localChatList = useRecoilValue(LocalChatListState);
     const chatRoomInfo = useMemo(() => {
-        const chatRoom = joinedLocalChatList.find(room => room.chatRoomId === Number(chatRoomId));
-        return chatRoom ? { name: chatRoom.name, distance: chatRoom.distance, description: chatRoom.description } : { name: 'Unknown Chat Room', distance: 0, description: '' };
-    }, [chatRoomId, joinedLocalChatList]);
+        const chatRoom = localChatList.find(room => room.localChat.chatRoomId === Number(chatRoomId));
+        return chatRoom ? { name: chatRoom.localChat.name, distance: chatRoom.localChat.distance, description: chatRoom.localChat.description } : { name: 'Unknown Chat Room', distance: 0, description: '' };
+    }, [chatRoomId, localChatList]);
 
     const calculateDistanceInMeters = (distanceInKm: number) => {
         const distanceInMeters = distanceInKm * 1000;
@@ -96,7 +93,7 @@ const ChattingScreen: React.FC = () => {
 
     const distanceDisplay = () => {
         const distanceInMeters = calculateDistanceInMeters(chatRoomInfo.distance);
-        return distanceInMeters > 50 ? '50m+' : `${distanceInMeters}m`;
+        return distanceInMeters > 100 ? '100m+' : `${distanceInMeters}m`;
     };
 
     const AnnouncementMsg = () => {
@@ -136,15 +133,8 @@ const ChattingScreen: React.FC = () => {
         // 프로필 이미지 로드
         const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
         if (filteredMembers[0].profileImageId) {
-            const findProfileImageId = filteredMembers[0].profileImageId;
-            const newprofile = profileImageMap.get(findProfileImageId);
-            if (newprofile)
-                setProfilePicture(newprofile);
-            else {
-                const newProfileImageUri = await handleDownloadProfile(findProfileImageId);
-                profileImageMap.set(findProfileImageId, newProfileImageUri);
-                setProfilePicture(newProfileImageUri);
-            }
+            const uri = await getImageUri(filteredMembers[0].profileImageId);
+            setProfilePicture(uri);
         } else {
             setProfilePicture("");
         }
@@ -197,7 +187,7 @@ const ChattingScreen: React.FC = () => {
                 1500, // 너비를 1500으로 조정
                 1500, // 높이를 1500으로 조정
                 'JPEG', // 이미지 형식
-                100, // 품질 (0-100)
+                80, // 품질 (0-100)
                 0, // 회전 (회전이 필요하면 EXIF 데이터에 따라 수정 가능)
                 null,
                 true,
@@ -401,14 +391,11 @@ const ChattingScreen: React.FC = () => {
 
                         const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
                         if (responseData.type === 'FRIEND' && filteredMembers.length === 1 && filteredMembers[0].profileImageId) {
-                            const findProfileImageId = filteredMembers[0].profileImageId;
-                            const newprofile = profileImageMap.get(findProfileImageId);
-                            if (newprofile)
-                                setProfilePicture(newprofile);
-                            else {
-                                const newProfileImageUri = await handleDownloadProfile(findProfileImageId);
-                                profileImageMap.set(findProfileImageId, newProfileImageUri);
-                                setProfilePicture(newProfileImageUri);
+                            if (filteredMembers[0].profileImageId) {
+                                const uri = await getImageUri(filteredMembers[0].profileImageId);
+                                setProfilePicture(uri);
+                            } else {
+                                setProfilePicture("");
                             }
                         } else {
                             setProfilePicture("");

@@ -42,13 +42,6 @@ export interface GetLocalChatResponse {
   message: string
 }
 
-export interface LocalChatRoomData extends Position {
-  chatRoomId: number,
-  distance?: number,
-  name: string,
-  description: string,
-}
-
 export interface LocalChatData {
   localChat: LocalChat,
   isOwner: boolean,

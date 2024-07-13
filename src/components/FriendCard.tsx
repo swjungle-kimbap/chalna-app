@@ -5,11 +5,9 @@ import RoundBox from './common/RoundBox';
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../interfaces";
 import Button from './common/Button';
-import { axiosGet, axiosPost } from "../axios/axios.method";
+import { axiosGet } from "../axios/axios.method";
 import {urls} from "../axios/config";
-import FastImage, { Source } from 'react-native-fast-image';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { ProfileImageMapState } from '../recoil/atoms';
+import ProfileImage from './common/ProfileImage';
 
 interface FriendCardProps {
     user: Friend;
@@ -26,13 +24,12 @@ interface ApiResponse {
         id: number;
         username: string;
         message: string;
-        profileImageUrl: string;
+        profileImageId: number;
         chatRoomId: number;
     };
   }
 
 const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, navigation, options}) => {
-    const profileImageMap = useRecoilValue(ProfileImageMapState);
     const handlePress = () => {
         onExpand();
     };
@@ -75,16 +72,7 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
         <TouchableOpacity onPress={handlePress}>
             <RoundBox style={styles.container}>
                 <View style={styles.header}>
-                    { user.profileImageId ? (
-                        <FastImage
-                        style={styles.avatar}
-                        source={{uri: profileImageMap.get(user.profileImageId), priority: FastImage.priority.normal } as Source}
-                        resizeMode={FastImage.resizeMode.cover}
-                        />
-                    ) : (
-                        <Image source={require('../assets/images/anonymous.png')} style={styles.avatar} />
-                    )}
-                    {/* <Image source={user.profileImageUrl ? { uri: user.profileImageUrl } : require('../assets/images/anonymous.png')} style={styles.avatar} /> */}
+                    <ProfileImage profileImageId={user.profileImageId} avatarStyle={styles.avatar}/>
                     <View style={styles.textContainer}>
                         <Text style={styles.name} >{user.username}</Text>
                         <Text style={styles.statusMessage}>{user.message}</Text>
@@ -92,7 +80,6 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
                 </View>
                 {isExpanded && (
                     <View style={styles.expandedContainer}>
-                        {/* <Text style={styles.additionalInfo}>Additional information about {user.username}</Text> */}
                         { options==='friend' && (
                             <View style={styles.btnContainer}>
                                 <Button title="대화하기" onPress={handleChat}  />

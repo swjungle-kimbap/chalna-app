@@ -1,4 +1,4 @@
-import { Alert, Modal, ScrollView, StyleSheet, TextInput, TouchableWithoutFeedback, View, }from 'react-native';
+import { Alert, Modal, StyleSheet, TextInput, TouchableWithoutFeedback, View, }from 'react-native';
 import { useRef, useState } from 'react';
 import Button from '../common/Button';
 import Text from '../common/Text';
@@ -6,7 +6,7 @@ import { useRecoilState, useRecoilValue } from 'recoil';
 import { getLocalChatRefreshState, locationState } from '../../recoil/atoms';
 import { makeLocalChat } from '../../service/LocalChat';
 import FastImage from 'react-native-fast-image';
-import { handleImagePicker } from '../../service/FileHandling';
+import { handleImagePicker } from '../../utils/FileHandling';
 
 export interface LocalChatModalProps{
   closeModal: () => void,

@@ -1,28 +1,27 @@
-import { ChatDisconnectOut, localChatDelete, localChatJoin, localChatOut } from "../../service/LocalChat";
+import { ChatDisconnectOut, localChatJoin, localChatOut } from "../../service/LocalChat";
 import { NaverMapMarkerOverlay } from "@mj-studio/react-native-naver-map";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { AxiosResponse, DownloadFileResponse, GetLocalChatResponse, LocalChatData, LocalChatRoomData } from '../../interfaces';
+import { GetLocalChatResponse, LocalChatData } from '../../interfaces';
 import { axiosGet } from "../../axios/axios.method";
 import {urls} from "../../axios/config";
 import { AxiosRequestConfig } from "axios";
 import { calDistance } from "../../utils/calDistance";
 import { Position } from '../../interfaces';
-import { getLocalChatRefreshState, JoinedLocalChatListState, LocalChatListState, locationState, ProfileImageMapState } from "../../recoil/atoms";
+import { getLocalChatRefreshState, LocalChatListState, locationState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useFocusEffect } from "@react-navigation/core";
 import Geolocation from "react-native-geolocation-service";
+import { getImageUri } from "../../utils/FileHandling";
 
 const LocalChatDelayedTime = 10 * 1000;
 const defaultImg = require('../../assets/Icons/LocalChatIcon.png');
 
 const LocalChatMarkerOverlay = () => {
   const currentLocation = useRecoilValue<Position>(locationState);
-  const [joinedLocalChatList, setJoinedLocalChatList] = useRecoilState(JoinedLocalChatListState);
   const [localChatList, setLocalChatList] = useRecoilState<LocalChatData[]>(LocalChatListState);
   const [locationUpdate, setLocationUpdate] = useState(currentLocation);
   const updatedLocationRef = useRef(currentLocation);
   const [refresh, setRefresh] = useRecoilState(getLocalChatRefreshState);
-  const [profileImageMap, setProfileImageMap] = useRecoilState(ProfileImageMapState);
   const [markers, setMarkers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,25 +31,13 @@ const LocalChatMarkerOverlay = () => {
       updatedLocationRef.current = currentLocation;
       setLocationUpdate(currentLocation);
       const updateLocalChatRoom = async () => {
-        const updatedLocalChatRoomData: LocalChatRoomData[] = [];
         // Update localChatList
         const updatedLocalChatList = await Promise.all(localChatList.map(async (item) => {
           const localChat = item.localChat;
           const distance = calDistance(currentLocation, { latitude: localChat.latitude, longitude: localChat.longitude });
-          if (item.isJoined && distance >= 0.08) {
+          if (item.isJoined && distance >= 0.125) {
             await ChatDisconnectOut(localChat.chatRoomId, setRefresh);
             return null;
-          }
-
-          if (item.isJoined) {
-            updatedLocalChatRoomData.push({
-              chatRoomId: localChat.chatRoomId,
-              description: localChat.description,
-              name: localChat.name,
-              latitude: localChat.latitude,
-              longitude: localChat.longitude,
-              distance
-            })
           }
 
           return {
@@ -61,13 +48,11 @@ const LocalChatMarkerOverlay = () => {
             },
           };
         }));
-      
-        setJoinedLocalChatList(updatedLocalChatRoomData.filter(item => item !== null));
         setLocalChatList(updatedLocalChatList.filter(item => item !== null));
       }
       updateLocalChatRoom();
     }
-  }, [currentLocation, joinedLocalChatList]);
+  }, [currentLocation]);
 
   const fetchLocalChatList = async () => {
     try {
@@ -88,20 +73,9 @@ const LocalChatMarkerOverlay = () => {
               urls.GET_LOCAL_CHAT_URL, "주변 장소 채팅 조회", localChatReqeustBody, false);
   
             if (response.data.data) {
-              const updatedLocalChatRoomData: LocalChatRoomData[] = [];
               const updatedLocalChatList = response.data.data.map((item) => {
                 const localChat = item.localChat;
                 const distance = calDistance({latitude, longitude}, {latitude: localChat.latitude, longitude: localChat.longitude});
-                if (item.isJoined) {
-                  updatedLocalChatRoomData.push({
-                    chatRoomId: localChat.chatRoomId,
-                    description: localChat.description,
-                    name: localChat.name,
-                    latitude: localChat.latitude,
-                    longitude: localChat.longitude,
-                    distance
-                  })
-                }
                 return {
                   ...item,
                   localChat: {
@@ -111,7 +85,6 @@ const LocalChatMarkerOverlay = () => {
                 };
               });
               setLocalChatList(updatedLocalChatList);
-              setJoinedLocalChatList(updatedLocalChatRoomData);
             }
           } catch (error) {
             console.error("채팅 리스트 요청 실패", error.message);
@@ -140,16 +113,6 @@ const LocalChatMarkerOverlay = () => {
     }, [])
   );
 
-  const getPresignedUrl = async (ImageId) => {
-    const downloadResponse = await axiosGet<AxiosResponse<DownloadFileResponse>>(
-      `${urls.FILE_DOWNLOAD_URL}${ImageId}`,"장소 채팅 이미지 링크 다운로드" );
-    if (downloadResponse?.data?.data) {
-      const { presignedUrl } = downloadResponse?.data?.data;
-      return presignedUrl
-    }
-    return null;
-  }
-
   useEffect(() => {
     const fetchMarkers = async () => {
       if (!localChatList || localChatList.length === 0 || !currentLocation) {
@@ -161,27 +124,17 @@ const LocalChatMarkerOverlay = () => {
         const markerPromises = localChatList.map(async (item) => {
           const localChat = item.localChat;
           const ImageId = localChat.imageId;
-          let savedSource = null, ImgSource = defaultImg;
-          if (ImageId) {
-            savedSource = profileImageMap.get(ImageId);
-          } 
-  
-          if (savedSource) {
-            ImgSource = { httpUri: savedSource };
-          } else if (ImageId) {
-            const presignedUrl = await getPresignedUrl(ImageId);
-            
-            if (presignedUrl) {
-              ImgSource = { httpUri: presignedUrl };
-              profileImageMap.set(ImageId, presignedUrl);
-            }
+          let ImgSource = defaultImg;
+          const imageUri = await getImageUri(ImageId);
+          if (imageUri) {
+            ImgSource = {httpUri: imageUri}
           }
           return (
             <NaverMapMarkerOverlay
               key={localChat.id}
               latitude={localChat.latitude}
               longitude={localChat.longitude}
-              onTap={item.isJoined ? () => localChatOut(localChat, localChat.distance, setRefresh) :
+              onTap={item.isJoined ? () => localChatOut(localChat, setRefresh) :
                 () => localChatJoin(localChat, localChat.distance, setRefresh)
               }
               image={ImgSource}
@@ -189,7 +142,7 @@ const LocalChatMarkerOverlay = () => {
               width={ImgSource !== defaultImg? 50 : 40}
               height={ImgSource !== defaultImg? 50 : 40}
               caption={{ text: localChat.name }}
-              isHideCollidedMarkers={localChat.distance < 0.5 ? false: true}
+              isHideCollidedMarkers={localChat.distance < 0.1 ? false: true}
               isHideCollidedCaptions={true}
             />
           );

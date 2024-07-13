@@ -1,17 +1,16 @@
 import FontTheme from '../../styles/FontTheme';
 import Button from "../../components/common/Button"
-import { StyleSheet, View, Text , Modal, TouchableOpacity, Alert} from "react-native";
+import { StyleSheet, View, Text , Modal, TouchableOpacity, Image } from "react-native";
 import { useRecoilState } from "recoil";
 import { userInfoState } from "../../recoil/atoms";
-import { useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import EditModal from './EditModal';
 import { LoginResponse } from '../../interfaces';
 import { axiosPatch } from '../../axios/axios.method';
 import { urls } from '../../axios/config';
-import { setMMKVObject } from '../../utils/mmkvStorage';
+import { getMMKVString, setMMKVObject } from '../../utils/mmkvStorage';
 import FastImage, { Source } from 'react-native-fast-image';
-import { handleImagePicker, handleUploadS3 } from '../../service/FileHandling';
-import RNFS from 'react-native-fs';
+import { handleImagePicker, uploadImage,  } from '../../utils/FileHandling';
 
 const DefaultImgUrl = '../../assets/images/anonymous.png';
 const editButtonUrl ='../../assets/buttons/EditButton.png'
@@ -23,73 +22,53 @@ const UserCard = () => {
   const [showNameEditModal, setShowNameEditModal] = useState<boolean>(false);
   const [showStatusEditModal, setShowStatusEditModal] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const ImageRef = useRef(null);
+  const [profileUri, setProfileUri] = useState("");
 
-  const setUsername = (username) => {
-    const newUseInfo = {...userInfo, username};
+  useEffect(() => {
+    const savedUri = getMMKVString(`image.${userInfo.profileImageId}`);
+    if (savedUri)
+      setProfileUri(savedUri);
+  }, [])
+
+  const updateUserInfo = (userData) => {
+    const newUseInfo = {...userInfo, ...userData};
     setUserInfo(newUseInfo);
-    axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", {username});
+    axiosPatch(urls.PATCH_USER_INFO_URL, "사용자 정보 수정", userData);
     setMMKVObject<LoginResponse>("mypage.userInfo", newUseInfo);
   }
-  const setMessage = async (message) => {
-    const newUseInfo = {...userInfo, message};
-    setUserInfo(newUseInfo);
-    axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", {message});
-    setMMKVObject<LoginResponse>("mypage.userInfo", newUseInfo);
-  }
-
-  const downloadAndStoreImage = async (url) => {
-    try {
-      const timestamp = new Date().getTime();
-      const localFilePath = `${RNFS.DocumentDirectoryPath}/profile_image_${timestamp}.jpg`; // 앱 내부 저장소 
-      const downloadResult = await RNFS.downloadFile({
-        fromUrl: url, 
-        toFile: localFilePath, // 로컬다운경로 
-      }).promise;
-      console.log(localFilePath);
   
-      if (downloadResult.statusCode === 200) {                                                                 
-        setUserInfo({ ...userInfo, profileImageUrl: `file://${localFilePath}` });
-        axiosPatch(urls.USER_INFO_EDIT_URL, "사용자 정보 수정", { profileImageUrl: `file://${localFilePath}` });
-        setMMKVObject<LoginResponse>("mypage.userInfo", { ...userInfo, profileImageUrl: `file://${localFilePath}` });
-      } else {
-        console.log(downloadResult.statusCode);
-        Alert.alert('실패', '이미지 다운로드에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error('Image download error: ', error);
-      Alert.alert('실패', '이미지 다운로드 중 오류가 발생했습니다.');
-    }
-  };
-
-  const resetToDefaultImage = () => {
-    setUserInfo({ ...userInfo, profileImageUrl: DefaultImgUrl });
-    axiosPatch(urls.USER_INFO_EDIT_URL, "프로필 이미지 기본으로 변경", { profileImageUrl: DefaultImgUrl });
-    setMMKVObject<LoginResponse>("mypage.userInfo", { ...userInfo, profileImageUrl: DefaultImgUrl });
-  };
-
   const handleImagePick = async () => {
     const image = await handleImagePicker();
-    const {presignedUrl, fileId} = await handleUploadS3(image);
-    await downloadAndStoreImage(presignedUrl);
+    const {uri, fileId} = await uploadImage(image, "PROFILEIMAGE");
+    setProfileUri(uri);
+    updateUserInfo({profileImageId:fileId});
   }
+
+  const resetDefaultImg = async () => {
+    setProfileUri("");
+    setModalVisible(false);
+    updateUserInfo({profileImageId:0});
+  }
+
   return (
   <>
-    {showNameEditModal && (<EditModal value={userInfo.username} setValue={setUsername} maxLength={10}
-      modalVisible={showNameEditModal}  closeModal={() => setShowNameEditModal(false)}/>)}
-    {showStatusEditModal && (<EditModal value={userInfo.message} setValue={setMessage} maxLength={20}
-      modalVisible={showStatusEditModal} closeModal={() => setShowStatusEditModal(false)}/>)}
+    {showNameEditModal && (<EditModal value={userInfo.username} 
+      setValue={(username) => updateUserInfo({username})} maxLength={10}
+        modalVisible={showNameEditModal}  closeModal={() => setShowNameEditModal(false)}/>)}
+    {showStatusEditModal && (<EditModal value={userInfo.message} 
+      setValue={(message) => updateUserInfo({message})} maxLength={20}
+        modalVisible={showStatusEditModal} closeModal={() => setShowStatusEditModal(false)}/>)}
     <View style={styles.myProfileContainer}>
       <View style={styles.headerText}>
         <Text style={styles.text}>내 프로필</Text>    
       </View>
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
-          {userInfo.profileImageUrl !== DefaultImgUrl && userInfo.profileImageUrl ? (            
+          {profileUri ? (            
             <TouchableOpacity onPress={() => setModalVisible(true)}>
               <FastImage
               style={styles.avatar}
-              source={{uri: userInfo.profileImageUrl, priority: FastImage.priority.normal } as Source}
+              source={{uri: profileUri}}
               resizeMode={FastImage.resizeMode.cover}
               />
             </TouchableOpacity>
@@ -132,16 +111,13 @@ const UserCard = () => {
         <View style={styles.modalContent}>
           <FastImage
             style={styles.fullScreenImage}
-            source={{ uri: userInfo.profileImageUrl, priority: FastImage.priority.normal }}
+            source={{ uri: profileUri, priority: FastImage.priority.normal }}
             resizeMode={FastImage.resizeMode.contain}
           />
         </View>
         <View style={styles.buttonContainer}>
           <Button title="다른 이미지 선택" onPress={handleImagePick} titleStyle={styles.Button} />
-          <Button title="기본 이미지로 변경" onPress={() => {
-            resetToDefaultImage();
-            setModalVisible(false);
-          }} titleStyle={styles.Button} />
+          <Button title="기본 이미지로 변경" onPress={resetDefaultImg} titleStyle={styles.Button} />
         </View>
         <Button title="닫기" onPress={() => setModalVisible(false)} titleStyle={styles.closeButton} />
       </View>
