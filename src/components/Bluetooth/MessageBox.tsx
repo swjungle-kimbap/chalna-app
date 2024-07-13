@@ -12,6 +12,7 @@ import FastImage from 'react-native-fast-image';
 import { useSetRecoilState } from 'recoil';
 import { MsgSendCntState } from '../../recoil/atoms';
 import { handleImagePicker, uploadImage } from '../../utils/FileHandling';
+import { useModal } from '../../context/ModalContext';
 
 const ignorePatterns = [
   /No task registered for key shortService\d+/,
@@ -44,6 +45,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
   const [selectedImage, setSelectedImage] = useState(null);
   const setMsgSendCnt = useSetRecoilState(MsgSendCntState);
   const [textInputHeight, setTextInputHeight] = useState(40); // 기본 높이 설정
+  const { showModal } = useModal();
 
   const sendMsg = async ( uuids:Set<string>, fileId : number ) => {
     let response = null;
@@ -128,7 +130,9 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
       <RoundBox style={styles.msgBox}>
         <View style={styles.titleContainer}>
           <Text variant='title' style={styles.title}>인연 메세지 <Button title='💬' onPress={() => {
-            Alert.alert("인연 메세지 작성",`${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요!`)}
+            // Alert.alert("인연 메세지 작성",`${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요!`)
+            showModal("인연 메세지 작성", `${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요!`, () => {}, undefined,false);}
+
           }/> 
           </Text>
           {tags.map((tag) => (

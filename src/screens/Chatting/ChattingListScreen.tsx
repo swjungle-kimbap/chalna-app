@@ -137,6 +137,7 @@ const ChattingListScreen = ({ navigation }) => {
                         if (item.type === 'LOCAL') {
                             const findChatRoom = localChatList.find(room => room.localChat.chatRoomId === item.id);
                             if (findChatRoom?.localChat) {
+
                                 return (
                                     <ChatRoomCard
                                         usernames={findChatRoom.localChat.name}
@@ -153,6 +154,7 @@ const ChattingListScreen = ({ navigation }) => {
                                         onDelete={handleDeleteChatRoom}
                                     />
                                 )
+
                             } else {
                                 ChatDisconnectOut(item.id, null);
                             }
