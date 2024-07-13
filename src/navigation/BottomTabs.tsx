@@ -5,9 +5,9 @@ import MapScreen from '../screens/Map/MapScreen';
 import FontTheme from "../styles/FontTheme";
 import FriendsStackScreen from "./FriendsStack";
 import ChattingStackScreen from "./ChattingStack";
-import { useRecoilState, useSetRecoilState } from 'recoil';
+import { useSetRecoilState } from 'recoil';
 import { locationState } from '../recoil/atoms';
-import { getMMKVObject, getMMKVString } from '../utils/mmkvStorage';
+import { getMMKVObject } from '../utils/mmkvStorage';
 import { AxiosResponse, Friend, Position } from '../interfaces';
 import { initUserSetting } from '../service/Setting';
 import { axiosGet } from "../axios/axios.method";
@@ -15,6 +15,10 @@ import { urls } from "../axios/config";
 import BluetoothScreen from "../screens/BlueTooth/BluetoothScreen";
 import Text from "../components/common/Text";
 import { getImageUri } from '../utils/FileHandling';
+import { useFocusEffect, useNavigation } from '@react-navigation/core';
+import { BackHandler } from 'react-native';
+import { navigationRef } from './RootNavigation';
+
 
 const Tab = createBottomTabNavigator();
 
@@ -22,6 +26,8 @@ const BottomTabs = () => {
     const setLastLocation = useSetRecoilState(locationState);
     const [isLoading, setIsLoading] = useState(true);
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+    const [previousRoute, setPreviousRoute] = useState<{name:string; params:null|object}>(null);
+    const navigation = useNavigation();
 
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
@@ -41,7 +47,7 @@ const BottomTabs = () => {
       const initialize = async () => {
           const lastLocation = getMMKVObject<Position>('map.lastLocation');
           if (lastLocation) {
-              setLastLocation(lastLocation);
+            setLastLocation(lastLocation);
           }
           setIsLoading(false);
           initUserSetting();
@@ -61,6 +67,38 @@ const BottomTabs = () => {
 
       initialize();
     }, [setLastLocation]);
+  
+    useEffect(() => {
+      const getPreviousRoute = () => {
+        const routes = navigation.getState().routes;
+        if (routes.length > 1) {
+          const previous = routes[routes.length - 2];
+          setPreviousRoute(previous);
+        }
+      };
+  
+      const unsubscribe = navigation.addListener('state', getPreviousRoute);
+  
+      const backHandler = () => {
+        navigation.getParent()?.goBack(); 
+        if (previousRoute && previousRoute.name) {
+          navigation.navigate(previousRoute.name, previousRoute.params);
+          return true;
+        }
+        return false;
+      };
+  
+      const backHandlerListener = BackHandler.addEventListener(
+        'hardwareBackPress',
+        backHandler
+      );
+  
+      return () => {
+        unsubscribe();
+        backHandlerListener.remove();
+      };
+    }, [navigation, previousRoute]);
+  
 
   if (isLoading) {
     return (

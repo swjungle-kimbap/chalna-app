@@ -253,8 +253,8 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   };
 
   const handleBLEButton = async () => {
-    await handleCheckPermission()
-    if (!isScanning)
+    const success = await handleCheckPermission();
+    if (success && !isScanning)
       startScan();
     else if (isScanning) {
       stopScan();

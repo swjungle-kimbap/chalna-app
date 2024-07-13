@@ -4,11 +4,13 @@ import { NavigationContainer } from '@react-navigation/native';
 import LoginScreen from './Login/LoginScreen';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import ChattingScreen from './Chatting/ChattingScreen';
+import { NavigationProvider } from '../navigation/NavigtaionContext';
+
 
 const MainScreen : React.FC = () => {
   const LogInStack = createBottomTabNavigator();
-
   return (
+  <NavigationProvider>
     <NavigationContainer ref={navigationRef} onReady={()=> {
       isReadyRef.current = true;
     }}>
@@ -25,6 +27,7 @@ const MainScreen : React.FC = () => {
 
       </LogInStack.Navigator>
     </NavigationContainer>
+  </NavigationProvider>
   );
 }
 

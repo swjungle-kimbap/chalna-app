@@ -14,6 +14,7 @@ import {convertChatRoomDateFormat, formatDateToKoreanTime} from "../../service/C
 import RoundBox from '../../components/common/RoundBox';
 import Button from "../../components/common/Button";
 import { navigate } from '../../navigation/RootNavigation';
+import { ChatDisconnectOut } from '../../service/LocalChat';
 
 const ChattingListScreen = ({ navigation }) => {
     const [chatRooms, setChatRooms] = useState<ChatRoomLocal[]>(getChatRoomList()||[]);
@@ -134,23 +135,27 @@ const ChattingListScreen = ({ navigation }) => {
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }: {item :ChatRoomLocal}) => {
                         if (item.type === 'LOCAL') {
-                            const findChatRoom = localChatList.find(room => room.localChat.chatRoomId === Number(item.id));
-                            return (
-                                <ChatRoomCard
-                                    usernames={findChatRoom.localChat.name}
-                                    memberCnt = {item.memberCount}
-                                    profileImageId={findChatRoom.localChat.imageId}
-                                    lastMsg={getLastMsg(item)}
-                                    lastUpdate={getLastUpdate(item)}
-                                    distance={findChatRoom ? distanceDisplay(findChatRoom.localChat.distance): ''}
-                                    navigation={navigation}
-                                    chatRoomType={item.type}
-                                    chatRoomId={item.id}
-                                    numMember={item.memberCount}
-                                    unReadMsg={item.unreadMessageCount}
-                                    onDelete={handleDeleteChatRoom}
-                                />
-                            )
+                            const findChatRoom = localChatList.find(room => room.localChat.chatRoomId === item.id);
+                            if (findChatRoom?.localChat) {
+                                return (
+                                    <ChatRoomCard
+                                        usernames={findChatRoom.localChat.name}
+                                        memberCnt = {item.memberCount}
+                                        profileImageId={findChatRoom.localChat.imageId}
+                                        lastMsg={getLastMsg(item)}
+                                        lastUpdate={getLastUpdate(item)}
+                                        distance={findChatRoom ? distanceDisplay(findChatRoom.localChat.distance): ''}
+                                        navigation={navigation}
+                                        chatRoomType={item.type}
+                                        chatRoomId={item.id}
+                                        numMember={item.memberCount}
+                                        unReadMsg={item.unreadMessageCount}
+                                        onDelete={handleDeleteChatRoom}
+                                    />
+                                )
+                            } else {
+                                ChatDisconnectOut(item.id, null);
+                            }
                         }
                         let profileImageId = 0;
                         if (item.type === 'FRIEND' && item.memberCount === 2) {

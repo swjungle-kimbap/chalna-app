@@ -154,7 +154,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
           </View>
           </>
         }
-        {filteredData.length === 0 ? (
+        {!filteredData ? (
           <Text>친구가 없습니다.</Text>
         ) : (
           <FlatList
