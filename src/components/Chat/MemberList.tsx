@@ -3,6 +3,7 @@ import React from 'react';
 import { View,  FlatList, StyleSheet, Image } from 'react-native';
 import { chatRoomMember } from "../../interfaces/Chatting.type";
 import ImageTextButton from "../common/Button";
+import FastImage from "react-native-fast-image";
 import {useRecoilValue} from "recoil";
 import {LoginResponse} from "../../interfaces";
 import {userInfoState} from "../../recoil/atoms";
@@ -34,6 +35,7 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
         }
     };
 
+    // profile 추가하기
     return (
         <View style={styles.container}>
             {/*<Text> 참여자 목록</Text>*/}
@@ -42,23 +44,28 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
                 keyExtractor={(item) => item.memberId.toString()}
                 renderItem={({ item }) => (
                     <View style={styles.memberContainer}>
-
-                        {<Image
-                            source={require('../../assets/images/anonymous.png')}
-                            // source={{ uri: item.profile || 'https://via.placeholder.com/50' }}
+                        <FastImage
+                            source={item.profileImageId ?  "" : require('../../assets/images/anonymous.png')}
                             style={styles.profilePicture}
-                        />}
+                        />
                         <Text style={styles.memberText}>{item.username}</Text>
                         {item.memberId !==currentUserId ? (
                             <View style={{marginLeft:'auto'}}>
+                                {chatRoomType!=='FRIEND' ? (
                                 <ImageTextButton
                                     iconSource={require('../../assets/Icons/addFriendIcon.png')}
                                     imageStyle={{height: 18, width: 18, marginTop:2, marginLeft: "auto"}}
                                     onPress={()=>handleSend(item.memberId)}
                                 />
+                                ):(
+                                    <FastImage
+                                        source={require('../../assets/Icons/friendIcon.png')}
+                                        style = {styles.badgeContainer}
+                                    />
+                                        )}
                             </View>
                         ): (
-                            <View style = {styles.badgeContainer} >
+                            <View style = {[styles.badgeContainer, styles.badgeColor]} >
                                 <Text style={styles.badgeText}>나</Text>
                             </View>
                         )}
@@ -91,9 +98,7 @@ const styles = StyleSheet.create({
         marginRight: 10,
         color: 	'#222222',
     },
-
     badgeContainer: {
-        backgroundColor: '#303136', // Customize the color as needed
         borderRadius: 12,
         width: 20,
         height: 20,
@@ -101,6 +106,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginLeft: 'auto',
         marginTop: 2,
+    },
+    badgeColor: {
+        backgroundColor: '#303136', // Customize the color as needed
     },
     badgeText: {
         color: 'white',
