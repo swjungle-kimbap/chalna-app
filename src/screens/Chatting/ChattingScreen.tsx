@@ -22,7 +22,7 @@ import { userInfoState, LocalChatListState } from "../../recoil/atoms";
 import { LoginResponse, User } from "../../interfaces";
 import { SWRConfig } from 'swr';
 import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
-import {deleteChat, fetchChatRoomContent} from "../../service/Chatting/chattingAPI";
+import {deleteChat, fetchChatRoomContent, fetchChatRoomMember} from "../../service/Chatting/chattingAPI";
 import 'text-encoding-polyfill';
 import CustomHeader from "../../components/common/CustomHeader";
 import MenuModal from "../../components/common/MenuModal";
@@ -30,7 +30,7 @@ import ImageTextButton from "../../components/common/Button";
 import {navigate} from '../../navigation/RootNavigation';
 import {
     chatRoomMember, ChatMessage, directedChatMessage,
-    ChatRoomLocal, chatroomInfoAndMsg
+    ChatRoomLocal, chatroomInfoAndMsg, chatRoomMemberInfo
 } from "../../interfaces/Chatting.type";
 import {formatDateToKoreanTime, formatDateHeader} from "../../service/Chatting/DateHelpers";
 import Text from '../../components/common/Text';
@@ -144,33 +144,28 @@ const ChattingScreen: React.FC = () => {
     }, [chatRoomType]);
 
     const updateRoomInfo = async () => {
-        const responseData: chatroomInfoAndMsg = await fetchChatRoomContent(chatRoomId, currentUserId);
+        const responseData: chatRoomMemberInfo = await fetchChatRoomMember(chatRoomId);
         // console.log('Update & Render Room info after Befriending');
         if (responseData) {
-            setChatRoomType(responseData.type);
-            setMembers(responseData.chatRoomMemberInfo.members);
+            setMembers(responseData.members);
 
-            const usernames = responseData.chatRoomMemberInfo.members
+            const usernames = responseData.members
                 .filter((member: chatRoomMember) => member.memberId !== currentUserId)
                 .map((member: chatRoomMember) => member.username)
                 .join(', ');
 
-            const chatRoomName =
-                responseData.type !== 'local' ? usernames :
-                    chatRoomInfo? chatRoomInfo.name : "";
-
+            const chatRoomName = chatRoomType==='LOCAL'? (chatRoomInfo? chatRoomInfo.name : "장소 채팅"):usernames;
             setUsername(chatRoomName);
 
             const chatRoomInfoToStore: ChatRoomLocal = {
                 id: parseInt(chatRoomId, 10),
-                type: responseData.type,
-                chatRoomMemberInfo: responseData.chatRoomMemberInfo,
+                chatRoomMemberInfo: responseData,
                 name: chatRoomName
             }
             saveChatRoomInfo(chatRoomInfoToStore);
         }
         // 프로필 이미지 로드
-        const filteredMembers = responseData.chatRoomMemberInfo.members.filter(member => member.memberId !== currentUserId);
+        const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
         if (filteredMembers[0].profileImageId) {
             const uri = await getImageUri(filteredMembers[0].profileImageId);
             setProfilePicture(uri);
@@ -452,7 +447,7 @@ const ChattingScreen: React.FC = () => {
                     setChatRoomType(responseData.type);
                     setMembers(responseData.chatRoomMemberInfo.members);
 
-                    const usernames = members
+                    const usernames = responseData.chatRoomMemberInfo.members
                         .filter((member: chatRoomMember) => member.memberId !== currentUserId)
                         .map((member: chatRoomMember) => member.username)
                         .join(', ');
