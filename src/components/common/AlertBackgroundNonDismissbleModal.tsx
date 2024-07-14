@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import { useModal } from '../../context/ModalContext'; // Adjust the import path as necessary
 
 const BackgroundNonDismissibleModal = () => {
@@ -9,9 +9,11 @@ const BackgroundNonDismissibleModal = () => {
     <Modal
       transparent={true}
       visible={modalVisible}
-      onRequestClose={() => {}}
+      onRequestClose={hideModal}
     >
+        <TouchableWithoutFeedback onPress={modalContent.dismissOnBackgroundClick ? hideModal : undefined}>
       <View style={styles.modalContainer}>
+      <TouchableWithoutFeedback onPress={() => {}}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>{modalContent.title}</Text>
           <Text style={styles.modalText}>{modalContent.content}</Text>
@@ -34,7 +36,9 @@ const BackgroundNonDismissibleModal = () => {
         
           </View>
         </View>
+        </TouchableWithoutFeedback>
       </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
