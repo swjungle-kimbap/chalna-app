@@ -327,6 +327,6 @@ const styles = StyleSheet.create({
     paddingVertical: 2, // 상하 여백 설정
     paddingHorizontal: 3, // 좌우 여백 설정
     zIndex: 3
-  }
+  },
 });
 export default BluetoothScreen;

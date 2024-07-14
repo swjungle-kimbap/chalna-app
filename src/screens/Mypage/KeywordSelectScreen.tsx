@@ -17,6 +17,7 @@ import { useMMKVBoolean } from "react-native-mmkv";
 import { useSetRecoilState } from "recoil";
 import { DeveloperModeState } from "../../recoil/atoms";
 import Config from "react-native-config";
+import { useModal } from "../../context/ModalContext";
 
 const KeywordSelectScreen: React.FC = ({}) => {
   const [isKeywordAlarm, setIsKeywordAlarm] = useMMKVBoolean('mypage.isKeywordAlarm', userMMKVStorage);
@@ -24,6 +25,7 @@ const KeywordSelectScreen: React.FC = ({}) => {
   const [keywordList, setKeywordList] = useState<string[]>([]);
   const inputRef = useRef<TextInput>(null);
   const setDevelopMode = useSetRecoilState(DeveloperModeState);
+  const {showModal} = useModal();
 
   useEffect(()=> {
     if (keyword === Config.DEVELOPMODE)
@@ -60,17 +62,17 @@ const KeywordSelectScreen: React.FC = ({}) => {
 
   const handleAddKeyword = () => {
     if (keywordList.includes(keyword)) {
-      Alert.alert("부적절한 입력", "중복된 값을 넣었습니다.");
+      showModal('부적절한 입력','중복된 값을 넣었습니다.',()=>{}, undefined, false )
       return;
     }
 
     if (keyword.trim() === "" ) {
-      Alert.alert("부적절한 입력", "값을 입력해 주세요.");
+      showModal('부적절한 입력','값을 입력해 주세요.',()=>{}, undefined, false )
       return;
     }
 
     if (keywordList && keywordList.length > 20 ) {
-      Alert.alert("허용 갯수 초과", "더 이상 추가할 수 없습니다!");
+      showModal('허용 갯수 초과','더 이상 추가할 수 없습니다!',()=>{}, undefined, false )
       return;
     }
 
@@ -105,7 +107,7 @@ const KeywordSelectScreen: React.FC = ({}) => {
                   <Button
                     title="  💬"
                     onPress={() => {
-                      Alert.alert("선호 키워드 설정", "키워드가 포함된 인연 메시지만 받을 수 있어요!");
+                      showModal('선호 키워드 설정', '키워드가 포함된 인연 메시지만 받을 수 있어요!',()=>{},undefined,false);
                     }}
                   />
                 </Text>

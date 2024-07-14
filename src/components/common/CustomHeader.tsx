@@ -4,8 +4,7 @@ import Text from './Text';
 import FastImage from "react-native-fast-image";
 
 interface HeaderProps {
-    title?: string;
-    titleSmall?:string;
+    title?:string;
     subtitle?: string;
     onBackPress?: () => void;
     onMenuPress?: () => void;
@@ -13,9 +12,10 @@ interface HeaderProps {
     useNav?:boolean;
     useMenu?:boolean;
     showBtn?:boolean; // Btn이 필요한 조건 받는 상태값
+    MemberCnt?: string;
 }
 
-const CustomHeader: React.FC<HeaderProps> = ({ title,titleSmall, subtitle, onBackPress, onMenuPress, onBtnPress, showBtn, useNav, useMenu }) => {
+const CustomHeader: React.FC<HeaderProps> = ({ title, subtitle, onBackPress, onMenuPress, onBtnPress, showBtn, useNav, useMenu, MemberCnt }) => {
     return (
         <View style={styles.headerContainer}>
             {onBtnPress!==null && useNav && (
@@ -24,8 +24,10 @@ const CustomHeader: React.FC<HeaderProps> = ({ title,titleSmall, subtitle, onBac
                 </TouchableOpacity>)
             }
             <View style={showBtn ? styles.titleContainerWithBtn: styles.titleContainer}>
-                {title && <Text variant='subtitle' children={title} />}
-                {titleSmall && <Text variant='mainBold' children={titleSmall} />}
+                <View style={styles.rowContainer} >
+                    {title && <Text variant='mainBold' children={title} />}
+                    {MemberCnt &&  <Text style={styles.memberCount} children={MemberCnt}/>}
+                </View>
                 {subtitle && <Text variant='sub'>{subtitle}</Text>}
             </View>
             <View style={styles.rightIcons}>
@@ -82,6 +84,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
+    memberCount: {
+        fontSize: 12,
+        color: '#888',
+        marginLeft: 5,
+    },
+    rowContainer:{
+        flexDirection: "row",
+        flexWrap: "nowrap",
+    }
 });
 
 export default CustomHeader;

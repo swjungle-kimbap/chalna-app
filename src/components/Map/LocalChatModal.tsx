@@ -7,6 +7,7 @@ import { getLocalChatRefreshState, locationState } from '../../recoil/atoms';
 import { makeLocalChat } from '../../service/LocalChat';
 import FastImage from 'react-native-fast-image';
 import { handleImagePicker } from '../../utils/FileHandling';
+import { useModal } from '../../context/ModalContext';
 
 export interface LocalChatModalProps{
   closeModal: () => void,
@@ -22,6 +23,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
   const descriptionInputRef = useRef<TextInput>(null);
   const [imageUrl, setImageUrl] = useState(""); 
   const [image, setImage] = useState(null); 
+  const {showModal} = useModal();
 
   const handleCreateButton = async () => {
     const localChat = await makeLocalChat(name, description, currentLocation, image)
@@ -58,7 +60,9 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
             <TouchableWithoutFeedback>
               <View style={styles.inputBox}>
                 <Text style={styles.titleText}>장소 채팅 생성 <Button title='💬' onPress={
-                  () => {Alert.alert("장소 대화방","현재 위치에서 주위 사람들과의 대화방을 만들어 보세요! 50m 이내의 사람들만 참여할 수 있어요!")}
+                  () => {
+                    showModal("장소 대화방", "현재 위치에서 주위 사람들과의 대화방을 만들어 보세요! 50m 이내의 사람들만 참여할 수 있어요!", ()=>{}, undefined, false)
+                  }
                 }/></Text>
                 <Button variant='sub' title='사진 추가 🖼️' onPress={handleSelectImage} titleStyle={styles.photoButton}/> 
                 <View style={styles.outlinedInput}>

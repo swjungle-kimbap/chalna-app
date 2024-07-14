@@ -6,12 +6,14 @@ import Text from '../common/Text';
 import { AxiosResponse, FileResponse, SendMatchResponse, SendMsgRequest } from '../../interfaces';
 import { axiosPost } from '../../axios/axios.method';
 import { urls } from '../../axios/config';
-import {  userMMKVStorage } from '../../utils/mmkvStorage';
+import {  setUserMMKVStorage, setMMKVString, userMMKVStorage, getCurrentUserId } from '../../utils/mmkvStorage';
 import { useMMKVBoolean, useMMKVNumber, useMMKVString } from 'react-native-mmkv';
 import FastImage from 'react-native-fast-image';
 import { useSetRecoilState } from 'recoil';
 import { MsgSendCntState } from '../../recoil/atoms';
 import { handleImagePicker, uploadImage } from '../../utils/FileHandling';
+import { useModal } from '../../context/ModalContext';
+import { addToDeviceIdList, getDeviceIdList, scheduleDeviceIdRemoval } from '../../utils/matchMmkvStorage';  
 
 const ignorePatterns = [
   /No task registered for key shortService\d+/,
@@ -44,6 +46,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
   const [selectedImage, setSelectedImage] = useState(null);
   const setMsgSendCnt = useSetRecoilState(MsgSendCntState);
   const [textInputHeight, setTextInputHeight] = useState(40); // 기본 높이 설정
+  const { showModal } = useModal();
 
   const sendMsg = async ( uuids:Set<string>, fileId : number ) => {
     let response = null;
@@ -60,8 +63,19 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
         contentType: 'FILE'
       } as SendMsgRequest)
     }
-    sendCountsRef.current = response?.data?.data?.sendCount;
-    setMsgSendCnt(response?.data?.data?.sendCount);
+
+
+    let sendCount = 0;
+    response?.data?.data.forEach(({ deviceId, status }) => {
+      if (status === 'SEND') {
+        addToDeviceIdList(deviceId);
+        scheduleDeviceIdRemoval(deviceId);
+        sendCount++;
+      }
+    });
+    console.log("저장됨", getDeviceIdList());
+    sendCountsRef.current = sendCount;
+    setMsgSendCnt(sendCount);
   } 
 
   const handleSendingMessage = async () => {
@@ -128,7 +142,9 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
       <RoundBox style={styles.msgBox}>
         <View style={styles.titleContainer}>
           <Text variant='title' style={styles.title}>인연 메세지 <Button title='💬' onPress={() => {
-            Alert.alert("인연 메세지 작성",`${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요!`)}
+            // Alert.alert("인연 메세지 작성",`${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요!`)
+            showModal("인연 메세지 작성", `${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요!`, () => {}, undefined,false);}
+
           }/> 
           </Text>
           {tags.map((tag) => (
@@ -228,6 +244,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 4,
     borderColor: '#14F12A',
     backgroundColor: '#fff',
+    zIndex: 3,
   },
   title: {
     paddingTop: 15,

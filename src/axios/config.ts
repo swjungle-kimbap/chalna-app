@@ -32,8 +32,8 @@ export const urls = {
     UNBLOCK_FRIEND_URL: getFullUrl(Config.RELATION_UNBLOCK_PATH),
 
     GET_FRIEND_LIST_URL: getFullUrl(Config.FRIEND_PATH),
-    // REQUEST_FRIEND_URL: getFullUrl(Config.FRIEND_PATH),
-    // GET_FRIEND_RELATION_URL : getFullUrl(Config.FRIEND_PATH),
+    FRIEND_SENT_REQUEST_URL: getFullUrl(Config.FRIEND_SENT_REQUEST_PATH),
+    FRIEND_RECEIVED_REQUEST_URL : getFullUrl(Config.FRIEND_RECEIVED_REQUEST_PATH),
 
     SEND_MSG_URL: getFullUrl(Config.MATCH_MSG_PATH),
     GET_MSG_LIST_URL: getFullUrl(Config.MATCH_MSG_PATH),
@@ -44,7 +44,8 @@ export const urls = {
     CHATROOM_LIST_URL: getFullUrl(Config.CHATROOM_PATH),
     CHATROOM_MSG_URL: getFullUrl(Config.CHATROOM_CHAT_MSG_PATH),
     CHATROOM_LEAVE_URL: getFullUrl(Config.CHATROOM_LEAVE_PATH),
-    CHATROOM_JOIN_URL: getFullUrl(Config.LOCAL_CHAT_PATH),
+    CHATROOM_JOIN_URL: getFullUrl(Config.CHATROOM_JOIN_PATH),
+    CHATROOM_MEMBER_URL: getFullUrl(Config.CHATROOM_MEMBER_PATH),
 
     SET_CUR_POS_URL: getFullUrl(Config.SET_CUR_POS_PATH),
 
