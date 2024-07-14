@@ -8,6 +8,7 @@ import Button from './common/Button';
 import { axiosGet, axiosPost } from "../axios/axios.method";
 import {urls} from "../axios/config";
 import ProfileImage from './common/ProfileImage';
+import { navigate } from '../navigation/RootNavigation';
 
 interface FriendCardProps {
     user: Friend;
@@ -89,6 +90,15 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
                         { options==='friend' && (
                             <View style={styles.btnContainer}>
                                 <Button title="대화하기" onPress={handleChat}  />
+                                <Button title="기록보기" onPress={() => {
+                                    navigate("로그인 성공", {
+                                        screen: "친구",
+                                        params: {
+                                            screen: "스쳐간 기록",
+                                            params: { otherId: user.id}
+                                        }
+                                    })    
+                                }}/>
                                 {/* <Button title="차단하기" onPress={()=> {handleBlockFriend(user.id)}} /> */}
                             </View>
                         )}

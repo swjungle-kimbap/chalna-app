@@ -90,11 +90,13 @@ const ChattingListScreen = ({ navigation }) => {
         const map = new Map<number, string>();
         chatRooms.forEach(room => {
             if (room.type !== 'LOCAL') {
-                const usernames = room.members
+                if (room.members) {
+                    const usernames = room.members
                     .filter(member => member.memberId !== currentUserId)
                     .map(member => member.username)
                     .sort((a, b) => a.localeCompare(b)); // added sort
                 map.set(room.id, usernames.join(', '));
+                }
             }
         });
         return map;
