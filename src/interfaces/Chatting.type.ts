@@ -28,7 +28,7 @@ export type chatRoomMember = {
 export type chatroomInfoAndMsg= {
     id: number,
     type: string,
-    members: chatRoomMember[],
+    chatRoomMemberInfo: chatRoomMemberInfo,
     createdAt:string,
     messages: ChatMessage[],
 }
