@@ -8,6 +8,7 @@ import Text from "../common/Text";
 import Button from "../common/Button";
 import { LocalChat } from "../../interfaces";
 import ProfileImage from "../common/ProfileImage";
+import { distanceLimit } from "./LocalChatMarkerOverlay";
 
 LogBox.ignoreLogs([
   "[Reanimated] Tried to modify key `reduceMotion` of an object which has been already passed to a worklet. See https://docs.swmansion.com/react-native-reanimated/docs/guides/troubleshooting#tried-to-modify-key-of-an-object-which-has-been-converted-to-a-shareable for more details."]);
@@ -46,20 +47,20 @@ const MapBottomSheet = ({cameraMove, setShowLocalChatModal}) => {
           onTapCard({longitude: localChat.longitude, latitude: localChat.latitude})
           handleSnapPress(1);
         }}>
-        <RoundBox key={index} style={{elevation: 0, backgroundColor: distance > 50 ? 'gray' : 'white'}}> 
+        <RoundBox key={index} style={{elevation: 0, backgroundColor: distance > distanceLimit ? 'gray' : 'white'}}> 
           <View style={{justifyContent:'space-between', flexDirection: 'row'}}>
             <View style={styles.chatRoomText }>
               <ProfileImage profileImageId={localChat.imageId} avatarStyle={styles.fullScreenImage} />
               <View style={{alignItems:'flex-start'}}>
                 <View style={{flexDirection: 'row'}}>
-                  <Text style={[styles.titleText, distance > 50 && {color: '#f2f2f2'}]}>{localChat.name}</Text>
-                  <Text style={[styles.numberText, distance > 50 && {color: '#e6e6e6'}]}>{localChat.chatRoomMemberCount}</Text>
-                  {item.isJoined && <Text style={[styles.numberText, distance > 50 && {color: '#e6e6e6'}]}>참가중</Text> }
+                  <Text style={[styles.titleText, distance > distanceLimit && {color: '#f2f2f2'}]}>{localChat.name}</Text>
+                  <Text style={[styles.numberText, distance > distanceLimit && {color: '#e6e6e6'}]}>{localChat.chatRoomMemberCount}</Text>
+                  {item.isJoined && <Text style={[styles.numberText, distance > distanceLimit && {color: '#e6e6e6'}]}>참가중</Text> }
                 </View>
-                <Text style={[styles.descriptionText, distance > 50 && {color: '#d9d9d9'}]}>{localChat.description}</Text> 
+                <Text style={[styles.descriptionText, distance > distanceLimit && {color: '#d9d9d9'}]}>{localChat.description}</Text> 
               </View>
             </View>
-            <Text style={[styles.distanceText, distance > 50 && {color: '#cccccc'}]}>{distance}m</Text>
+            <Text style={[styles.distanceText, distance > distanceLimit && {color: '#cccccc'}]}>{distance}m</Text>
           </View>
         </RoundBox>
       </TouchableOpacity>

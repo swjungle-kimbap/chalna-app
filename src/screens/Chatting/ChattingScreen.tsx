@@ -585,7 +585,7 @@ const ChattingScreen: React.FC = () => {
                 subtitle={chatRoomType === 'LOCAL' ? distanceDisplay() : ''}
                 onBackPress={() => {
                     navigate("로그인 성공", {
-                        screen: "채팅목록",
+                        screen: "대화",
                         params: {
                             screen: "채팅 목록",
                         }
