@@ -5,9 +5,9 @@ interface ModalContent {
   content: string;
   onConfirm: () => void;
   onCancel?: () => void;
+  showCancel?: boolean;
   confirmText?: string;
   cancelText?: string;
-  showCancel?: boolean;
 }
 
 interface ModalContextProps {

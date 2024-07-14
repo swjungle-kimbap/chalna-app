@@ -18,7 +18,7 @@ const BackgroundNonDismissibleModal = () => {
           <View style={styles.buttonContainer}>
           {modalContent.showCancel && (
               <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => { modalContent.onCancel && modalContent.onCancel(); hideModal(); }}>
-                <Text style={styles.buttonCancelText}>{modalContent.cancelText}</Text>
+                <Text style={styles.buttonCancelText}>{modalContent.cancelText || '취소'}</Text>
               </TouchableOpacity>
             )}
                       <TouchableOpacity
@@ -29,7 +29,7 @@ const BackgroundNonDismissibleModal = () => {
               ]}
               onPress={() => { modalContent.onConfirm && modalContent.onConfirm(); hideModal(); }}
             >
-              <Text style={styles.buttonConfirmText}>{modalContent.confirmText}</Text>
+              <Text style={styles.buttonConfirmText}>{modalContent.confirmText || '확인'}</Text>
             </TouchableOpacity>
         
           </View>
@@ -55,14 +55,13 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     marginBottom: 10,
-    fontSize: 20,
-    // padding:10,
+    fontSize: 14,
     marginTop:20,
     fontWeight: 'bold',
   },
   modalText: {
     marginBottom: 20,
-    fontSize: 18,
+    fontSize: 15,
     padding: 15,
     marginLeft:10,
     marginRight:10,
@@ -94,11 +93,14 @@ const styles = StyleSheet.create({
   },
   buttonConfirmText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 13,
+    fontWeight: 'bold',
+
   },
   buttonCancelText: {
     color: 'gray',
-    fontSize: 16
+    fontSize: 13,
+    fontWeight: 'bold',
   }
 });
 
