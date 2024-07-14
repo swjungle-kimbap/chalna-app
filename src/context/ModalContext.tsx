@@ -4,14 +4,24 @@ interface ModalContent {
   title: string;
   content: string;
   onConfirm: () => void;
-  onCancel: () => void;
+  onCancel?: () => void;
   showCancel?: boolean;
+  confirmText?: string;
+  cancelText?: string;
 }
 
 interface ModalContextProps {
   modalVisible: boolean;
   modalContent: ModalContent;
-  showModal: (title: string, content: string, onConfirm: () => void, onCancel?: () => void, showCancel?: boolean) => void;
+  showModal: (
+    title: string, 
+    content: string, 
+    onConfirm: () => void, 
+    onCancel?: () => void, 
+    showCancel?: boolean,
+    confirmText?: string,
+    cancelText?: string,
+  ) => void;
   hideModal: () => void;
 }
 
@@ -20,6 +30,8 @@ const defaultModalContent: ModalContent = {
   content: '',
   onConfirm: () => {},
   onCancel: undefined,
+  confirmText: '확인',
+  cancelText: '취소',
   showCancel: true
 };
 
@@ -42,8 +54,16 @@ export const ModalProvider = ({ children }: ModalProviderProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState<ModalContent>(defaultModalContent);
 
-  const showModal = (title: string, content: string, onConfirm: () => void, onCancel?: () => void, showCancel: boolean = true) => {
-    setModalContent({ title, content, onConfirm, onCancel , showCancel});
+  const showModal = (
+    title: string, 
+    content: string, 
+    onConfirm: () => void, 
+    onCancel?: () => void, 
+    showCancel: boolean = true,
+    confirmText: string = '확인',
+    cancelText: string = '취소',
+  ) => {
+    setModalContent({ title, content, onConfirm, onCancel ,  confirmText, cancelText, showCancel});
     setModalVisible(true);
   };
 

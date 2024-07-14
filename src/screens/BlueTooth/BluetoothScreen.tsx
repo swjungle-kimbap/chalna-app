@@ -328,5 +328,41 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3, // 좌우 여백 설정
     zIndex: 3
   }
+    zIndex:3
+  },
+  noBorderContent: {
+    marginTop: 50,
+    marginBottom: 70,
+    height: 200,
+    width: 400,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 0, // 테두리를 없앱니다.
+    shadowColor: 'transparent', // 그림자를 없앱니다.
+    elevation: 0, // 안드로이드에서의 그림자 제거
+  },
+  gifLarge: {
+    width: 350, // 원하는 너비로 설정합니다.
+    height: 350, // 원하는 높이로 설정합니다.
+  },
+  background: {
+    backgroundColor: "#ABD4D4",
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  findText: {
+    fontSize: 20,
+    marginBottom: 20,
+    color: 'gray',
+  },
+  findText2: {
+    fontSize: 15,
+    color:'gray',
+    marginBottom: 5,
+  },
+  gifWrapper: {
+    zIndex: -1, // Text 요소가 GIF 위에 표시되도록 설정
+  },
 });
 export default BluetoothScreen;
