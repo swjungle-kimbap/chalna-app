@@ -8,6 +8,8 @@ import RNFS from 'react-native-fs';
 import FriendRequestActions from './FriendRequestActions';
 import ImagePreviewModal from "./ImagePreviewModal";
 import UserProfileModal from "./UserProfileModal";
+import ProfileImage from '../../common/ProfileImage';
+import { useModal } from '../../../context/ModalContext';
 
 interface MessageBubbleProps {
     message: any;
@@ -33,6 +35,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
     const [imageModalVisible, setImageModalVisible] = useState(false);
     const [isDisabled, setIsDisabled] = useState(chatRoomType === 'FRIEND');
     // const resizedImageUri = useRef(message.preSignedUrl);
+    const {showModal} = useModal();
 
     const toggleUserInfoModal = useCallback(() => {
         setModalVisible(prev => !prev);
@@ -67,8 +70,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
     const handleFileDownload = async () => {
         try {
             const hasPermission = await requestExternalStoragePermission();
+        
             if (!hasPermission) {
-                Alert.alert('Permission Error', 'External storage access permission is required.', [{ text: 'OK' }]);
+          
+                showModal('권한 오류', '외부 저장소 접근 권한이 필요합니다.',()=>{},undefined,false);
+                
                 return;
             }
 
@@ -77,11 +83,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
             const downloadDest = `${path}/chalna_${message.fileId}_${Date.now()}_sd.jpg`;
 
             const directoryExists = await RNFS.exists(path);
+
             if (!directoryExists) {
                 try {
                     await RNFS.mkdir(path, { NSURLIsExcludedFromBackupKey: true });
                 } catch (error) {
-                    Alert.alert('Directory Creation Error', 'Failed to create directory.', [{ text: 'OK' }]);
+                    showModal('디렉토리 생성 오류', '디렉토리 생성에 실패했습니다.',()=>{},undefined,false);
                     return;
                 }
             }
@@ -89,21 +96,23 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
             const downloadOptions = { fromUrl: preSignedUrl, toFile: downloadDest };
             const res = RNFS.downloadFile(downloadOptions);
             const result = await res.promise;
-
+            console.log('결과 :',result.statusCode);
             if (result.statusCode === 200) {
                 try {
                     await RNFS.scanFile(downloadDest);
-                    Alert.alert('Download Complete', 'Image saved to gallery.', [{ text: 'OK' }]);
+                    showModal('이미지 저장','이미지를 저장했습니다.',()=>{},undefined,false);
                 } catch (moveError) {
-                    Alert.alert('File Move Error', 'Failed to move image.', [{ text: 'OK' }]);
+                    showModal('이미지 저장 실패','이미지를 저장하는데 실패했습니다.',()=>{},undefined,false);
                 }
             } else if (result.statusCode === 403) {
-                Alert.alert('Download Failed', 'Image has expired.', [{ text: 'OK' }]);
+                showModal('다운로드 실패','만료기간이 지났습니다.',()=>{},undefined,false);
             } else {
-                Alert.alert('Download Failed', 'Failed to download image.', [{ text: 'OK' }]);
+    
+                showModal('다운로드 실패','이미지를 다운로드 하는데 실패했습니다.',()=>{},undefined,false);
             }
         } catch (error) {
-            Alert.alert('Download Error', 'Error downloading image.', [{ text: 'OK' }]);
+            console.log(error);
+            showModal('다운로드 실패','이미지를 다운로드 하는데 실패했습니다.',()=>{},undefined,false);
         }
     };
 
@@ -113,11 +122,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
                 const readGranted = await PermissionsAndroid.request(
                     Platform.Version >= 30 ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
                     {
-                        title: 'Storage Permission Required',
-                        message: 'This app needs access to your storage to read photos.',
-                        buttonNeutral: 'Ask Me Later',
-                        buttonNegative: 'Cancel',
-                        buttonPositive: 'OK',
+                        title: '저장소 권한 필요',
+                        message: '이 앱은 사진을 읽기 위해 저장소 접근 권한이 필요합니다.',
+                        buttonNeutral: '나중에 묻기',
+                        buttonNegative: '취소',
+                        buttonPositive: '확인'
                     }
                 );
                 return readGranted === PermissionsAndroid.RESULTS.GRANTED;

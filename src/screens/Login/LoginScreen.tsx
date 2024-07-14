@@ -1,6 +1,6 @@
 import Text from "../../components/common/Text";
 import { ActivityIndicator, Alert, Image, StyleSheet, View } from "react-native";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { endBackgroundService } from "../../service/Background";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { DeviceUUIDState, userInfoState } from "../../recoil/atoms";
@@ -17,6 +17,11 @@ import { LogBox } from 'react-native';
 import { getMMKVObject, loginMMKVStorage, setMMKVObject, setUserMMKVStorage } from "../../utils/mmkvStorage";
 import { setDefaultMMKVString } from "../../utils/mmkvStorage";
 
+import { useModal } from '../../context/ModalContext';
+
+import { black } from "react-native-paper/lib/typescript/styles/themes/v2/colors";
+
+
 LogBox.ignoreLogs(['new NativeEventEmitter']); 
 LogBox.ignoreAllLogs();
 
@@ -27,6 +32,7 @@ const LoginScreen: React.FC = () => {
   const fcmTokenRef = useRef<string>("");
   const deviceUUIDRef = useRef<string>("");
   const loginTokenRef = useRef<string>("");
+  const { showModal } = useModal();
 
   useEffect(() => {
     endBackgroundService();
@@ -106,11 +112,17 @@ const LoginScreen: React.FC = () => {
     return refreshFCM();
   }, [userInfo])
 
+
   const handleLogin = async () => {
     try {
       const loginResponse = await SignUpByWithKakao(deviceUUIDRef.current, fcmTokenRef.current);
       if (loginResponse) {
-        Alert.alert("로그인 완료!", "환영합니다~🎉 \n메세지를 작성한뒤 인연 보내기를 눌러보세요!");
+  
+        showModal(
+          '로그인 완료!', 
+          '환영합니다~🎉 \n메세지를 작성한뒤 인연 보내기를 눌러보세요!', 
+          () => {}, undefined,false
+        );
         setUserMMKVStorage(loginResponse.id.toString());
         const newUserInfo = getMMKVObject<LoginResponse>("mypage.userInfo");
         if (newUserInfo)
@@ -123,7 +135,11 @@ const LoginScreen: React.FC = () => {
       }
     } catch {
       console.log("로그인 실패");
-      Alert.alert("로그인 실패", "다시 로그인해 주세요");
+      showModal(
+        '로그인 실패', 
+        '다시 로그인해 주세요', 
+        () => {}, undefined,false
+      );
     }
   };
 
@@ -132,7 +148,8 @@ const LoginScreen: React.FC = () => {
       {isLoading ? (
         <>
           <View style={styles.loadingConatiner}>
-            <ActivityIndicator size="large" color="#0000ff" />
+            <Text variant="sub" style={styles.autoLoginText}>로그인 중</Text>
+            <ActivityIndicator size="small" color="#3EB297" />
           </View>
         </>
       ) : ( 
@@ -151,6 +168,11 @@ const LoginScreen: React.FC = () => {
   );
 }
 const styles = StyleSheet.create({
+  autoLoginText: {
+    fontSize: 16,
+    marginBottom: 20,
+    color: "black",
+  },
   container: {
     flex: 1,
     justifyContent: 'center',

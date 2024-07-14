@@ -7,7 +7,7 @@ import requestPermissions from "../utils/requestPermissions";
 import showPermissionAlert from "../utils/showPermissionAlert";
 import { PERMISSIONS } from "react-native-permissions";
 import { removeChatRoom } from './Chatting/mmkvChatStorage';
-import { handleUploadS3 } from "./FileHandling";
+import { downloadImage, uploadImage } from "../utils/FileHandling";
 
 const requiredPermissions = [PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION];
 
@@ -26,63 +26,58 @@ export const joinLocalChat = async (localChat:LocalChat, distance:number, setRef
 }
 
 export const makeLocalChat = async (name, description, currentLocation, image) : Promise<LocalChat> => {
-  let presignedUrl, fileId = 0;
+  const granted = await handleCheckPermission();
+  if (!granted)
+    return null;
+
+  let fileId = 0;
   if (image){
-    const response = await handleUploadS3(image, false);
+    const response = await uploadImage(image, "IMAGE");
     fileId = response.fileId;
   }
-    
-  if (name.length && description.length) {
-    const response = await axiosPost<SetLocalChatResponse>(
-      urls.SET_LOCAL_CHAT_URL, "장소 채팅 만들기", {
-      name,
-      description,
-      imageId: fileId,
-      latitude: currentLocation.latitude,
-      longitude: currentLocation.longitude
-    } as SetLocalChatRequest);
-    
-    if (response?.data?.code === "201"){
-      Alert.alert("채팅방 생성 완료!", "주위의 사람들과 대화를 나눠보세요!");
-    }
-    return response?.data?.data;
-  } else {
-    Alert.alert("내용 부족", "제목과 내용을 채워주세요!",
-      [{
-          text: '확인',
-          style: 'cancel'
-      }], { cancelable: true }
-    )
-    return null;
+  
+  const response = await axiosPost<SetLocalChatResponse>(
+    urls.SET_LOCAL_CHAT_URL, "장소 채팅 만들기", {
+    name,
+    description,
+    imageId: fileId,
+    latitude: currentLocation.latitude,
+    longitude: currentLocation.longitude
+  } as SetLocalChatRequest);
+  
+  if (response?.data?.code === "201"){
+    Alert.alert("채팅방 생성 완료!", "주위의 사람들과 대화를 나눠보세요!");
   }
+  return response?.data?.data;
 }
 
 export const handleCheckPermission = async (): Promise<boolean> => {
   const granted = await requestPermissions(requiredPermissions);
-  if (!granted) {
-    await showPermissionAlert("위치");
-    const checkgranted = await requestPermissions(requiredPermissions);
-    return checkgranted;
-  } 
-  return true; 
+  if (granted) 
+    return true;
+
+  await showPermissionAlert("위치");
+  const checkgranted = await requestPermissions(requiredPermissions);
+  return checkgranted;
 };
 
 
 export const localChatJoin = async (localChat:LocalChat, distance:number, setRefresh:Function) => {
   const granted = await handleCheckPermission();
-  if (granted) {
-    Alert.alert(localChat.name, localChat.description,
-      [
-        {
-          text: '참가',
-          onPress: async () => {await joinLocalChat(localChat, distance, setRefresh)},
-          style: 'default'
-        },
-        { text: '취소', style: 'cancel'}
-      ],
-      { cancelable: true }
-    )
-  }
+  if (!granted) 
+    return
+  
+  Alert.alert(localChat.name, localChat.description,
+    [
+      {
+        text: '참가',
+        onPress: async () => {await joinLocalChat(localChat, distance, setRefresh)},
+        style: 'default'
+      },
+      { text: '취소', style: 'cancel'}
+    ],
+    { cancelable: true }
+  )
 };
 
 export const ChatDisconnectOut = async (chatRoomId:number, setRefresh:Function) => {
@@ -91,8 +86,9 @@ export const ChatDisconnectOut = async (chatRoomId:number, setRefresh:Function) 
     if (response?.data?.data === "성공")
       Alert.alert("로컬 채팅 종료", "거리가 멀어져 채팅방과 연결이 종료가 되었습니다!");
 
-    removeChatRoom(chatRoomId); 
-    setRefresh((prev)=>!prev);
+    removeChatRoom(chatRoomId);
+    if (setRefresh)
+      setRefresh((prev)=>!prev);
   } catch (error) {
     const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
     Alert.alert("Error", errorMessage);
@@ -113,52 +109,24 @@ export const ChatOut = async (chatRoomId:number, setRefresh:Function) => {
   }
 };
 
-export const localChatOut = async (localChat:LocalChat, distance:number, setRefresh:Function) => {
+export const localChatOut = async (localChat:LocalChat, setRefresh:Function) => {
   const granted = await handleCheckPermission();
-  if (granted) {
-    Alert.alert(localChat.name, "이미 들어간 채팅방입니다! 나가시겠습니까?",
-      [
-        {
-          text: '들어가기',
-          onPress: async () => {await joinLocalChat(localChat, distance, setRefresh)},
-          style: 'default'
-        },
-        {
-          text: '나가기',
-          onPress: async () => await ChatOut(localChat.chatRoomId, setRefresh),
-          style: 'default'
-        },
-      ],
-      { cancelable: true }
-    )
-  }
-};
-
-export const localChatDelete = async (localChat:LocalChat, distance:number, setRefresh: Function) => {
-  const granted = await handleCheckPermission();
-  if (granted) {
-    Alert.alert(localChat.name, "내가 생성한 채팅방입니다! 삭제 하시겠습니까?",
-      [  
-        {
-          text: '들어가기',
-          onPress: () => {joinLocalChat(localChat, distance, setRefresh)},
-          style: 'destructive'
-        },
-        {
-          text: '삭제',
-          onPress: async () =>  {
-            try {
-              await axiosDelete(urls.DELETE_LOCAL_CHAT_URL+localChat.id.toString(), "장소 채팅 삭제");
-              await ChatOut(localChat.chatRoomId, setRefresh);
-            } catch (error) {
-              const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
-              Alert.alert("Error", errorMessage);
-            }
-          },
-          style: 'default'
-        },
-      ],
-      { cancelable: true }
-    )
-  }
+  if (!granted) 
+    return
+  
+  Alert.alert(localChat.name, "이미 들어간 채팅방입니다! 나가시겠습니까?",
+    [
+      {
+        text: '들어가기',
+        onPress: async () => {navigate("채팅", { chatRoomId : localChat.chatRoomId });},
+        style: 'default'
+      },
+      {
+        text: '나가기',
+        onPress: async () => await ChatOut(localChat.chatRoomId, setRefresh),
+        style: 'default'
+      },
+    ],
+    { cancelable: true }
+  )
 };

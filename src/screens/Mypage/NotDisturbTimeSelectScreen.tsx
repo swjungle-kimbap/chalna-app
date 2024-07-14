@@ -11,6 +11,7 @@ import { axiosPatch } from "../../axios/axios.method";
 import { urls } from "../../axios/config";
 import { getMMKVObject, setMMKVObject, userMMKVStorage } from "../../utils/mmkvStorage";
 import { useMMKVBoolean } from "react-native-mmkv";
+import { useModal } from "../../context/ModalContext";
 
 const NotDisturbTimeSelectScreen = () => {
   const [isDisturb, setIsDisturb] = useMMKVBoolean('mypage.isDisturb', userMMKVStorage);
@@ -19,6 +20,7 @@ const NotDisturbTimeSelectScreen = () => {
   const endDateRef = useRef<Date>(currentTime);
   const [startDate, setStartDate] = useState<Date>(currentTime);
   const [endDate, setEndDate] = useState<Date>(currentTime);
+  const {showModal} = useModal();
 
   useEffect(() => {
     const nonDisturbTime = getMMKVObject<SavedNonDisturbTime>("mypage.nonDisturbTime");
@@ -48,7 +50,9 @@ const NotDisturbTimeSelectScreen = () => {
       doNotDisturbEnd: `${padZero(endDateRef.current.getHours())}:${padZero(endDateRef.current.getMinutes())}`,
     };
     axiosPatch(urls.DISTURB_ALARM_URL, "방해금지 시간 설정", nonDisturbTime);
-    Alert.alert("저장 완료", `${nonDisturbTime.doNotDisturbStart} ~ ${nonDisturbTime.doNotDisturbEnd}동안 알림이 오지 않습니다.`)
+
+    showModal('저장 완료', `${nonDisturbTime.doNotDisturbStart} ~ ${nonDisturbTime.doNotDisturbEnd}동안 알림이 오지 않습니다.`,()=>{}, undefined, false);
+
   }
   
   return (

@@ -16,12 +16,11 @@ import {
     NativeScrollEvent,
     NativeSyntheticEvent
 } from 'react-native';
-import {RouteProp, useRoute, useFocusEffect, useNavigation} from "@react-navigation/native";
-import {useRecoilValue} from "recoil";
-import {userInfoState, ProfileImageMapState, JoinedLocalChatListState} from "../../recoil/atoms";
-import {LoginResponse, User} from "../../interfaces";
-import {SWRConfig} from 'swr';
-import MessageBubble from '../../components/Chat/MessageBubble/MessageBubble'; // Adjust the path as necessary
+import { RouteProp, useRoute, useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useRecoilValue } from "recoil";
+import { userInfoState, LocalChatListState } from "../../recoil/atoms";
+import { LoginResponse, User } from "../../interfaces";
+import { SWRConfig } from 'swr';
 import WebSocketManager from '../../utils/WebSocketManager'; // Adjust the path as necessary
 import {deleteChat, fetchChatRoomContent} from "../../service/Chatting/chattingAPI";
 import 'text-encoding-polyfill';
@@ -29,7 +28,6 @@ import CustomHeader from "../../components/common/CustomHeader";
 import MenuModal from "../../components/common/MenuModal";
 import ImageTextButton from "../../components/common/Button";
 import {navigate} from '../../navigation/RootNavigation';
-import useBackToScreen from '../../hooks/useBackToScreen';
 import {
     chatRoomMember, ChatMessage, directedChatMessage,
     ChatRoomLocal, chatroomInfoAndMsg
@@ -47,12 +45,13 @@ import {axiosPost} from '../../axios/axios.method';
 import {urls} from "../../axios/config";
 import {AxiosResponse} from "axios";
 import {FileResponse} from "../../interfaces";
-import RNFS from "react-native-fs";
 import ImageResizer from 'react-native-image-resizer';
 import DateHeader from '../../components/Chat/DateHeader';
-import {handleDownloadProfile} from '../../service/Friends/FriendListAPI';
 import Announcement from "../../components/Chat/Announcement";
 import {useBuffer} from "../../utils/BufferContext";
+import MessageBubble from '../../components/Chat/MessageBubble/MessageBubble';
+import { getImageUri } from '../../utils/FileHandling';
+
 
 const onRenderCallback = (
     id, // the "id" prop of the Profiler tree that has just committed
@@ -99,8 +98,6 @@ const ChattingScreen: React.FC = () => {
 
     const chatRoomIdRef = useRef<string>(chatRoomId);
     const [profilePicture, setProfilePicture] = useState<string>("");
-    const profileImageMap = useRecoilValue(ProfileImageMapState);
-    const sentMessageIDs = useRef<Set<string>>(new Set());
 
     const [showAnnouncement, setShowAnnouncement] = useState<boolean>(false); // State for showing announcement
 
@@ -111,17 +108,11 @@ const ChattingScreen: React.FC = () => {
     const [showScrollToEndButton, setShowScrollToEndButton] = useState<boolean>(false);
     const [showNewMessageBadge, setShowNewMessageBadge] = useState<boolean>(false);
 
-    useBackToScreen("로그인 성공", {screen: "채팅목록", params: {screen: "채팅 목록"}});
-
-    const joinedLocalChatList = useRecoilValue(JoinedLocalChatListState);
+    const localChatList = useRecoilValue(LocalChatListState);
     const chatRoomInfo = useMemo(() => {
-        const chatRoom = joinedLocalChatList.find(room => room.chatRoomId === Number(chatRoomId));
-        return chatRoom ? {
-            name: chatRoom.name,
-            distance: chatRoom.distance,
-            description: chatRoom.description
-        } : {name: 'Unknown Chat Room', distance: 0, description: ''};
-    }, [chatRoomId, joinedLocalChatList]);
+        const chatRoom = localChatList.find(room => room.localChat.chatRoomId === Number(chatRoomId));
+        return chatRoom ? { name: chatRoom.localChat.name, distance: chatRoom.localChat.distance, description: chatRoom.localChat.description } : { name: 'Unknown Chat Room', distance: 0, description: '' };
+    }, [chatRoomId, localChatList]);
 
     const calculateDistanceInMeters = (distanceInKm: number) => {
         const distanceInMeters = distanceInKm * 1000;
@@ -130,7 +121,7 @@ const ChattingScreen: React.FC = () => {
 
     const distanceDisplay = () => {
         const distanceInMeters = calculateDistanceInMeters(chatRoomInfo.distance);
-        return distanceInMeters > 50 ? '50m+' : `${distanceInMeters}m`;
+        return distanceInMeters > 100 ? '100m+' : `${distanceInMeters}m`;
     };
 
     const AnnouncementMsg = () => {
@@ -172,15 +163,8 @@ const ChattingScreen: React.FC = () => {
         // 프로필 이미지 로드
         const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
         if (filteredMembers[0].profileImageId) {
-            const findProfileImageId = filteredMembers[0].profileImageId;
-            const newprofile = profileImageMap.get(findProfileImageId);
-            if (newprofile)
-                setProfilePicture(newprofile);
-            else {
-                const newProfileImageUri = await handleDownloadProfile(findProfileImageId);
-                profileImageMap.set(findProfileImageId, newProfileImageUri);
-                setProfilePicture(newProfileImageUri);
-            }
+            const uri = await getImageUri(filteredMembers[0].profileImageId);
+            setProfilePicture(uri);
         } else {
             setProfilePicture("");
         }
@@ -233,7 +217,7 @@ const ChattingScreen: React.FC = () => {
                 1500, // 너비를 1500으로 조정
                 1500, // 높이를 1500으로 조정
                 'JPEG', // 이미지 형식
-                100, // 품질 (0-100)
+                80, // 품질 (0-100)
                 0, // 회전 (회전이 필요하면 EXIF 데이터에 따라 수정 가능)
                 null,
                 true,
@@ -300,7 +284,7 @@ const ChattingScreen: React.FC = () => {
                         parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt);
 
                         if (!(chatRoomType === 'FRIEND' && parsedMessage.type === 'TIMEOUT')) {
-                            handleIncomingSocketMessage(parsedMessage);
+                            handleIncomingSocketMessage(parsedMessage); // set 바로 저장 배치 단위로
                             if (isUserAtBottom.current) {
                                 flatListRef.current?.scrollToOffset({animated: true, offset: 0});
                                 setShowScrollToEndButton(false);
@@ -398,7 +382,6 @@ const ChattingScreen: React.FC = () => {
             try {
 
                 if (isInitialLoad){
-                    console.log("-----------initial Load------------");
                     setLoading(true);
                     // Step 1: Load stored messages and information first
                     const latestMessages = await getChatMessages(chatRoomId, 20, null);
@@ -461,36 +444,33 @@ const ChattingScreen: React.FC = () => {
                     setMembers(responseData.members);
                     setUsername(usernames);
 
-                    const chatRoomName = responseData.type === 'local' ? 'Local Chat Room' : usernames;
+                    const chatRoomName =
+                        responseData.type !== 'local' ? usernames :
+                            chatRoomInfo? chatRoomInfo.name : "";
 
-                    const chatRoomInfo: ChatRoomLocal = {
+                    const chatRoomInfoToSave: ChatRoomLocal = {
                         id: parseInt(chatRoomId, 10),
                         type: responseData.type,
                         members: responseData.members,
                         name: chatRoomName
                     };
-                    saveChatRoomInfo(chatRoomInfo);
+                    saveChatRoomInfo(chatRoomInfoToSave);
 
                     const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
                     if (responseData.type === 'FRIEND' && filteredMembers.length === 1 && filteredMembers[0].profileImageId) {
-                        const findProfileImageId = filteredMembers[0].profileImageId;
-                        const newprofile = profileImageMap.get(findProfileImageId);
-
-                        if (newprofile) {
-                            setProfilePicture(newprofile);
+                        if (filteredMembers[0].profileImageId) {
+                            const uri = await getImageUri(filteredMembers[0].profileImageId);
+                            setProfilePicture(uri);
                         } else {
-                            const newProfileImageUri = await handleDownloadProfile(findProfileImageId);
-                            profileImageMap.set(findProfileImageId, newProfileImageUri);
-                            setProfilePicture(newProfileImageUri);
+                            setProfilePicture("");
                         }
                     } else {
                         setProfilePicture("");
                     }
                 }
-                isInitialLoadCompleteRef.current = true;
-
+                    isInitialLoadCompleteRef.current = true;
             } catch (error) {
-                console.error('Failed to fetch chat room messages:', error);
+                console.error('채팅방 내역 조회 실패:', error);
             }
         };
 
@@ -506,7 +486,6 @@ const ChattingScreen: React.FC = () => {
                 setMessages(null);
                 setUsername(" ");
             };
-
         }, [chatRoomId, currentUserId])
     );
 

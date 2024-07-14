@@ -14,10 +14,11 @@ export interface AlaramItemProps{
   restTime: number;
   handleCardPress: (notificationId: string) => void;
   removeAlarmItem: (notificationId: string, DeleteAll?:boolean) =>void;
+  closeModal: Function;
 }
 
 const AlarmCardRender: React.FC<AlaramItemProps> =
-  ({ item, expandedCardId, restTime, handleCardPress, removeAlarmItem }) => {
+  ({ item, expandedCardId, restTime, closeModal, handleCardPress, removeAlarmItem }) => {
 
     const handleAcceptButton = async (notificationId:string) => {
     removeAlarmItem(notificationId);
@@ -50,7 +51,10 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
           
           <View style={styles.btnContainer}>
             <Button style={{flex:1}} variant="sub" title="대화하기"
-              onPress={async () => {handleAcceptButton(item.id)}} />
+              onPress={async () => {
+                handleAcceptButton(item.id);
+                closeModal();
+              }} />
             <Button style={{flex:1}} variant="sub" title="지우기"
               onPress={() => {removeAlarmItem(item.id)}} />
           </View>

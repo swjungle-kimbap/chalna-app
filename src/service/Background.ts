@@ -4,28 +4,41 @@ import { NativeEventEmitter, NativeModules } from 'react-native';
 import { axiosPost } from '../axios/axios.method';
 import { urls } from "../axios/config";
 import { loginMMKVStorage } from '../utils/mmkvStorage';
+import Geolocation from "react-native-geolocation-service";
+import { Position } from '../interfaces';
 
-const DelayedTime = 2 * 60 * 60 * 1000;
+const DelayedTime = 4 * 60 * 60 * 1000;
 
-const sendRelationCnt = async (_uuid:string) => {
-  await axiosPost(urls.SET_RELATION_CNT_URL + '/' + _uuid, "만난 횟수 증가")
+const sendRelationCnt = async (_uuid:string, currentTime:number) => {
+  Geolocation.getCurrentPosition(
+    async (position) => {
+      await axiosPost(urls.SET_RELATION_CNT_URL + '/' + _uuid, "만난 횟수 증가", {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      } as Position)
+    },
+    (error) => {
+      loginMMKVStorage.set(`DeviceUUID.${_uuid}`,currentTime);
+      console.error("위치 정보 가져오기 실패", error.code, error.message);
+    },
+    { enableHighAccuracy: false, timeout: 30000, maximumAge: 10000 }
+  );
 }
 
-export const addDevice = async (_uuid: string, _date: number) => {
-  const currentTime = new Date(_date).getTime();
+export const addDevice = (_uuid: string, currentTime: number) => {
   const lastMeetTime = loginMMKVStorage.getNumber(`DeviceUUID.${_uuid}`);
   if (!lastMeetTime) {
-    loginMMKVStorage.set(`DeviceUUID.${_uuid}`, currentTime);
-    await sendRelationCnt(_uuid);
-  } else if (new Date(lastMeetTime).getTime() + DelayedTime < currentTime) {
-    loginMMKVStorage.set(`DeviceUUID.${_uuid}`, currentTime);
-    await sendRelationCnt(_uuid);
+    loginMMKVStorage.set(`DeviceUUID.${_uuid}`, currentTime + DelayedTime);
+    sendRelationCnt(_uuid, currentTime);
+  } else if (new Date(lastMeetTime).getTime() < currentTime) {
+    loginMMKVStorage.set(`DeviceUUID.${_uuid}`, currentTime + DelayedTime);
+    sendRelationCnt(_uuid, currentTime);
   }
 }
 
 const backgroundBLE = async (args:any) => {
   const { uuid } = args;
-  await new Promise( async (resolve) => {
+  await new Promise((resolve) => {
     ScanNearbyAndPost(uuid);
     const eventEmitter = new NativeEventEmitter(NativeModules.BLEAdvertiser);
     eventEmitter.removeAllListeners('onDeviceFound');
@@ -33,7 +46,7 @@ const backgroundBLE = async (args:any) => {
       if (event.serviceUuids) {
         for (let i = 0; i < event.serviceUuids.length; i++) {
           if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00')) {
-            await addDevice(event.serviceUuids[i], new Date().getTime());
+            addDevice(event.serviceUuids[i], new Date().getTime());
           }
         }
       }

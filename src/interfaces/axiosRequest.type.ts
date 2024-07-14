@@ -27,3 +27,10 @@ export interface SetLocalChatRequest extends Position{
   name: string,
   description: string,
 }
+
+export interface FileRequest {
+  fileName : string,
+  contentType: string,
+  fileSize: number,
+  fileType: 'IMAGE' |'PROFILEIMAGE'
+}

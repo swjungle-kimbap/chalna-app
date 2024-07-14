@@ -19,18 +19,6 @@ export const fetchFriendRelation = async (otherId: number):Promise<friend|null> 
     return response?.data?.data
 }
 
-export const handleDownloadProfile = async (profileId: number) => {
-    try {
-      const downloadResponse = await axiosGet<AxiosResponse<DownloadFileResponse>>(
-            `${urls.FILE_DOWNLOAD_URL}${profileId}`, "프로필 다운로드");
-      const { presignedUrl } = downloadResponse.data.data;
-      return presignedUrl;
-    } catch (error) {
-      console.error(error);
-      return null;
-    }
-  };
-
 export const getKoreanInitials = (input: string): string =>{
   const initials: string[] = [
       "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ",

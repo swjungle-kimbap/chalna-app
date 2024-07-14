@@ -4,20 +4,23 @@ import ChatRoomCard from '../../components/Chat/ChatRoomCard';
 import { useIsFocused } from '@react-navigation/native';
 import CustomHeader from "../../components/common/CustomHeader";
 import { useRecoilValue } from "recoil";
-import { LoginResponse } from "../../interfaces";
-import {JoinedLocalChatListState, userInfoState} from "../../recoil/atoms";
-import {ChatRoom, ChatRoomLocal} from "../../interfaces/Chatting.type";
+import { LocalChatData, LoginResponse } from "../../interfaces";
+import { LocalChatListState, userInfoState } from "../../recoil/atoms";
+import {ChatRoom, ChatRoomLocal, chatRoomMemberImage} from "../../interfaces/Chatting.type";
 import { fetchChatRoomList, deleteChat } from "../../service/Chatting/chattingAPI";
 import BackgroundTimer from 'react-native-background-timer';
 import {saveChatRoomList, getChatRoomList, removeChatRoom} from '../../service/Chatting/mmkvChatStorage';
 import {convertChatRoomDateFormat, formatDateToKoreanTime} from "../../service/Chatting/DateHelpers";
+import RoundBox from '../../components/common/RoundBox';
+import Button from "../../components/common/Button";
+import { navigate } from '../../navigation/RootNavigation';
+import { ChatDisconnectOut } from '../../service/LocalChat';
 
 const ChattingListScreen = ({ navigation }) => {
     const [chatRooms, setChatRooms] = useState<ChatRoomLocal[]>(getChatRoomList()||[]);
-    const [loading, setLoading] = useState(true);
     const isFocused = useIsFocused();
     const intervalId = useRef<NodeJS.Timeout | null>(null);
-
+    const localChatList = useRecoilValue(LocalChatListState);
     const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
 
     const handleDeleteChatRoom = (chatRoomId: number) => {
@@ -36,8 +39,6 @@ const ChattingListScreen = ({ navigation }) => {
             }
         } catch (error){
             console.error('Error fetching chatroom data:', error);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -47,19 +48,6 @@ const ChattingListScreen = ({ navigation }) => {
                 fetchChatRooms();
             }, 4000);
         };
-
-        const handleAppStateChange = (nextAppState: AppStateStatus) => {
-            if (nextAppState !== 'active') {
-                if (intervalId.current !== null) {
-                    BackgroundTimer.clearInterval(intervalId.current);
-                    intervalId.current = null;
-                }
-            } else {
-                startPolling();
-            }
-        };
-
-        // fetchChatRooms();
 
         const delayedFetchChatRooms = () => {
             setTimeout(() => {
@@ -71,6 +59,16 @@ const ChattingListScreen = ({ navigation }) => {
 
         if (isFocused) {
             startPolling();
+            const handleAppStateChange = (nextAppState: AppStateStatus) => {
+                if (nextAppState !== 'active') {
+                    if (intervalId.current !== null) {
+                        BackgroundTimer.clearInterval(intervalId.current);
+                        intervalId.current = null;
+                    }
+                } else {
+                    startPolling();
+                }
+            };
             const subscription = AppState.addEventListener('change', handleAppStateChange);
             return () => {
                 if (intervalId.current !== null) {
@@ -102,20 +100,16 @@ const ChattingListScreen = ({ navigation }) => {
         return map;
     }, [chatRooms, currentUserId]);
 
-    const joinedLocalChatList = useRecoilValue(JoinedLocalChatListState);
-    const getChatRoomInfo = (chatRoomId, joinedLocalChatList) => {
-        const chatRoom = joinedLocalChatList.find(room => room.chatRoomId === Number(chatRoomId));
-        return chatRoom
-            ? { name: chatRoom.name, distance: chatRoom.distance, description: chatRoom.description }
-            : { name: 'Unknown Chat Room', distance: 0, description: '' };
+    const distanceDisplay = (distance) => {
+        if (distance) {
+            const distanceInMeters = Math.round(distance * 1000);
+            return distanceInMeters > 100 ? '(100m+)' : `(${distanceInMeters}m)`;
+        }
+        return ""
     };
 
-    const getDisplayName = (room: ChatRoom) => {
-        if (room.type === 'LOCAL') {
-            return getChatRoomInfo(room.id, joinedLocalChatList).name;
-        } else {
-            return chatRoomIdToUsernamesMap.get(room.id) || '(알 수 없는 사용자)';
-        }
+    const getDisplayName = (chatRoom: ChatRoom ) => {
+        return chatRoomIdToUsernamesMap.get(chatRoom.id) || '(알 수 없는 사용자)';
     };
 
     //recent message 넣기
@@ -123,31 +117,9 @@ const ChattingListScreen = ({ navigation }) => {
             return room.recentMessage ? (room.recentMessage.type == "FILE" ? "사진": room.recentMessage.content) : "";
     }
 
-    const calculateDistanceInMeters = (distanceInKm) => {
-        const distanceInMeters = distanceInKm * 1000;
-        return Math.round(distanceInMeters);
-    };
-
-    const distanceDisplay = (chatRoomId) => {
-        const chatRoom = joinedLocalChatList.find(room => room.chatRoomId === Number(chatRoomId));
-        if (chatRoom) {
-            const distanceInMeters = calculateDistanceInMeters(chatRoom.distance);
-            return distanceInMeters > 50 ? '50m+' : `${distanceInMeters}m`;
-        }
-        return '';
-    };
-
     // 몇명
     const getLastUpdate = (room: ChatRoom) =>{
         return room.recentMessage ? formatDateToKoreanTime(room.recentMessage.createdAt) : '';
-    }
-
-    if (loading) {
-        return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#0000ff" />
-            </View>
-        );
     }
 
     return (
@@ -161,18 +133,45 @@ const ChattingListScreen = ({ navigation }) => {
                 <FlatList
                     data={chatRooms}
                     keyExtractor={(item) => item.id.toString()}
-                    renderItem={({ item }) => {
-                        const usernames = item.members
+                    renderItem={({ item }: {item :ChatRoomLocal}) => {
+                        if (item.type === 'LOCAL') {
+                            const findChatRoom = localChatList.find(room => room.localChat.chatRoomId === item.id);
+                            if (findChatRoom?.localChat) {
 
+                                return (
+                                    <ChatRoomCard
+                                        usernames={findChatRoom.localChat.name}
+                                        memberCnt = {item.memberCount}
+                                        profileImageId={findChatRoom.localChat.imageId}
+                                        lastMsg={getLastMsg(item)}
+                                        lastUpdate={getLastUpdate(item)}
+                                        distance={findChatRoom ? distanceDisplay(findChatRoom.localChat.distance): ''}
+                                        navigation={navigation}
+                                        chatRoomType={item.type}
+                                        chatRoomId={item.id}
+                                        numMember={item.memberCount}
+                                        unReadMsg={item.unreadMessageCount}
+                                        onDelete={handleDeleteChatRoom}
+                                    />
+                                )
+
+                            } else {
+                                ChatDisconnectOut(item.id, null);
+                            }
+                        }
+                        let profileImageId = 0;
+                        if (item.type === 'FRIEND' && item.memberCount === 2) {
+                            const members:chatRoomMemberImage[] = item.members.filter(member => member.memberId !== currentUserId)
+                            profileImageId = members[0].profileImageId;
+                        }
                         return (
                             <ChatRoomCard
                                 usernames={getDisplayName(item)}
                                 memberCnt = {item.memberCount}
-                                members={item.members.filter(member => member.memberId !== currentUserId)}
+                                profileImageId={profileImageId}
                                 lastMsg={getLastMsg(item)}
                                 lastUpdate={getLastUpdate(item)}
-                                description={getChatRoomInfo(item.id, joinedLocalChatList)?getChatRoomInfo(item.id, joinedLocalChatList).description:''}
-                                distance={getChatRoomInfo(item.id, joinedLocalChatList)?distanceDisplay(item.id):''}
+                                distance={''}
                                 navigation={navigation}
                                 chatRoomType={item.type}
                                 chatRoomId={item.id}
@@ -185,6 +184,9 @@ const ChattingListScreen = ({ navigation }) => {
                     ListEmptyComponent={() => (
                         <View style={styles.emptyContainer}>
                             <Text style={styles.emptyText}>새로운 인연과 대화를 시작해보세요</Text>
+                            <RoundBox>
+                                <Button title="대화하기" onPress={() => navigate("로그인 성공", {screen: "인연", params: {} })}/>
+                            </RoundBox>
                         </View>
                     )}
                 />

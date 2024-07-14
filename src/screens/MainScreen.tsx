@@ -7,6 +7,8 @@ import {BufferProvider} from "../utils/BufferContext";
 import ChattingScreen from './Chatting/ChattingScreen';
 import {setMMKVString} from "../utils/mmkvStorage";
 import { useEffect } from 'react';
+import { NavigationProvider } from '../navigation/NavigtaionContext';
+
 
 const MainScreen : React.FC = () => {
   const LogInStack = createBottomTabNavigator();
@@ -17,7 +19,8 @@ const MainScreen : React.FC = () => {
         setMMKVString('currentRouteName', currentRoute.name);
     };
   return (
-      <BufferProvider>
+      <NavigationProvider>
+          <BufferProvider>
             <NavigationContainer
                 ref={navigationRef}
                 onReady={()=> {
@@ -38,7 +41,8 @@ const MainScreen : React.FC = () => {
 
               </LogInStack.Navigator>
             </NavigationContainer>
-      </BufferProvider>
+          </BufferProvider>
+      </NavigationProvider>
   );
 }
 
