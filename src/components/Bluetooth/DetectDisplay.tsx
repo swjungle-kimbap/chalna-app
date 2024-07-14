@@ -36,8 +36,8 @@ const createFloatingAnimation = (anim: Animated.Value) => {
       }),
       Animated.timing(anim, {
         toValue: -1,
-        duration: 2200, 
-        easing:Easing.linear,
+        duration: 2200,
+        easing: Easing.linear,
         useNativeDriver: true,
       }),
     ])
@@ -54,17 +54,16 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
       if (!fadeAnimMap.has(uuid)) {
         const fadeAnim = new Animated.Value(0);
         const floatAnim = new Animated.Value(0);
-        
+
         fadeAnimMap.set(uuid, fadeAnim);
         floatAnimMap.set(uuid, floatAnim);
         iconMap.set(uuid, getRandomIcon());
 
-        Animated.timing(fadeAnim, {
+        Animated.timing(fadeAnimMap.get(uuid), {
           toValue: 1,
           duration: 500,
           useNativeDriver: true,
         }).start();
-
         createFloatingAnimation(floatAnim).start();
       }
     });
@@ -88,30 +87,28 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
   const lottieCenterX = 160; // LottieView의 중심 x 좌표
   const lottieCenterY = 200; // LottieView의 중심 y 좌표
   const radius = 130; // 원의 반지름
-  const angleStep = (2 * Math.PI) / uuids.size;
 
-  const positions = Array.from(uuids).map((_, index) => {
-    const angle = index * angleStep;
-    return {
-      top: lottieCenterY + radius * Math.sin(angle),
-      left: lottieCenterX + radius * Math.cos(angle),
-    };
-  });
+  const positions = [
+    { top: lottieCenterY - radius, left: lottieCenterX }, // 위
+    { top: lottieCenterY - radius / 2, left: lottieCenterX - (Math.sqrt(3) / 2) * radius }, // 좌상
+    { top: lottieCenterY - radius / 2, left: lottieCenterX + (Math.sqrt(3) / 2) * radius }, // 우상
+    { top: lottieCenterY + radius / 2, left: lottieCenterX - (Math.sqrt(3) / 2) * radius }, // 좌하
+    { top: lottieCenterY + radius / 2, left: lottieCenterX + (Math.sqrt(3) / 2) * radius }, // 우하
+    { top: lottieCenterY + radius, left: lottieCenterX }, // 아래
+  ];
 
   return (
     <View style={styles.detectIconContainer}>
       {Array.from(uuids).map((uuid, index) => {
-        const position = positions[index];
+        const position = positions[index % positions.length];
         const floatAnim = floatAnimMap.get(uuid);
-
-        if (!floatAnim) {
-          return null; // floatAnim이 없을 경우 렌더링하지 않음
-        }
+	      if (!floatAnim) {
+	        return null; // floatAnim이 없을 경우 렌더링하지 않음
+	      }
 
         const floatAnimInterpolated = floatAnim.interpolate({
           inputRange: [-1, 1],
-          outputRange: [-10, 10], // 위아래로 10픽셀씩 이동
-      
+          outputRange: [-10, 10],
         });
 
         return (
@@ -128,7 +125,7 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
             ]}
           >
             <FastImage
-              style={[styles.detectIcon, { width: 60, height: 60 }]} // 아이콘 크기 조정
+              style={styles.detectIcon}
               source={iconMap.get(uuid)}
               resizeMode={FastImage.resizeMode.contain}
             />
