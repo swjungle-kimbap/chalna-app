@@ -5,6 +5,7 @@ import {urls} from "../../axios/config";
 import {chatroomInfoAndMsg, chatRoomMemberInfo} from "../../interfaces/Chatting.type";
 import axiosInstance from "../../axios/axios.instance";
 import {ChatRoom} from "../../interfaces/Chatting.type";
+import { showModal } from '../../context/ModalService';
 
 export const fetchChatRoomList=async():Promise<ChatRoom[]|any>=>{
     try {
@@ -57,27 +58,29 @@ export const fetchChatRoomMember =
 
 
 
-export const deleteChat = async (navigation: any, chatRoomId:string):Promise<boolean|any> => {
-    Alert.alert(
-        "채팅방 나가기",
-        "정말 나가시겠습니까?",
-        [   { text: "취소", style: "cancel" },
-                    { text: "나가기",
-                        onPress: async () => {
-                            try {
-                                await axiosDelete(
-                                    urls.CHATROOM_LEAVE_URL+`${chatRoomId}`
-                                );
-                                if (navigation!=='none'){
-                                    navigation.navigate('채팅 목록');
-                                }
-                                return true;
-                            } catch (error) {
-                                const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
-                                Alert.alert("Error", errorMessage);
-                                return false;
-                            }
-                        }}]
+export const deleteChat = async (navigation: any, chatRoomId: string): Promise<boolean | any> => {
+    showModal(
+      "채팅방 나가기",
+      "해당 채팅방을 떠나면 대화 내용이 \n 모두 삭제되고 참여했던 채팅목록에서도 삭제됩니다.",
+      async () => {
+        try {
+          await axiosDelete(
+            urls.CHATROOM_LEAVE_URL + `${chatRoomId}`
+          );
+          if (navigation !== 'none') {
+            navigation.navigate('채팅 목록');
+          }
+          return true;
+        } catch (error) {
+          const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
+          showModal("Error", errorMessage, () => {}, undefined, false);
+          return false;
+        }
+      },
+      undefined, // 취소 버튼 클릭 시 수행할 동작이 없으므로 undefined를 전달합니다.
+      true, // 취소 버튼을 표시합니다.
+      "나가기", // 확인 버튼의 텍스트를 "나가기"로 설정합니다.
+      "취소" // 취소 버튼의 텍스트를 "취소"로 설정합니다.
     );
-};
+  };
 
