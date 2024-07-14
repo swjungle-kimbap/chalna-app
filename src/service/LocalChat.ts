@@ -8,6 +8,7 @@ import showPermissionAlert from "../utils/showPermissionAlert";
 import { PERMISSIONS } from "react-native-permissions";
 import { removeChatRoom } from './Chatting/mmkvChatStorage';
 import { downloadImage, uploadImage } from "../utils/FileHandling";
+import { showModal } from "../context/ModalService";
 
 const requiredPermissions = [PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION];
 
@@ -19,7 +20,8 @@ export const joinLocalChat = async (localChat:LocalChat, distance:number, setRef
         setRefresh((prev)=>!prev);
         navigate("채팅", { chatRoomId : localChat.chatRoomId });
       } else 
-        Alert.alert("거리 제한", "거리가 너무 멀어요 50m 이내인경우 들어 갈 수 있어요!");
+        showModal('거리 제한', '거리가 너무 멀어요 50m 이내인경우 들어 갈 수 있어요!', ()=>{}, undefined, false)
+        
       } catch (e) {
     console.error("장소 채팅 참여 중 오류 발생:", e);
   };
@@ -46,7 +48,7 @@ export const makeLocalChat = async (name, description, currentLocation, image) :
   } as SetLocalChatRequest);
   
   if (response?.data?.code === "201"){
-    Alert.alert("채팅방 생성 완료!", "주위의 사람들과 대화를 나눠보세요!");
+    showModal("채팅방 생성 완료!", "주위의 사람들과 대화를 나눠보세요!",()=>{},undefined,false)
   }
   return response?.data?.data;
 }
@@ -113,20 +115,31 @@ export const localChatOut = async (localChat:LocalChat, setRefresh:Function) => 
   const granted = await handleCheckPermission();
   if (!granted) 
     return
+  showModal(
+    localChat.name, 
+    "이미 들어간 채팅방입니다! 나가시겠습니까?",
+    async () => {
+      await ChatOut(localChat.chatRoomId, setRefresh);
+    },
+    () => {
+      navigate("채팅", { chatRoomId: localChat.chatRoomId });
+    },
+    true
+  );
   
-  Alert.alert(localChat.name, "이미 들어간 채팅방입니다! 나가시겠습니까?",
-    [
-      {
-        text: '들어가기',
-        onPress: async () => {navigate("채팅", { chatRoomId : localChat.chatRoomId });},
-        style: 'default'
-      },
-      {
-        text: '나가기',
-        onPress: async () => await ChatOut(localChat.chatRoomId, setRefresh),
-        style: 'default'
-      },
-    ],
-    { cancelable: true }
-  )
+  // Alert.alert(localChat.name, "이미 들어간 채팅방입니다! 나가시겠습니까?",
+  //   [
+  //     {
+  //       text: '들어가기',
+  //       onPress: async () => {navigate("채팅", { chatRoomId : localChat.chatRoomId });},
+  //       style: 'default'
+  //     },
+  //     {
+  //       text: '나가기',
+  //       onPress: async () => await ChatOut(localChat.chatRoomId, setRefresh),
+  //       style: 'default'
+  //     },
+  //   ],
+  //   { cancelable: true }
+  // )
 };

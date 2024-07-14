@@ -1,7 +1,9 @@
 import { Platform, Linking, Alert } from "react-native";
 import { openSettings } from "react-native-permissions";
+import { useModal } from "../context/ModalContext";
 
 const showPermissionAlert = (msg:string) => {
+
   Alert.alert(
     '권한 필요',
     `이 기능을 사용하려면 ${msg} 권한이 필요합니다.`,
