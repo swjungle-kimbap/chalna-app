@@ -2,7 +2,7 @@ import {axiosDelete, axiosGet} from '../../axios/axios.method'; // Adjust the pa
 import Config from 'react-native-config';
 import {Alert} from "react-native";
 import {urls} from "../../axios/config";
-import {chatroomInfoAndMsg} from "../../interfaces/Chatting.type";
+import {chatroomInfoAndMsg, chatRoomMemberInfo} from "../../interfaces/Chatting.type";
 import axiosInstance from "../../axios/axios.instance";
 import {ChatRoom} from "../../interfaces/Chatting.type";
 
@@ -38,6 +38,24 @@ export const fetchChatRoomContent =
         console.log("채팅방 불러오기에 실패했습니다.");
     }
 }
+
+// export const viewChatRoomList => {}
+export const fetchChatRoomMember =
+    async(chatRoomId: string):Promise<chatRoomMemberInfo|any> => {
+        try{
+
+            console.log('url fetchChatRoomMembers: ', urls.CHATROOM_MEMBER_URL+`${chatRoomId}`);
+            const response = await axiosGet(
+                urls.CHATROOM_MEMBER_URL+`${chatRoomId}` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
+            );
+            console.log(response.data.data);
+            return response.data.data;
+        } catch (error){
+            console.log("채팅방 불러오기에 실패했습니다.");
+        }
+    }
+
+
 
 export const deleteChat = async (navigation: any, chatRoomId:string):Promise<boolean|any> => {
     Alert.alert(
