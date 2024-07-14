@@ -95,6 +95,7 @@ const ChattingScreen: React.FC = () => {
 
     const isInitialLoadCompleteRef = useRef<boolean>(false);
     const { socketMessageBuffer, addMessageToBuffer, clearBuffer } = useBuffer();
+    const batchSize = 20;
 
     const chatRoomIdRef = useRef<string>(chatRoomId);
     const [profilePicture, setProfilePicture] = useState<string>("");
@@ -256,9 +257,8 @@ const ChattingScreen: React.FC = () => {
             setMessages(prevMessages => {
                 const updatedMessages = [...(prevMessages || []), newMessage];
                 // Save updated messages to storage every 20 messages
-                if (updatedMessages.length % 20 === 0) {
+                if (updatedMessages.length % batchSize === 0) {
                     saveChatMessages(chatRoomId, updatedMessages);
-                    clearBuffer(); // Clear the buffer
                 }
                 return updatedMessages; // Keep all messages
             });
@@ -384,7 +384,7 @@ const ChattingScreen: React.FC = () => {
                 if (isInitialLoad){
                     setLoading(true);
                     // Step 1: Load stored messages and information first
-                    const latestMessages = await getChatMessages(chatRoomId, 20, null);
+                    const latestMessages = await getChatMessages(chatRoomId, batchSize, null);
                     console.log('latest MSGs: ', latestMessages)
                     if (latestMessages && latestMessages.length > 0) {
                         setMessages(latestMessages); // Load latest messages
@@ -552,7 +552,7 @@ const ChattingScreen: React.FC = () => {
 
     const fetchEarlierMessages = async () => {
         const lastMessageId = messages.length > 0 ? messages[0].id : null;
-        const moreMessages = await getChatMessages(chatRoomId, 20, lastMessageId); // Load more messages with lastMessageId
+        const moreMessages = await getChatMessages(chatRoomId, batchSize, lastMessageId); // Load more messages with lastMessageId
         if (moreMessages && moreMessages.length > 0) {
             setMessages(prevMessages => [...moreMessages, ...(prevMessages || [])]);
         }
