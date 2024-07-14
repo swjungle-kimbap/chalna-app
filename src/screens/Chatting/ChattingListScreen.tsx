@@ -6,7 +6,7 @@ import CustomHeader from "../../components/common/CustomHeader";
 import { useRecoilValue } from "recoil";
 import { LocalChatData, LoginResponse } from "../../interfaces";
 import { LocalChatListState, userInfoState } from "../../recoil/atoms";
-import {ChatRoom, ChatRoomLocal, chatRoomMemberImage} from "../../interfaces/Chatting.type";
+import {ChatRoom, ChatRoomLocal, chatRoomMember} from "../../interfaces/Chatting.type";
 import { fetchChatRoomList, deleteChat } from "../../service/Chatting/chattingAPI";
 import BackgroundTimer from 'react-native-background-timer';
 import {saveChatRoomList, getChatRoomList, removeChatRoom} from '../../service/Chatting/mmkvChatStorage';
@@ -164,7 +164,7 @@ const ChattingListScreen = ({ navigation }) => {
                         }
                         let profileImageId = 0;
                         if (item.type === 'FRIEND' && item.chatRoomMemberInfo && item.chatRoomMemberInfo.memberCount === 2) {
-                            const members:chatRoomMemberImage[] = item.chatRoomMemberInfo.members.filter(member => member.memberId !== currentUserId)
+                            const members:chatRoomMember[] = item.chatRoomMemberInfo.members.filter(member => member.memberId !== currentUserId)
                             profileImageId = members[0].profileImageId;
                         }
                         return (

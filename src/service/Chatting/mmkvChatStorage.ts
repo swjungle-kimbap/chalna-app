@@ -109,7 +109,7 @@ export const saveChatMessages = (chatRoomId: string, newMessages: directedChatMe
 
 
 export const getChatMessages = (chatRoomId, limit = 20, lastMessageId = null) => {
-    // console.log("------get Chat Messages run in mmkv ------");
+    console.log("------get Chat Messages run in mmkv ------");
 
     const allMessagesKey = `chatMessages_${chatRoomId}`;
     const allMessagesString = userMMKVStorage.getString(allMessagesKey);
@@ -131,13 +131,14 @@ export const getChatMessages = (chatRoomId, limit = 20, lastMessageId = null) =>
 
 
 export const getAllChatMessages = (chatRoomId) => {
-    // console.log("------get All Chat Messages run in mmkv ------");
+    console.log("------get All Chat Messages run in mmkv ------");
 
     const allMessagesKey = `chatMessages_${chatRoomId}`;
     const allMessagesString = userMMKVStorage.getString(allMessagesKey);
     if (!allMessagesString) {
         return [];
     }
+
     const allMessages = JSON.parse(allMessagesString);
     return allMessages;
 };
@@ -188,34 +189,34 @@ export const decrementUnreadCountBeforeTimestamp = (chatRoomId: string, timestam
     }
 };
 
-export const createChatRoomLocal = (fcmData: ChatFCM): ChatRoomLocal => {
-    const chatRoomMemberImage: chatRoomMemberImage = {
-        memberId: Number(fcmData.senderId),
-        username: fcmData.senderName,
-        profile: "", // Assuming you have a way to get the profile URL
-        statusMsg: "" // Assuming you have a way to get the status message
-    };
-
-    const chatMessage: ChatMessage = {
-        id: Date.now(), // Generate a unique ID for the message
-        type: fcmData.messageType,
-        content: fcmData.message,
-        senderId: Number(fcmData.senderId),
-        unreadCount: 0, // Assuming no unread count initially
-        createdAt: fcmData.createdAt
-    };
-
-    return {
-        id: Number(fcmData.chatRoomId),
-        type: fcmData.chatRoomType,
-        members: [chatRoomMemberImage],
-        recentMessage: chatMessage,
-        messages: [{
-            ...chatMessage,
-            isSelf: false, // Assuming the message is sent by the current user
-            formatedTime: new Date(fcmData.createdAt).toLocaleString() // Format the time as needed
-        }],
-        createdAt: new Date().toISOString(), // Assuming the current time as createdAt
-        updatedAt: new Date().toISOString() // Assuming the current time as updatedAt
-    };
-}
+// export const createChatRoomLocal = (fcmData: ChatFCM): ChatRoomLocal => {
+//     const chatRoomMemberImage: chatRoomMemberImage = {
+//         memberId: Number(fcmData.senderId),
+//         username: fcmData.senderName,
+//         profileImageId: 0, // Assuming you have a way to get the profile URL
+//         isJoined: true // Assuming you have a way to get the status message
+//     };
+//
+//     const chatMessage: ChatMessage = {
+//         id: Date.now(), // Generate a unique ID for the message
+//         type: fcmData.messageType,
+//         content: fcmData.message,
+//         senderId: Number(fcmData.senderId),
+//         unreadCount: 0, // Assuming no unread count initially
+//         createdAt: fcmData.createdAt
+//     };
+//
+//     return {
+//         id: Number(fcmData.chatRoomId),
+//         type: fcmData.chatRoomType,
+//         members: [chatRoomMemberImage],
+//         recentMessage: chatMessage,
+//         messages: [{
+//             ...chatMessage,
+//             isSelf: false, // Assuming the message is sent by the current user
+//             formatedTime: new Date(fcmData.createdAt).toLocaleString() // Format the time as needed
+//         }],
+//         createdAt: new Date().toISOString(), // Assuming the current time as createdAt
+//         updatedAt: new Date().toISOString() // Assuming the current time as updatedAt
+//     };
+// }

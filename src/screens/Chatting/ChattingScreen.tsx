@@ -292,10 +292,10 @@ const ChattingScreen: React.FC = () => {
     };
 
 
-    const setupWebSocket = async (callback?: () => void) => {
+    const setupWebSocket = async (newChatRoomId, callback?: () => void) => {
         try {
             const accessToken = loginMMKVStorage.getString('login.accessToken');
-            WebSocketManager.connect(chatRoomId, accessToken, (message: IMessage) => {
+            WebSocketManager.connect(newChatRoomId, accessToken, (message: IMessage) => {
                 console.log('Received message: ' + message.body);
                 try {
                     const parsedMessage: directedChatMessage = JSON.parse(message.body);
@@ -324,9 +324,9 @@ const ChattingScreen: React.FC = () => {
                             // handle unread count
                             const lastLeaveAt = parsedMessage.content.lastLeaveAt;
                             console.log('user enter since ', lastLeaveAt);
-                            decrementUnreadCountBeforeTimestamp(chatRoomId, lastLeaveAt);
+                            decrementUnreadCountBeforeTimestamp(newChatRoomId, lastLeaveAt);
                             const updateMessages = async () => {
-                                const updatedMessages = await getAllChatMessages(chatRoomId);
+                                const updatedMessages = await getAllChatMessages(newChatRoomId);
                                 setMessages(updatedMessages || []);
                             };
                             updateMessages();
@@ -377,7 +377,7 @@ const ChattingScreen: React.FC = () => {
                 const savedRoute = getMMKVString('currentRouteName');
                 if (savedRoute === '채팅') {
                 chatRoomId = chatRoomIdRef.current;
-                setupWebSocket(()=>fetchMessages(false));
+                setupWebSocket(chatRoomId,()=>fetchMessages(false));
             }
             }
         };
@@ -402,6 +402,8 @@ const ChattingScreen: React.FC = () => {
                     }
                     // Load basic chat room information from stored data
                     const chatRoomInfoFromStorage = getChatRoomInfo(chatRoomId); // Assuming this function exists
+                    console.log("=========== on fetching data from Local Storage chatRoomId: ", chatRoomId);
+                    console.log("data from storage: ", chatRoomInfoFromStorage);
                     if (chatRoomInfoFromStorage) {
                         setChatRoomType(chatRoomInfoFromStorage.type);
                         setMembers(chatRoomInfoFromStorage.chatRoomMemberInfo.members);
@@ -481,9 +483,11 @@ const ChattingScreen: React.FC = () => {
                         setProfilePicture("");
                     }
                 }
-                    isInitialLoadCompleteRef.current = true;
+
             } catch (error) {
                 console.error('채팅방 내역 조회 실패:', error);
+            } finally {
+                isInitialLoadCompleteRef.current = true;
             }
         };
 
@@ -492,15 +496,16 @@ const ChattingScreen: React.FC = () => {
         useCallback(() => {
             isInitialLoadCompleteRef.current=false;
             const socketMessageBuffer: directedChatMessage[] = [];
-            setupWebSocket(()=>fetchMessages(true));
+            setupWebSocket(chatRoomId,()=>fetchMessages(true));
 
             return () => {
                 // console.log("loose focus");
                 WebSocketManager.disconnect();
                 console.log("===소켓 메세지 버퍼=== ",updatedMessageBuffer.current);
                 saveChatMessages(chatRoomId, updatedMessageBuffer.current);
+                updatedMessageBuffer.current=[]; // empty buffer
                 setMessages(null);
-                setUsername(" ");
+                setUsername("");
             };
         }, [chatRoomId, currentUserId])
     );
