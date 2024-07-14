@@ -58,4 +58,5 @@ export type ChatRoomLocal = {
     lastReceivedAt?: string;
     createdAt: string;
     updatedAt?: string;
+    name?:string;
 }
