@@ -109,7 +109,7 @@ export const saveChatMessages = (chatRoomId: string, newMessages: directedChatMe
 
 
 export const getChatMessages = (chatRoomId, limit = 20, lastMessageId = null) => {
-    console.log("------get Chat Messages run in mmkv ------");
+    // console.log("------get Chat Messages run in mmkv ------");
 
     const allMessagesKey = `chatMessages_${chatRoomId}`;
     const allMessagesString = userMMKVStorage.getString(allMessagesKey);
@@ -131,7 +131,7 @@ export const getChatMessages = (chatRoomId, limit = 20, lastMessageId = null) =>
 
 
 export const getAllChatMessages = (chatRoomId) => {
-    console.log("------get All Chat Messages run in mmkv ------");
+    // console.log("------get All Chat Messages run in mmkv ------");
 
     const allMessagesKey = `chatMessages_${chatRoomId}`;
     const allMessagesString = userMMKVStorage.getString(allMessagesKey);

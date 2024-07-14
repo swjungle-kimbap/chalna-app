@@ -95,7 +95,7 @@ const ChattingScreen: React.FC = () => {
 
     const isInitialLoadCompleteRef = useRef<boolean>(false);
     const { socketMessageBuffer, addMessageToBuffer, clearBuffer } = useBuffer();
-    const batchSize = 30;
+    const batchSize = 20;
 
     const chatRoomIdRef = useRef<string>(chatRoomId);
     const [profilePicture, setProfilePicture] = useState<string>("");
@@ -148,9 +148,9 @@ const ChattingScreen: React.FC = () => {
         // console.log('Update & Render Room info after Befriending');
         if (responseData) {
             setChatRoomType(responseData.type);
-            setMembers(responseData.members);
+            setMembers(responseData.chatRoomMemberInfo.members);
 
-            const usernames = responseData.members
+            const usernames = responseData.chatRoomMemberInfo.members
                 .filter((member: chatRoomMember) => member.memberId !== currentUserId)
                 .map((member: chatRoomMember) => member.username)
                 .join(', ');
@@ -164,13 +164,13 @@ const ChattingScreen: React.FC = () => {
             const chatRoomInfoToStore: ChatRoomLocal = {
                 id: parseInt(chatRoomId, 10),
                 type: responseData.type,
-                members: responseData.members,
+                chatRoomMemberInfo: responseData.chatRoomMemberInfo,
                 name: chatRoomName
             }
             saveChatRoomInfo(chatRoomInfoToStore);
         }
         // 프로필 이미지 로드
-        const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
+        const filteredMembers = responseData.chatRoomMemberInfo.members.filter(member => member.memberId !== currentUserId);
         if (filteredMembers[0].profileImageId) {
             const uri = await getImageUri(filteredMembers[0].profileImageId);
             setProfilePicture(uri);
@@ -262,9 +262,24 @@ const ChattingScreen: React.FC = () => {
     const updatedMessageBuffer = useRef<directedChatMessage[]>([]);
 
     const handleIncomingSocketMessage = (newMessage: directedChatMessage) => {
+        console.log("===haneld Incoming socket msg, initialLoad status: ", isInitialLoadCompleteRef.current);
         if (isInitialLoadCompleteRef.current) {
             // Add the new message to the existing state
+            console.log("handleincoming SocketMessage | newMessage: ", newMessage);
             setMessages(prevMessages => [...(prevMessages || []), newMessage]); // set incomming messages
+            if (isUserAtBottom.current) {
+                flatListRef.current?.scrollToOffset({animated: true, offset: 0});
+                setShowScrollToEndButton(false);
+                if (newMessage.senderId !== currentUserId) {
+                    setShowNewMessageBadge(false);
+                }
+            } else {
+                setShowScrollToEndButton(true);
+                if (newMessage.senderId !== currentUserId) {
+                    setShowNewMessageBadge(true);
+                }
+                setTimeout(() => setShowNewMessageBadge(false), 3000);
+            }
             updatedMessageBuffer.current = [...updatedMessageBuffer.current, newMessage]; // append to buffer
             if (updatedMessageBuffer.current.length % batchSize === 0) {
                 saveChatMessages(chatRoomId, updatedMessageBuffer.current);
@@ -291,20 +306,9 @@ const ChattingScreen: React.FC = () => {
                         parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt);
 
                         if (!(chatRoomType === 'FRIEND' && parsedMessage.type === 'TIMEOUT')) {
+                            console.log("=====실행 확인======");
+                            console.log(parsedMessage);
                             handleIncomingSocketMessage(parsedMessage); // set 바로 저장 배치 단위로
-                            if (isUserAtBottom.current) {
-                                flatListRef.current?.scrollToOffset({animated: true, offset: 0});
-                                setShowScrollToEndButton(false);
-                                if (parsedMessage.senderId !== currentUserId) {
-                                    setShowNewMessageBadge(false);
-                                }
-                            } else {
-                                setShowScrollToEndButton(true);
-                                if (parsedMessage.senderId !== currentUserId) {
-                                    setShowNewMessageBadge(true);
-                                }
-                                setTimeout(() => setShowNewMessageBadge(false), 3000);
-                            }
                         }
 
                         if (parsedMessage.type === 'FRIEND_REQUEST' && parsedMessage.content.includes('친구가 되었습니다!')) {
@@ -400,7 +404,7 @@ const ChattingScreen: React.FC = () => {
                     const chatRoomInfoFromStorage = getChatRoomInfo(chatRoomId); // Assuming this function exists
                     if (chatRoomInfoFromStorage) {
                         setChatRoomType(chatRoomInfoFromStorage.type);
-                        setMembers(chatRoomInfoFromStorage.members);
+                        setMembers(chatRoomInfoFromStorage.chatRoomMemberInfo.members);
                         setUsername(chatRoomInfoFromStorage.name);
                     }
                     setLoading(false);
@@ -429,13 +433,24 @@ const ChattingScreen: React.FC = () => {
                             saveChatMessages(chatRoomId, allMessages); // Save merged messages to storage
                             return allMessages;
                         });
-                        socketMessageBuffer.length = 0; // Clear the buffer
+
+                        // handle scroll
+                        if (isUserAtBottom.current) {
+                            flatListRef.current?.scrollToOffset({animated: true, offset: 0});
+                            setShowScrollToEndButton(false);
+                        } else {
+                            setShowNewMessageBadge(false);
+                            setTimeout(() => setShowNewMessageBadge(false), 3000);
+                        }
+
+                        // clear the buffer
+                        socketMessageBuffer.length = 0;
                     }
 
                     setChatRoomType(responseData.type);
-                    setMembers(responseData.members);
+                    setMembers(responseData.chatRoomMemberInfo.members);
 
-                    const usernames = responseData.members
+                    const usernames = members
                         .filter((member: chatRoomMember) => member.memberId !== currentUserId)
                         .map((member: chatRoomMember) => member.username)
                         .join(', ');
@@ -449,12 +464,12 @@ const ChattingScreen: React.FC = () => {
                     const chatRoomInfoToSave: ChatRoomLocal = {
                         id: parseInt(chatRoomId, 10),
                         type: responseData.type,
-                        members: responseData.members,
+                        chatRoomMemberInfo: responseData.chatRoomMemberInfo,
                         name: chatRoomName
                     };
                     saveChatRoomInfo(chatRoomInfoToSave);
 
-                    const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
+                    const filteredMembers = members.filter(member => member.memberId !== currentUserId);
                     if (responseData.type === 'FRIEND' && filteredMembers.length === 1 && filteredMembers[0].profileImageId) {
                         if (filteredMembers[0].profileImageId) {
                             const uri = await getImageUri(filteredMembers[0].profileImageId);
@@ -482,6 +497,7 @@ const ChattingScreen: React.FC = () => {
             return () => {
                 // console.log("loose focus");
                 WebSocketManager.disconnect();
+                console.log("===소켓 메세지 버퍼=== ",updatedMessageBuffer.current);
                 saveChatMessages(chatRoomId, updatedMessageBuffer.current);
                 setMessages(null);
                 setUsername(" ");
