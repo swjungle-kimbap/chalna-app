@@ -18,7 +18,7 @@ const BackgroundNonDismissibleModal = () => {
           <View style={styles.buttonContainer}>
           {modalContent.showCancel && (
               <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => { modalContent.onCancel && modalContent.onCancel(); hideModal(); }}>
-                <Text style={styles.buttonCancelText}>취소</Text>
+                <Text style={styles.buttonCancelText}>{modalContent.cancelText}</Text>
               </TouchableOpacity>
             )}
                       <TouchableOpacity
@@ -29,14 +29,9 @@ const BackgroundNonDismissibleModal = () => {
               ]}
               onPress={() => { modalContent.onConfirm && modalContent.onConfirm(); hideModal(); }}
             >
-              <Text style={styles.buttonConfirmText}>확인</Text>
+              <Text style={styles.buttonConfirmText}>{modalContent.confirmText}</Text>
             </TouchableOpacity>
-            {/* <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => { modalContent.onCancel(); hideModal(); }}>
-              <Text style={styles.buttonCancelText}>취소</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={() => { modalContent.onConfirm(); hideModal(); }}>
-              <Text style={styles.buttonConfirmText}>확인</Text>
-            </TouchableOpacity> */}
+        
           </View>
         </View>
       </View>
