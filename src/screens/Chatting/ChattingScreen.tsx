@@ -36,7 +36,7 @@ import {formatDateToKoreanTime, formatDateHeader} from "../../service/Chatting/D
 import Text from '../../components/common/Text';
 import {
     saveChatMessages, getChatMessages, removeChatRoom, getChatRoomInfo,
-    saveChatRoomInfo, decrementUnreadCountBeforeTimestamp
+    saveChatRoomInfo, decrementUnreadCountBeforeTimestamp, getAllChatMessages
 } from '../../service/Chatting/mmkvChatStorage';
 import {getMMKVString, loginMMKVStorage} from "../../utils/mmkvStorage";
 import {IMessage} from "@stomp/stompjs";
@@ -95,7 +95,7 @@ const ChattingScreen: React.FC = () => {
 
     const isInitialLoadCompleteRef = useRef<boolean>(false);
     const { socketMessageBuffer, addMessageToBuffer, clearBuffer } = useBuffer();
-    const batchSize = 20;
+    const batchSize = 30;
 
     const chatRoomIdRef = useRef<string>(chatRoomId);
     const [profilePicture, setProfilePicture] = useState<string>("");
@@ -145,21 +145,29 @@ const ChattingScreen: React.FC = () => {
 
     const updateRoomInfo = async () => {
         const responseData: chatroomInfoAndMsg = await fetchChatRoomContent(chatRoomId, currentUserId);
-        console.log('Update & Render Room info after Befriending');
+        // console.log('Update & Render Room info after Befriending');
         if (responseData) {
-            const usernames = responseData.members
-                .filter((member: chatRoomMember) => member.memberId !== currentUserId)
-                .map((member: chatRoomMember) => member.username);
-
             setChatRoomType(responseData.type);
             setMembers(responseData.members);
-            setUsername(usernames.join(', ')); // for chatroom title
-            const chatRoomInfo: ChatRoomLocal = {
+
+            const usernames = responseData.members
+                .filter((member: chatRoomMember) => member.memberId !== currentUserId)
+                .map((member: chatRoomMember) => member.username)
+                .join(', ');
+
+            const chatRoomName =
+                responseData.type !== 'local' ? usernames :
+                    chatRoomInfo? chatRoomInfo.name : "";
+
+            setUsername(chatRoomName);
+
+            const chatRoomInfoToStore: ChatRoomLocal = {
                 id: parseInt(chatRoomId, 10),
                 type: responseData.type,
-                members: responseData.members
+                members: responseData.members,
+                name: chatRoomName
             }
-            saveChatRoomInfo(chatRoomInfo);
+            saveChatRoomInfo(chatRoomInfoToStore);
         }
         // 프로필 이미지 로드
         const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
@@ -193,7 +201,7 @@ const ChattingScreen: React.FC = () => {
     };
 
     const handleUploadAndSend = async () => {
-        console.log("선택된 이미지 : ", selectedImage);
+        // console.log("선택된 이미지 : ", selectedImage);
         if (!selectedImage) {
             sendMessage();
             return;
@@ -201,16 +209,16 @@ const ChattingScreen: React.FC = () => {
         const {uri, fileName, fileSize, type: contentType} = selectedImage;
 
         try {
-            console.log("파일 서버로 전송중..");
+            // console.log("파일 서버로 전송중..");
             const metadataResponse = await axiosPost<AxiosResponse<FileResponse>>(`${urls.FILE_UPLOAD_URL}`, "파일 업로드", {
                 fileName,
                 fileSize,
                 contentType
             });
 
-            console.log("콘텐츠 타입 :", selectedImage.type);
+            // console.log("콘텐츠 타입 :", selectedImage.type);
 
-            console.log("서버로 받은 데이터 : ", JSON.stringify(metadataResponse?.data?.data));
+            // console.log("서버로 받은 데이터 : ", JSON.stringify(metadataResponse?.data?.data));
             const {fileId, presignedUrl} = metadataResponse?.data?.data;
 
             const resizedImage = await ImageResizer.createResizedImage(
@@ -251,17 +259,17 @@ const ChattingScreen: React.FC = () => {
         }
     };
 
+    const updatedMessageBuffer = useRef<directedChatMessage[]>([]);
+
     const handleIncomingSocketMessage = (newMessage: directedChatMessage) => {
         if (isInitialLoadCompleteRef.current) {
             // Add the new message to the existing state
-            setMessages(prevMessages => {
-                const updatedMessages = [...(prevMessages || []), newMessage];
-                // Save updated messages to storage every 20 messages
-                if (updatedMessages.length % batchSize === 0) {
-                    saveChatMessages(chatRoomId, updatedMessages);
-                }
-                return updatedMessages; // Keep all messages
-            });
+            setMessages(prevMessages => [...(prevMessages || []), newMessage]); // set incomming messages
+            updatedMessageBuffer.current = [...updatedMessageBuffer.current, newMessage]; // append to buffer
+            if (updatedMessageBuffer.current.length % batchSize === 0) {
+                saveChatMessages(chatRoomId, updatedMessageBuffer.current);
+                updatedMessageBuffer.current=[]; // clear buffer
+            }
         } else {
             // Buffer the message until the initial load is complete
             socketMessageBuffer.push(newMessage);
@@ -310,11 +318,12 @@ const ChattingScreen: React.FC = () => {
 
                     } else {
                         if (parsedMessage.type === 'USER_ENTER') {
+                            // handle unread count
                             const lastLeaveAt = parsedMessage.content.lastLeaveAt;
                             console.log('user enter since ', lastLeaveAt);
                             decrementUnreadCountBeforeTimestamp(chatRoomId, lastLeaveAt);
                             const updateMessages = async () => {
-                                const updatedMessages = await getChatMessages(chatRoomId);
+                                const updatedMessages = await getAllChatMessages(chatRoomId);
                                 setMessages(updatedMessages || []);
                             };
                             updateMessages();
@@ -361,8 +370,6 @@ const ChattingScreen: React.FC = () => {
         const handleAppStateChange = async (nextAppState: AppStateStatus) => {
             if (nextAppState === 'background' || nextAppState === 'inactive') {
                 WebSocketManager.disconnect();
-                saveChatMessages(chatRoomId, socketMessageBuffer);
-                clearBuffer();
             } else {
                 const savedRoute = getMMKVString('currentRouteName');
                 if (savedRoute === '채팅') {
@@ -385,26 +392,17 @@ const ChattingScreen: React.FC = () => {
                     setLoading(true);
                     // Step 1: Load stored messages and information first
                     const latestMessages = await getChatMessages(chatRoomId, batchSize, null);
-                    console.log('latest MSGs: ', latestMessages)
+                    // console.log('latest MSGs: ', latestMessages)
                     if (latestMessages && latestMessages.length > 0) {
                         setMessages(latestMessages); // Load latest messages
-                        console.log("Loaded latest messages from local storage");
+                        // console.log("Loaded latest messages from local storage");
                     }
                     // Load basic chat room information from stored data
-                    const chatRoomInfo = getChatRoomInfo(chatRoomId); // Assuming this function exists
-                    if (chatRoomInfo) {
-                        setChatRoomType(chatRoomInfo.type);
-                        setMembers(chatRoomInfo.members);
-
-                        if (chatRoomInfo.name) {
-                            setUsername(chatRoomInfo.name);
-                        } else {
-                            const usernames = chatRoomInfo.members
-                                .filter((member: chatRoomMember) => member.memberId !== currentUserId)
-                                .map((member: chatRoomMember) => member.username)
-                                .join(', ');
-                            setUsername(usernames);
-                        }
+                    const chatRoomInfoFromStorage = getChatRoomInfo(chatRoomId); // Assuming this function exists
+                    if (chatRoomInfoFromStorage) {
+                        setChatRoomType(chatRoomInfoFromStorage.type);
+                        setMembers(chatRoomInfoFromStorage.members);
+                        setUsername(chatRoomInfoFromStorage.name);
                     }
                     setLoading(false);
                 }
@@ -419,7 +417,7 @@ const ChattingScreen: React.FC = () => {
                     }));
 
                     if (fetchedMessages.length > 0) {
-                        console.log("API fetched messages: ", fetchedMessages);
+                        // console.log("API fetched messages: ", fetchedMessages);
                         // saveChatMessages(chatRoomId, fetchedMessages);
 
                         // Merge fetched messages with stored messages and keep all messages
@@ -435,18 +433,19 @@ const ChattingScreen: React.FC = () => {
                         socketMessageBuffer.length = 0; // Clear the buffer
                     }
 
+                    setChatRoomType(responseData.type);
+                    setMembers(responseData.members);
+
                     const usernames = responseData.members
                         .filter((member: chatRoomMember) => member.memberId !== currentUserId)
                         .map((member: chatRoomMember) => member.username)
                         .join(', ');
 
-                    setChatRoomType(responseData.type);
-                    setMembers(responseData.members);
-                    setUsername(usernames);
-
                     const chatRoomName =
-                        responseData.type !== 'local' ? usernames :
+                        responseData.type !== 'LOCAL' ? usernames :
                             chatRoomInfo? chatRoomInfo.name : "";
+
+                    setUsername(chatRoomName);
 
                     const chatRoomInfoToSave: ChatRoomLocal = {
                         id: parseInt(chatRoomId, 10),
@@ -474,6 +473,7 @@ const ChattingScreen: React.FC = () => {
             }
         };
 
+
     useFocusEffect(
         useCallback(() => {
             isInitialLoadCompleteRef.current=false;
@@ -481,8 +481,9 @@ const ChattingScreen: React.FC = () => {
             setupWebSocket(()=>fetchMessages(true));
 
             return () => {
-                console.log("loose focus");
+                // console.log("loose focus");
                 WebSocketManager.disconnect();
+                saveChatMessages(chatRoomId, updatedMessageBuffer.current);
                 setMessages(null);
                 setUsername(" ");
             };
@@ -515,6 +516,7 @@ const ChattingScreen: React.FC = () => {
             toggleModal(); // 모달 닫기
             removeChatRoom(Number(chatRoomId)); // Remove chatroom from MMKV storage
             WebSocketManager.disconnect();
+            clearBuffer();
         } catch (error) {
             console.error('Failed to delete chat:', error);
         }
@@ -580,7 +582,7 @@ const ChattingScreen: React.FC = () => {
     return (
         <SWRConfig value={{}}>
             <CustomHeader
-                titleSmall={chatRoomType === 'LOCAL' ? chatRoomInfo.name : username ? username : '(알 수 없는 사용자)'}
+                titleSmall={username}
                 subtitle={chatRoomType === 'LOCAL' ? distanceDisplay() : ''}
                 onBackPress={() => {
                     navigate("로그인 성공", {

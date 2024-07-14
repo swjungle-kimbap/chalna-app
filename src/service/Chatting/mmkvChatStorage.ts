@@ -130,18 +130,20 @@ export const getChatMessages = (chatRoomId, limit = 20, lastMessageId = null) =>
 };
 
 
-// Retrieve the last inserted message for a specific chat room
-export const getLastInsertedMessage = (chatRoomId: string): directedChatMessage | null => {
-    console.log('get last inserted message');
-    const messages = getChatMessages(chatRoomId);
-    if (!messages || messages.length === 0) {
-        return null;
-    }
+export const getAllChatMessages = (chatRoomId) => {
+    console.log("------get All Chat Messages run in mmkv ------");
 
-    // Return the last message in the array
-    const lastMessage = messages[messages.length - 1];
-    return lastMessage;
+    const allMessagesKey = `chatMessages_${chatRoomId}`;
+    const allMessagesString = userMMKVStorage.getString(allMessagesKey);
+    if (!allMessagesString) {
+        return [];
+    }
+    const allMessages = JSON.parse(allMessagesString);
+    return allMessages;
 };
+
+
+
 
 // Reset unread count for a specific chat room ===============================
 export const resetUnreadCountForChatRoom = (chatRoomId: number) => {
@@ -168,7 +170,7 @@ export const removeChatMessages = (chatRoomId: string) => {
 
 export const decrementUnreadCountBeforeTimestamp = (chatRoomId: string, timestamp: string) => {
     console.log('decrement unread count before timestamp');
-    const messages = getChatMessages(chatRoomId);
+    const messages = getAllChatMessages(chatRoomId);
     if (messages) {
         let messagesChanged = false;
 
