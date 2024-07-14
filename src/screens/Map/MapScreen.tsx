@@ -14,8 +14,7 @@ import LocalChatButton from "../../components/Map/LocalChatButton";
 import ArrowButton from "../../components/Map/ArrowButton";
 import MapBottomSheet from "../../components/Map/MapBottomSheet";
 import LocalChatMarkerOverlay from "../../components/Map/LocalChatMarkerOverlay";
-import Text from "../../components/common/Text";
-import showPermissionAlert from "../../utils/showPermissionAlert";
+import { showModal } from "../../context/ModalService";
 
 LogBox.ignoreLogs(['Called stopObserving with existing subscriptions.'])
 const latkfilter = new KalmanFilter();
@@ -50,23 +49,44 @@ const MapScreen: React.FC = ({}) => {
           (e:GeoError) => {
             setIsgranted(false);
             if (e.code === 1) {
-              Alert.alert(
+              // Alert.alert(
+              //   "위치 권한 필요",
+              //   "위치 권한이 필요한 서비스입니다.",
+              //   [
+              //     { text: "설정", onPress: () => openSettings()},
+              //     { text: "취소", onPress: () => {}, style: "cancel" } 
+              //   ]
+              // );
+
+              showModal(
                 "위치 권한 필요",
                 "위치 권한이 필요한 서비스입니다.",
-                [
-                  { text: "설정", onPress: () => openSettings()},
-                  { text: "취소", onPress: () => {}, style: "cancel" } 
-                ]
+                () => openSettings(),
+                () => {},
+                true,
+                "설정",
+                "취소",
+                false
               );
             }
             if (e.code === 2) {
-              Alert.alert(
-                "GPS  필요",
+              // Alert.alert(
+              //   "GPS  필요",
+              //   "GPS가 필요한 서비스 입니다. GPS를 켜주세요",
+              //   [
+              //     { text: "설정", onPress: () => openSettings()},
+              //     { text: "취소", onPress: () => {}, style: "cancel" } 
+              //   ]
+              // );
+              showModal(
+                "GPS 필요",
                 "GPS가 필요한 서비스 입니다. GPS를 켜주세요",
-                [
-                  { text: "설정", onPress: () => openSettings()},
-                  { text: "취소", onPress: () => {}, style: "cancel" } 
-                ]
+                () => openSettings(),
+                () => {},
+                true,
+                "설정",
+                "취소",
+                false
               );
             }
           },
