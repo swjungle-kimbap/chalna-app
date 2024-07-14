@@ -70,11 +70,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
     const handleFileDownload = async () => {
         try {
             const hasPermission = await requestExternalStoragePermission();
-        
+
             if (!hasPermission) {
-          
+
                 showModal('권한 오류', '외부 저장소 접근 권한이 필요합니다.',()=>{},undefined,false);
-                
+
                 return;
             }
 
@@ -107,7 +107,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
             } else if (result.statusCode === 403) {
                 showModal('다운로드 실패','만료기간이 지났습니다.',()=>{},undefined,false);
             } else {
-    
+
                 showModal('다운로드 실패','이미지를 다운로드 하는데 실패했습니다.',()=>{},undefined,false);
             }
         } catch (error) {
@@ -289,7 +289,7 @@ const BubbleContainer = styled.View<{ isSelf: boolean; notChat: boolean }>`
 const MessageContainer = styled.View<{ isSelf: boolean; showProfileTime: boolean }>`
     flex-direction: row;
     align-items: flex-end;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     max-width: 78%;
     justify-content: ${({ isSelf }) => (isSelf ? 'flex-end' : 'flex-start')};
     margin-left: ${({ isSelf, showProfileTime }) => (!isSelf && !showProfileTime ? '39px' : '0px')};

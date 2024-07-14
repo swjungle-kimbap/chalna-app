@@ -95,7 +95,7 @@ const ChattingScreen: React.FC = () => {
 
     const isInitialLoadCompleteRef = useRef<boolean>(false);
     const { socketMessageBuffer, addMessageToBuffer, clearBuffer } = useBuffer();
-    const batchSize = 30;
+    const batchSize = 20;
 
     const chatRoomIdRef = useRef<string>(chatRoomId);
     const [profilePicture, setProfilePicture] = useState<string>("");
