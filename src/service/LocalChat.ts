@@ -69,31 +69,42 @@ export const localChatJoin = async (localChat:LocalChat, distance:number, setRef
   if (!granted) 
     return
   
-  Alert.alert(localChat.name, localChat.description,
-    [
-      {
-        text: '참가',
-        onPress: async () => {await joinLocalChat(localChat, distance, setRefresh)},
-        style: 'default'
-      },
-      { text: '취소', style: 'cancel'}
-    ],
-    { cancelable: true }
-  )
+  // Alert.alert(localChat.name, localChat.description,
+  //   [
+  //     {
+  //       text: '참가',
+  //       onPress: async () => {await joinLocalChat(localChat, distance, setRefresh)},
+  //       style: 'default'
+  //     },
+  //     { text: '취소', style: 'cancel'}
+  //   ],
+  //   { cancelable: true }
+  // )
+
+  showModal(
+    localChat.name,
+    localChat.description,
+    async () => {
+      await joinLocalChat(localChat, distance, setRefresh);
+    },
+    () => {},
+    true,
+    '참가',
+    '취소'
+  );
 };
 
 export const ChatDisconnectOut = async (chatRoomId:number, setRefresh:Function) => {
   try {
     const response = await axiosDelete<AxiosResponse<string>>(urls.CHATROOM_LEAVE_URL+chatRoomId.toString());
     if (response?.data?.data === "성공")
-      Alert.alert("로컬 채팅 종료", "거리가 멀어져 채팅방과 연결이 종료가 되었습니다!");
-
+    showModal('장소 채팅 종료',"거리가 멀어져 채팅방과 연결이 종료가 되었습니다!", ()=>{}, undefined,false )
     removeChatRoom(chatRoomId);
     if (setRefresh)
       setRefresh((prev)=>!prev);
   } catch (error) {
     const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
-    Alert.alert("Error", errorMessage);
+    showModal('찰나가 아파요..','조금만 기다려주세요.',()=>{},undefined,false)
   }
 };
 
@@ -101,22 +112,23 @@ export const ChatOut = async (chatRoomId:number, setRefresh:Function) => {
   try {
     const response = await axiosDelete<AxiosResponse<string>>(urls.CHATROOM_LEAVE_URL+chatRoomId.toString());
     if (response?.data?.data === "성공")
-      Alert.alert("로컬 채팅 종료", "채팅방을 성공적으로 나갔습니다.");
+    showModal('아쉽네요', '다음에 또 만나요!',()=>{},undefined,false)
 
     removeChatRoom(chatRoomId); 
     setRefresh((prev)=>!prev);
   } catch (error) {
     const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
-    Alert.alert("Error", errorMessage);
+    showModal('찰나가 지금 아파요..','조금만 기다려주세요.',()=>{},undefined,false)
   }
 };
+
 
 export const localChatOut = async (localChat:LocalChat, setRefresh:Function) => {
   const granted = await handleCheckPermission();
   if (!granted) 
     return
   showModal(
-    localChat.name, 
+    localChat.name,
     "이미 들어간 채팅방입니다! 나가시겠습니까?",
     async () => {
       await ChatOut(localChat.chatRoomId, setRefresh);
@@ -124,22 +136,8 @@ export const localChatOut = async (localChat:LocalChat, setRefresh:Function) => 
     () => {
       navigate("채팅", { chatRoomId: localChat.chatRoomId });
     },
-    true
+    true,
+    '나가기', // Confirm 버튼 텍스트
+    '참가' // Cancel 버튼 텍스트
   );
-  
-  // Alert.alert(localChat.name, "이미 들어간 채팅방입니다! 나가시겠습니까?",
-  //   [
-  //     {
-  //       text: '들어가기',
-  //       onPress: async () => {navigate("채팅", { chatRoomId : localChat.chatRoomId });},
-  //       style: 'default'
-  //     },
-  //     {
-  //       text: '나가기',
-  //       onPress: async () => await ChatOut(localChat.chatRoomId, setRefresh),
-  //       style: 'default'
-  //     },
-  //   ],
-  //   { cancelable: true }
-  // )
 };
