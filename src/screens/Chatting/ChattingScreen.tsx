@@ -88,6 +88,8 @@ const ChattingScreen: React.FC = () => {
     const [chatRoomType, setChatRoomType] = useState<string>('');
     const [username, setUsername] = useState<string>('');
     const [members, setMembers] = useState<chatRoomMember[]>([]);
+    const [memberCount, setMemberCount] = useState<string>(null);
+
     const [selectedImage, setSelectedImage] = useState<any>(null);
 
     // paging
@@ -148,6 +150,7 @@ const ChattingScreen: React.FC = () => {
         // console.log('Update & Render Room info after Befriending');
         if (responseData) {
             setMembers(responseData.members);
+            setMemberCount(String(responseData.memberCount));
 
             const usernames = responseData.members
                 .filter((member: chatRoomMember) => member.memberId !== currentUserId)
@@ -165,12 +168,14 @@ const ChattingScreen: React.FC = () => {
             saveChatRoomInfo(chatRoomInfoToStore);
         }
         // 프로필 이미지 로드
-        const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
-        if (filteredMembers[0].profileImageId) {
-            const uri = await getImageUri(filteredMembers[0].profileImageId);
-            setProfilePicture(uri);
-        } else {
-            setProfilePicture("");
+        if (chatRoomType==='FRIEND'){
+            const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
+            if (filteredMembers[0].profileImageId) {
+                const uri = await getImageUri(filteredMembers[0].profileImageId);
+                setProfilePicture(uri);
+            } else {
+                setProfilePicture("");
+            }
         }
     };
 
@@ -310,6 +315,10 @@ const ChattingScreen: React.FC = () => {
                             updateRoomInfo();
                         }
 
+                        if (parsedMessage.type==='USER_JOIN' || parsedMessage.type==='USER_LEAVE'){
+                            updateRoomInfo();
+                        }
+
                         if (parsedMessage.type === 'TIMEOUT' && chatRoomType !== 'FRIEND') {
                             setChatRoomType('WAITING');
                         }
@@ -403,6 +412,7 @@ const ChattingScreen: React.FC = () => {
                         setChatRoomType(chatRoomInfoFromStorage.type);
                         setMembers(chatRoomInfoFromStorage.chatRoomMemberInfo.members);
                         setUsername(chatRoomInfoFromStorage.name);
+                        setMemberCount(String(chatRoomInfoFromStorage.chatRoomMemberInfo.memberCount));
                     }
                     setLoading(false);
                 }
@@ -457,6 +467,7 @@ const ChattingScreen: React.FC = () => {
                             chatRoomInfo? chatRoomInfo.name : "";
 
                     setUsername(chatRoomName);
+                    setMemberCount(String(responseData.chatRoomMemberInfo.memberCount));
 
                     const chatRoomInfoToSave: ChatRoomLocal = {
                         id: parseInt(chatRoomId, 10),
@@ -501,6 +512,7 @@ const ChattingScreen: React.FC = () => {
                 updatedMessageBuffer.current=[]; // empty buffer
                 setMessages(null);
                 setUsername("");
+                setMemberCount("");
             };
         }, [chatRoomId, currentUserId])
     );
@@ -597,7 +609,8 @@ const ChattingScreen: React.FC = () => {
     return (
         <SWRConfig value={{}}>
             <CustomHeader
-                titleSmall={username}
+                title={username}
+                MemberCnt={memberCount}
                 subtitle={chatRoomType === 'LOCAL' ? distanceDisplay() : ''}
                 onBackPress={() => {
                     navigate("로그인 성공", {

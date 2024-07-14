@@ -17,13 +17,15 @@ interface MemberListProps {
 }
 
 
-
 const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomType }) => {
     const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
-    const sortedMembers = members.sort((a, b) => (a.memberId === currentUserId ? -1 : b.memberId === currentUserId ? 1 : 0));
+    const filteredAndSortedMembers = members
+        .filter(member => member.isJoined) // Filter members with hasJoined === true
+        .sort((a, b) => (a.memberId === currentUserId ? -1 : b.memberId === currentUserId ? 1 : 0));
+
 
     const handleSend = async (otherId: number) =>{
-        const response = await sendFriendRequest(otherId);
+        const response = await sendFriendRequest(otherId, chatRoomId);
         if (response === true) {
             if (chatRoomType!=='LOCAL'){ // 매치 1:1 채팅일 때만 채팅방에 친구요청 메세지 전송
                 WebSocketManager.sendMessage(chatRoomId, "친구 요청을 보냈습니다.", 'FRIEND_REQUEST');
@@ -36,7 +38,7 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
         <View style={styles.container}>
             {/*<Text> 참여자 목록</Text>*/}
             <FlatList
-                data={sortedMembers}
+                data={filteredAndSortedMembers}
                 keyExtractor={(item) => item.memberId.toString()}
                 renderItem={({ item }) => (
                     <View style={styles.memberContainer}>
