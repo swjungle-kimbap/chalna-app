@@ -286,8 +286,7 @@ const ChattingScreen: React.FC = () => {
                     const parsedMessage: directedChatMessage = JSON.parse(message.body);
 
                     // 저장할 메세지 필터링
-                    if (parsedMessage.type !== 'USER_ENTER' && parsedMessage.content
-                        && (!(chatRoomType === 'FRIEND' && (parsedMessage.type === 'USER_JOIN' || parsedMessage.type === 'USER_LEAVE')))) {
+                    if (parsedMessage.type !== 'USER_ENTER' && parsedMessage.content) {
                         parsedMessage.isSelf = parsedMessage.senderId === currentUserId;
                         parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt);
 
