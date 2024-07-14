@@ -108,37 +108,6 @@ export const saveChatMessages = (chatRoomId: string, newMessages: directedChatMe
 };
 
 
-// // Retrieve chat messages for a specific chat room
-// export const getChatMessages = (chatRoomId: string): directedChatMessage[] | null => {
-//     console.log('get chat message');
-//     const messagesString = userMMKVStorage.getString(`chatMessages_${chatRoomId}`);
-//     return messagesString ? JSON.parse(messagesString) : null;
-// };
-
-// export const getChatMessages = async (chatRoomId, limit = 20, offset = 0) => {
-//     const allMessagesKey = `chatMessages_${chatRoomId}`;
-//     const allMessagesString = userMMKVStorage.getString(allMessagesKey);
-//     if (!allMessagesString) {
-//         return [];
-//     }
-//     const allMessages = JSON.parse(allMessagesString);
-//     const paginatedMessages = allMessages.reverse.slice(offset, offset + limit);
-//     return paginatedMessages;
-// };
-
-// export const getChatMessages = (chatRoomId, limit = 20, offset = 0) => {
-//     const key = `chatRoom_${chatRoomId}_messages`;
-//     const jsonString = userMMKVStorage.getString(key);
-//     if (!jsonString) return [];
-//
-//     const messages = JSON.parse(jsonString);
-//     const start = Math.max(messages.length - limit - offset, 0);
-//     const end = messages.length - offset;
-//     return messages.slice(start, end);
-// };
-
-
-// mmkvChatStorage.js
 export const getChatMessages = (chatRoomId, limit = 20, lastMessageId = null) => {
     console.log("------get Chat Messages run in mmkv ------");
 
