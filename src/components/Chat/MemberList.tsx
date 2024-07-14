@@ -25,7 +25,7 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
         .sort((a, b) => (a.memberId === currentUserId ? -1 : b.memberId === currentUserId ? 1 : 0));
 
 
-    const handleSend = async (otherId: number) =>{
+    const handleSend = async (otherId: number, chatRoomId: number) =>{
         const response = await sendFriendRequest(otherId, chatRoomId);
         if (response === true) {
             if (chatRoomType!=='LOCAL'){ // 매치 1:1 채팅일 때만 채팅방에 친구요청 메세지 전송

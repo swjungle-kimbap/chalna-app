@@ -1,17 +1,21 @@
-import {axiosPatch} from '../../axios/axios.method'; // Adjust the path as necessary
+import {axiosPatch, axiosPost} from '../../axios/axios.method'; // Adjust the path as necessary
 import {Alert} from "react-native";
 import {urls} from "../../axios/config";
 import { showModal } from '../../context/ModalService';
 
-export const sendFriendRequest = (otherId: number): Promise<boolean> => {
+export const sendFriendRequest = (otherId: number, chatRoomId: number): Promise<boolean> => {
     return new Promise((resolve) => {
-    
+
         showModal(
             "친구 요청",
             "친구 요청을 보내시겠습니까?",
             async () => {
               try {
-                const response = await axiosPatch(`${urls.SEND_FRIEND_REQUEST_URL}${otherId}`);
+                const response = await axiosPost(
+                    urls.SEND_FRIEND_REQUEST_URL,
+                    "친구 요청 전송 성공",
+                    {otherId: otherId, chatRoomId: chatRoomId}
+                    );
                 console.log(response);
                 showModal('친구 요청', '친구 요청을 보냈습니다!', () => {}, undefined, false);
                 resolve(true);
