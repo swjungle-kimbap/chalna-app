@@ -7,8 +7,9 @@ import requestPermissions from "../utils/requestPermissions";
 import showPermissionAlert from "../utils/showPermissionAlert";
 import { PERMISSIONS } from "react-native-permissions";
 import { removeChatRoom } from './Chatting/mmkvChatStorage';
-import { downloadImage, uploadImage } from "../utils/FileHandling";
 import { showModal } from "../context/ModalService";
+import { uploadImage } from "../utils/FileHandling";
+
 
 const requiredPermissions = [PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION];
 

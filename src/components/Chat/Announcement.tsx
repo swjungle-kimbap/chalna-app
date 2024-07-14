@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Text from '../common/Text';
 
-const Announcement = ({ message, onClose }) => {
+const Announcement = React.memo(({ message, onClose }) => {
     return (
         <View style={styles.announcementContainer}>
             <Text style={styles.announcementText}>{message}</Text>
@@ -11,7 +11,7 @@ const Announcement = ({ message, onClose }) => {
             </TouchableOpacity>
         </View>
     );
-};
+});
 
 const styles = StyleSheet.create({
     announcementContainer: {

@@ -13,7 +13,11 @@ import { useFocusEffect } from "@react-navigation/core";
 import Geolocation from "react-native-geolocation-service";
 import { getImageUri } from "../../utils/FileHandling";
 
+export const distanceLimit = 100;
+const DistanceLimit = distanceLimit / 1000;
+const OutDistanceLimit = distanceLimit / 1000 * 1125;
 const LocalChatDelayedTime = 10 * 1000;
+
 const defaultImg = require('../../assets/Icons/LocalChatIcon.png');
 
 const LocalChatMarkerOverlay = () => {
@@ -35,7 +39,7 @@ const LocalChatMarkerOverlay = () => {
         const updatedLocalChatList = await Promise.all(localChatList.map(async (item) => {
           const localChat = item.localChat;
           const distance = calDistance(currentLocation, { latitude: localChat.latitude, longitude: localChat.longitude });
-          if (item.isJoined && distance >= 0.125) {
+          if (item.isJoined && distance >= OutDistanceLimit) {
             await ChatDisconnectOut(localChat.chatRoomId, setRefresh);
             return null;
           }
@@ -138,11 +142,11 @@ const LocalChatMarkerOverlay = () => {
                 () => localChatJoin(localChat, localChat.distance, setRefresh)
               }
               image={ImgSource}
-              tintColor={ImgSource !== defaultImg ? 'black' : localChat.distance > 0.05 ? 'gray': 'lightgreen'}
+              tintColor={ImgSource !== defaultImg ? 'black' : localChat.distance > DistanceLimit ? 'gray': 'lightgreen'}
               width={ImgSource !== defaultImg? 50 : 40}
               height={ImgSource !== defaultImg? 50 : 40}
               caption={{ text: localChat.name }}
-              isHideCollidedMarkers={localChat.distance < 0.1 ? false: true}
+              isHideCollidedMarkers={localChat.distance < DistanceLimit ? false: true}
               isHideCollidedCaptions={true}
             />
           );

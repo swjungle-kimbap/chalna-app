@@ -19,11 +19,9 @@ import KalmanFilter from 'kalmanjs';
 import RssiTracking from "../../components/Bluetooth/RssiTracking";
 import Button from '../../components/common/Button';
 import DancingText from "../../components/Bluetooth/DancingText";
-import DancingWords from "../../components/Bluetooth/DancingWords";
 import useFadeText from "../../hooks/useFadeText";
 import BleMainComponent from "../../components/Bluetooth/BleMainComponent";
 import BleBottomComponent from "../../components/Bluetooth/BleBottomComponent";
-import { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 interface BluetoothScreenPrams {
   route: {
@@ -50,6 +48,7 @@ const uuidTimeoutID = new Map();
 const kFileters = new Map();
 const scanDelayedTime = 5 * 1000;
 const sendDelayedTime = 30 * 1000;
+const maxScanDelayedTime = 10 * 1000;
 
 // 주영 테스트
 const uuidSet2 = new Set<string>();
@@ -149,7 +148,6 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   };
 
   const handleSetIsNearby = (uuid: string, rssi: number, isBlocked = false) => {
-    const currentTime = new Date().getTime();
     if (isRssiTracking)
       updateRssi(uuid, rssi);
 
@@ -167,12 +165,14 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
 
     if (!uuidSet.has(uuid)) {
       uuidSet.add(uuid);
-    } else {
-      if (uuidTimeoutID[uuid]) {
-        clearTimeout(uuidTimeoutID[uuid]);
-      }
+      uuidTime[uuid] = 0
+    } else if (uuidTimeoutID[uuid]) {
+      clearTimeout(uuidTimeoutID[uuid]);
+      uuidTime[uuid] += 1;
+      uuidTime[uuid] = 5 > uuidTime[uuid] ? uuidTime[uuid] + 1 : 5;
     }
-    uuidTime[uuid] = currentTime;
+    const scanTime = scanDelayedTime + (uuidTime[uuid] + uuidSet.size - 1) * 1000;
+    const delayTime = 12 * 1000 > scanTime ? scanTime : 12 * 1000;
     uuidTimeoutID[uuid] = setTimeout(() => {
       uuidSet.delete(uuid);
       if (isRssiTracking) {
@@ -183,7 +183,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
         });
       }
       setUuids(new Set(uuidSet));
-    }, scanDelayedTime);
+    }, delayTime);
     setUuids(new Set(uuidSet));
   };
 
