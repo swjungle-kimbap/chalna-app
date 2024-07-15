@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Animated } from 'react-native';
+import { View, Animated, Easing } from 'react-native';
 import FastImage, { Source } from 'react-native-fast-image';
 import styles from './BleComponent.style';
 
@@ -25,21 +25,47 @@ const getRandomIcon = (): Source => {
   return images[randomIndex];
 };
 
+const createFloatingAnimation = (anim: Animated.Value) => {
+  return Animated.loop(
+    Animated.sequence([
+      Animated.timing(anim, {
+        toValue: 1,
+        duration: 1800,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+      Animated.timing(anim, {
+        toValue: -1,
+        duration: 2200,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    ])
+  );
+};
+
 const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
   const fadeAnimMap = useRef(new Map<string, Animated.Value>()).current;
+  const floatAnimMap = useRef(new Map<string, Animated.Value>()).current;
   const iconMap = useRef(new Map<string, Source>()).current;
 
   useEffect(() => {
     uuids.forEach((uuid) => {
       if (!fadeAnimMap.has(uuid)) {
-        fadeAnimMap.set(uuid, new Animated.Value(0));
+        const fadeAnim = new Animated.Value(0);
+        const floatAnim = new Animated.Value(0);
+
+        fadeAnimMap.set(uuid, fadeAnim);
+        floatAnimMap.set(uuid, floatAnim);
         iconMap.set(uuid, getRandomIcon());
+
+        Animated.timing(fadeAnimMap.get(uuid), {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }).start();
+        createFloatingAnimation(floatAnim).start();
       }
-      Animated.timing(fadeAnimMap.get(uuid), {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }).start();
     });
 
     fadeAnimMap.forEach((anim, uuid) => {
@@ -50,11 +76,12 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
           useNativeDriver: true,
         }).start(() => {
           fadeAnimMap.delete(uuid);
+          floatAnimMap.delete(uuid);
           iconMap.delete(uuid);
         });
       }
     });
-  }, [uuids, fadeAnimMap, iconMap]);
+  }, [uuids, fadeAnimMap, floatAnimMap, iconMap]);
 
   // LottieView 중심을 기준으로 원의 좌표를 설정
   const lottieCenterX = 160; // LottieView의 중심 x 좌표
@@ -74,13 +101,27 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
     <View style={styles.detectIconContainer}>
       {Array.from(uuids).map((uuid, index) => {
         const position = positions[index % positions.length];
+        const floatAnim = floatAnimMap.get(uuid);
+	      if (!floatAnim) {
+	        return null; // floatAnim이 없을 경우 렌더링하지 않음
+	      }
+
+        const floatAnimInterpolated = floatAnim.interpolate({
+          inputRange: [-1, 1],
+          outputRange: [-10, 10],
+        });
 
         return (
           <Animated.View
             key={uuid}
             style={[
               styles.detectIconWrapper,
-              { opacity: fadeAnimMap.get(uuid), top: position.top, left: position.left },
+              {
+                opacity: fadeAnimMap.get(uuid),
+                top: position.top,
+                left: position.left,
+                transform: [{ translateY: floatAnimInterpolated }],
+              },
             ]}
           >
             <FastImage

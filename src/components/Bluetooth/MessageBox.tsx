@@ -6,13 +6,14 @@ import Text from '../common/Text';
 import { AxiosResponse, FileResponse, SendMatchResponse, SendMsgRequest } from '../../interfaces';
 import { axiosPost } from '../../axios/axios.method';
 import { urls } from '../../axios/config';
-import {  userMMKVStorage } from '../../utils/mmkvStorage';
+import {  setUserMMKVStorage, setMMKVString, userMMKVStorage, getCurrentUserId } from '../../utils/mmkvStorage';
 import { useMMKVBoolean, useMMKVNumber, useMMKVString } from 'react-native-mmkv';
 import FastImage from 'react-native-fast-image';
 import { useSetRecoilState } from 'recoil';
 import { MsgSendCntState } from '../../recoil/atoms';
 import { handleImagePicker, uploadImage } from '../../utils/FileHandling';
 import { useModal } from '../../context/ModalContext';
+import { addToDeviceIdList, getDeviceIdList, scheduleDeviceIdRemoval } from '../../utils/matchMmkvStorage';  
 
 const ignorePatterns = [
   /No task registered for key shortService\d+/,
@@ -62,8 +63,19 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
         contentType: 'FILE'
       } as SendMsgRequest)
     }
-    sendCountsRef.current = response?.data?.data?.sendCount;
-    setMsgSendCnt(response?.data?.data?.sendCount);
+
+
+    let sendCount = 0;
+    response?.data?.data.forEach(({ deviceId, status }) => {
+      if (status === 'SEND') {
+        addToDeviceIdList(deviceId);
+        scheduleDeviceIdRemoval(deviceId);
+        sendCount++;
+      }
+    });
+    console.log("저장됨", getDeviceIdList());
+    sendCountsRef.current = sendCount;
+    setMsgSendCnt(sendCount);
   } 
 
   const handleSendingMessage = async () => {
@@ -232,6 +244,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 4,
     borderColor: '#14F12A',
     backgroundColor: '#fff',
+    zIndex: 3,
   },
   title: {
     paddingTop: 15,

@@ -10,11 +10,18 @@ export type friendAPIResponse = {
     data: friend[];
 }
 
-export type requestedFriend = {
+export type friendRequest = {
     id: number,
     senderId: number,
     receiverId: number,
     chatRoomId: number,
     username: string,
     createdAt: string
+}
+
+export interface relationAPIResponse {
+    friendStatus: string;
+    isBlocked: boolean;
+    overlapCount: number;
+    lastOverlapAt?: any|null;
 }

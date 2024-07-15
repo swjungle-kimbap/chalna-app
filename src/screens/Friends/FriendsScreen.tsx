@@ -18,7 +18,7 @@ import Button from '../../components/common/Button';
 import HorizontalLine from '../../components/Mypage/HorizontalLine';
 import ProfileImage from '../../components/common/ProfileImage';
 import { getMMKVObject, setMMKVObject } from '../../utils/mmkvStorage';
-import {requestedFriend} from "../../interfaces/Friend.type";
+import {friendRequest} from "../../interfaces/Friend.type";
 import {fetchReceivedFriendRequest} from "../../service/Friends/FriendListAPI";
 
 interface ApiResponse {
@@ -39,7 +39,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
   const [error, setError] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useRecoilState(userInfoState);
   const [myprofileVisible, setMyprofileVisible] = useState(true);
-  const [friendRequests, setFriendRequests] = useState<requestedFriend[]>([]);
+  const [friendRequests, setFriendRequests] = useState<friendRequest[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
 
   useFocusEffect(
@@ -72,7 +72,6 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
       fetchFriendRequests();
     }, []),
   );
-
 
   useMemo(() => {
     const trimmedQuery = searchQuery.replace(/\s+/g, '');
@@ -107,25 +106,10 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
         isExpanded={item.id === expandedCardId}
         onExpand={() => handleCardPress(item.id)}
         navigation={navigation}
-        options={'friend'}
       />
     ),
     [expandedCardId, navigation],
   );
-
-  const renderReceivedRequestCard = useCallback(
-      ({item}: {item: requestedFriend}) => (
-          <FriendCard
-              request={item}
-              isExpanded={item.id === expandedCardId}
-              onExpand={() => handleCardPress(item.id)}
-              navigation={navigation}
-              options={'requested'}
-          />
-      ),
-      [expandedCardId, navigation],
-  );
-
 
   const Myprofile = () => {
     return (
@@ -170,13 +154,6 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
     );
   };
 
-
-  // Repeat each item in the filtered data
-  const repeatedData = useMemo(() => {
-    return filteredData.flatMap(item => Array(5).fill(item));
-  }, [filteredData]);
-
-
   return (
     <View style={styles.friendListPage}>
       <View style={styles.ListContainer}>
@@ -202,17 +179,17 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
           </> :
           <>
           <View style={styles.searchContainer}>
-          <Image source={require('../../assets/Icons/SearchIcon.png')} style={styles.searchIcon}/>
-          <TextInput
-            placeholder="친구 검색"
-            value={searchQuery}
-            onChangeText={handleSearch}
-            style={styles.searchInput}
-          />
-          <Button iconSource={require('../../assets/buttons/CloseButton.png')} imageStyle={styles.closebutton}
-            onPress={() => {
-              setSearchQuery("");
-              setFilteredData(friendsList);
+            <Image source={require('../../assets/Icons/SearchIcon.png')} style={styles.searchIcon}/>
+            <TextInput
+              placeholder="친구 검색"
+              value={searchQuery}
+              onChangeText={handleSearch}
+              style={styles.searchInput}
+            />
+            <Button iconSource={require('../../assets/buttons/CloseButton.png')} imageStyle={styles.closebutton}
+                    onPress={() => {
+                    setSearchQuery("");
+                    setFilteredData(friendsList);
             }}/>
             <Button iconSource={require('../../assets/Icons/GoBack.png')} imageStyle={styles.gobackbutton}
                     onPress={() => {
@@ -227,20 +204,11 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
           <Text>친구가 없습니다.</Text>
         ) : (
           <FlatList
-            data={repeatedData}
+            data={filteredData}
             renderItem={renderFriendCard}
             keyExtractor={item => item.id.toString()}
           />
         )}
-
-        {/*<Text style={styles.text}>받은 친구 요청</Text>*/}
-        {/*<FlatList*/}
-        {/*    data={friendRequests}*/}
-        {/*    renderItem={renderReceivedRequestCard}*/}
-        {/*    keyExtractor={item => item.id.toString()}*/}
-        {/*/>*/}
-
-
       </View>
 
     </View>
@@ -393,70 +361,70 @@ const styles = StyleSheet.create({
 export default FriendsScreen;
 
 
-const NavModal = () => {
-  return (
-      <>
-        <Modal
-            visible={modalVisible}
-            transparent={true}
-            animationType="fade"
-            onRequestClose={() => setModalVisible(false)}>
-          <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-            <ModalContainer>
-              <ModalContent style={shadowStyles}>
-                <Button
-                    title="친구요청 목록"
-                    style={{marginBottom: 20}}
-                    onPress={() => {
-                      setModalVisible(false);
-                      navigation.navigate('Tabs', {screen: '친구요청 목록'});
-                    }}
-                />
-                <Button
-                    title="차단친구 목록"
-                    onPress={() => {
-                      setModalVisible(false);
-                      navigation.navigate('Tabs', {screen: '차단친구 목록'});
-                    }}
-                />
-              </ModalContent>
-            </ModalContainer>
-          </TouchableWithoutFeedback>
-        </Modal>
-      </>
-  );
-};
-
-
-
-
-
-      const ModalContainer = styled.View`
-      flex: 1;
-      justify-content: flex-start;
-      align-items: flex-end;
-      padding-top: 85px;
-      padding-right: 20px;
-      elevation: 5;
-    `;
-
-    const ModalContent = styled.View`
-      width: 55%;
-      padding-top: 15px;
-      padding-bottom: 15px;
-      background-color: white;
-      border-radius: 10px;
-      align-items: center;
-    `;
-
-    const shadowStyles = {
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-
-      elevation: 5,
-    };
+// const NavModal = () => {
+//   return (
+//       <>
+//         <Modal
+//             visible={modalVisible}
+//             transparent={true}
+//             animationType="fade"
+//             onRequestClose={() => setModalVisible(false)}>
+//           <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+//             <ModalContainer>
+//               <ModalContent style={shadowStyles}>
+//                 <Button
+//                     title="친구요청 목록"
+//                     style={{marginBottom: 20}}
+//                     onPress={() => {
+//                       setModalVisible(false);
+//                       navigation.navigate('Tabs', {screen: '친구요청 목록'});
+//                     }}
+//                 />
+//                 <Button
+//                     title="차단친구 목록"
+//                     onPress={() => {
+//                       setModalVisible(false);
+//                       navigation.navigate('Tabs', {screen: '차단친구 목록'});
+//                     }}
+//                 />
+//               </ModalContent>
+//             </ModalContainer>
+//           </TouchableWithoutFeedback>
+//         </Modal>
+//       </>
+//   );
+// };
+//
+//
+//
+//
+//
+//       const ModalContainer = styled.View`
+//       flex: 1;
+//       justify-content: flex-start;
+//       align-items: flex-end;
+//       padding-top: 85px;
+//       padding-right: 20px;
+//       elevation: 5;
+//     `;
+//
+//     const ModalContent = styled.View`
+//       width: 55%;
+//       padding-top: 15px;
+//       padding-bottom: 15px;
+//       background-color: white;
+//       border-radius: 10px;
+//       align-items: center;
+//     `;
+//
+//     const shadowStyles = {
+//       shadowColor: '#000',
+//       shadowOffset: {
+//         width: 0,
+//         height: 2,
+//       },
+//       shadowOpacity: 0.25,
+//       shadowRadius: 3.84,
+//
+//       elevation: 5,
+//     };

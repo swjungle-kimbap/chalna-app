@@ -1,26 +1,23 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity , Alert, Image} from 'react-native';
-import { Friend } from '../../interfaces/savedData';
+import { View, StyleSheet, TouchableOpacity, Image} from 'react-native';
+import {Friend} from "../../interfaces";
 import RoundBox from '../common/RoundBox';
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../interfaces";
 import Button from '../common/Button';
+import { navigate } from '../../navigation/RootNavigation';
 import { axiosGet, axiosPost } from "../../axios/axios.method";
 import {urls} from "../../axios/config";
 import ProfileImage from '../common/ProfileImage';
 import { useModal } from '../../context/ModalContext';
-import {requestedFriend} from "../../interfaces/Friend.type";
-import {acceptFriendRequest, rejectFriendRequest} from "../../service/Friends/FriendRelationService";
 import Text from '../common/Text';
 
 
 interface FriendCardProps {
-    user?: Friend;
-    request?: requestedFriend;
+    user: Friend;
     isExpanded: boolean;
     onExpand: ()=> void;
     navigation?: StackNavigationProp<RootStackParamList, '채팅'>;
-    options?: 'friend' | 'blocked' | 'requested'
 }
 
 interface ApiResponse {
@@ -35,16 +32,13 @@ interface ApiResponse {
     };
   }
 
-const FriendCard: React.FC<FriendCardProps> = ({ user, request , isExpanded, onExpand, navigation, options}) => {
+const FriendCard: React.FC<FriendCardProps> = ({ user, isExpanded, onExpand, navigation}) => {
 
     const {showModal} = useModal();
 
     const handlePress = () => {
         onExpand();
     };
-
-    const name = user? user.username:request.username;
-    const id = user? user.id:request.id;
 
     const handleChat = async () => {
         try {
@@ -72,21 +66,6 @@ const FriendCard: React.FC<FriendCardProps> = ({ user, request , isExpanded, onE
         }
     };
 
-    const handleAccept = async (id: number) => {
-        const response = await acceptFriendRequest(id);
-        if (response === true) {
-            // rerender or show message of somekind  대화방으로 이동하시겠습니까?
-        }
-    };
-
-    const handleReject = async (id: number) => {
-        const response = await rejectFriendRequest(id);
-        if (response === true) {
-            // rerender and show message of somekind
-        }
-    };
-
-
     // const handleBlockFriend = (id) => {
     //     const filteredFriendsList = friendsList.filter(item => item.id !== id)
     //     setFriendsList(filteredFriendsList);
@@ -111,30 +90,25 @@ const FriendCard: React.FC<FriendCardProps> = ({ user, request , isExpanded, onE
                 <View style={styles.header}>
                     <ProfileImage profileImageId={user.profileImageId} avatarStyle={styles.avatar}/>
                     <View style={styles.textContainer}>
-                        <Text style={styles.name} >{name}</Text>
-                        <Text style={styles.statusMessage}>{user.message || ""}</Text>
+                        <Text style={[styles.textRow, styles.name]} >{user.username}</Text>
+                        <Text style={[styles.textRow, styles.statusMessage]}>{user.message || ""}</Text>
                     </View>
                 </View>
                 {isExpanded && (
                     <View style={styles.expandedContainer}>
-                        { options==='friend' && (
                             <View style={styles.btnContainer}>
-                                <Button title="대화하기" onPress={handleChat}  />
+                                <Button title="대화하기"  titleStyle={styles.buttonText} onPress={handleChat}  />
+                                <Button title="기록보기"  titleStyle={styles.buttonText} onPress={() => {
+                                    navigate("로그인 성공", {
+                                        screen: "친구",
+                                        params: {
+                                            screen: "스쳐간 기록",
+                                            params: { otherId: user.id}
+                                        }
+                                    })
+                                }}/>
                                 {/* <Button title="차단하기" onPress={()=> {handleBlockFriend(user.id)}} /> */}
                             </View>
-                        )}
-                        {/* { options==='blocked' && (
-                            <View style={styles.btnContainer}>
-                                <Button title="차단해제" onPress={()=> {handleUnblockFriend(user.id)}}  />
-                                <Button title="삭제하기" onPress={()=> {handleDeleteFriend(user.id)}} />
-                            </View>
-                        )} */}
-                        { options==='requested' && (
-                            <View style={styles.btnContainer}>
-                                <Button title="요청 수락" onPress={()=>handleAccept(id)}  />
-                                <Button title="거절 하기" onPress={()=> handleReject(id)} />
-                            </View>
-                        )}
 
                     </View>
                 )}
@@ -168,10 +142,16 @@ const styles = StyleSheet.create({
     },
     textContainer: {
         flex: 1,
+        flexDirection: 'column',
+        alignItems: 'flex-start',  // Ensure contents are aligned to the left
+        justifyContent: 'space-between' // Space rows evenly
+    },
+    textRow: {
+        width: '100%',
     },
     btnContainer:{
         flexDirection: 'row',
-        justifyContent: 'space-evenly',
+        justifyContent: 'space-between',
         alignItems: 'flex-end',
         paddingLeft: 90,
     },
@@ -197,6 +177,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
     },
+    buttonText:{
+        fontSize: 12,
+    }
 });
 
 export default FriendCard;

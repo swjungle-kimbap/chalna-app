@@ -58,5 +58,5 @@ export const urls = {
     FILE_UPLOAD_URL: getFullUrl(Config.FILE_UPLOAD_PATH),
     FILE_DOWNLOAD_URL: getFullUrl(Config.FILE_DOWNLOAD_PATH),
 
-    GET_FRIEND_JOINT_URL: getFullUrl(Config.GET_FRIEND_JOINT_PATH),
+    GET_FRIEND_ENCOUNTER_URL: getFullUrl(Config.GET_FRIEND_JOINT_PATH),
 };

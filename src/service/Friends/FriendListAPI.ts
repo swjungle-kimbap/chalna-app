@@ -1,7 +1,7 @@
 import {axiosGet} from '../../axios/axios.method'; // Adjust the path as necessary
 import {urls} from "../../axios/config";
 import { AxiosResponse, DownloadFileResponse } from '../../interfaces';
-import {friend, friendAPIResponse, requestedFriend} from "../../interfaces/Friend.type";
+import {friend, friendAPIResponse, relationAPIResponse, friendRequest} from "../../interfaces/Friend.type";
 import Config from "react-native-config";
 
 
@@ -40,20 +40,28 @@ export const getKoreanInitials = (input: string): string =>{
   return result;
 }
 
-
-export const fetchReceivedFriendRequest = async ():Promise<requestedFriend[]|any> => {
+export const fetchReceivedFriendRequest = async ():Promise<friendRequest[]|any> => {
     const response = await axiosGet(
         urls.RECEIVED_FRIEND_REQUEST_URL
         ,"받은 친구 요청 목록 조회 성공"
-
     )
-    return response?.data?.data
+    return response?.data?.data;
 }
 
-export const fetchSentFriendRequest = async ():Promise<requestedFriend[]|any> => {
+export const fetchSentFriendRequest = async ():Promise<friendRequest[]|any> => {
     const response = await axiosGet(
         urls.SENT_FRIEND_REQUEST_URL
         ,"보낸 친구 요청 목록 조회 성공"
     )
-    return response?.data?.data
+    return response?.data?.data;
 }
+
+// 상대방과 관계조회시 스친횟수 반환
+const fetchRelation = async (id:number):Promise<Number|null> => {
+    const response = await axiosGet(
+        urls.GET_RELATION_URL+`/${id}`,
+        "관계 조회 성공"
+    );
+    return response?.data?.data.overlapCount;
+}
+
