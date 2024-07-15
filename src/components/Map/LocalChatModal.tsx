@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     width: '100%',
     margin:0,
     padding:0,
-    fontFamily: fontTheme.fonts.title,
+    fontFamily: fontTheme.fonts.sub,
   },
   modalOverlay: {
     flex: 1,

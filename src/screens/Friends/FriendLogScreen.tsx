@@ -89,6 +89,7 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
   const [selectedMonth, setSelectedMonth] = useState("");
   const currentIndex = useRef(0);
   const [months, setMonths] = useState<{month:number, year:number}[]>([]);
+  const [showAnnouncement, setShowAnnouncement] = useState<boolean>(false);
 
   useEffect(()=> {
     const fetchData = async () => {
@@ -113,14 +114,13 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
   const onTapHandler = useCallback((index) => {
     if (friendLog[index]) {
       const { longitude, latitude, meetTime } = friendLog[index];
-      logMapViewRef.current.animateCameraTo({ longitude, latitude, zoom:15}, { duration: 300 });
+      logMapViewRef.current.animateCameraTo({ longitude, latitude, zoom:16}, { duration: 300 });
     } else {
       console.log("index is out of range", index);
     }
   }, [friendLog]);
 
   const formatTimestamp = (meetTime) => {
-    console.log(meetTime);
     const date = new Date(meetTime);
     const year = date.getFullYear();
     const month = date.getMonth() + 1;  
@@ -206,13 +206,22 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
             longitude={log.longitude}
             latitude={log.latitude}
             onTap={() => onTapHandler(index)}
-            height={30}
-            width={20}
+            height={80}
+            width={100}
             key={index.toString()}
-            caption={{text:formatTimestamp(log.meetTime)}}
-            subCaption={{text:formatTimestamp(log.meetTime)}}
-            minZoom={11}
-          />
+            minZoom={16}
+          >
+            <View style={{alignItems: 'center'}}>
+            <Text style={{
+              marginTop: 5,
+              fontSize: 11,
+              color: 'gray'}}>{friendLog.length - index}번째 만남</Text>
+            <Text style={{
+              marginTop: 5,
+              fontSize: 12,
+              color: 'black'}}>{formatTimestamp(log.meetTime)}</Text>
+            </View>
+          </NaverMapMarkerOverlay>
         )})
       }
     </NaverMapView>

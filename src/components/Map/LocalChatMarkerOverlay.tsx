@@ -12,12 +12,13 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { useFocusEffect } from "@react-navigation/core";
 import Geolocation from "react-native-geolocation-service";
 import { getImageUri } from "../../utils/FileHandling";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet } from "react-native";
 import FastImage from 'react-native-fast-image';
+import Text from '../../components/common/Text';
 
 export const distanceLimit = 100;
 const DistanceLimit = distanceLimit / 1000;
-const OutDistanceLimit = distanceLimit / 1000 * 1125;
+const OutDistanceLimit = distanceLimit / 1000 * 1.125;
 const LocalChatDelayedTime = 10 * 1000;
 
 const defaultImg = require('../../assets/Icons/LocalChatIcon.png');
@@ -40,6 +41,7 @@ const LocalChatMarkerOverlay = ({cameraMove}) => {
         const updatedLocalChatList = await Promise.all(localChatList.map(async (item) => {
           const localChat = item.localChat;
           const distance = calDistance(currentLocation, { latitude: localChat.latitude, longitude: localChat.longitude });
+          console.log(distance, OutDistanceLimit);
           if (item.isJoined && distance >= OutDistanceLimit) {
             await ChatDisconnectOut(localChat.chatRoomId, setRefresh);
             return null;
@@ -144,7 +146,7 @@ const LocalChatMarkerOverlay = ({cameraMove}) => {
               // }
               onTap={() => {
                 cameraMove({ latitude: localChat.latitude, longitude: localChat.longitude });
-                item.isJoined ? localChatOut(localChat, setRefresh) : localChatJoin(localChat, localChat.distance, setRefresh);
+                item.isJoined ? localChatOut(localChat) : localChatJoin(localChat, localChat.distance, setRefresh);
               }}
               width={90}
               height={90}
@@ -195,7 +197,6 @@ const LocalChatMarkerOverlay = ({cameraMove}) => {
 const styles = StyleSheet.create({
   avatarWrapper: {
     alignItems: 'center',
-    padding: 5,
   },
   avatar: {
     width: 60,
@@ -215,7 +216,6 @@ const styles = StyleSheet.create({
   captionText: {
     marginTop: 5,
     fontSize: 12,
-    fontWeight: 'bold',
     color: 'black',
     textAlign: 'center',
   },
