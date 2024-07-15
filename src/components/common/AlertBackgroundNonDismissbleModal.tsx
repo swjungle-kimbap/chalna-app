@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import { useModal } from '../../context/ModalContext'; // Adjust the import path as necessary
 import fontTheme from '../../styles/FontTheme';
+import colorTheme from '../../styles/ColorTheme';
 
 const BackgroundNonDismissibleModal = () => {
   const { modalVisible, modalContent, hideModal } = useModal();
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 10
   },
   confirmButton: {
-    backgroundColor: '#6DB9C4',
+    backgroundColor: colorTheme.colors.main,
     marginLeft: 0,
     borderBottomLeftRadius: 10,
   },
@@ -107,7 +108,7 @@ const styles = StyleSheet.create({
     fontFamily: fontTheme.fonts.title,
   },
   buttonCancelText: {
-    color: 'gray',
+    color: '#666666',
     fontSize: 13,
     fontFamily: fontTheme.fonts.title,
   }

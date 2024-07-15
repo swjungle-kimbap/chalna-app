@@ -10,6 +10,8 @@ import {userInfoState} from "../../recoil/atoms";
 import {sendFriendRequest} from "../../service/Friends/FriendRelationAPI";
 import WebSocketManager from "../../utils/WebSocketManager";
 import Text from '../common/Text';
+import color from '../../styles/ColorTheme';
+import ProfileImage from '../common/ProfileImage';
 
 interface MemberListProps {
     members: chatRoomMember[];
@@ -44,10 +46,8 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
                 keyExtractor={(item) => item.memberId.toString()}
                 renderItem={({ item }) => (
                     <View style={styles.memberContainer}>
-                        <FastImage
-                            source={item.profileImageId ?  "" : require('../../assets/images/anonymous.png')}
-                            style={styles.profilePicture}
-                        />
+                        <ProfileImage profileImageId = {item.profileImageId} avatarStyle = {styles.profilePicture}/>
+                        
                         <Text style={styles.memberText}>{item.username}</Text>
                         {item.memberId !==currentUserId ? (
                             <View style={{marginLeft:'auto'}}>
@@ -88,27 +88,28 @@ const styles = StyleSheet.create({
         borderBottomColor: '#ececec',
     },
     profilePicture: {
-        width: 25,
-        height: 25,
+        width: 35,
+        height: 35,
         borderRadius: 20,
         marginRight: 10,
     },
     memberText: {
         fontSize: 14,
         marginRight: 10,
-        color: 	'#222222',
+        color: 	'#444444',
     },
     badgeContainer: {
         borderRadius: 12,
-        width: 20,
-        height: 20,
+        width: 25,
+        height: 25,
         justifyContent: 'center',
         alignItems: 'center',
         marginLeft: 'auto',
         marginTop: 2,
+        color: 'gray'
     },
     badgeColor: {
-        backgroundColor: '#303136', // Customize the color as needed
+        backgroundColor: '#333', // Customize the color as needed
     },
     badgeText: {
         color: 'white',

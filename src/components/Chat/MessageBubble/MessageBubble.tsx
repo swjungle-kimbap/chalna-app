@@ -10,6 +10,7 @@ import ImagePreviewModal from "./ImagePreviewModal";
 import UserProfileModal from "./UserProfileModal";
 import ProfileImage from '../../common/ProfileImage';
 import { useModal } from '../../../context/ModalContext';
+import colorTheme from '../../../styles/ColorTheme';
 
 interface MessageBubbleProps {
     message: any;
@@ -169,8 +170,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
         switch (type) {
             case 'FRIEND_REQUEST':
                 return (
-                    <AnnouncementMessageBubble>
-                        <Text variant="sub" style={{ color: "#444444" }}>{message}</Text>
+                    <AnnouncementMessageBubble style={{ backgroundColor: colorTheme.colors.sub }}>
+                        <Text variant="sub" style={{ color: '#444444' }}>{message}</Text>
                         {!isSelf && message === '친구 요청을 보냈습니다.' && (
                             <FriendRequestActions
                                 chatRoomId={chatRoomId}
@@ -182,7 +183,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
                     </AnnouncementMessageBubble>
                 );
             case 'TIMEOUT':
-                return renderAnnouncementMessage(message, '#c0c0c0');
+                return renderAnnouncementMessage(message, '#EEEEEE');
             case 'USER_JOIN':
                 if (chatRoomType !== 'FRIEND') {
                     return renderAnnouncementMessage(`${message}님이 대화에 참여했습니다.`, 'transparent');
@@ -278,8 +279,8 @@ const MessageContentContainer = styled.View<{ isSelf: boolean }>`
 
 const AnnouncementMessageBubble = styled.View`
     padding: 10px 15px;
-    border-radius: 20px;
-    background-color: #C6DBDA;
+    border-radius: 10px;
+    background-color: #EEEEEE;
 `;
 
 const BubbleContainer = styled.View<{ isSelf: boolean; notChat: boolean }>`
@@ -298,8 +299,8 @@ const MessageContainer = styled.View<{ isSelf: boolean; showProfileTime: boolean
 
 const MessageContent = styled.View<{ isSelf: boolean, isFile: boolean}>`
     padding: ${({ isFile}) => (isFile? '0px':'5px 10px')};
-    border-radius: 10px;
-    background-color: ${({ isSelf}) => (isSelf ? '#E4F1EE' : '#FFFFFF')};
+    border-radius: 8px;
+    background-color: ${({ isSelf}) => (isSelf ? colorTheme.colors.light_sub : '#FFFFFF')};
     flex-shrink: 1;
     max-width: 100%;
 `;
@@ -320,7 +321,7 @@ const DateTime = styled(Text)<{ isSelf: boolean }>`
 
 const ReadStatus = styled(Text)<{ isSelf: boolean }>`
     font-size: 10px;
-    color: #20b2aa;
+    color: ${colorTheme.colors.main}};
     margin-bottom: 1px;
     margin-right: ${({ isSelf }) => (isSelf ? '8px' : '0')};
     align-self: ${({ isSelf }) => (isSelf ? 'flex-end' : 'flex-start')};

@@ -3,6 +3,7 @@ import Button from '../../components/common/Button';
 import {StyleSheet} from 'react-native';
 import LocalChatModal from "./LocalChatModal";
 import { handleCheckPermission } from "../../service/LocalChat";
+import color from "../../styles/ColorTheme";
 
 const LocalChatButton = ({showLocalChatModal, setShowLocalChatModal}) => {
 
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2, // 상하 여백 설정
     paddingHorizontal: 3, // 좌우 여백 설정
     zIndex:3,
-    backgroundColor:'#6DB9C4',
+    backgroundColor: color.colors.main,
     shadowColor: '#000', // 그림자 색상
     shadowOffset: {
       width: 0,

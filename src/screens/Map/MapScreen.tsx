@@ -17,6 +17,7 @@ import LocalChatMarkerOverlay from "../../components/Map/LocalChatMarkerOverlay"
 import { showModal } from "../../context/ModalService";
 import { userInfoState } from '../../recoil/atoms';
 import ProfileImage from '../../components/common/ProfileImage';
+import color from "../../styles/ColorTheme";
 
 LogBox.ignoreLogs(['Called stopObserving with existing subscriptions.'])
 const latkfilter = new KalmanFilter();
@@ -129,11 +130,12 @@ const MapScreen: React.FC = ({}) => {
         latitude={currentLocation.latitude}
         longitude={currentLocation.longitude}
         radius={100} 
-        color="rgba(171, 212, 212, 0.3)"
+        color={'#438EE630'}
       />
       <NaverMapMarkerOverlay
         latitude={currentLocation.latitude}
         longitude={currentLocation.longitude}
+        image={{symbol: 'blue'}}
         anchor={{ x: 0.5, y: 1 }}
         width={20}
         height={30}

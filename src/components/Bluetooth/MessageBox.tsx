@@ -15,6 +15,7 @@ import { handleImagePicker, uploadImage } from '../../utils/FileHandling';
 import { useModal } from '../../context/ModalContext';
 import { addDeviceIDList } from '../../utils/matchMmkvStorage';
 import fontTheme from '../../styles/FontTheme';
+import colorTheme from '../../styles/ColorTheme';
 
 const ignorePatterns = [
   /No task registered for key shortService\d+/,
@@ -166,7 +167,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
             <TouchableOpacity onPress={() => {
               showModal("인연 메세지 작성", `${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요!`, () => {}, undefined,false);}
             } style={styles.questionIconContainer}>
-              <Image source={require('../../assets/question2.png')} style={styles.questionIcon} />
+              <Image source={require('../../assets/Icons/Question2.png')} style={styles.questionIcon} />
           </TouchableOpacity>
 
           </View>
@@ -212,7 +213,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
                     activeOpacity={0.7}
                     >
                     <Image
-                      source={require('../../assets/send_icon.png')} // 이미지 아이콘 경로 설정
+                      source={require('../../assets/Icons/SendIcon.png')} // 이미지 아이콘 경로 설정
                       style={styles.sendButtonIcon}
                     />
                   </TouchableOpacity>}
@@ -324,7 +325,7 @@ const styles = StyleSheet.create({
   textInput: {
     height: 50,
     borderRadius: 10,
-    backgroundColor: '#DEEDED',
+    backgroundColor: colorTheme.colors.light_sub,
     padding: 10,
     marginBottom: 10,
     width: '100%',
@@ -343,7 +344,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', // 수평 방향 가운데 정렬
     paddingVertical: 10,
     marginVertical: 20,
-    backgroundColor: '#DEEDED',
+    backgroundColor: colorTheme.colors.light_sub,
     borderRadius: 20,
     elevation: 5,
   },
@@ -402,7 +403,7 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'column', // 컬럼 방향으로 아이템을 배치합니다.
     alignItems: 'center', // 가운데 정렬
-    backgroundColor: '#DEEDED',
+    backgroundColor: colorTheme.colors.light_sub,
     paddingHorizontal: 15,
     paddingVertical: 10,
     borderRadius: 20,
@@ -422,7 +423,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   buttonText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 'bold',
     color: 'gray',
     marginTop: 5, // 텍스트와 아이콘 사이의 간격 조정
@@ -441,6 +442,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     resizeMode: 'contain',
+    color: colorTheme.colors.light_sub
   },
   
 });
