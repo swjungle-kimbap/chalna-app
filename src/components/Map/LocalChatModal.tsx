@@ -8,6 +8,7 @@ import { makeLocalChat } from '../../service/LocalChat';
 import FastImage from 'react-native-fast-image';
 import { handleImagePicker } from '../../utils/FileHandling';
 import { useModal } from '../../context/ModalContext';
+import RNFS from 'react-native-fs';
 
 export interface LocalChatModalProps{
   closeModal: () => void,
@@ -29,6 +30,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
     const localChat = await makeLocalChat(name, description, currentLocation, image)
      if (localChat) {
       setRefresh(prev => !prev);
+      setImageUrl("");
       closeModal();
      }
   }
@@ -42,6 +44,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
   }
 
   const handleRemoveImage = () => {
+    RNFS.unlink(image.uri);
     setImageUrl('');
     setImage(null);
   };
