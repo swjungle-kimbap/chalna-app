@@ -39,13 +39,12 @@ const MessageGif = ({ setShowMsgBox }) => {
   }, [moveAnim]);
   
   return (
-    <TouchableOpacity onPress={() => setShowMsgBox(true)}>
+    <TouchableOpacity onPress={() => setShowMsgBox(true)} 
+      hitSlop={{ top: 100, bottom: 100, left:100, right: 100 }} >
         <View style={styles.container}>
             <Animated.View style={{ transform: [{ translateY: moveAnim }] }}>
                 <LottieView
                     source={require('../../assets/animations/paperplane.json')}
-    
-
                     autoPlay
                     loop
                     style={styles.lottie}
@@ -76,6 +75,7 @@ const styles = StyleSheet.create({
   lottie: {
     width: 250,
     height: 250,
+    marginBottom:20,
   },
 });
 
