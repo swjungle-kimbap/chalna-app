@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity , Alert, Image} from 'react-native';
+import { View, StyleSheet, TouchableOpacity , Alert, Image} from 'react-native';
 import { Friend } from '../interfaces/savedData';
 import RoundBox from './common/RoundBox';
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -9,9 +9,14 @@ import { axiosGet, axiosPost } from "../axios/axios.method";
 import {urls} from "../axios/config";
 import ProfileImage from './common/ProfileImage';
 import { useModal } from '../context/ModalContext';
+import {requestedFriend} from "../interfaces/Friend.type";
+import {acceptFriendRequest, rejectFriendRequest} from "../service/Friends/FriendRelationService";
+import Text from '../../src/components/common/Text';
+
 
 interface FriendCardProps {
-    user: Friend;
+    user?: Friend;
+    request?: requestedFriend;
     isExpanded: boolean;
     onExpand: ()=> void;
     navigation?: StackNavigationProp<RootStackParamList, '채팅'>;
@@ -30,13 +35,16 @@ interface ApiResponse {
     };
   }
 
-const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, navigation, options}) => {
+const FriendCard: React.FC<FriendCardProps> = ({ user, request , isExpanded, onExpand, navigation, options}) => {
 
     const {showModal} = useModal();
 
     const handlePress = () => {
         onExpand();
     };
+
+    const name = user? user.username:request.username;
+    const id = user? user.id:request.id;
 
     const handleChat = async () => {
         try {
@@ -64,6 +72,21 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
         }
     };
 
+    const handleAccept = async (id: number) => {
+        const response = await acceptFriendRequest(id);
+        if (response === true) {
+            // rerender or show message of somekind  대화방으로 이동하시겠습니까?
+        }
+    };
+
+    const handleReject = async (id: number) => {
+        const response = await rejectFriendRequest(id);
+        if (response === true) {
+            // rerender and show message of somekind
+        }
+    };
+
+
     // const handleBlockFriend = (id) => {
     //     const filteredFriendsList = friendsList.filter(item => item.id !== id)
     //     setFriendsList(filteredFriendsList);
@@ -88,8 +111,8 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
                 <View style={styles.header}>
                     <ProfileImage profileImageId={user.profileImageId} avatarStyle={styles.avatar}/>
                     <View style={styles.textContainer}>
-                        <Text style={styles.name} >{user.username}</Text>
-                        <Text style={styles.statusMessage}>{user.message}</Text>
+                        <Text style={styles.name} >{name}</Text>
+                        <Text style={styles.statusMessage}>{user.message || ""}</Text>
                     </View>
                 </View>
                 {isExpanded && (
@@ -106,14 +129,12 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
                                 <Button title="삭제하기" onPress={()=> {handleDeleteFriend(user.id)}} />
                             </View>
                         )} */}
-                        {/*{ options==='requested' && (*/}
-                        {/*    <View style={styles.btnContainer}>*/}
-                        {/*        <Button title="요청 수락" onPress={handleAccept}  />*/}
-                        {/*        <Button title="거절 하기" onPress={()=> {handleReject(user.id)} />*/}
-                        {/*    </View>*/}
-                        {/*)}*/}
-
-
+                        { options==='requested' && (
+                            <View style={styles.btnContainer}>
+                                <Button title="요청 수락" onPress={()=>handleAccept(id)}  />
+                                <Button title="거절 하기" onPress={()=> handleReject(id)} />
+                            </View>
+                        )}
 
                     </View>
                 )}
@@ -140,9 +161,9 @@ const styles = StyleSheet.create({
         alignItems:  'flex-start',
     },
     avatar: {
-        width: 60,
-        height: 60,
-        borderRadius: 25,
+        width: 45,
+        height: 45,
+        borderRadius: 20,
         marginRight: 15,
     },
     textContainer: {
@@ -155,14 +176,13 @@ const styles = StyleSheet.create({
         paddingLeft: 90,
     },
     name: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#5A5A5A',
         marginBottom: 5,
+        alignSelf:'flex-start',
     },
     statusMessage: {
         fontSize: 14,
         color: '#555',
+        alignSelf:'flex-start',
     },
     expandedContainer: {
         marginTop: 10,
