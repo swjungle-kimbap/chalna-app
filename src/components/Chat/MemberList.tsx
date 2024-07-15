@@ -17,10 +17,11 @@ interface MemberListProps {
     members: chatRoomMember[];
     chatRoomId: number,
     chatRoomType: string,
+    myname: string,
 }
 
 
-const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomType }) => {
+const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomType, myname }) => {
     const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
     const filteredAndSortedMembers = members
         .filter(member => member.isJoined) // Filter members with hasJoined === true
@@ -55,7 +56,7 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
                                 <ImageTextButton
                                     iconSource={require('../../assets/Icons/addFriendIcon.png')}
                                     imageStyle={{height: 18, width: 18, marginTop:2, marginLeft: "auto"}}
-                                    onPress={()=>handleSend(item.memberId, chatRoomId, item.username)}
+                                    onPress={()=>handleSend(item.memberId, chatRoomId, myname)}
                                 />
                                 ):(
                                     <FastImage
