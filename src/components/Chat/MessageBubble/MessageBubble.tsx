@@ -224,6 +224,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
                 username={username}
                 profilePicture={profilePicture}
                 chatRoomType={chatRoomType}
+                otherId={senderId}
             />
 
             <ImagePreviewModal

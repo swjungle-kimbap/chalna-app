@@ -1,22 +1,23 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity , Alert, Image} from 'react-native';
-import { Friend } from '../interfaces/savedData';
-import RoundBox from './common/RoundBox';
+import { View, StyleSheet, TouchableOpacity, Image} from 'react-native';
+import {Friend} from "../../interfaces";
+import RoundBox from '../common/RoundBox';
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../interfaces";
-import Button from './common/Button';
-import { axiosGet, axiosPost } from "../axios/axios.method";
-import {urls} from "../axios/config";
-import ProfileImage from './common/ProfileImage';
-import { navigate } from '../navigation/RootNavigation';
-import { useModal } from '../context/ModalContext';
+import { RootStackParamList } from "../../interfaces";
+import Button from '../common/Button';
+import { navigate } from '../../navigation/RootNavigation';
+import { axiosGet, axiosPost } from "../../axios/axios.method";
+import {urls} from "../../axios/config";
+import ProfileImage from '../common/ProfileImage';
+import { useModal } from '../../context/ModalContext';
+import Text from '../common/Text';
+
 
 interface FriendCardProps {
     user: Friend;
     isExpanded: boolean;
     onExpand: ()=> void;
     navigation?: StackNavigationProp<RootStackParamList, '채팅'>;
-    options?: 'friend' | 'blocked' | 'requested'
 }
 
 interface ApiResponse {
@@ -31,7 +32,7 @@ interface ApiResponse {
     };
   }
 
-const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, navigation, options}) => {
+const FriendCard: React.FC<FriendCardProps> = ({ user, isExpanded, onExpand, navigation}) => {
 
     const {showModal} = useModal();
 
@@ -89,44 +90,24 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
                 <View style={styles.header}>
                     <ProfileImage profileImageId={user.profileImageId} avatarStyle={styles.avatar}/>
                     <View style={styles.textContainer}>
-                        <Text style={styles.name} >{user.username}</Text>
-                        <Text style={styles.statusMessage}>{user.message}</Text>
+                        <Text style={[styles.textRow, styles.name]} >{user.username}</Text>
+                        <Text style={[styles.textRow, styles.statusMessage]}>{user.message || ""}</Text>
+                    </View>
+                    <View style={styles.iconContainer}>
+                        <TouchableOpacity onPress={handleChat} style={styles.iconButton}>
+                            <Image source={require('../../assets/Icons/ChatingIcon.png')} style={styles.icon} />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => navigate("로그인 성공", {
+                            screen: "친구",
+                            params: {
+                                screen: "스쳐간 기록",
+                                params: { otherId: user.id }
+                            }
+                        })} style={styles.iconButton}>
+                            <Image source={require('../../assets/Icons/ReportMap.png')} style={styles.icon} />
+                        </TouchableOpacity>
                     </View>
                 </View>
-                {isExpanded && (
-                    <View style={styles.expandedContainer}>
-                        { options==='friend' && (
-                            <View style={styles.btnContainer}>
-                                <Button title="대화하기" onPress={handleChat}  />
-                                <Button title="기록보기" onPress={() => {
-                                    navigate("로그인 성공", {
-                                        screen: "친구",
-                                        params: {
-                                            screen: "스쳐간 기록",
-                                            params: { otherId: user.id}
-                                        }
-                                    })    
-                                }}/>
-                                {/* <Button title="차단하기" onPress={()=> {handleBlockFriend(user.id)}} /> */}
-                            </View>
-                        )}
-                        {/* { options==='blocked' && (
-                            <View style={styles.btnContainer}>
-                                <Button title="차단해제" onPress={()=> {handleUnblockFriend(user.id)}}  />
-                                <Button title="삭제하기" onPress={()=> {handleDeleteFriend(user.id)}} />
-                            </View>
-                        )} */}
-                        {/*{ options==='requested' && (*/}
-                        {/*    <View style={styles.btnContainer}>*/}
-                        {/*        <Button title="요청 수락" onPress={handleAccept}  />*/}
-                        {/*        <Button title="거절 하기" onPress={()=> {handleReject(user.id)} />*/}
-                        {/*    </View>*/}
-                        {/*)}*/}
-
-
-
-                    </View>
-                )}
             </RoundBox>
         </TouchableOpacity>
     );
@@ -150,43 +131,46 @@ const styles = StyleSheet.create({
         alignItems:  'flex-start',
     },
     avatar: {
-        width: 60,
-        height: 60,
-        borderRadius: 25,
+        width: 45,
+        height: 45,
+        borderRadius: 20,
         marginRight: 15,
     },
     textContainer: {
         flex: 1,
+        flexDirection: 'column',
+        alignItems: 'flex-start',  // Ensure contents are aligned to the left
+        justifyContent: 'space-between' // Space rows evenly
     },
-    btnContainer:{
+    textRow: {
+        width: '100%',
+    },
+    iconContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        alignItems: 'flex-end',
-        paddingLeft: 90,
+        alignItems: 'center',
+    },
+    iconButton: {
+        marginHorizontal: 5,
+        backgroundColor: '#f0f0f0',
+        padding: 5,
+        borderRadius: 20,
+    },
+    icon: {
+        width: 20,
+        height: 20,
     },
     name: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#5A5A5A',
         marginBottom: 5,
+        alignSelf: 'flex-start',
     },
     statusMessage: {
         fontSize: 14,
         color: '#555',
+        alignSelf: 'flex-start',
     },
-    expandedContainer: {
-        marginTop: 10,
-    },
-    additionalInfo: {
-        marginLeft: 70,
-        marginBottom: 15,
-        fontSize: 14,
-        color: '#777',
-    },
-    buttonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
+    buttonText: {
+        fontSize: 12,
+    }
 });
 
 export default FriendCard;

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import ImageTextButton from "../../common/Button";
 import WebSocketManager from "../../../utils/WebSocketManager";
-import { acceptFriendRequest, rejectFriendRequest } from "../../../service/Friends/FriendRelationService";
+import { acceptFriendRequest, rejectFriendRequest } from "../../../service/Friends/FriendRelationAPI";
 
 interface FriendRequestActionsProps {
     chatRoomId: number;
@@ -15,19 +15,24 @@ const FriendRequestActions: React.FC<FriendRequestActionsProps> = ({
                                                                        chatRoomId, senderId, isDisabled, setIsDisabled
                                                                    }) => {
 
+
     const handleAccept = async () => {
-        const response = await acceptFriendRequest(senderId, chatRoomId);
+        setIsDisabled(true);
+        const response = await acceptFriendRequest(senderId);
         if (response === true) {
             WebSocketManager.sendMessage(String(chatRoomId), "친구가 되었습니다!\n대화를 이어가보세요.", 'FRIEND_REQUEST');
-            setIsDisabled(true);
+        } else {
+            setIsDisabled(false);
         }
     };
 
     const handleReject = async () => {
+        setIsDisabled(true);
         const response = await rejectFriendRequest(senderId);
         if (response === true) {
             WebSocketManager.sendMessage(String(chatRoomId), "인연이 스쳐갔습니다.", 'FRIEND_REQUEST');
-            setIsDisabled(true);
+        } else {
+            setIsDisabled(false);
         }
     };
 
