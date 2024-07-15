@@ -23,6 +23,7 @@ import {fetchReceivedFriendRequest} from "../../service/Friends/FriendListAPI";
 import NavigationModal from "../../components/Mypage/NavigationModal";
 
 import FriendRequestScreen from "./FriendRequestScreen";
+import color from '../../styles/ColorTheme';
 
 interface ApiResponse {
   status: string;
@@ -121,7 +122,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
       <View style={styles.headerText}>
         <Text style={styles.text}>내 프로필</Text>
         <Button iconSource={require('../../assets/Icons/cogIcon.png')} imageStyle={styles.closebutton}
-          onPress={() => navigate('로그인 성공', { screen: "친구", params: { screen: "마이페이지" }})}/>
+          onPress={() => navigate('마이페이지')}/>
       </View>
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
@@ -144,7 +145,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
           <HorizontalLine />
           {friendRequests.length > 0 && (
               <>
-                <TouchableOpacity style={styles.receivedRequestsContainer} onPress={() => navigate('친구 요청 목록')}>
+                <TouchableOpacity style={styles.receivedRequestsContainer} onPress={() => navigate('친구요청 목록')}>
                   <Text style={styles.text}>받은 친구 요청</Text>
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{friendRequests.length}</Text>
@@ -348,7 +349,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   badge: {
-    backgroundColor: '#006a81',
+    backgroundColor: color.colors.main,
     borderRadius: 10,
     paddingHorizontal: 8,
     marginLeft: "auto",

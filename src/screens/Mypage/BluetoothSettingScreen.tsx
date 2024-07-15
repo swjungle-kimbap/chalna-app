@@ -8,6 +8,7 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import Slider from '@react-native-community/slider';
 import Text from "../../components/common/Text";
 import Button from "../../components/common/Button";
+import color from "../../styles/ColorTheme";
 
 const BluetoothSettingScreen: React.FC = () => {
   const [advertiseMode, setAdvertiseMode] = useMMKVNumber('bluetooth.advertiseMode', userMMKVStorage);
@@ -50,7 +51,7 @@ const BluetoothSettingScreen: React.FC = () => {
                   <Text>{advertiseMode}</Text>
                 );
               }}
-              minimumTrackTintColor="#3EB297"
+              minimumTrackTintColor={color.colors.main}
               maximumTrackTintColor="#000000"
             />
           </InlineButton>
@@ -68,7 +69,7 @@ const BluetoothSettingScreen: React.FC = () => {
                   <Text>{txPowerLevel}</Text>
                 );
               }}
-              minimumTrackTintColor="#3EB297"
+              minimumTrackTintColor={color.colors.main}
               maximumTrackTintColor="#000000"
             />
           </InlineButton>
@@ -88,7 +89,7 @@ const BluetoothSettingScreen: React.FC = () => {
                   <Text>{scanMode}</Text>
                 );
               }}
-              minimumTrackTintColor="#3EB297"
+              minimumTrackTintColor={color.colors.main}
               maximumTrackTintColor="#000000"
             />
           </InlineButton>
@@ -106,7 +107,7 @@ const BluetoothSettingScreen: React.FC = () => {
                   <Text>{numberOfMatches}</Text>
                 );
               }}
-              minimumTrackTintColor="#3EB297"
+              minimumTrackTintColor={color.colors.main}
               maximumTrackTintColor="#000000"
             />
           </InlineButton>
@@ -127,7 +128,7 @@ const BluetoothSettingScreen: React.FC = () => {
                 value={RSSIvalue}
                 onValueChange={value => setRSSIvalue(value)}
                 tapToSeek
-                minimumTrackTintColor="#3EB297"
+                minimumTrackTintColor={color.colors.main}
                 maximumTrackTintColor="#000000"
               />
               <Text>{RSSIvalue}</Text>

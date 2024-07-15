@@ -3,6 +3,7 @@ import Text from "../common/Text";
 import { useRef } from "react";
 import { useRecoilState } from "recoil";
 import { locationState } from "../../recoil/atoms";
+import color from "../../styles/ColorTheme";
 
 const ArrowButton = ({cameraMove}) => {
   const [currentLocation, setCurrentLocation] = useRecoilState(locationState);
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dpadButton: {
-    backgroundColor: '#3EB297',
+    backgroundColor: color.colors.main,
     padding: 10,
     borderRadius: 5,
   },

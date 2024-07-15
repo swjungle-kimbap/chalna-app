@@ -23,6 +23,7 @@ import useFadeText from "../../hooks/useFadeText";
 import BleMainComponent from "../../components/Bluetooth/BleMainComponent";
 import BleBottomComponent from "../../components/Bluetooth/BleBottomComponent";
 import ColorTheme from "../../styles/ColorTheme";
+import color from "../../styles/ColorTheme";
 
 interface BluetoothScreenPrams {
   route: {
@@ -265,7 +266,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
       {isRssiTracking && (
         <>
           <View style={styles.TVButton}>
-            <Button title='    ' onPress={() => setShowTracking(true)} titleStyle={{ color: '#3EB297', fontSize: 10 }} />
+            <Button title='    ' onPress={() => setShowTracking(true)} titleStyle={{ color: color.colors.main, fontSize: 10 }} />
           </View>
           <RssiTracking closeModal={() => setShowTracking(false)} modalVisible={showTracking} items={rssiMap} />
         </>

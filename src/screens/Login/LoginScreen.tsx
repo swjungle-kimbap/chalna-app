@@ -20,6 +20,7 @@ import { setDefaultMMKVString } from "../../utils/mmkvStorage";
 import { useModal } from '../../context/ModalContext';
 
 import { black } from "react-native-paper/lib/typescript/styles/themes/v2/colors";
+import color from "../../styles/ColorTheme";
 
 
 LogBox.ignoreLogs(['new NativeEventEmitter']); 
@@ -149,7 +150,7 @@ const LoginScreen: React.FC = () => {
         <>
           <View style={styles.loadingConatiner}>
             <Text variant="sub" style={styles.autoLoginText}>로그인 중</Text>
-            <ActivityIndicator size="small" color="#3EB297" />
+            <ActivityIndicator size="small" color={color.colors.main} />
           </View>
         </>
       ) : ( 

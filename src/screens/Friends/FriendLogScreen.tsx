@@ -8,6 +8,7 @@ import Text from "../../components/common/Text";
 import { useRecoilValue } from 'recoil';
 import { locationState } from "../../recoil/atoms";
 import RowButton from "../../components/Mypage/RowButton";
+import color from "../../styles/ColorTheme";
 
 function generateDummyGPSData(startLat, startLon, numPoints, timeInterval) {
   const gpsData = [];
@@ -172,7 +173,7 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
       <>
         <View style={{flexDirection:"row", alignItems:'center', justifyContent:'center'}}>
           <Text variant="sub" style={styles.autoLoginText}>위치를 그리는 중 입니다.</Text>
-          <ActivityIndicator size="small" color="#3EB297" />
+          <ActivityIndicator size="small" color={color.colors.main} />
         </View> 
       </> :
       <View style={{flexDirection:"row", width: width}}>
@@ -210,6 +211,7 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
             width={100}
             key={index.toString()}
             minZoom={16}
+            image={{symbol:'blue'}}
           >
             <View style={{alignItems: 'center'}}>
             <Text style={{
@@ -242,7 +244,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   selectedMonthContainer: {
-    backgroundColor: '#3EB297',
+    backgroundColor: color.colors.main,
     borderRadius: 5,
     padding: 5,
     marginVertical: 10,
@@ -258,7 +260,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   selectedMonth:{
-    backgroundColor: '#3EB297',
+    backgroundColor: color.colors.main,
     borderRadius: 10,
   },
   headerTab:{
@@ -267,7 +269,7 @@ const styles = StyleSheet.create({
     alignItems:'center',
     justifyContent:'center',
     borderBottomWidth: 2,
-    borderColor: '#3EB297',
+    borderColor: color.colors.main,
   },
   loadingConatiner : {
     alignContent:'center',
