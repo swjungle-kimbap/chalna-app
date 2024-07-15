@@ -46,7 +46,7 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
                 keyExtractor={(item) => item.memberId.toString()}
                 renderItem={({ item }) => (
                     <View style={styles.memberContainer}>
-                        <ProfileImage profileImageId = {item.profileImageId} avatarStyle = {styles.profilePicture}/>
+                        <ProfileImage profileImageId = {chatRoomType == 'FRIEND' && item.profileImageId} avatarStyle = {styles.profilePicture}/>
 
                         <Text style={styles.memberText}>{item.username}</Text>
                         {item.memberId !==currentUserId ? (
