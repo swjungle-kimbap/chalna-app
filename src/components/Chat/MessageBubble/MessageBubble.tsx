@@ -20,7 +20,7 @@ interface MessageBubbleProps {
     senderId: number;
     chatRoomId: number;
     chatRoomType: string;
-    profilePicture?: string;
+    profileImageId?: number;
     username?: string;
     showProfileTime?: boolean;
     isViewable?:boolean;
@@ -28,7 +28,7 @@ interface MessageBubbleProps {
 
 const MessageBubble: React.FC<MessageBubbleProps> = memo(({
                                                               message, datetime, isSelf, type, unreadCnt, senderId, chatRoomId,
-                                                              chatRoomType, profilePicture, username, showProfileTime
+                                                              chatRoomType, profileImageId, username, showProfileTime
                                                               , isViewable
                                                           }) => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -36,6 +36,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
     const [isDisabled, setIsDisabled] = useState(chatRoomType === 'FRIEND');
     // const resizedImageUri = useRef(message.preSignedUrl);
     const {showModal} = useModal();
+
+    console.log("===============profileImageID: ", profileImageId);
 
     const toggleUserInfoModal = useCallback(() => {
         setModalVisible(prev => !prev);
@@ -204,11 +206,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
         <Container isSelf={isSelf} notChat={type !== 'CHAT' && type !== 'FILE'}>
             {shouldShowProfile && !isSelf && showProfileTime && (
                 <TouchableOpacity onPress={toggleUserInfoModal}>
-                    <FastImage
-                        source={profilePicture ? { uri: profilePicture } : require('../../../assets/images/anonymous.png')}
-                        style={styles.profilePicture}
-                        resizeMode={FastImage.resizeMode.cover}
-                    />
+                    <ProfileImage profileImageId={profileImageId} avatarStyle={undefined}/>
                 </TouchableOpacity>
             )}
             <BubbleContainer isSelf={isSelf} notChat={type !== 'CHAT' && type !== 'FILE'}>
@@ -222,7 +220,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
                 visible={modalVisible}
                 onClose={toggleUserInfoModal}
                 username={username}
-                profilePicture={profilePicture}
+                profileImageId={profileImageId}
                 chatRoomType={chatRoomType}
                 otherId={senderId}
             />

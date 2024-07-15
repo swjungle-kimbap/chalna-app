@@ -118,7 +118,7 @@ const ChattingListScreen = ({ navigation }) => {
 
     //recent message 넣기
     const getLastMsg = (room: ChatRoom) =>{
-            return room.recentMessage ? (room.recentMessage.type == "FILE" ? "사진": room.recentMessage.content) : "";
+            return room.recentMessage ? (room.recentMessage.type == "FILE" ? "(사진)": room.recentMessage.content) : "";
     }
 
     // 몇명
