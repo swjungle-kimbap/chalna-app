@@ -1,42 +1,55 @@
-import {  setMMKVObject, getMMKVObject, getCurrentUserId } from '../utils/mmkvStorage';
+import { setMMKVObject, getMMKVObject, getCurrentUserId, setUserMMKVStorage } from '../utils/mmkvStorage';
+
+export const deviceObjectStorage = 'deviceObjectStorage';
+
+export interface DeviceObject {
+  deviceId: string;
+  lastSendAt: string;
+}
 
 
-// 초기화
-const matchDeviceIdListKey = 'matchDeviceIdList';
+export const addDeviceIDList = async (deviceId: string, lastSendAt:string): Promise<void> => {
+  try {
+    const existingDeviceObjects = getMMKVObject<DeviceObject[]>(deviceObjectStorage) || [];
+    const existingDeviceIndex = existingDeviceObjects.findIndex(obj => obj.deviceId === deviceId);
 
-setMMKVObject(matchDeviceIdListKey, []);
+    if (existingDeviceIndex !== -1) {
+      existingDeviceObjects[existingDeviceIndex].lastSendAt = lastSendAt;
+    } else {
+      existingDeviceObjects.push({
+        deviceId: deviceId,
+        lastSendAt: lastSendAt,
+      });
+    }
 
-const addToDeviceIdList = (deviceId: string) => {
-  const currentList = getMMKVObject<string[]>(matchDeviceIdListKey) || [];
-  if (!currentList.includes(deviceId)) {
-    currentList.push(deviceId);
-    setMMKVObject(matchDeviceIdListKey, currentList);
+    // 업데이트된 목록 저장
+    setMMKVObject(deviceObjectStorage, existingDeviceObjects);
+    console.log(`Stored deviceId message for user ${getCurrentUserId()}:`, deviceId, lastSendAt);
+
+  } catch (error) {
+    console.error(`Error storing deviceId message for user ${getCurrentUserId()}:`, error);
   }
 };
 
 
-const removeFromDeviceIdList = (deviceId: string) => {
-  let currentList = getMMKVObject<string[]>(matchDeviceIdListKey) || [];
-  currentList = currentList.filter(id => id !== deviceId);
-  setMMKVObject(matchDeviceIdListKey, currentList);
-};
 
-const getDeviceIdList = (): string[] => {
-  return getMMKVObject<string[]>(matchDeviceIdListKey) || [];
-};
+export const checkDeviceId = async (deviceId: string): Promise<boolean> => {
+  try {
+    const existingDeviceObjects = getMMKVObject<DeviceObject[]>(deviceObjectStorage) || [];
+    const existingDevice = existingDeviceObjects.find(obj => obj.deviceId === deviceId);
 
-// 5분 후 삭제 로직
-const scheduleDeviceIdRemoval = (deviceId: string) => {
-  setTimeout(() => {
-    removeFromDeviceIdList(deviceId);
-    console.log(`Scheduled removal of ${deviceId} from matchDeviceIdList`);
-  }, 5 * 60 * 1000); // 5분 = 300000ms
-};
+    if (!existingDevice) {
+      return false;
+    }
 
-// 조회 예시
-const checkDeviceId = (deviceId: string) => {
-  const currentList = getDeviceIdList();
-  return currentList.includes(deviceId);
-};
+    const lastSendAt = new Date(existingDevice.lastSendAt);
+    const now = new Date();
+    const diffMs = now.getTime() - lastSendAt.getTime();
+    const diffMinutes = diffMs / (1000 * 60);
 
-export { addToDeviceIdList, removeFromDeviceIdList, getDeviceIdList, scheduleDeviceIdRemoval, checkDeviceId };
+    return diffMinutes < 5;
+  } catch (error) {
+    console.error(`Error checking deviceId message for user ${getCurrentUserId()}:`, error);
+    return false;
+  }
+};

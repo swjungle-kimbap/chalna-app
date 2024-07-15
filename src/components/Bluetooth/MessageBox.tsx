@@ -6,14 +6,14 @@ import Text from '../common/Text';
 import { AxiosResponse, FileResponse, SendMatchResponse, SendMsgRequest } from '../../interfaces';
 import { axiosPost } from '../../axios/axios.method';
 import { urls } from '../../axios/config';
-import {  setUserMMKVStorage, setMMKVString, userMMKVStorage, getCurrentUserId } from '../../utils/mmkvStorage';
+import {  setUserMMKVStorage, setDefaultMMKVString, userMMKVStorage} from '../../utils/mmkvStorage';
 import { useMMKVBoolean, useMMKVNumber, useMMKVString } from 'react-native-mmkv';
 import FastImage from 'react-native-fast-image';
 import { useSetRecoilState } from 'recoil';
 import { MsgSendCntState } from '../../recoil/atoms';
 import { handleImagePicker, uploadImage } from '../../utils/FileHandling';
 import { useModal } from '../../context/ModalContext';
-import { addToDeviceIdList, getDeviceIdList, scheduleDeviceIdRemoval } from '../../utils/matchMmkvStorage';  
+import { addDeviceIDList } from '../../utils/matchMmkvStorage';
 
 const ignorePatterns = [
   /No task registered for key shortService\d+/,
@@ -73,16 +73,17 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
       } as SendMsgRequest)
     }
 
-
+    const currentTime = new Date().getTime();
     let sendCount = 0;
     response?.data?.data.forEach(({ deviceId, status }) => {
       if (status === 'SEND') {
-        addToDeviceIdList(deviceId);
-        scheduleDeviceIdRemoval(deviceId);
+      console.log(deviceId, "message sent succes!");
+      const lastSendAt = new Date(currentTime + 5 * 60 * 1000); // 5분을 더한 시간
+      addDeviceIDList(deviceId, lastSendAt.toISOString());
         sendCount++;
       }
     });
-    console.log("저장됨", getDeviceIdList());
+    
     sendCountsRef.current = sendCount;
     setMsgSendCnt(sendCount);
   } 
