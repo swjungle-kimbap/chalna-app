@@ -14,8 +14,8 @@ const HorizontalLine: React.FC<HorizontalLineProps> = ({style}) => {
 const styles = StyleSheet.create({
   horizontalLine: {
     borderBottomColor: '#979797',
-    borderBottomWidth: 0.3, 
-    marginVertical: 10, 
+    borderBottomWidth: 0.3,
+    marginVertical: 10,
     width: "100%",
   },
 });

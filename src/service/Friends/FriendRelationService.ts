@@ -1,4 +1,4 @@
-import {axiosPatch, axiosPost} from '../../axios/axios.method'; // Adjust the path as necessary
+import {axiosDelete, axiosPatch, axiosPost} from '../../axios/axios.method'; // Adjust the path as necessary
 import {Alert} from "react-native";
 import {urls} from "../../axios/config";
 import { showModal } from '../../context/ModalService';
@@ -34,16 +34,15 @@ export const sendFriendRequest = (otherId: number, chatRoomId: number): Promise<
 };
 
 
-export const acceptFriendRequest = async (otherId: number, chatRoomId: number) => {
+export const acceptFriendRequest = async (otherId: number) => {
     return new Promise((resolve) => {
         showModal(
             '친구 요청 수락',
             '친구 요청을 수락하시겠습니까?',
             async () => {
               try {
-                const response = await axiosPatch(
-                  urls.ACCEPT_FRIEND_REQUEST_URL + `${otherId}`,
-                  "친구요청 전송", { chatRoomId: chatRoomId }
+                const response = await axiosPost(
+                  urls.ACCEPT_FRIEND_REQUEST_URL + `${otherId}`
                 );
                 console.log(response);
                 showModal('친구 맺기 성공', '친구가 되었습니다!', () => {}, undefined, false);
@@ -69,7 +68,7 @@ export const rejectFriendRequest = async (otherId: number) => {
             '친구 요청을 거절하시겠습니까?',
             async () => {
               try {
-                const response = await axiosPatch(urls.REJECT_FRIEND_REQUEST_URL + `${otherId}`);
+                const response = await axiosDelete(urls.REJECT_FRIEND_REQUEST_URL + `${otherId}`);
                 console.log(response);
                 showModal('친구 요청 거절 성공', '친구 요청을 거절했습니다.', () => {}, undefined, false);
                 resolve(true);

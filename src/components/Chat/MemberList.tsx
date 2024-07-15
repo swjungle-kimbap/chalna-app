@@ -59,7 +59,7 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
                                 />
                                 ):(
                                     <FastImage
-                                        source={require('../../assets/Icons/friendIcon.png')}
+                                        source={require('../../assets/Icons/FriendsIcon.png')}
                                         style = {styles.badgeContainer}
                                     />
                                         )}

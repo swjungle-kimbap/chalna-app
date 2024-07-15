@@ -1,17 +1,17 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity , Alert, Image} from 'react-native';
-import { Friend } from '../interfaces/savedData';
-import RoundBox from './common/RoundBox';
+import { Friend } from '../../interfaces/savedData';
+import RoundBox from '../common/RoundBox';
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../interfaces";
-import Button from './common/Button';
-import { axiosGet, axiosPost } from "../axios/axios.method";
-import {urls} from "../axios/config";
-import ProfileImage from './common/ProfileImage';
-import { useModal } from '../context/ModalContext';
-import {requestedFriend} from "../interfaces/Friend.type";
-import {acceptFriendRequest, rejectFriendRequest} from "../service/Friends/FriendRelationService";
-import Text from '../../src/components/common/Text';
+import { RootStackParamList } from "../../interfaces";
+import Button from '../common/Button';
+import { axiosGet, axiosPost } from "../../axios/axios.method";
+import {urls} from "../../axios/config";
+import ProfileImage from '../common/ProfileImage';
+import { useModal } from '../../context/ModalContext';
+import {requestedFriend} from "../../interfaces/Friend.type";
+import {acceptFriendRequest, rejectFriendRequest} from "../../service/Friends/FriendRelationService";
+import Text from '../common/Text';
 
 
 interface FriendCardProps {

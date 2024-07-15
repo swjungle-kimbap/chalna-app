@@ -3,7 +3,7 @@ import BottomTabs from '../navigation/BottomTabs';
 import { NavigationContainer } from '@react-navigation/native';
 import LoginScreen from './Login/LoginScreen';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
-import {BufferProvider} from "../utils/BufferContext";
+import {BufferProvider} from "../context/BufferContext";
 import ChattingScreen from './Chatting/ChattingScreen';
 import {setMMKVString} from "../utils/mmkvStorage";
 import { useEffect } from 'react';

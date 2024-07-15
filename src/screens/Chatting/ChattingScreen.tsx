@@ -48,7 +48,7 @@ import {FileResponse} from "../../interfaces";
 import ImageResizer from 'react-native-image-resizer';
 import DateHeader from '../../components/Chat/DateHeader';
 import Announcement from "../../components/Chat/Announcement";
-import {useBuffer} from "../../utils/BufferContext";
+import {useBuffer} from "../../context/BufferContext";
 import MessageBubble from '../../components/Chat/MessageBubble/MessageBubble';
 import { getImageUri } from '../../utils/FileHandling';
 
