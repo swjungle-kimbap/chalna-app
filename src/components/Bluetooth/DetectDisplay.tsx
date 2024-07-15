@@ -64,7 +64,7 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
   useEffect(() => {
     const currentTime = new Date().getTime();
     console.log('SendDeviceIdList updated:', SendDeviceIdList);
-    SendDeviceIdList.forEach((item)=> {
+    SendDeviceIdList?.forEach((item)=> {
       const restTime = new Date(item.lastSendAt).getTime() - currentTime;
       if (restTime) {
         console.log('restTime:', restTime);
@@ -99,7 +99,7 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
           useNativeDriver: true,
         }).start();
         createFloatingAnimation(floatAnim).start();
-      } 
+      }
       newUuids.add(uuid);
     });
 
