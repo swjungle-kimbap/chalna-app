@@ -1,4 +1,4 @@
-import { NaverMapMarkerOverlay, NaverMapView, NaverMapViewRef} from "@mj-studio/react-native-naver-map";
+import { NaverMapMarkerOverlay, NaverMapView, NaverMapViewRef } from "@mj-studio/react-native-naver-map";
 import { FlyingModeState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useEffect, useRef, useState } from "react";
@@ -15,7 +15,7 @@ import ArrowButton from "../../components/Map/ArrowButton";
 import MapBottomSheet from "../../components/Map/MapBottomSheet";
 import LocalChatMarkerOverlay from "../../components/Map/LocalChatMarkerOverlay";
 import { showModal } from "../../context/ModalService";
-import {userInfoState} from '../../recoil/atoms';
+import { userInfoState } from '../../recoil/atoms';
 import ProfileImage from '../../components/common/ProfileImage';
 
 LogBox.ignoreLogs(['Called stopObserving with existing subscriptions.'])
@@ -64,14 +64,6 @@ const MapScreen: React.FC = ({}) => {
               );
             }
             if (e.code === 2) {
-              // Alert.alert(
-              //   "GPS  필요",
-              //   "GPS가 필요한 서비스 입니다. GPS를 켜주세요",
-              //   [
-              //     { text: "설정", onPress: () => openSettings()},
-              //     { text: "취소", onPress: () => {}, style: "cancel" } 
-              //   ]
-              // );
               showModal(
                 "GPS 필요",
                 "GPS가 필요한 서비스 입니다. GPS를 켜주세요",
@@ -84,7 +76,7 @@ const MapScreen: React.FC = ({}) => {
               );
             }
           },
-          { 
+          {
             accuracy: { android: "high" },
             interval: 4000,
             distanceFilter: 3,
@@ -92,9 +84,9 @@ const MapScreen: React.FC = ({}) => {
             showLocationDialog: true,
           }
         );
+      }
     }
-  }
-    
+
     if (!flyingMode) {
       startWatchPosition();
       if (mapViewRef.current) {
@@ -132,47 +124,47 @@ const MapScreen: React.FC = ({}) => {
         zoom:18}}
         ref={mapViewRef}
         >
-      <LocalChatMarkerOverlay/>
+      <LocalChatMarkerOverlay cameraMove={cameraMove} />
 
-        <NaverMapMarkerOverlay
-          isHideCollidedCaptions={true}
-          latitude={currentLocation.latitude}
-          longitude={currentLocation.longitude}
-          anchor={{ x: 0.5, y: 1 }}
-          width={50}
-          height={70}
-          zIndex={3}
-        >
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatarWrapper}>
-              <ProfileImage profileImageId={userInfo.profileImageId} avatarStyle={styles.avatar} />
+          <NaverMapMarkerOverlay
+            isHideCollidedCaptions={true}
+            latitude={currentLocation.latitude}
+            longitude={currentLocation.longitude}
+            anchor={{ x: 0.5, y: 1 }}
+            width={50}
+            height={70}
+            zIndex={3}
+          >
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatarWrapper}>
+                <ProfileImage profileImageId={userInfo.profileImageId} avatarStyle={styles.avatar} />
+              </View>
+              <Text style={styles.avatarText}>나</Text>
             </View>
-            <Text style={styles.avatarText}>나</Text>
-          </View>
-        </NaverMapMarkerOverlay>
-      </NaverMapView>}
-    {isgranted && <>
-    <LocalChatButton showLocalChatModal={showLocalChatModal} setShowLocalChatModal={setShowLocalChatModal}/>
-   </>}
-   {isgranted && 
-    <View style={styles.bottomSheet}>
-      <MapBottomSheet cameraMove={cameraMove} setShowLocalChatModal={setShowLocalChatModal}/>
-    </View>}
-    {flyingMode && (
-      <ArrowButton cameraMove = {cameraMove} />
-    )}
-  </>
-);
+          </NaverMapMarkerOverlay>
+        </NaverMapView>}
+      {isgranted && <>
+        <LocalChatButton showLocalChatModal={showLocalChatModal} setShowLocalChatModal={setShowLocalChatModal} />
+      </>}
+      {isgranted &&
+        <View style={styles.bottomSheet}>
+          <MapBottomSheet cameraMove={cameraMove} setShowLocalChatModal={setShowLocalChatModal} />
+        </View>}
+      {flyingMode && (
+        <ArrowButton cameraMove={cameraMove} />
+      )}
+    </>
+  );
 }
 
 const styles = StyleSheet.create({
   bottomSheet: {
-    position:'absolute',
+    position: 'absolute',
     bottom: 10,
     right: 15,
     width: "90%",
   },
-   avatarContainer: {
+  avatarContainer: {
     alignItems: 'center',
   },
   avatarWrapper: {
@@ -180,7 +172,7 @@ const styles = StyleSheet.create({
     borderColor: '#05FF69',
     borderRadius: 25,
     padding: 2,
-    backgroundColor: 'white', 
+    backgroundColor: 'white',
     position: 'relative',
   },
   avatar: {
@@ -188,9 +180,17 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     resizeMode: "contain",
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 5,
   },
   avatarText: {
-    marginTop: 5, 
+    marginTop: 5,
     fontSize: 12,
     fontWeight: 'bold',
     color: 'black',
