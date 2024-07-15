@@ -3,12 +3,13 @@ import { View, Text, Animated, StyleSheet, ViewStyle, UIManager, Keyboard, Layou
 import MessageBox from "../../components/Bluetooth/MessageBox";
 import MessageGif from "../../components/Bluetooth/MessageGif";
 import styles from './BleComponent.style';
+import { MsgSendCntState } from '../../recoil/atoms';
+import { useRecoilValue } from 'recoil';
 
 interface BleBottomComponentProps {
   isBlocked: boolean;
   fadeAnim: Animated.Value;
   translateY: Animated.Value;
-  msgSendCnt: number;
   remainingTime: number;
   showMsgBox: boolean;
   uuidSet: Set<string>;
@@ -22,7 +23,6 @@ const BleBottomComponent: React.FC<BleBottomComponentProps> = ({
   isBlocked,
   fadeAnim,
   translateY,
-  msgSendCnt,
   remainingTime,
   showMsgBox,
   uuidSet,
@@ -33,6 +33,7 @@ const BleBottomComponent: React.FC<BleBottomComponentProps> = ({
 }) => {
 
   const bottomSubContainerRef = useRef<View>(null);
+  const msgSendCnt = useRecoilValue(MsgSendCntState);
 
   // useEffect를 통해 Keyboard 이벤트 처리
   useEffect(() => {
