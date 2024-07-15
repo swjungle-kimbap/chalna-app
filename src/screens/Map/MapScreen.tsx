@@ -1,9 +1,9 @@
-import { NaverMapMarkerOverlay, NaverMapView, NaverMapViewRef } from "@mj-studio/react-native-naver-map";
+import { NaverMapMarkerOverlay, NaverMapView, NaverMapViewRef} from "@mj-studio/react-native-naver-map";
 import { FlyingModeState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useEffect, useRef, useState } from "react";
 import Geolocation, { GeoError } from "react-native-geolocation-service";
-import { Alert, LogBox, StyleSheet, View } from "react-native";
+import { LogBox, StyleSheet, View, Text } from "react-native";
 import { openSettings, PERMISSIONS } from "react-native-permissions";
 import { locationState } from "../../recoil/atoms";
 import { Position } from '../../interfaces';
@@ -15,6 +15,8 @@ import ArrowButton from "../../components/Map/ArrowButton";
 import MapBottomSheet from "../../components/Map/MapBottomSheet";
 import LocalChatMarkerOverlay from "../../components/Map/LocalChatMarkerOverlay";
 import { showModal } from "../../context/ModalService";
+import {userInfoState} from '../../recoil/atoms';
+import ProfileImage from '../../components/common/ProfileImage';
 
 LogBox.ignoreLogs(['Called stopObserving with existing subscriptions.'])
 const latkfilter = new KalmanFilter();
@@ -27,6 +29,7 @@ const MapScreen: React.FC = ({}) => {
   const watchId = useRef<number | null>(null);
   const [showLocalChatModal, setShowLocalChatModal] = useState<boolean>(false);
   const [isgranted, setIsgranted] = useState(true);
+  const [userInfo, setUserInfo] = useRecoilState(userInfoState);
   useChangeBackgroundSave<Position>('map.lastLocation', currentLocation);
 
   useEffect(() => {
@@ -139,20 +142,24 @@ const MapScreen: React.FC = ({}) => {
         ref={mapViewRef}
         >
       <LocalChatMarkerOverlay/>
-      <NaverMapMarkerOverlay
-        isHideCollidedCaptions={true}
-        latitude={currentLocation.latitude}
-        longitude={currentLocation.longitude}
-        anchor={{ x: 0.5, y: 1 }}
-        caption={{
-          text: '나',
-        }}
-        image={{symbol:"green"}}
-        width={20}
-        height={30}
-        zIndex={3}
-      />
-    </NaverMapView>}
+
+        <NaverMapMarkerOverlay
+          isHideCollidedCaptions={true}
+          latitude={currentLocation.latitude}
+          longitude={currentLocation.longitude}
+          anchor={{ x: 0.5, y: 1 }}
+          width={50}
+          height={70}
+          zIndex={3}
+        >
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatarWrapper}>
+              <ProfileImage profileImageId={userInfo.profileImageId} avatarStyle={styles.avatar} />
+            </View>
+            <Text style={styles.avatarText}>나</Text>
+          </View>
+        </NaverMapMarkerOverlay>
+      </NaverMapView>}
     {isgranted && <>
     <LocalChatButton showLocalChatModal={showLocalChatModal} setShowLocalChatModal={setShowLocalChatModal}/>
    </>}
@@ -173,6 +180,29 @@ const styles = StyleSheet.create({
     bottom: 10,
     right: 15,
     width: "90%",
+  },
+   avatarContainer: {
+    alignItems: 'center',
+  },
+  avatarWrapper: {
+    borderWidth: 2,
+    borderColor: '#05FF69',
+    borderRadius: 25,
+    padding: 2,
+    backgroundColor: 'white', 
+    position: 'relative',
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    resizeMode: "contain",
+  },
+  avatarText: {
+    marginTop: 5, 
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: 'black',
   },
 })
 
