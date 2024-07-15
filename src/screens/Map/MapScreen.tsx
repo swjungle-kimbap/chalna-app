@@ -52,15 +52,6 @@ const MapScreen: React.FC = ({}) => {
           (e:GeoError) => {
             setIsgranted(false);
             if (e.code === 1) {
-              // Alert.alert(
-              //   "위치 권한 필요",
-              //   "위치 권한이 필요한 서비스입니다.",
-              //   [
-              //     { text: "설정", onPress: () => openSettings()},
-              //     { text: "취소", onPress: () => {}, style: "cancel" } 
-              //   ]
-              // );
-
               showModal(
                 "위치 권한 필요",
                 "위치 권한이 필요한 서비스입니다.",
