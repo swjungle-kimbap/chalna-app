@@ -2,6 +2,10 @@ import React, { useEffect, useRef } from 'react';
 import { View, Animated, Easing } from 'react-native';
 import FastImage, { Source } from 'react-native-fast-image';
 import styles from './BleComponent.style';
+import { userMMKVStorage } from '../../utils/mmkvStorage';
+import { useMMKVObject } from 'react-native-mmkv';
+import Text from '../common/Text';
+import { DeviceObject, deviceObjectStorage, checkDeviceId } from '../../utils/matchMmkvStorage';
 
 interface DetectDisplayProps {
   uuids: Set<string>;
@@ -20,6 +24,8 @@ const images: Source[] = [
   require('../../assets/Icons/chalnaticon/chalna9.png'),
 ];
 
+const tempImage: Source = require('../../assets/images/tempMsg.png');
+
 const getRandomIcon = (): Source => {
   const randomIndex = Math.floor(Math.random() * images.length);
   return images[randomIndex];
@@ -29,15 +35,20 @@ const createFloatingAnimation = (anim: Animated.Value) => {
   return Animated.loop(
     Animated.sequence([
       Animated.timing(anim, {
-        toValue: 1,
-        duration: 1800,
-        easing: Easing.linear,
+        toValue: -1,
+        duration: 1000,
+        delay: 300,
         useNativeDriver: true,
       }),
       Animated.timing(anim, {
-        toValue: -1,
-        duration: 2200,
-        easing: Easing.linear,
+        toValue: 1,
+        duration: 1000,
+        delay: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(anim, {
+        toValue: 0,
+        duration: 1000,
         useNativeDriver: true,
       }),
     ])
@@ -48,8 +59,27 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
   const fadeAnimMap = useRef(new Map<string, Animated.Value>()).current;
   const floatAnimMap = useRef(new Map<string, Animated.Value>()).current;
   const iconMap = useRef(new Map<string, Source>()).current;
+  const [SendDeviceIdList, setSendDeviceIdList] = useMMKVObject<DeviceObject[]>(deviceObjectStorage, userMMKVStorage);
 
   useEffect(() => {
+    const currentTime = new Date().getTime();
+    console.log('SendDeviceIdList updated:', SendDeviceIdList);
+    SendDeviceIdList.forEach((item)=> {
+      const restTime = new Date(item.lastSendAt).getTime() - currentTime;
+      if (restTime) {
+        console.log('restTime:', restTime);
+        iconMap.set(item.deviceId, tempImage);
+        setTimeout(() => {
+          iconMap.set(item.deviceId, getRandomIcon());
+        }, restTime);
+      }
+    })
+    console.log('iconMap:', iconMap);
+  }, [SendDeviceIdList]);
+
+  useEffect(() => {
+    const newUuids = new Set<string>();
+
     uuids.forEach((uuid) => {
       if (!fadeAnimMap.has(uuid)) {
         const fadeAnim = new Animated.Value(0);
@@ -57,31 +87,38 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
 
         fadeAnimMap.set(uuid, fadeAnim);
         floatAnimMap.set(uuid, floatAnim);
-        iconMap.set(uuid, getRandomIcon());
+        const isExist = iconMap.get(uuid);
+        if (!isExist) {
+          const randomIcon= getRandomIcon();
+          iconMap.set(uuid, randomIcon);
+        }
 
         Animated.timing(fadeAnimMap.get(uuid), {
           toValue: 1,
-          duration: 500,
+          duration: 1000,
           useNativeDriver: true,
         }).start();
         createFloatingAnimation(floatAnim).start();
-      }
+      } 
+      newUuids.add(uuid);
     });
 
-    fadeAnimMap.forEach((anim, uuid) => {
-      if (!uuids.has(uuid)) {
-        Animated.timing(anim, {
-          toValue: 0,
-          duration: 500,
-          useNativeDriver: true,
-        }).start(() => {
-          fadeAnimMap.delete(uuid);
-          floatAnimMap.delete(uuid);
-          iconMap.delete(uuid);
-        });
+    fadeAnimMap.forEach((_, uuid) => {
+      if (!newUuids.has(uuid)) {
+        const fadeAnim = fadeAnimMap.get(uuid);
+        if (fadeAnim) {
+          Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 1000,
+            useNativeDriver: true,
+          }).start(() => {
+            fadeAnimMap.delete(uuid);
+            floatAnimMap.delete(uuid);
+          });
+        }
       }
     });
-  }, [uuids, fadeAnimMap, floatAnimMap, iconMap]);
+  }, [uuids, iconMap]);
 
   // LottieView 중심을 기준으로 원의 좌표를 설정
   const lottieCenterX = 160; // LottieView의 중심 x 좌표
@@ -102,9 +139,9 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
       {Array.from(uuids).map((uuid, index) => {
         const position = positions[index % positions.length];
         const floatAnim = floatAnimMap.get(uuid);
-	      if (!floatAnim) {
-	        return null; // floatAnim이 없을 경우 렌더링하지 않음
-	      }
+        if (!floatAnim) {
+          return null; // floatAnim이 없을 경우 렌더링하지 않음
+        }
 
         const floatAnimInterpolated = floatAnim.interpolate({
           inputRange: [-1, 1],
@@ -129,6 +166,7 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
               source={iconMap.get(uuid)}
               resizeMode={FastImage.resizeMode.contain}
             />
+            {/* <Text>{uuid.slice(uuid.length-6)}</Text> */}
           </Animated.View>
         );
       })}
