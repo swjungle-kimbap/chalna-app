@@ -163,7 +163,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
           <Text variant='title' style={styles.title}>인연 메세지</Text>
             <TouchableOpacity onPress={() => {
               showModal("인연 메세지 작성", `${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요!`, () => {}, undefined,false);}
-            }} style={styles.questionIconContainer}>
+            } style={styles.questionIconContainer}>
               <Image source={require('../../assets/question2.png')} style={styles.questionIcon} />
           </TouchableOpacity>
 
