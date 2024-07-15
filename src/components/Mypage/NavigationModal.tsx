@@ -49,19 +49,21 @@ const styles = StyleSheet.create({
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: 'flex-start',
+        alignItems: 'flex-start',
     },
     modalContent: {
-        width: '80%',
-        padding: 20,
+        width: '40%',
+        padding: 15,
         backgroundColor: 'white',
         borderRadius: 10,
         alignItems: 'center',
+        marginTop: 165,
+        marginLeft:90,
         ...shadowStyles,
     },
     button: {
-        marginBottom: 20,
+        // marginBottom: 20,
     },
 });
 

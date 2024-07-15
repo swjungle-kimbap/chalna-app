@@ -128,8 +128,8 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
         </View>
         <View style={styles.username}>
           <Text style={styles.text}>{userInfo.username}</Text>
-        </View>
-        <View style={styles.username}>
+        {/*</View>*/}
+        {/*<View style={styles.username}>*/}
           <Text style={styles.statusMessage}>{userInfo.message}</Text>
         </View>
       </View>
@@ -165,11 +165,14 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
           <Myprofile/>
             <ReceivedRequests friendRequests={friendRequests}/>
             <View style={styles.friendText}>
-            <Text style={styles.text}>친구 목록</Text>
-              <Button iconSource={require('../../assets/Icons/3dotsVertical.png')} imageStyle={styles.iconLeftt}
-                      onPress={() => {
-                        setModalVisible(true);
-                      }}/>
+              <View style={styles.titlebtn}>
+                <Text style={styles.text}>친구 목록</Text>
+                <Button iconSource={require('../../assets/Icons/3dotsVertical.png')} imageStyle={styles.searchIcon}
+                        onPress={() => {
+                          setModalVisible(true);
+                        }}/>
+              </View>
+
               <Button iconSource={require('../../assets/Icons/SearchIcon.png')} imageStyle={styles.searchIcon}
                       onPress={() => {
                         setMyprofileVisible(false);
@@ -242,6 +245,10 @@ const styles = StyleSheet.create({
     flex:1,
     backgroundColor: "#fff",
   },
+  titlebtn:{
+    justifyContent: "flex-start",
+    flexDirection: 'row'
+  },
   ListContainer: {
     width: "90%",
     height: "100%",
@@ -273,7 +280,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   username: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     width:250,
   },
   headerText: {
@@ -306,6 +313,7 @@ const styles = StyleSheet.create({
     color: '#979797',
     fontFamily: FontTheme.fonts.sub,
     paddingRight: 6,
+    alignSelf: 'flex-start',
   },
   searchContainer: {
     marginTop: 20,
@@ -324,12 +332,6 @@ const styles = StyleSheet.create({
     width: 20, // Set the desired width
     height: 20, // Set the desired height
     marginRight: 5,
-  },
-  iconLeftt:{
-    width: 20, // Set the desired width
-    height: 20,
-    justifyContent:'flex-start',
-    marginRight:"auto"
   },
   searchInput: {
     flex: 1,

@@ -93,25 +93,21 @@ const FriendCard: React.FC<FriendCardProps> = ({ user, isExpanded, onExpand, nav
                         <Text style={[styles.textRow, styles.name]} >{user.username}</Text>
                         <Text style={[styles.textRow, styles.statusMessage]}>{user.message || ""}</Text>
                     </View>
-                </View>
-                {isExpanded && (
-                    <View style={styles.expandedContainer}>
-                            <View style={styles.btnContainer}>
-                                <Button title="대화하기"  titleStyle={styles.buttonText} onPress={handleChat}  />
-                                <Button title="기록보기"  titleStyle={styles.buttonText} onPress={() => {
-                                    navigate("로그인 성공", {
-                                        screen: "친구",
-                                        params: {
-                                            screen: "스쳐간 기록",
-                                            params: { otherId: user.id}
-                                        }
-                                    })
-                                }}/>
-                                {/* <Button title="차단하기" onPress={()=> {handleBlockFriend(user.id)}} /> */}
-                            </View>
-
+                    <View style={styles.iconContainer}>
+                        <TouchableOpacity onPress={handleChat} style={styles.iconButton}>
+                            <Image source={require('../../assets/Icons/ChatingIcon.png')} style={styles.icon} />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => navigate("로그인 성공", {
+                            screen: "친구",
+                            params: {
+                                screen: "스쳐간 기록",
+                                params: { otherId: user.id }
+                            }
+                        })} style={styles.iconButton}>
+                            <Image source={require('../../assets/Icons/ReportMap.png')} style={styles.icon} />
+                        </TouchableOpacity>
                     </View>
-                )}
+                </View>
             </RoundBox>
         </TouchableOpacity>
     );
@@ -149,35 +145,30 @@ const styles = StyleSheet.create({
     textRow: {
         width: '100%',
     },
-    btnContainer:{
+    iconContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-end',
-        paddingLeft: 90,
+        alignItems: 'center',
+    },
+    iconButton: {
+        marginHorizontal: 5,
+        backgroundColor: '#f0f0f0',
+        padding: 5,
+        borderRadius: 20,
+    },
+    icon: {
+        width: 20,
+        height: 20,
     },
     name: {
         marginBottom: 5,
-        alignSelf:'flex-start',
+        alignSelf: 'flex-start',
     },
     statusMessage: {
         fontSize: 14,
         color: '#555',
-        alignSelf:'flex-start',
+        alignSelf: 'flex-start',
     },
-    expandedContainer: {
-        marginTop: 10,
-    },
-    additionalInfo: {
-        marginLeft: 70,
-        marginBottom: 15,
-        fontSize: 14,
-        color: '#777',
-    },
-    buttonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    buttonText:{
+    buttonText: {
         fontSize: 12,
     }
 });

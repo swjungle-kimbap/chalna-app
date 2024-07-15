@@ -17,22 +17,15 @@ import {showModal} from "../../context/ModalService";
 
 interface FriendRequestCardProps {
     request: friendRequest;
-    isExpanded: boolean;
-    onExpand: ()=> void;
     navigation?: StackNavigationProp<RootStackParamList, '채팅'>;
 }
 
 
  // 눌렀을 때 n번 스친 인연입니다 + 대화방가기 -> 보류
 
-const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request, isExpanded, onExpand, navigation }) => {
+const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request, navigation }) => {
 
     const {showModal} = useModal();
-
-    const handlePress = () => {
-        onExpand();
-    };
-
 
     const handleAccept = async (id: number) => {
         const response = await acceptFriendRequest(id);
@@ -59,7 +52,7 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request, isExpand
 
     // 프로필 귀여운 아이콘 랜덤으로 넣으면 좋을것같은데
     return (
-        <TouchableOpacity onPress={handlePress}>
+        <TouchableOpacity >
             <RoundBox style={styles.container}>
                 <View style={styles.header}>
                     <ProfileImage profileImageId={0} avatarStyle={styles.avatar}/>
@@ -67,18 +60,27 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request, isExpand
                         <Text style={styles.name} >{request.username}</Text>
                         <Text style={styles.statusMessage}>{""}</Text>
                     </View>
-                </View>
-                {isExpanded && (
-                    <View style={styles.expandedContainer}>
-                        <Button title="대화방 이동" onPress={()=> handleChat(request.chatRoomId)} />
-                        <Button title="요청 수락" onPress={()=>handleAccept(request.id)}  />
-                        <Button title="거절 하기" onPress={()=> handleReject(request.id)} />
+                    <View style={styles.iconContainer}>
+                        <TouchableOpacity onPress={()=> handleChat(request.chatRoomId)}  style={styles.iconButton}>
+                            <Image source={require('../../assets/Icons/ChatingIcon.png')} style={styles.icon} />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={()=>handleAccept(request.senderId)} style={styles.iconButton}>
+                            <Image source={require('../../assets/Icons/Accpet.png')} style={styles.icon} />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={()=> handleReject(request.senderId)} style={styles.iconButton}>
+                            <Image source={require('../../assets/Icons/Reject.png')} style={styles.icon} />
+                        </TouchableOpacity>
                     </View>
-                )}
+
+                </View>
             </RoundBox>
         </TouchableOpacity>
     );
 };
+
+
 
 const styles = StyleSheet.create({
     container: {
@@ -134,6 +136,24 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
     },
+    iconContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    iconButton: {
+        marginHorizontal: 5,
+        backgroundColor: '#f0f0f0',
+        padding: 5,
+        borderRadius: 20,
+    },
+    icon: {
+        width: 20,
+        height: 20,
+    },
+
+    buttonText: {
+        fontSize: 12,
+    }
 });
 
 export default FriendRequestCard;

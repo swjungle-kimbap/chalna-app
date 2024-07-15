@@ -4,42 +4,28 @@ import { useFocusEffect } from '@react-navigation/native';
 import Text from '../../components/common/Text';
 import FriendRequestCard from '../../components/Mypage/FriendRequestCard';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { friendRequest, RootStackParamList } from '../../interfaces';
-import { axiosGet } from '../../axios/axios.method';
-import { urls } from '../../axios/config';
-import { useRecoilState } from 'recoil';
-import { getKoreanInitials } from '../../service/Friends/FriendListAPI';
-import { userInfoState } from '../../recoil/atoms';
+import { RootStackParamList } from '../../interfaces'
 import FontTheme from '../../styles/FontTheme';
-import Button from '../../components/common/Button';
-import HorizontalLine from '../../components/Mypage/HorizontalLine';
-import ProfileImage from '../../components/common/ProfileImage';
-import { fetchReceivedFriendRequest } from '../../service/Friends/FriendListAPI';
+import { fetchReceivedFriendRequest, fetchSentFriendRequest } from '../../service/Friends/FriendListAPI';
+import {friendRequest} from "../../interfaces/Friend.type";
+import HorizontalLine from "../../components/Mypage/HorizontalLine";
+import {grey50} from "react-native-paper/lib/typescript/styles/themes/v2/colors";
 
-interface ApiResponse {
-    status: string;
-    message: string;
-    data: friendRequest[];
-}
 
 type FriendRequestScreenProps = {
-    navigation: StackNavigationProp<RootStackParamList, '받은친구요청'>;
+    navigation: StackNavigationProp<RootStackParamList, '친구요청 목록'>;
 };
 
 const FriendRequestScreen: React.FC<FriendRequestScreenProps> = ({ navigation }) => {
-    const [friendRequests, setFriendRequests] = useState<friendRequest[]>([]);
-    const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
-    const [searchQuery, setSearchQuery] = useState<string>('');
-    const [filteredData, setFilteredData] = useState<friendRequest[]>([]);
+    const [receivedFriendRequests, setReceivedFriendRequests] = useState<friendRequest[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     useFocusEffect(
         useCallback(() => {
             const fetchFriendRequests = async () => {
                 try {
-                    const response = await fetchReceivedFriendRequest();
-                    console.log('friend request api response: ', response);
-                    setFriendRequests(response);
+                    const receivedResponse = await fetchReceivedFriendRequest();
+                    setReceivedFriendRequests(receivedResponse);
                 } catch (error) {
                     setError('Failed to fetch friend requests');
                 }
@@ -49,26 +35,16 @@ const FriendRequestScreen: React.FC<FriendRequestScreenProps> = ({ navigation })
         }, []),
     );
 
-
-    const handleCardPress = useCallback((cardId: number) => {
-        setExpandedCardId(prevId => (prevId === cardId ? null : cardId));
-    }, []);
-
-    const handleSearch = (query: string) => {
-        setSearchQuery(query);
-    };
-
-    const renderFriendRequestCard = useCallback(
+    const renderReceivedFriendRequestCard = useCallback(
         ({ item }: { item: friendRequest }) => (
             <FriendRequestCard
                 request={item}
-                isExpanded={item.id === expandedCardId}
-                onExpand={() => handleCardPress(item.id)}
                 navigation={navigation}
             />
         ),
-        [expandedCardId, navigation],
+        [navigation],
     );
+
 
     return (
         <View style={styles.friendListPage}>
@@ -77,15 +53,16 @@ const FriendRequestScreen: React.FC<FriendRequestScreenProps> = ({ navigation })
                     <Text style={styles.text}>받은 친구 요청</Text>
 
                 </View>
-                {!friendRequests ? (
-                    <Text>친구 요청이 없습니다.</Text>
+                {!receivedFriendRequests.length ? (
+                    <Text style={{marginTop: 20, color: 'grey50'}}>받은 친구 요청이 없습니다.</Text>
                 ) : (
                     <FlatList
-                        data={friendRequests}
-                        renderItem={renderFriendRequestCard}
+                        data={receivedFriendRequests}
+                        renderItem={renderReceivedFriendRequestCard}
                         keyExtractor={item => item.id.toString()}
                     />
                 )}
+
             </View>
         </View>
     );
@@ -177,34 +154,6 @@ const styles = StyleSheet.create({
         fontFamily: FontTheme.fonts.sub,
         paddingRight: 6,
     },
-    searchContainer: {
-        marginTop: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderColor: '#CCC',
-        borderWidth: 1,
-        borderRadius: 15,
-        paddingHorizontal: 10,
-        marginBottom: 10,
-        width: '100%',
-        alignSelf: 'center',
-    },
-    searchIcon: {
-        width: 20,
-        height: 20,
-        marginRight: 5,
-    },
-    iconLeftt: {
-        width: 20,
-        height: 20,
-        justifyContent: 'flex-start',
-        marginRight: "auto"
-    },
-    searchInput: {
-        flex: 1,
-        height: 40,
-        color: 'black',
-    },
     listContentContainer: {
         paddingHorizontal: 0,
     },
@@ -213,25 +162,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'flex-start',
     },
-    badge: {
-        backgroundColor: '#006a81',
-        borderRadius: 10,
-        paddingHorizontal: 8,
-        marginLeft: "auto",
-        alignSelf: "center",
-        marginBottom: 3
-    },
-    badgeText: {
-        color: 'white',
-    },
-    rightArrow: {
-        width: 17,
-        height: 17,
-        marginBottom: 4,
-        justifyContent: "flex-end",
-        alignSelf: "center",
-        marginLeft: 5,
-    },
+
 });
 
 export default FriendRequestScreen;

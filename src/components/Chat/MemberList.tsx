@@ -55,7 +55,7 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
                                 <ImageTextButton
                                     iconSource={require('../../assets/Icons/addFriendIcon.png')}
                                     imageStyle={{height: 18, width: 18, marginTop:2, marginLeft: "auto"}}
-                                    onPress={()=>handleSend(item.memberId)}
+                                    onPress={()=>handleSend(item.memberId, chatRoomId)}
                                 />
                                 ):(
                                     <FastImage
