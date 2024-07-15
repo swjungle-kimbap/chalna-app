@@ -62,8 +62,6 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModa
       <TouchableWithoutFeedback onPress={closeModal}>
         <View style={styles.modalOverlay}>
           <View style={styles.inputBoxPos}>
-            <TouchableWithoutFeedback>
-              <View style={styles.inputBox}>
                 <View style={styles.headerContainer}>
                   <Text style={styles.titleText}>장소 채팅 생성</Text>
                   <TouchableOpacity style={styles.questionIconContainer} onPress={() => showModal("장소 대화방", "현재 위치에서 주위 사람들과의 대화방을 만들어 보세요! \n 50m 이내의 사람들만 참여할 수 있어요!", () => {}, undefined, false)}>
@@ -71,14 +69,16 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModa
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity onPress={handleSelectImage} style={styles.imageButton}>
-                  <Image source={require('../../assets/photo.png')} style={styles.imageIcon} />
-                </TouchableOpacity>
-                
+                {!imageUrl && (
+                  <TouchableOpacity onPress={handleSelectImage} style={styles.imageButton}>
+                    <Image source={require('../../assets/photo.png')} style={styles.imageIcon} />
+                  </TouchableOpacity>
+                )}
+
                 {imageUrl && (
                   <View style={styles.imageContainer}>
                     <FastImage
-                      style={styles.smallImage} // 이미지 크기를 줄이는 스타일 추가
+                      style={styles.smallImage}
                       source={{ uri: imageUrl, priority: FastImage.priority.normal }}
                       resizeMode={FastImage.resizeMode.contain}
                     />
@@ -128,12 +128,10 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModa
                 {(name.length > 0 && description.length > 0) ? (
                   <Button titleStyle={styles.makeButton} title="생성하기" onPress={handleCreateButton} />
                 ) : (
-                  <Text style={styles.makeButton} variant='sub'>
+                  <Text style={styles.makeExplain} variant='sub'>
                     {name.length === 0 && description.length === 0 ? "제목과 내용을 채워주세요" : name.length === 0 ? "제목을 입력해주세요" : "내용을 입력해주세요"}
                   </Text>
                 )}
-              </View>
-            </TouchableWithoutFeedback>
           </View>
         </View>
       </TouchableWithoutFeedback>
@@ -187,10 +185,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginVertical: 10,
-    backgroundColor: '#E0F7FA',
+    backgroundColor: '#BAD2F3',
     borderRadius: 10,
     padding: 10,
-    elevation: 5, // Android에서의 그림자 효과
+    elevation: 5,
   },
   textInput: {
     flex: 1,
@@ -231,7 +229,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
   },
-  smallImage: { // 새로운 스타일 추가
+  smallImage: {
     width: 150,
     height: 150,
   },
@@ -253,7 +251,21 @@ const styles = StyleSheet.create({
   makeButton: {
     fontSize: 15,
     marginVertical: 10,
+    backgroundColor: '#438EE6',
+    alignSelf: 'center',
+    padding: 10,
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 5,
+    color: 'white'
   },
+  makeExplain: {
+    fontSize: 15,
+    marginVertical: 10,
+  }
 });
 
 export default LocalChatModal;
