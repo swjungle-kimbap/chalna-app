@@ -1,9 +1,9 @@
-import { NaverMapMarkerOverlay, NaverMapView, NaverMapViewRef } from "@mj-studio/react-native-naver-map";
+import { NaverMapMarkerOverlay, NaverMapView, NaverMapViewRef, NaverMapCircleOverlay } from "@mj-studio/react-native-naver-map";
 import { FlyingModeState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useEffect, useRef, useState } from "react";
 import Geolocation, { GeoError } from "react-native-geolocation-service";
-import { Alert, LogBox, StyleSheet, View } from "react-native";
+import { LogBox, StyleSheet, View, Text } from "react-native";
 import { openSettings, PERMISSIONS } from "react-native-permissions";
 import { locationState } from "../../recoil/atoms";
 import { Position } from '../../interfaces';
@@ -15,6 +15,8 @@ import ArrowButton from "../../components/Map/ArrowButton";
 import MapBottomSheet from "../../components/Map/MapBottomSheet";
 import LocalChatMarkerOverlay from "../../components/Map/LocalChatMarkerOverlay";
 import { showModal } from "../../context/ModalService";
+import { userInfoState } from '../../recoil/atoms';
+import ProfileImage from '../../components/common/ProfileImage';
 
 LogBox.ignoreLogs(['Called stopObserving with existing subscriptions.'])
 const latkfilter = new KalmanFilter();
@@ -27,6 +29,7 @@ const MapScreen: React.FC = ({}) => {
   const watchId = useRef<number | null>(null);
   const [showLocalChatModal, setShowLocalChatModal] = useState<boolean>(false);
   const [isgranted, setIsgranted] = useState(true);
+  const [userInfo, setUserInfo] = useRecoilState(userInfoState);
   useChangeBackgroundSave<Position>('map.lastLocation', currentLocation);
 
   useEffect(() => {
@@ -49,15 +52,6 @@ const MapScreen: React.FC = ({}) => {
           (e:GeoError) => {
             setIsgranted(false);
             if (e.code === 1) {
-              // Alert.alert(
-              //   "위치 권한 필요",
-              //   "위치 권한이 필요한 서비스입니다.",
-              //   [
-              //     { text: "설정", onPress: () => openSettings()},
-              //     { text: "취소", onPress: () => {}, style: "cancel" } 
-              //   ]
-              // );
-
               showModal(
                 "위치 권한 필요",
                 "위치 권한이 필요한 서비스입니다.",
@@ -70,14 +64,6 @@ const MapScreen: React.FC = ({}) => {
               );
             }
             if (e.code === 2) {
-              // Alert.alert(
-              //   "GPS  필요",
-              //   "GPS가 필요한 서비스 입니다. GPS를 켜주세요",
-              //   [
-              //     { text: "설정", onPress: () => openSettings()},
-              //     { text: "취소", onPress: () => {}, style: "cancel" } 
-              //   ]
-              // );
               showModal(
                 "GPS 필요",
                 "GPS가 필요한 서비스 입니다. GPS를 켜주세요",
@@ -90,7 +76,7 @@ const MapScreen: React.FC = ({}) => {
               );
             }
           },
-          { 
+          {
             accuracy: { android: "high" },
             interval: 4000,
             distanceFilter: 3,
@@ -98,9 +84,9 @@ const MapScreen: React.FC = ({}) => {
             showLocationDialog: true,
           }
         );
+      }
     }
-  }
-    
+
     if (!flyingMode) {
       startWatchPosition();
       if (mapViewRef.current) {
@@ -138,41 +124,81 @@ const MapScreen: React.FC = ({}) => {
         zoom:18}}
         ref={mapViewRef}
         >
-      <LocalChatMarkerOverlay/>
-      <NaverMapMarkerOverlay
-        isHideCollidedCaptions={true}
-        latitude={currentLocation.latitude}
-        longitude={currentLocation.longitude}
-        anchor={{ x: 0.5, y: 1 }}
-        caption={{
-          text: '나',
-        }}
-        image={{symbol:"green"}}
-        width={20}
-        height={30}
-        zIndex={3}
-      />
-    </NaverMapView>}
-    {isgranted && <>
-    <LocalChatButton showLocalChatModal={showLocalChatModal} setShowLocalChatModal={setShowLocalChatModal}/>
-   </>}
-   {isgranted && 
-    <View style={styles.bottomSheet}>
-      <MapBottomSheet cameraMove={cameraMove} setShowLocalChatModal={setShowLocalChatModal}/>
-    </View>}
-    {flyingMode && (
-      <ArrowButton cameraMove = {cameraMove} />
-    )}
-  </>
-);
+      <LocalChatMarkerOverlay cameraMove={cameraMove} />
+      <NaverMapCircleOverlay
+            latitude={currentLocation.latitude}
+            longitude={currentLocation.longitude}
+            radius={10} 
+            color="rgba(171, 212, 212, 0.5)"
+          />
+          <NaverMapMarkerOverlay
+            isHideCollidedCaptions={true}
+            latitude={currentLocation.latitude}
+            longitude={currentLocation.longitude}
+            anchor={{ x: 0.5, y: 1 }}
+            width={50}
+            height={70}
+            zIndex={3}
+          >
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatarWrapper}>
+                <ProfileImage profileImageId={userInfo.profileImageId} avatarStyle={styles.avatar} />
+              </View>
+              <Text style={styles.avatarText}>나</Text>
+            </View>
+          </NaverMapMarkerOverlay>
+        </NaverMapView>}
+      {isgranted && <>
+        <LocalChatButton showLocalChatModal={showLocalChatModal} setShowLocalChatModal={setShowLocalChatModal} />
+      </>}
+      {isgranted &&
+        <View style={styles.bottomSheet}>
+          <MapBottomSheet cameraMove={cameraMove} setShowLocalChatModal={setShowLocalChatModal} />
+        </View>}
+      {flyingMode && (
+        <ArrowButton cameraMove={cameraMove} />
+      )}
+    </>
+  );
 }
 
 const styles = StyleSheet.create({
   bottomSheet: {
-    position:'absolute',
+    position: 'absolute',
     bottom: 10,
     right: 15,
     width: "90%",
+  },
+  avatarContainer: {
+    alignItems: 'center',
+  },
+  avatarWrapper: {
+    borderWidth: 2,
+    borderColor: '#05FF69',
+    borderRadius: 25,
+    padding: 2,
+    backgroundColor: 'white',
+    position: 'relative',
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    resizeMode: "contain",
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  avatarText: {
+    marginTop: 5,
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: 'black',
   },
 })
 

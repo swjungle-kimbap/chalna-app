@@ -1,6 +1,6 @@
 import RoundBox from "../../components/common/RoundBox";
 import Button from '../../components/common/Button';
-import { StyleSheet } from 'react-native';
+import {StyleSheet} from 'react-native';
 import LocalChatModal from "./LocalChatModal";
 import { handleCheckPermission } from "../../service/LocalChat";
 
@@ -15,6 +15,7 @@ const LocalChatButton = ({showLocalChatModal, setShowLocalChatModal}) => {
   const closeModal = () => {
     setShowLocalChatModal(false);
   };
+
 
   return (
     <>
@@ -37,17 +38,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     top: 20,
     right: 20,
-    height: 50, 
-    width: 50,
-    borderRadius: 30, 
+    height: 70, 
+    width: 70,
+    borderRadius: 35, 
     paddingVertical: 2, // 상하 여백 설정
     paddingHorizontal: 3, // 좌우 여백 설정
-    zIndex:3
+    zIndex:3,
+    backgroundColor:'#6DB9C4',
+    shadowColor: '#000', // 그림자 색상
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    }, // 그림자의 오프셋 설정
+    shadowOpacity: 0.8, // 그림자의 투명도 설정
+    shadowRadius: 8, // 그림자의 번지는 반경 설정
+    elevation: 10, // 안드로이드에서 그림자 효과를 주기 위해 필요한 속성
   },
   buttonImage: {
-    width: 35,
-    height: 35,
-    tintColor: '#979797'
+    width: 45,
+    height: 45,
+    tintColor: 'white'
   },
   textInput: {
     width: '100%',
@@ -58,6 +68,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
   },
+  tutorialContainer: {
+    position: 'absolute',
+    bottom: 110,
+    right: 30,
+    alignItems: 'center',
+  }
+
 })
 
 export default LocalChatButton;

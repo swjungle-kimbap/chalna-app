@@ -69,19 +69,6 @@ export const localChatJoin = async (localChat:LocalChat, distance:number, setRef
   const granted = await handleCheckPermission();
   if (!granted) 
     return
-  
-  // Alert.alert(localChat.name, localChat.description,
-  //   [
-  //     {
-  //       text: '참가',
-  //       onPress: async () => {await joinLocalChat(localChat, distance, setRefresh)},
-  //       style: 'default'
-  //     },
-  //     { text: '취소', style: 'cancel'}
-  //   ],
-  //   { cancelable: true }
-  // )
-
   showModal(
     localChat.name,
     localChat.description,
@@ -130,7 +117,7 @@ export const localChatOut = async (localChat:LocalChat, setRefresh:Function) => 
     return
   showModal(
     localChat.name,
-    "이미 들어간 채팅방입니다! 나가시겠습니까?",
+    "채팅방을 떠나면 참여했던 채팅목록에서 삭제됩니다. 나가시겠습니까?",
     async () => {
       await ChatOut(localChat.chatRoomId, setRefresh);
     },

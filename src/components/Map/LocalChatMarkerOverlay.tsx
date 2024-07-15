@@ -1,9 +1,9 @@
-import { ChatDisconnectOut, localChatJoin, localChatOut } from "../../service/LocalChat";
+import { ChatDisconnectOut, localChatJoin, localChatOut, joinLocalChat } from "../../service/LocalChat";
 import { NaverMapMarkerOverlay } from "@mj-studio/react-native-naver-map";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GetLocalChatResponse, LocalChatData } from '../../interfaces';
 import { axiosGet } from "../../axios/axios.method";
-import {urls} from "../../axios/config";
+import { urls } from "../../axios/config";
 import { AxiosRequestConfig } from "axios";
 import { calDistance } from "../../utils/calDistance";
 import { Position } from '../../interfaces';
@@ -12,6 +12,8 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { useFocusEffect } from "@react-navigation/core";
 import Geolocation from "react-native-geolocation-service";
 import { getImageUri } from "../../utils/FileHandling";
+import { View, StyleSheet, Text } from "react-native";
+import FastImage from 'react-native-fast-image';
 
 export const distanceLimit = 100;
 const DistanceLimit = distanceLimit / 1000;
@@ -20,7 +22,7 @@ const LocalChatDelayedTime = 10 * 1000;
 
 const defaultImg = require('../../assets/Icons/LocalChatIcon.png');
 
-const LocalChatMarkerOverlay = () => {
+const LocalChatMarkerOverlay = ({cameraMove}) => {
   const currentLocation = useRecoilValue<Position>(locationState);
   const [localChatList, setLocalChatList] = useRecoilState<LocalChatData[]>(LocalChatListState);
   const [locationUpdate, setLocationUpdate] = useState(currentLocation);
@@ -35,7 +37,6 @@ const LocalChatMarkerOverlay = () => {
       updatedLocationRef.current = currentLocation;
       setLocationUpdate(currentLocation);
       const updateLocalChatRoom = async () => {
-        // Update localChatList
         const updatedLocalChatList = await Promise.all(localChatList.map(async (item) => {
           const localChat = item.localChat;
           const distance = calDistance(currentLocation, { latitude: localChat.latitude, longitude: localChat.longitude });
@@ -43,7 +44,6 @@ const LocalChatMarkerOverlay = () => {
             await ChatDisconnectOut(localChat.chatRoomId, setRefresh);
             return null;
           }
-
           return {
             ...item,
             localChat: {
@@ -60,12 +60,10 @@ const LocalChatMarkerOverlay = () => {
 
   const fetchLocalChatList = async () => {
     try {
-      // 위치 정보 가져오기
       Geolocation.getCurrentPosition(
         async (position) => {
           try {
             const { latitude, longitude } = position.coords;
-
             const localChatReqeustBody = {
               params: {
                 latitude,
@@ -79,7 +77,7 @@ const LocalChatMarkerOverlay = () => {
             if (response.data.data) {
               const updatedLocalChatList = response.data.data.map((item) => {
                 const localChat = item.localChat;
-                const distance = calDistance({latitude, longitude}, {latitude: localChat.latitude, longitude: localChat.longitude});
+                const distance = calDistance({ latitude, longitude }, { latitude: localChat.latitude, longitude: localChat.longitude });
                 return {
                   ...item,
                   localChat: {
@@ -130,28 +128,51 @@ const LocalChatMarkerOverlay = () => {
           const ImageId = localChat.imageId;
           let ImgSource = defaultImg;
           const imageUri = await getImageUri(ImageId);
+          const isDefaultImage = !imageUri;
+
           if (imageUri) {
-            ImgSource = {httpUri: imageUri}
+            ImgSource = { uri: imageUri };
           }
+
           return (
             <NaverMapMarkerOverlay
               key={localChat.id}
               latitude={localChat.latitude}
               longitude={localChat.longitude}
-              onTap={item.isJoined ? () => localChatOut(localChat, setRefresh) :
-                () => localChatJoin(localChat, localChat.distance, setRefresh)
-              }
-              image={ImgSource}
-              tintColor={ImgSource !== defaultImg ? 'black' : localChat.distance > DistanceLimit ? 'gray': 'lightgreen'}
-              width={ImgSource !== defaultImg? 50 : 40}
-              height={ImgSource !== defaultImg? 50 : 40}
-              caption={{ text: localChat.name }}
-              isHideCollidedMarkers={localChat.distance < DistanceLimit ? false: true}
+              // onTap={item.isJoined ? () => localChatOut(localChat, setRefresh) :
+              //   () => localChatJoin(localChat, localChat.distance, setRefresh)
+              // }
+              onTap={() => {
+                cameraMove({ latitude: localChat.latitude, longitude: localChat.longitude });
+                item.isJoined ? localChatOut(localChat, setRefresh) : localChatJoin(localChat, localChat.distance, setRefresh);
+              }}
+              width={90}
+              height={90}
+              isHideCollidedMarkers={localChat.distance < DistanceLimit ? false : true}
               isHideCollidedCaptions={true}
-            />
+            >
+              {isDefaultImage ? (
+                <View style={styles.defaultImageWrapper}>
+                  <FastImage
+                    source={ImgSource}
+                    style={styles.defaultImage}
+                    resizeMode={FastImage.resizeMode.contain}
+                  />
+                </View>
+              ) : (
+                <View style={styles.avatarWrapper}>
+                  <FastImage
+                    source={ImgSource}
+                    style={styles.avatar}
+                    resizeMode={FastImage.resizeMode.cover}
+                  />
+                  <Text style={styles.captionText}>{localChat.name}</Text>
+                </View>
+              )}
+            </NaverMapMarkerOverlay>
           );
         });
-  
+
         const resolvedMarkers = await Promise.all(markerPromises);
         setMarkers(resolvedMarkers);
       } catch (error) {
@@ -163,12 +184,41 @@ const LocalChatMarkerOverlay = () => {
 
     fetchMarkers();
   }, [localChatList, locationUpdate]);
+
   return (
     <>
-    {isLoading ? <></> : markers }
+      {isLoading ? <></> : markers}
     </>
   );
 };
 
+const styles = StyleSheet.create({
+  avatarWrapper: {
+    alignItems: 'center',
+    padding: 5,
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: 'white',
+  },
+  defaultImageWrapper: {
+    alignItems: 'center',
+    padding: 5,
+  },
+  defaultImage: {
+    width: 50,
+    height: 50,
+  },
+  captionText: {
+    marginTop: 5,
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: 'black',
+    textAlign: 'center',
+  },
+});
 
 export default LocalChatMarkerOverlay;
