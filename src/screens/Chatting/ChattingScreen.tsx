@@ -128,9 +128,9 @@ const ChattingScreen: React.FC = () => {
 
     const AnnouncementMsg = () => {
         if (chatRoomType === 'LOCAL') {
-            return "장소톡에서는 이전 대화내역을 볼 수 있습니다." +
-                "거리가 멀어지면 채팅이 종료됩니다." +
-                 chatRoomInfo.name+': '+ chatRoomInfo.description;
+            return "거리가 멀어지면 채팅이 종료됩니다."
+            //"이전 대화내역을 볼 수 있습니다." +
+            // + chatRoomInfo.name+': '+ chatRoomInfo.description;
         } else if (chatRoomType === 'MATCH') {
             return "상대와 5분동안 대화할 수 있습니다."
         } else {

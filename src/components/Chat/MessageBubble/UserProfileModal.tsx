@@ -170,7 +170,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                         onPress={onClose}
                         style={{ alignSelf: 'flex-end' }}
                     />
-                    <ProfileImage profileImageId={profileImageId}/>
+                    <ProfileImage profileImageId={profileImageId}  avatarStyle={styles.profilePictureModal}/>
                     <NameBtnContainer>
                         <Text variant="subtitle">{username}</Text>
                         {chatRoomType === 'FRIEND' ? (

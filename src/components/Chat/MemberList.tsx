@@ -27,11 +27,11 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
         .sort((a, b) => (a.memberId === currentUserId ? -1 : b.memberId === currentUserId ? 1 : 0));
 
 
-    const handleSend = async (otherId: number, chatRoomId: number) =>{
+    const handleSend = async (otherId: number, chatRoomId: number, sendername: string) =>{
         const response = await sendFriendRequest(otherId, chatRoomId);
         if (response === true) {
             if (chatRoomType!=='LOCAL'){ // 매치 1:1 채팅일 때만 채팅방에 친구요청 메세지 전송
-                WebSocketManager.sendMessage(chatRoomId, "친구 요청을 보냈습니다.", 'FRIEND_REQUEST');
+                WebSocketManager.sendMessage(chatRoomId, sendername+"님이 친구 요청을 보냈습니다.", 'FRIEND_REQUEST');
             }
             // 친구추가 버튼 없애기 버튼 or 요청중 상태 나타내는 것 추가
         }
@@ -47,7 +47,7 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
                 renderItem={({ item }) => (
                     <View style={styles.memberContainer}>
                         <ProfileImage profileImageId = {item.profileImageId} avatarStyle = {styles.profilePicture}/>
-                        
+
                         <Text style={styles.memberText}>{item.username}</Text>
                         {item.memberId !==currentUserId ? (
                             <View style={{marginLeft:'auto'}}>
@@ -55,7 +55,7 @@ const MemberList: React.FC<MemberListProps> = ({ members, chatRoomId,chatRoomTyp
                                 <ImageTextButton
                                     iconSource={require('../../assets/Icons/addFriendIcon.png')}
                                     imageStyle={{height: 18, width: 18, marginTop:2, marginLeft: "auto"}}
-                                    onPress={()=>handleSend(item.memberId, chatRoomId)}
+                                    onPress={()=>handleSend(item.memberId, chatRoomId, item.username)}
                                 />
                                 ):(
                                     <FastImage
