@@ -84,6 +84,19 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
   },
+  messageBoxContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1, // 다른 컴포넌트들보다 위에 나타나도록 zIndex 설정
+
+  },  
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
 });
 
 export default styles;

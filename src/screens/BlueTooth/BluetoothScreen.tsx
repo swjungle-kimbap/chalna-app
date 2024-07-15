@@ -71,7 +71,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   const [remainingTime, setRemainingTime] = useState(30);
   const msgSendCnt = useRecoilValue(MsgSendCntState);
   const [showMsgBox, setShowMsgBox] = useState(false);
-  const [fadeInAndMoveUp, fadeAnim, translateY] = useFadeText();
+  // const [fadeInAndMoveUp, fadeAnim, translateY] = useFadeText();
   const [uuids, setUuids] = useState<Set<string>>(new Set());
 
   //테스트용 임니당
@@ -283,8 +283,8 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
                 />
                 <BleBottomComponent
                   isBlocked={isBlocked}
-                  fadeAnim={fadeAnim}
-                  translateY={translateY}
+                  // fadeAnim={fadeAnim}
+                  // translateY={translateY}
                   msgSendCnt={msgSendCnt}
                   remainingTime={remainingTime}
                   showMsgBox={showMsgBox}
@@ -292,7 +292,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
                   uuidSet={uuidSet}
                   setRemainingTime={setRemainingTime}
                   setShowMsgBox={setShowMsgBox}
-                  fadeInAndMoveUp={fadeInAndMoveUp}
+                  // fadeInAndMoveUp={fadeInAndMoveUp}
                 />
               </>
             )}
