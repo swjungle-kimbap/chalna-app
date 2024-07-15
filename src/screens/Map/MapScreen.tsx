@@ -1,4 +1,4 @@
-import { NaverMapMarkerOverlay, NaverMapView, NaverMapViewRef } from "@mj-studio/react-native-naver-map";
+import { NaverMapMarkerOverlay, NaverMapView, NaverMapViewRef, NaverMapCircleOverlay } from "@mj-studio/react-native-naver-map";
 import { FlyingModeState } from "../../recoil/atoms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useEffect, useRef, useState } from "react";
@@ -125,7 +125,12 @@ const MapScreen: React.FC = ({}) => {
         ref={mapViewRef}
         >
       <LocalChatMarkerOverlay cameraMove={cameraMove} />
-
+      <NaverMapCircleOverlay
+            latitude={currentLocation.latitude}
+            longitude={currentLocation.longitude}
+            radius={10} 
+            color="rgba(171, 212, 212, 0.5)"
+          />
           <NaverMapMarkerOverlay
             isHideCollidedCaptions={true}
             latitude={currentLocation.latitude}
