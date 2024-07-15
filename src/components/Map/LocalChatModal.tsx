@@ -10,6 +10,8 @@ import { handleImagePicker } from '../../utils/FileHandling';
 import RNFS from 'react-native-fs';
 import fontTheme from '../../styles/FontTheme';
 import { useModal } from '../../context/ModalContext';
+import colorTheme from '../../styles/ColorTheme';
+
 
 export interface LocalChatModalProps {
   closeModal: () => void,
@@ -65,7 +67,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModa
                 <View style={styles.headerContainer}>
                   <Text style={styles.titleText}>장소 채팅 생성</Text>
                   <TouchableOpacity style={styles.questionIconContainer} onPress={() => showModal("장소 대화방", "현재 위치에서 주위 사람들과의 대화방을 만들어 보세요! \n 50m 이내의 사람들만 참여할 수 있어요!", () => {}, undefined, false)}>
-                    <Image source={require('../../assets/question2.png')} style={styles.questionIcon} />
+                    <Image source={require('../../assets/Icons/Question2.png')} style={styles.questionIcon} />
                   </TouchableOpacity>
                 </View>
 
@@ -94,7 +96,6 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModa
                     style={styles.textInput}
                     onChange={(event) => setName(event.nativeEvent.text)}
                     placeholder="제목을 입력해주세요"
-                    placeholderTextColor="#888" 
                     ref={inputRef}
                     maxLength={15}
                     blurOnSubmit={false}
@@ -115,7 +116,6 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModa
                     maxLength={30}
                     onChange={(event) => setDescription(event.nativeEvent.text)}
                     placeholder="무엇을 공유하나요? 내용을 입력해주세요"
-                    placeholderTextColor="#888"
                     ref={descriptionInputRef}
                   />
                   {description.length > 0 && (
@@ -128,9 +128,9 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModa
                 {(name.length > 0 && description.length > 0) ? (
                   <Button titleStyle={styles.makeButton} title="생성하기" onPress={handleCreateButton} />
                 ) : (
-                  <Text style={styles.makeExplain} variant='sub'>
-                    {name.length === 0 && description.length === 0 ? "제목과 내용을 채워주세요" : name.length === 0 ? "제목을 입력해주세요" : "내용을 입력해주세요"}
-                  </Text>
+                  <Button disabled titleStyle={styles.disableButton} title=
+                  {name.length === 0 && description.length === 0 ? "제목과 내용을 채워주세요" : name.length === 0 ? "제목을 입력해주세요" : "내용을 입력해주세요"}
+                  onPress={handleCreateButton} />
                 )}
           </View>
         </View>
@@ -180,12 +180,11 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   outlinedInput: {
-    borderColor: '#000',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginVertical: 10,
-    backgroundColor: '#BAD2F3',
+    backgroundColor: colorTheme.colors.light_sub,
     borderRadius: 10,
     padding: 10,
     elevation: 5,
@@ -249,12 +248,32 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   makeButton: {
-    fontSize: 15,
-    marginVertical: 10,
-    backgroundColor: '#438EE6',
+    fontSize: 17,
+    marginTop: 10,
+    width: '100%',
+    textAlign: 'center',
+    backgroundColor: colorTheme.colors.main,
     alignSelf: 'center',
     padding: 10,
-    borderRadius: 25,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 5,
+    color: 'white'
+  },
+  disableButton: {
+    fontSize: 17,
+    marginTop: 10,
+    width: '100%',
+    textAlign: 'center',
+    backgroundColor: '#E9E9E9',
+    alignSelf: 'center',
+    padding: 10,
+    paddingHorizontal: 30,
+    borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.8,

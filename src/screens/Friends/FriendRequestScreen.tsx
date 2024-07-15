@@ -50,11 +50,10 @@ const FriendRequestScreen: React.FC<FriendRequestScreenProps> = ({ navigation })
         <View style={styles.friendListPage}>
             <View style={styles.ListContainer}>
                 <View style={styles.friendText}>
-                    <Text style={styles.text}>받은 친구 요청</Text>
 
                 </View>
                 {!receivedFriendRequests.length ? (
-                    <Text style={{marginTop: 20, color: 'grey50'}}>받은 친구 요청이 없습니다.</Text>
+                    <Text variant={'main'} style={{marginTop: 20, color: 'grey50'}}>받은 친구 요청이 없습니다. 😭</Text>
                 ) : (
                     <FlatList
                         data={receivedFriendRequests}
