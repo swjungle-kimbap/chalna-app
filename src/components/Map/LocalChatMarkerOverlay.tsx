@@ -1,4 +1,4 @@
-import { ChatDisconnectOut, localChatJoin, localChatOut } from "../../service/LocalChat";
+import { ChatDisconnectOut, localChatJoin, localChatOut, joinLocalChat } from "../../service/LocalChat";
 import { NaverMapMarkerOverlay } from "@mj-studio/react-native-naver-map";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GetLocalChatResponse, LocalChatData } from '../../interfaces';

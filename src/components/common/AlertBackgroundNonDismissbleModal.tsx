@@ -14,7 +14,8 @@ const BackgroundNonDismissibleModal = () => {
         <TouchableWithoutFeedback onPress={modalContent.dismissOnBackgroundClick ? hideModal : undefined}>
       <View style={styles.modalContainer}>
       <TouchableWithoutFeedback onPress={() => {}}>
-        <View style={styles.modalContent}>
+      <View style={[styles.modalContent, modalContent.position && { top: modalContent.position.top, left: modalContent.position.left }]}>
+        {/* <View style={styles.modalContent}> */}
           <Text style={styles.modalTitle}>{modalContent.title}</Text>
           <Text style={styles.modalText}>{modalContent.content}</Text>
           <View style={styles.buttonContainer}>
