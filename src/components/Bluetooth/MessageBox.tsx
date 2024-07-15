@@ -132,7 +132,6 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
           <Text variant='title' style={styles.title}>인연 메세지 <Button title='💬' onPress={() => {
             // Alert.alert("인연 메세지 작성",`${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요!`)
             showModal("인연 메세지 작성", `${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요!`, () => {}, undefined,false);}
-
           }/> 
           </Text>
           {tags.map((tag) => (
