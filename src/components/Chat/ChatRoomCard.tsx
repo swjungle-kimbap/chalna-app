@@ -4,6 +4,7 @@ import { Swipeable } from 'react-native-gesture-handler';
 import { useRecoilValue } from 'recoil';
 import Text from '../../components/common/Text';
 import ProfileImage from '../common/ProfileImage';
+import color from '../../styles/ColorTheme';
 
 interface ChatRoomCardProps {
     usernames: string;
@@ -108,11 +109,11 @@ const styles = StyleSheet.create({
         backgroundColor:'#ffffff'
     },
     waitCard: {
-        backgroundColor: 'f3f3f3'// '#eeeeee'
+        backgroundColor: '#EFEFEF90'// '#eeeeee'
     },
     localCard: {
         // backgroundColor: '#d9ebfa'
-        backgroundColor: '#E4F1EE'
+        backgroundColor: "#E9F2FF"
     },
     header: {
         flexDirection: 'row',
@@ -154,7 +155,7 @@ const styles = StyleSheet.create({
     unreadBadge: {
         // flex: 1,
         alignContent:'flex-end',
-        backgroundColor: '#006a81',
+        backgroundColor: color.colors.main,
         marginLeft: 'auto',
         borderRadius: 10,
         paddingHorizontal: 8,

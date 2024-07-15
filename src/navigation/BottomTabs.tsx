@@ -3,6 +3,7 @@ import { View, Keyboard, Image, StyleSheet, ActivityIndicator,Animated } from 'r
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MapScreen from '../screens/Map/MapScreen';
 import FontTheme from "../styles/FontTheme";
+import ColorTheme from "../styles/ColorTheme";
 import FriendsStackScreen from "./FriendsStack";
 import ChattingStackScreen from "./ChattingStack";
 import { useSetRecoilState } from 'recoil';
@@ -125,7 +126,7 @@ const BottomTabs = () => {
                 iconSource = require("../assets/Icons/MapIcon.png");
                 break;
               case '대화':
-                iconSource = focused ? require("../assets/Icons/ChatingIcon.png")
+                iconSource = focused ? require("../assets/Icons/ChatingIcon_focus.png")
                 : require ("../assets/Icons/ChatingIcon.png");
                 break;
               case '친구' :
@@ -152,12 +153,12 @@ const BottomTabs = () => {
             let labelStyle = {
               fontFamily: focused ? FontTheme.fonts.title : FontTheme.fonts.title,
               fontSize: focused ? 13 : 11,
-              color: focused ? '#3EB297' : 'gray',
+              color: focused ? ColorTheme.colors.main : 'gray',
               marginBottom: 6,
             };
             return <Text style={labelStyle}>{route.name}</Text>;
           },
-          tabBarActiveTintColor: '#3EB297',
+          tabBarActiveTintColor: ColorTheme.colors.main,
           // tabBarStyle: styles.tabContainer,
           tabBarStyle: isKeyboardVisible ? styles.hiddenTabContainer : styles.tabContainer,
           tabBarLabelStyle : {

@@ -18,6 +18,7 @@ import { useSetRecoilState } from "recoil";
 import { DeveloperModeState } from "../../recoil/atoms";
 import Config from "react-native-config";
 import { useModal } from "../../context/ModalContext";
+import fontTheme from "../../styles/FontTheme";
 
 const KeywordSelectScreen: React.FC = ({}) => {
   const [isKeywordAlarm, setIsKeywordAlarm] = useMMKVBoolean('mypage.isKeywordAlarm', userMMKVStorage);
@@ -185,7 +186,8 @@ const styles = StyleSheet.create({
   textInput: {
     color: '#333',
     paddingLeft: 10,
-    width:"80%"
+    width:"80%",
+    fontFamily: fontTheme.fonts.title,
   },
   text: {
     fontSize: 15,

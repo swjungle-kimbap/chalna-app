@@ -7,7 +7,7 @@ import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv";
 import { userMMKVStorage } from "../../utils/mmkvStorage";
 import ScanNearbyAndPost, { ScanNearbyStop } from "../../service/Bluetooth";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { DeviceUUIDState, isRssiTrackingState, MsgSendCntState } from "../../recoil/atoms";
+import { DeviceUUIDState, isRssiTrackingState } from "../../recoil/atoms";
 import requestPermissions from "../../utils/requestPermissions";
 import requestBluetooth from "../../utils/requestBluetooth";
 import showPermissionAlert from "../../utils/showPermissionAlert";
@@ -22,6 +22,7 @@ import DancingText from "../../components/Bluetooth/DancingText";
 import useFadeText from "../../hooks/useFadeText";
 import BleMainComponent from "../../components/Bluetooth/BleMainComponent";
 import BleBottomComponent from "../../components/Bluetooth/BleBottomComponent";
+import ColorTheme from "../../styles/ColorTheme";
 
 interface BluetoothScreenPrams {
   route: {
@@ -69,9 +70,8 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   const [showTracking, setShowTracking] = useState(false);
   const [rssiMap, setRssiMap] = useState<Map<string, number>>(null);
   const [remainingTime, setRemainingTime] = useState(30);
-  const msgSendCnt = useRecoilValue(MsgSendCntState);
   const [showMsgBox, setShowMsgBox] = useState(false);
-  // const [fadeInAndMoveUp, fadeAnim, translateY] = useFadeText();
+  const [fadeInAndMoveUp, fadeAnim, translateY] = useFadeText();
   const [uuids, setUuids] = useState<Set<string>>(new Set());
 
   //테스트용 임니당
@@ -265,7 +265,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
       {isRssiTracking && (
         <>
           <View style={styles.TVButton}>
-            <Button title='CCTV' onPress={() => setShowTracking(true)} titleStyle={{ color: 'white', fontSize: 10 }} />
+            <Button title='    ' onPress={() => setShowTracking(true)} titleStyle={{ color: '#3EB297', fontSize: 10 }} />
           </View>
           <RssiTracking closeModal={() => setShowTracking(false)} modalVisible={showTracking} items={rssiMap} />
         </>
@@ -283,16 +283,15 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
                 />
                 <BleBottomComponent
                   isBlocked={isBlocked}
-                  // fadeAnim={fadeAnim}
-                  // translateY={translateY}
-                  msgSendCnt={msgSendCnt}
+                  fadeAnim={fadeAnim}
+                  translateY={translateY}
                   remainingTime={remainingTime}
                   showMsgBox={showMsgBox}
-                  //uuidSet={uuidSet2}
+                  // uuidSet={uuidSet2}
                   uuidSet={uuidSet}
                   setRemainingTime={setRemainingTime}
                   setShowMsgBox={setShowMsgBox}
-                  // fadeInAndMoveUp={fadeInAndMoveUp}
+                  fadeInAndMoveUp={fadeInAndMoveUp}
                 />
               </>
             )}
@@ -304,7 +303,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: "#ABD4D4",
+    backgroundColor: ColorTheme.colors.light_sub,
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',

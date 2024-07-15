@@ -80,6 +80,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
     const trimmedQuery = searchQuery.replace(/\s+/g, '');
     if (!trimmedQuery) {
       setFilteredData(friendsList);
+      console.log(filteredData);
     } else {
       const filtered = friendsList.filter(
         ({username, message}) =>
