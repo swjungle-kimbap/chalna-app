@@ -749,6 +749,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingHorizontal: 10,
+        backgroundColor: "#F2F8FF"
     },
     scrollView: {
         justifyContent: 'flex-start',

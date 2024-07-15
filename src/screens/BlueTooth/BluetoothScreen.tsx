@@ -22,6 +22,7 @@ import DancingText from "../../components/Bluetooth/DancingText";
 import useFadeText from "../../hooks/useFadeText";
 import BleMainComponent from "../../components/Bluetooth/BleMainComponent";
 import BleBottomComponent from "../../components/Bluetooth/BleBottomComponent";
+import ColorTheme from "../../styles/ColorTheme";
 
 interface BluetoothScreenPrams {
   route: {
@@ -302,7 +303,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: "#ABD4D4",
+    backgroundColor: ColorTheme.colors.light_sub,
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',

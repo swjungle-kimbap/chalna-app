@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     textAlign: 'center', // 텍스트 가운데 정렬 추가
   },
   findText: {
-    fontSize: 20,
+    fontSize: 18,
     marginBottom: 40,
     color: 'gray',
     textAlign: 'center', // 텍스트 가운데 정렬 추가

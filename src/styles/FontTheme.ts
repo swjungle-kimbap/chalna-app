@@ -4,8 +4,8 @@ const theme = {
     title: 'SpoqaHanSansNeo-Bold',
     main: 'SpoqaHanSansNeo-Medium',
     sub: 'SpoqaHanSansNeo-Regular',
-    light: 'SpoqaHanSansNeo-Light'
-  }
-}
+    light: 'SpoqaHanSansNeo-Light',
+  },
+};
 
 export default theme;
