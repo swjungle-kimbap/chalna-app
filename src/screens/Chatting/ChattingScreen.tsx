@@ -89,6 +89,8 @@ const ChattingScreen: React.FC = () => {
     const [username, setUsername] = useState<string>('');
     const [members, setMembers] = useState<chatRoomMember[]>([]);
     const [memberCount, setMemberCount] = useState<string>(null);
+    const [myname, setMyname] = useState<string>(null);
+
 
     const [selectedImage, setSelectedImage] = useState<any>(null);
 
@@ -97,6 +99,7 @@ const ChattingScreen: React.FC = () => {
 
     const isInitialLoadCompleteRef = useRef<boolean>(false);
     const { socketMessageBuffer, addMessageToBuffer, clearBuffer } = useBuffer();
+    const updatedMessageBuffer = useRef<directedChatMessage[]>([]);
     const batchSize = 20;
 
     const chatRoomIdRef = useRef<string>(chatRoomId);
@@ -250,8 +253,6 @@ const ChattingScreen: React.FC = () => {
             console.error('Error 메시지: ', error);
         }
     };
-
-    const updatedMessageBuffer = useRef<directedChatMessage[]>([]);
 
     const handleIncomingSocketMessage = (newMessage: directedChatMessage) => {
         console.log("===haneld Incoming socket msg, initialLoad status: ", isInitialLoadCompleteRef.current);
@@ -469,6 +470,11 @@ const ChattingScreen: React.FC = () => {
                     };
                     saveChatRoomInfo(chatRoomInfoToSave);
 
+                    const myname = responseData.chatRoomMemberInfo.members
+                        .filter((member: chatRoomMember)=> member.memberId===currentUserId)
+                        .map((member: chatRoomMember)=> member.username)
+                    setMyname(myname);
+
                 }
 
             } catch (error) {
@@ -656,6 +662,7 @@ const ChattingScreen: React.FC = () => {
                                         profileImageId={getProfileIdBySenderId(item.senderId)}
                                         username={getUsernameBySenderId(item.senderId)}
                                         showProfileTime={showProfileTime}
+                                        myname={myname}
                                     />
                                     {showDateHeader && <DateHeader date={formatDateHeader(item.createdAt)}/>}
                                 </>
@@ -734,6 +741,7 @@ const ChattingScreen: React.FC = () => {
                     members={members}
                     chatRoomId={Number(chatRoomId)}
                     chatRoomType={chatRoomType}
+                    myname={myname}
                 />
             </View>
         </SWRConfig>

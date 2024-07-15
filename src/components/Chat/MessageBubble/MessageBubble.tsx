@@ -25,12 +25,13 @@ interface MessageBubbleProps {
     username?: string;
     showProfileTime?: boolean;
     isViewable?:boolean;
+    myname?: string;
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = memo(({
                                                               message, datetime, isSelf, type, unreadCnt, senderId, chatRoomId,
                                                               chatRoomType, profileImageId, username, showProfileTime
-                                                              , isViewable
+                                                              , isViewable, myname
                                                           }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [imageModalVisible, setImageModalVisible] = useState(false);
@@ -215,7 +216,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
                 username={username}
                 profileImageId={profileImageId}
                 chatRoomType={chatRoomType}
+                chatRoomId={chatRoomId}
                 otherId={senderId}
+                myname={myname}
             />
 
             <ImagePreviewModal
