@@ -10,7 +10,7 @@ import {urls} from "../../axios/config";
 import ProfileImage from '../common/ProfileImage';
 import { useModal } from '../../context/ModalContext';
 import {friendRequest} from "../../interfaces/Friend.type";
-import {acceptFriendRequest, rejectFriendRequest} from "../../service/Friends/FriendRelationService";
+import {acceptFriendRequest, rejectFriendRequest} from "../../service/Friends/FriendRelationAPI";
 import Text from '../common/Text';
 import {showModal} from "../../context/ModalService";
 
@@ -23,10 +23,7 @@ interface FriendRequestCardProps {
 }
 
 
- // 눌렀을 때 n번 스친 인연입니다 + 대화방가기
-
-
-
+ // 눌렀을 때 n번 스친 인연입니다 + 대화방가기 -> 보류
 
 const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request, isExpanded, onExpand, navigation }) => {
 
@@ -51,36 +48,31 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request, isExpand
         }
     };
 
-    const handleRelation = async (id:number) => {
-        const response<relationAPIResponse> = await axiosGet(urls.GET_RELATION_URL+`/${id}`);
-        if (response) {
-            response.data.data.overlapCount
+    const handleChat = async(chatRoomId: number) =>{
+        try {
+            navigation.navigate("채팅", { chatRoomId: chatRoomId });
+        } catch (error) {
+            const errorMessage = error.message || "대화방이 존재하지 않습니다.";
+            showModal('찰나가 아파요..', errorMessage, () => {}, undefined, false);
         }
-
-
-
-
-
     }
 
-
-
-
+    // 프로필 귀여운 아이콘 랜덤으로 넣으면 좋을것같은데
     return (
         <TouchableOpacity onPress={handlePress}>
             <RoundBox style={styles.container}>
                 <View style={styles.header}>
-                    <ProfileImage profileImageId={request.profileImageId} avatarStyle={styles.avatar}/>
+                    <ProfileImage profileImageId={0} avatarStyle={styles.avatar}/>
                     <View style={styles.textContainer}>
                         <Text style={styles.name} >{request.username}</Text>
-                        <Text style={styles.statusMessage}>{  || ""}</Text>
+                        <Text style={styles.statusMessage}>{""}</Text>
                     </View>
                 </View>
                 {isExpanded && (
                     <View style={styles.expandedContainer}>
-                        <Button title="대화하기" onPress={handleChat}  />
-                        <Button title="요청 수락" onPress={()=>handleAccept(id)}  />
-                        <Button title="거절 하기" onPress={()=> handleReject(id)} />
+                        <Button title="대화방 이동" onPress={()=> handleChat(request.chatRoomId)} />
+                        <Button title="요청 수락" onPress={()=>handleAccept(request.id)}  />
+                        <Button title="거절 하기" onPress={()=> handleReject(request.id)} />
                     </View>
                 )}
             </RoundBox>

@@ -20,6 +20,9 @@ import ProfileImage from '../../components/common/ProfileImage';
 import { getMMKVObject, setMMKVObject } from '../../utils/mmkvStorage';
 import {friendRequest} from "../../interfaces/Friend.type";
 import {fetchReceivedFriendRequest} from "../../service/Friends/FriendListAPI";
+import NavigationModal from "../../components/Mypage/NavigationModal";
+
+import FriendRequestScreen from "./FriendRequestScreen";
 
 interface ApiResponse {
   status: string;
@@ -165,9 +168,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
             <Text style={styles.text}>친구 목록</Text>
               <Button iconSource={require('../../assets/Icons/3dotsVertical.png')} imageStyle={styles.iconLeftt}
                       onPress={() => {
-                        setMyprofileVisible(false);
-                        setSearchQuery("");
-                        setFilteredData(friendsList);
+                        setModalVisible(true);
                       }}/>
               <Button iconSource={require('../../assets/Icons/SearchIcon.png')} imageStyle={styles.searchIcon}
                       onPress={() => {
@@ -210,6 +211,12 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
           />
         )}
       </View>
+
+      <NavigationModal
+          modalVisible={modalVisible}
+          setModalVisible={setModalVisible}
+          navigation={navigation}
+      />
 
     </View>
   );
@@ -359,72 +366,3 @@ const styles = StyleSheet.create({
 });
 
 export default FriendsScreen;
-
-
-// const NavModal = () => {
-//   return (
-//       <>
-//         <Modal
-//             visible={modalVisible}
-//             transparent={true}
-//             animationType="fade"
-//             onRequestClose={() => setModalVisible(false)}>
-//           <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-//             <ModalContainer>
-//               <ModalContent style={shadowStyles}>
-//                 <Button
-//                     title="친구요청 목록"
-//                     style={{marginBottom: 20}}
-//                     onPress={() => {
-//                       setModalVisible(false);
-//                       navigation.navigate('Tabs', {screen: '친구요청 목록'});
-//                     }}
-//                 />
-//                 <Button
-//                     title="차단친구 목록"
-//                     onPress={() => {
-//                       setModalVisible(false);
-//                       navigation.navigate('Tabs', {screen: '차단친구 목록'});
-//                     }}
-//                 />
-//               </ModalContent>
-//             </ModalContainer>
-//           </TouchableWithoutFeedback>
-//         </Modal>
-//       </>
-//   );
-// };
-//
-//
-//
-//
-//
-//       const ModalContainer = styled.View`
-//       flex: 1;
-//       justify-content: flex-start;
-//       align-items: flex-end;
-//       padding-top: 85px;
-//       padding-right: 20px;
-//       elevation: 5;
-//     `;
-//
-//     const ModalContent = styled.View`
-//       width: 55%;
-//       padding-top: 15px;
-//       padding-bottom: 15px;
-//       background-color: white;
-//       border-radius: 10px;
-//       align-items: center;
-//     `;
-//
-//     const shadowStyles = {
-//       shadowColor: '#000',
-//       shadowOffset: {
-//         width: 0,
-//         height: 2,
-//       },
-//       shadowOpacity: 0.25,
-//       shadowRadius: 3.84,
-//
-//       elevation: 5,
-//     };

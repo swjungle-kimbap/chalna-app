@@ -7,7 +7,7 @@ import FastImage from "react-native-fast-image";
 import {useRecoilValue} from "recoil";
 import {LoginResponse} from "../../interfaces";
 import {userInfoState} from "../../recoil/atoms";
-import {sendFriendRequest} from "../../service/Friends/FriendRelationService";
+import {sendFriendRequest} from "../../service/Friends/FriendRelationAPI";
 import WebSocketManager from "../../utils/WebSocketManager";
 import Text from '../common/Text';
 

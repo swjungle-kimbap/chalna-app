@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import ImageTextButton from "../../common/Button";
 import WebSocketManager from "../../../utils/WebSocketManager";
-import { acceptFriendRequest, rejectFriendRequest } from "../../../service/Friends/FriendRelationService";
+import { acceptFriendRequest, rejectFriendRequest } from "../../../service/Friends/FriendRelationAPI";
 
 interface FriendRequestActionsProps {
     chatRoomId: number;

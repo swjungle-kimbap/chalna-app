@@ -57,7 +57,7 @@ export const fetchSentFriendRequest = async ():Promise<friendRequest[]|any> => {
 }
 
 // 상대방과 관계조회시 스친횟수 반환
-const fetchRelation = async (id:number):Promise<Number|null> => {
+export const fetchRelation = async (id:number):Promise<Number|null> => {
     const response = await axiosGet(
         urls.GET_RELATION_URL+`/${id}`,
         "관계 조회 성공"

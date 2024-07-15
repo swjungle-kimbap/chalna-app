@@ -1,14 +1,17 @@
 import React from 'react';
 import { Modal, TouchableWithoutFeedback, StyleSheet, View, Text } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../interfaces';
+import {Friend, RootStackParamList} from '../../interfaces';
 import Button from '../../components/common/Button';
+import FriendsStack from "../../navigation/FriendsStack";
+import {navigate} from "../../navigation/RootNavigation";
 
 interface NavigationModalProps {
     modalVisible: boolean;
     setModalVisible: (visible: boolean) => void;
-    navigation: StackNavigationProp<RootStackParamList, '친구 목록'>;
+    navigation?: StackNavigationProp<RootStackParamList, '친구 목록'>;
 }
+
 
 const NavigationModal: React.FC<NavigationModalProps> = ({ modalVisible, setModalVisible, navigation }) => {
     return (
@@ -25,15 +28,14 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ modalVisible, setModa
                             style={styles.button}
                             onPress={() => {
                                 setModalVisible(false);
-                                navigation.navigate('Tabs', { screen: '친구요청 목록' });
-                            }}
-                        />
-                        <Button
-                            title="차단친구 목록"
-                            style={styles.button}
-                            onPress={() => {
-                                setModalVisible(false);
-                                navigation.navigate('Tabs', { screen: '차단친구 목록' });
+                                navigate("로그인 성공", {
+                                    screen: "친구",
+                                    params: {
+                                        screen: "친구요청 목록"
+                                    }
+                                })
+
+
                             }}
                         />
                     </View>
