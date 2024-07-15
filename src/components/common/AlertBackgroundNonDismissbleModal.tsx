@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import { useModal } from '../../context/ModalContext'; // Adjust the import path as necessary
+import fontTheme from '../../styles/FontTheme';
 
 const BackgroundNonDismissibleModal = () => {
   const { modalVisible, modalContent, hideModal } = useModal();
@@ -19,12 +20,7 @@ const BackgroundNonDismissibleModal = () => {
           <Text style={styles.modalTitle}>{modalContent.title}</Text>
           <Text style={styles.modalText}>{modalContent.content}</Text>
           <View style={styles.buttonContainer}>
-          {modalContent.showCancel && (
-              <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => { modalContent.onCancel && modalContent.onCancel(); hideModal(); }}>
-                <Text style={styles.buttonCancelText}>{modalContent.cancelText || '취소'}</Text>
-              </TouchableOpacity>
-            )}
-                      <TouchableOpacity
+          <TouchableOpacity
               style={[
                 styles.button,
                 styles.confirmButton,
@@ -33,7 +29,13 @@ const BackgroundNonDismissibleModal = () => {
               onPress={() => { modalContent.onConfirm && modalContent.onConfirm(); hideModal(); }}
             >
               <Text style={styles.buttonConfirmText}>{modalContent.confirmText || '확인'}</Text>
-            </TouchableOpacity>
+          </TouchableOpacity>
+          {modalContent.showCancel && (
+              <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => { modalContent.onCancel && modalContent.onCancel(); hideModal(); }}>
+                <Text style={styles.buttonCancelText}>{modalContent.cancelText || '취소'}</Text>
+              </TouchableOpacity>
+            )}
+            
         
           </View>
         </View>
@@ -62,7 +64,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 14,
     marginTop:20,
-    fontWeight: 'bold',
+    fontFamily: fontTheme.fonts.title,
+    color: 'black'
   },
   modalText: {
     marginBottom: 20,
@@ -71,6 +74,8 @@ const styles = StyleSheet.create({
     marginLeft:10,
     marginRight:10,
     textAlign: 'center',
+    fontFamily: fontTheme.fonts.main,
+    color: 'black'
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -86,26 +91,25 @@ const styles = StyleSheet.create({
   cancelButton: {
     backgroundColor: '#D9D9DA',
     marginRight: 0,
-    borderBottomLeftRadius: 10
+    borderBottomRightRadius: 10
   },
   confirmButton: {
     backgroundColor: '#6DB9C4',
     marginLeft: 0,
-    borderBottomRightRadius: 10,
+    borderBottomLeftRadius: 10,
   },
   confirmButtonSingle: {
-    borderBottomLeftRadius: 10,
+    borderBottomEndRadius: 10,
   },
   buttonConfirmText: {
     color: 'white',
     fontSize: 13,
-    fontWeight: 'bold',
-
+    fontFamily: fontTheme.fonts.title,
   },
   buttonCancelText: {
     color: 'gray',
     fontSize: 13,
-    fontWeight: 'bold',
+    fontFamily: fontTheme.fonts.title,
   }
 });
 

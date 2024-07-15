@@ -111,21 +111,9 @@ export const ChatOut = async (chatRoomId:number, setRefresh:Function) => {
 };
 
 
-export const localChatOut = async (localChat:LocalChat, setRefresh:Function) => {
+export const localChatOut = async (localChat:LocalChat) => {
   const granted = await handleCheckPermission();
   if (!granted) 
     return
-  showModal(
-    localChat.name,
-    "채팅방을 떠나면 참여했던 채팅목록에서 삭제됩니다. 나가시겠습니까?",
-    async () => {
-      await ChatOut(localChat.chatRoomId, setRefresh);
-    },
-    () => {
-      navigate("채팅", { chatRoomId: localChat.chatRoomId });
-    },
-    true,
-    '나가기', // Confirm 버튼 텍스트
-    '참가' // Cancel 버튼 텍스트
-  );
+  navigate("채팅", { chatRoomId: localChat.chatRoomId });
 };

@@ -113,7 +113,7 @@ const MapScreen: React.FC = ({}) => {
       initialCamera={{
       latitude : currentLocation.latitude,
       longitude : currentLocation.longitude,
-      zoom:18}}
+      zoom:17}}
       ref={mapViewRef}
       /> : 
       <NaverMapView
@@ -121,33 +121,26 @@ const MapScreen: React.FC = ({}) => {
         initialCamera={{
         latitude : currentLocation.latitude,
         longitude : currentLocation.longitude,
-        zoom:18}}
+        zoom:17}}
         ref={mapViewRef}
         >
       <LocalChatMarkerOverlay cameraMove={cameraMove} />
       <NaverMapCircleOverlay
-            latitude={currentLocation.latitude}
-            longitude={currentLocation.longitude}
-            radius={10} 
-            color="rgba(171, 212, 212, 0.5)"
-          />
-          <NaverMapMarkerOverlay
-            isHideCollidedCaptions={true}
-            latitude={currentLocation.latitude}
-            longitude={currentLocation.longitude}
-            anchor={{ x: 0.5, y: 1 }}
-            width={50}
-            height={70}
-            zIndex={3}
-          >
-            <View style={styles.avatarContainer}>
-              <View style={styles.avatarWrapper}>
-                <ProfileImage profileImageId={userInfo.profileImageId} avatarStyle={styles.avatar} />
-              </View>
-              <Text style={styles.avatarText}>나</Text>
-            </View>
-          </NaverMapMarkerOverlay>
-        </NaverMapView>}
+        latitude={currentLocation.latitude}
+        longitude={currentLocation.longitude}
+        radius={100} 
+        color="rgba(171, 212, 212, 0.3)"
+      />
+      <NaverMapMarkerOverlay
+        latitude={currentLocation.latitude}
+        longitude={currentLocation.longitude}
+        anchor={{ x: 0.5, y: 1 }}
+        width={20}
+        height={30}
+        zIndex={3}
+        caption={{'text': "나"}}
+      />
+    </NaverMapView>}
       {isgranted && <>
         <LocalChatButton showLocalChatModal={showLocalChatModal} setShowLocalChatModal={setShowLocalChatModal} />
       </>}

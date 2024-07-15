@@ -14,6 +14,7 @@ import { MsgSendCntState } from '../../recoil/atoms';
 import { handleImagePicker, uploadImage } from '../../utils/FileHandling';
 import { useModal } from '../../context/ModalContext';
 import { addDeviceIDList } from '../../utils/matchMmkvStorage';
+import fontTheme from '../../styles/FontTheme';
 
 const ignorePatterns = [
   /No task registered for key shortService\d+/,
@@ -28,7 +29,7 @@ interface MessageBoxPrams {
   uuids: Set<string>;
   setRemainingTime: React.Dispatch<React.SetStateAction<number>>;
   setShowMsgBox: React.Dispatch<React.SetStateAction<boolean>>;
-  // fadeInAndMoveUp: () => void;
+  fadeInAndMoveUp: () => void;
   visible: boolean;
   onClose: () => void;
 
@@ -43,7 +44,7 @@ const tags = [
 ];
 
 const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShowMsgBox, 
-  // fadeInAndMoveUp, 
+  fadeInAndMoveUp, 
   visible, onClose})  => {
   const [msgText, setMsgText] = useMMKVString("map.msgText", userMMKVStorage);
   const [isBlocked, setIsBlocked] = useMMKVBoolean("map.isBlocked", userMMKVStorage);
@@ -97,7 +98,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
     }
     await sendMsg(uuids, updateFileId);
     setShowMsgBox(false);
-    // fadeInAndMoveUp();
+    fadeInAndMoveUp();
     if (sendCountsRef.current === 0)
       return;
 
@@ -327,7 +328,8 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     width: '100%',
-
+    fontFamily: fontTheme.fonts.sub,
+    color:'black',
     elevation: 5, // Android에서의 그림자 효과
   },
   charCount: {

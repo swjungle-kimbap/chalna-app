@@ -6,29 +6,29 @@ import styles from './BleComponent.style';
 
 interface BleBottomComponentProps {
   isBlocked: boolean;
-  // fadeAnim: Animated.Value;
-  // translateY: Animated.Value;
+  fadeAnim: Animated.Value;
+  translateY: Animated.Value;
   msgSendCnt: number;
   remainingTime: number;
   showMsgBox: boolean;
   uuidSet: Set<string>;
   setRemainingTime: (time: number) => void;
   setShowMsgBox: (show: boolean) => void;
-  // fadeInAndMoveUp: () => void;
+  fadeInAndMoveUp: () => void;
   style?: ViewStyle;
 }
 
 const BleBottomComponent: React.FC<BleBottomComponentProps> = ({
   isBlocked,
-  // fadeAnim,
-  // translateY,
+  fadeAnim,
+  translateY,
   msgSendCnt,
   remainingTime,
   showMsgBox,
   uuidSet,
   setRemainingTime,
   setShowMsgBox,
-  // fadeInAndMoveUp,
+  fadeInAndMoveUp,
   style,
 }) => {
 
@@ -61,7 +61,7 @@ const BleBottomComponent: React.FC<BleBottomComponentProps> = ({
       {isBlocked ? (
         <>
           {/* <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: translateY }] }}> */}
-          <Animated.View>
+          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: translateY }] }}>
             <Text style={styles.messageText}>
               {msgSendCnt ? `${msgSendCnt}명에게 인연 메세지를 보냈습니다.` : "메세지를 보낼 수 없는 대상입니다. 다시 보내 주세요!"}
             </Text>
@@ -77,7 +77,7 @@ const BleBottomComponent: React.FC<BleBottomComponentProps> = ({
               uuids={uuidSet}
               setRemainingTime={setRemainingTime}
               setShowMsgBox={setShowMsgBox}
-              // fadeInAndMoveUp={fadeInAndMoveUp}
+              fadeInAndMoveUp={fadeInAndMoveUp}
               visible={showMsgBox}
               onClose={() => setShowMsgBox(false)}
             />

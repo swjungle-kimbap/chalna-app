@@ -67,13 +67,11 @@ const styles = StyleSheet.create({
     height: '50%', // 고정 높이
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 50,
   },
   findTextSmall: {
     fontSize: 16,
     color: 'gray',
     textAlign: 'center', // 텍스트 가운데 정렬 추가
-    marginBottom: -40,
   },
   // MessageGif style
   messageButtonContainer: {
