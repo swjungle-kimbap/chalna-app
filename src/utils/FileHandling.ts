@@ -68,7 +68,6 @@ export const uploadImage = async (image:FileImage, fileType:'IMAGE' |'PROFILEIMA
       true,
       { onlyScaleDown: true }
     );
-    RNFS.unlink(uri);
     
     // s3에 업로드
     const file = await fetch(resizedImage.uri);
