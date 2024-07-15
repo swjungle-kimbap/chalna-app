@@ -1,13 +1,13 @@
 import { ClusterMarkerProp, NaverMapMarkerOverlay, NaverMapView } from "@mj-studio/react-native-naver-map";
-import { useEffect, useRef, useState } from "react";
-import { View, ActivityIndicator, Alert, StyleSheet, FlatList, Dimensions } from "react-native";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { View, ActivityIndicator, Alert, StyleSheet, FlatList, Dimensions, TouchableOpacity } from "react-native";
 import { axiosGet } from "../../axios/axios.method";
 import { urls } from "../../axios/config";
 import { AxiosResponse, FriendEncounterPostion, Position } from "../../interfaces";
 import Text from "../../components/common/Text";
 import { useRecoilValue } from 'recoil';
 import { locationState } from "../../recoil/atoms";
-import moment from "moment";
+import RowButton from "../../components/Mypage/RowButton";
 
 function generateDummyGPSData(startLat, startLon, numPoints, timeInterval) {
   const gpsData = [];
@@ -28,7 +28,7 @@ function generateDummyGPSData(startLat, startLon, numPoints, timeInterval) {
     });
 
     // Increment the time
-    currentTime = new Date(currentTime.getTime() + timeInterval * 1000);
+    currentTime = new Date(currentTime.getTime() - timeInterval * 1000);
   }
 
   return gpsData;
@@ -37,8 +37,8 @@ function generateDummyGPSData(startLat, startLon, numPoints, timeInterval) {
 // Example usage:
 const startLatitude = 37.56100278;  
 const startLongitude = 126.9996417;
-const numberOfPoints = 300;  // Number of GPS points to generate
-const timeIntervalInSeconds = 60 * 60 * 24;  // Time interval between points in seconds
+const numberOfPoints = 100;  // Number of GPS points to generate
+const timeIntervalInSeconds = 1 * 60 * 60 * 24;  // Time interval between points in seconds
 
 interface FriendLogScreenProps {
   route: {
@@ -48,30 +48,47 @@ interface FriendLogScreenProps {
   }
 }
 
-const generateMonths = (numYears) => {
+const generateMonths = (needYear) => {
   const months = [];
-  const currentYear = new Date().getFullYear();
-
-  for (let year = currentYear; year > currentYear - numYears; year--) {
+  for (let year of needYear) {
     for (let month = 11; month >= 0; month--) {
       months.push({ year, month });
     }
   }
-  return months.reverse();
+  return months;
 };
 
-
-const months:{month:number, year:number}[] = generateMonths(5);
+const groupByMonth = (data) => {
+  const groupedData = new Map();
+  const needYear = new Set();
+  const filteredData = data.map((item, index) => {
+    const date = new Date(item.meetTime);
+    const year = date.getFullYear();
+    needYear.add(year);
+    const month = date.getMonth();
+    const yearMonth = `${year}-${month + 1}`;
+    if (!groupedData.has(yearMonth)) {
+      groupedData.set(yearMonth, []);
+    }
+    groupedData.get(yearMonth).push(index);
+    return {longitude: item.longitude, latitude:item.latitude, identifier: index.toString(), 
+      height:30, width:20}
+  });
+  return {groupedData, filteredData, needYear};
+};
 
 const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
   const { otherId = 0 } = route.params ?? {};
   const logMapViewRef = useRef(null);
   const [friendLog, setFriendLog] = useState<FriendEncounterPostion[]>([]);
+  const [monthlyLogs, setMonthlyLogs] = useState(new Map());
   const [clusterMarkers, setClusterMarkers] = useState<ClusterMarkerProp[]>([]);
-  const [isloading, setIsLoading] = useState(true);
   const currentLocation = useRecoilValue<Position>(locationState);
   const { width } = Dimensions.get('window');
   const flatListRef = useRef(null);
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const currentIndex = useRef(0);
+  const [months, setMonths] = useState<{month:number, year:number}[]>([]);
 
   useEffect(()=> {
     const fetchData = async () => {
@@ -79,56 +96,75 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
         const response = await axiosGet<AxiosResponse<FriendEncounterPostion[]>>
         (`${urls.GET_FRIEND_ENCOUNTER_URL}/${otherId}`, "스쳐간 위치 조회");
         if (response.data?.data){
-          //const EncounterData = response.data?.data;
-          const dummyGPSData = generateDummyGPSData(startLatitude, startLongitude, numberOfPoints, timeIntervalInSeconds);
-          setFriendLog(dummyGPSData);
-          const filteredData = dummyGPSData.map((data, index) => {
-            return {longitude: data.longitude, latitude:data.latitude, identifier: index.toString(), 
-              height:30, width:20}
-          })
+          const EncounterData = response.data?.data.reverse();
+          //const dummyGPSData = generateDummyGPSData(startLatitude, startLongitude, numberOfPoints, timeIntervalInSeconds);
+          const {groupedData, filteredData, needYear} = groupByMonth(EncounterData);
+          const generatedMonths: {month:number, year:number}[] = generateMonths(needYear);
+          setMonths(generatedMonths);
+          setFriendLog(EncounterData);
+          setMonthlyLogs(groupedData);
           setClusterMarkers(filteredData);
         }
       }
     }
     fetchData();
-    setIsLoading(false);
-
   }, [])
 
-  const onTapHandler = (index) => {
-    const {longitude, latitude, meetTime} = friendLog[index];
-    logMapViewRef.current.animateCameraTo({longitude, latitude});
-  };
+  const onTapHandler = useCallback((index) => {
+    if (friendLog[index]) {
+      const { longitude, latitude, meetTime } = friendLog[index];
+      logMapViewRef.current.animateCameraTo({ longitude, latitude, zoom:15}, { duration: 300 });
+    } else {
+      console.log("index is out of range", index);
+    }
+  }, [friendLog]);
 
   const formatTimestamp = (meetTime) => {
+    console.log(meetTime);
     const date = new Date(meetTime);
     const year = date.getFullYear();
-    const month = date.getMonth() + 1;  // Months are zero-based
+    const month = date.getMonth() + 1;  
     const day = date.getDate();
     return `${year}/${month}/${day}`;
   }
 
-
-  const MonthView = ({ item }) => {
-    if (item.month === 0)
-      return (
-        <>
-          <Text variant="sub" style={{ fontSize: 10, paddingHorizontal:10 }}>{item.year}</Text>
-          <View style={{ flexDirection: "column", alignItems: 'center', paddingHorizontal:10 }}>
-            <Text variant="sub" style={{ fontSize: 10 }}>{30}</Text>
-            <Text>{item.month + 1}</Text>
-          </View>
-        </>
-      );
-
+  const MonthView = memo(({ item, onPress, selectedMonth }) => {
+    const { year, month } = item;
+    const currentMonth = `${year}-${month + 1}`;
+    const montlyList = monthlyLogs.get(currentMonth);
+    const monthPress = montlyList ? () => {
+      onPress(montlyList[0]);
+      currentIndex.current = montlyList[0];
+      setSelectedMonth(currentMonth);
+    } : () => {};
+  
     return (
-      <View style={{ flexDirection: "column", alignItems: 'center', paddingHorizontal:10 }}>
-        <Text variant="sub" style={{ fontSize: 10 }}>{30}</Text>
-        <Text>{item.month + 1}</Text>
-      </View>
+      <>
+        {item.month === 11 && (
+          <Text variant="sub" style={styles.yearText}>{year}</Text>
+        )}
+        <TouchableOpacity onPress={monthPress}>
+          <View style={[
+            styles.monthContainer,
+            selectedMonth === currentMonth && styles.selectedMonthContainer
+          ]}>
+            <Text style={[
+              styles.monthText,
+              selectedMonth === currentMonth && styles.selectedMonthText
+            ]}>
+              {month + 1}
+            </Text>
+            <Text variant='sub' style={[
+              styles.encounterCountText,
+              selectedMonth === currentMonth && styles.selectedMonthText
+            ]}>
+              {montlyList ? montlyList.length : 0}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </>
     );
-  }
-
+  });
   return (
     <>
     <View style={styles.headerTab}>
@@ -139,11 +175,11 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
           <ActivityIndicator size="small" color="#3EB297" />
         </View> 
       </> :
-      <View style={{flexDirection:"row"}}>
-        <View style={{flexDirection:"column", alignItems:'center', justifyContent:'center', marginHorizontal: 10}}>
+      <View style={{flexDirection:"row", width: width}}>
+        {/* <View style={{flexDirection:"column", alignItems:'center', justifyContent:'center', marginHorizontal: 10}}>
           <Text variant="sub" style={{fontsize: 10}}>스친 횟수</Text>
           <Text>{friendLog.length}번</Text>
-        </View>
+        </View> */}
         <FlatList
           data={months}
           snapToEnd={true}
@@ -151,12 +187,10 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
           horizontal
           pagingEnabled
           keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => <MonthView item={item} />}
+          renderItem={({ item }) => <MonthView item={item} onPress={onTapHandler} selectedMonth={selectedMonth} />}
           showsHorizontalScrollIndicator={false}
-          initialScrollIndex={months.length - 1} // 시작 시 마지막 아이템으로 스크롤
-          getItemLayout={(data, index) => (
-            {length: 30, offset: 30 * index, index}
-          )}
+          initialNumToRender={10} 
+          windowSize={21} 
         />
       </View>}
     </View>
@@ -176,30 +210,55 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
             width={20}
             key={index.toString()}
             caption={{text:formatTimestamp(log.meetTime)}}
+            subCaption={{text:formatTimestamp(log.meetTime)}}
             minZoom={11}
           />
         )})
       }
     </NaverMapView>
-    {/* {isloading && 
-      (<>
-        <View style={styles.loadingConatiner}>
-          <Text variant="sub" style={styles.autoLoginText}>위치를 그리는 중 입니다.</Text>
-          <ActivityIndicator size="small" color="#3EB297" />
-        </View>
-      </>
-    )} */}
+    {friendLog.length !== 0 && 
+      <RowButton onTapHandler={onTapHandler} currentIndex={currentIndex} 
+        friendLog={friendLog} setSelectedMonth={setSelectedMonth} selectedMonth={selectedMonth}/>}
     </>
   );
 };
 
 const styles = StyleSheet.create({
+  encounterCountText: {
+    fontSize: 12,
+  },
+  monthContainer: {
+    flexDirection: "column",
+    marginHorizontal:7,
+    marginVertical: 10,
+  },
+  selectedMonthContainer: {
+    backgroundColor: '#3EB297',
+    borderRadius: 5,
+    padding: 5,
+    marginVertical: 10,
+  },
+  monthText: {
+    fontSize: 14,
+  },
+  selectedMonthText: {
+    color: '#fff',
+  },
+  yearText: {
+    fontSize: 10,
+    paddingHorizontal: 10,
+  },
+  selectedMonth:{
+    backgroundColor: '#3EB297',
+    borderRadius: 10,
+  },
   headerTab:{
     height: 60,
     backgroundColor: 'white',
-    elevation: 10,
     alignItems:'center',
     justifyContent:'center',
+    borderBottomWidth: 2,
+    borderColor: '#3EB297',
   },
   loadingConatiner : {
     alignContent:'center',

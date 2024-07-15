@@ -62,6 +62,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
     const trimmedQuery = searchQuery.replace(/\s+/g, '');
     if (!trimmedQuery) {
       setFilteredData(friendsList);
+      console.log(filteredData);
     } else {
       const filtered = friendsList.filter(
         ({username, message}) =>
@@ -102,7 +103,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
       <View style={styles.headerText}>
         <Text style={styles.text}>내 프로필</Text>
         <Button iconSource={require('../../assets/Icons/cogIcon.png')} imageStyle={styles.closebutton}
-          onPress={() => navigate('로그인 성공', { screen: "친구", params: { screen: "마이페이지" }})}/>
+          onPress={() => navigate('로그인 성공', { screen: "친구목록", params: { screen: "마이페이지" }})}/>
       </View>
       <View style={styles.header}>
         <View style={styles.avatarContainer}>

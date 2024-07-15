@@ -3470,7 +3470,6 @@ __metadata:
     jquery: ^3.7.1
     kalmanjs: ^1.1.0
     lottie-react-native: ^6.4.1
-    moment: ^2.30.1
     prettier: 2.8.8
     react: ^18.3.1
     react-dom: ^18.3.1
@@ -8227,13 +8226,6 @@ __metadata:
   bin:
     mkdirp: bin/cmd.js
   checksum: a96865108c6c3b1b8e1d5e9f11843de1e077e57737602de1b82030815f311be11f96f09cce59bd5b903d0b29834733e5313f9301e3ed6d6f6fba2eae0df4298f
-  languageName: node
-  linkType: hard
-
-"moment@npm:^2.30.1":
-  version: 2.30.1
-  resolution: "moment@npm:2.30.1"
-  checksum: 859236bab1e88c3e5802afcf797fc801acdbd0ee509d34ea3df6eea21eb6bcc2abd4ae4e4e64aa7c986aa6cba563c6e62806218e6412a765010712e5fa121ba6
   languageName: node
   linkType: hard
 

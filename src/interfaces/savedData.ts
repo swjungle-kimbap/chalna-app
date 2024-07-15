@@ -7,6 +7,7 @@ export type User = {
 export interface Friend extends User {
   profileImageId: number;
   status: number;
+  deviceId: string
 }
 
 export interface Position {
