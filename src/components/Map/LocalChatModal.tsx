@@ -190,6 +190,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0F7FA',
     borderRadius: 10,
     padding: 10,
+    elevation: 5, // Android에서의 그림자 효과
   },
   textInput: {
     flex: 1,
