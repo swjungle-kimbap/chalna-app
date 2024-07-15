@@ -200,7 +200,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
         <Container isSelf={isSelf} notChat={type !== 'CHAT' && type !== 'FILE'}>
             {shouldShowProfile && !isSelf && showProfileTime && (
                 <TouchableOpacity onPress={toggleUserInfoModal}>
-                    <ProfileImage profileImageId={profileImageId} avatarStyle={styles.profilePicture}/>
+                    <ProfileImage profileImageId={chatRoomType == 'FRIEND' && profileImageId} avatarStyle={styles.profilePicture}/>
                 </TouchableOpacity>
             )}
             <BubbleContainer isSelf={isSelf} notChat={type !== 'CHAT' && type !== 'FILE'}>

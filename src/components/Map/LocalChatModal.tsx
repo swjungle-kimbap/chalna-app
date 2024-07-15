@@ -1,4 +1,4 @@
-import { Alert, Modal, StyleSheet, TextInput, TouchableWithoutFeedback, View, }from 'react-native';
+import { Modal, StyleSheet, TextInput, TouchableWithoutFeedback, View, TouchableOpacity, Image } from 'react-native';
 import { useRef, useState } from 'react';
 import Button from '../common/Button';
 import Text from '../common/Text';
@@ -7,52 +7,53 @@ import { getLocalChatRefreshState, locationState } from '../../recoil/atoms';
 import { makeLocalChat } from '../../service/LocalChat';
 import FastImage from 'react-native-fast-image';
 import { handleImagePicker } from '../../utils/FileHandling';
-import { useModal } from '../../context/ModalContext';
 import RNFS from 'react-native-fs';
 import fontTheme from '../../styles/FontTheme';
+import { useModal } from '../../context/ModalContext';
 
-export interface LocalChatModalProps{
+export interface LocalChatModalProps {
   closeModal: () => void,
   modalVisible: boolean,
 }
 
-const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal}) => {
+const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModal }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const currentLocation = useRecoilValue(locationState);
   const [refresh, setRefresh] = useRecoilState(getLocalChatRefreshState);
   const inputRef = useRef<TextInput>(null);
   const descriptionInputRef = useRef<TextInput>(null);
-  const [imageUrl, setImageUrl] = useState(""); 
-  const [image, setImage] = useState(null); 
-  const {showModal} = useModal();
+  const [imageUrl, setImageUrl] = useState("");
+  const [image, setImage] = useState(null);
+  const { showModal } = useModal();
 
   const handleCreateButton = async () => {
-    const localChat = await makeLocalChat(name, description, currentLocation, image)
-     if (localChat) {
+    const localChat = await makeLocalChat(name, description, currentLocation, image);
+    if (localChat) {
       setRefresh(prev => !prev);
       setImageUrl("");
       closeModal();
-     }
+    }
   }
 
   const handleSelectImage = async () => {
-    const image = await handleImagePicker();
-    if (image) {
-      setImageUrl(image.uri);
-      setImage(image);
+    const selectedImage = await handleImagePicker();
+    if (selectedImage) {
+      setImageUrl(selectedImage.uri);
+      setImage(selectedImage);
     }
   }
 
   const handleRemoveImage = () => {
-    RNFS.unlink(image.uri);
+    if (image?.uri) {
+      RNFS.unlink(image.uri);
+    }
     setImageUrl('');
     setImage(null);
   };
-  
+
   return (
     <Modal
-      animationType="fade"
       transparent={true}
       visible={modalVisible}
       onRequestClose={closeModal}
@@ -61,40 +62,51 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
       <TouchableWithoutFeedback onPress={closeModal}>
         <View style={styles.modalOverlay}>
           <View style={styles.inputBoxPos}>
-            <TouchableWithoutFeedback>
-              <View style={styles.inputBox}>
-                <Text style={styles.titleText}>장소 채팅 생성 <Button title='💬' onPress={
-                  () => {
-                    showModal("장소 대화방", "현재 위치에서 주위 사람들과의 대화방을 만들어 보세요! 50m 이내의 사람들만 참여할 수 있어요!", ()=>{}, undefined, false)
-                  }
-                }/></Text>
-                <Button variant='sub' title='사진 추가 🖼️' onPress={handleSelectImage} titleStyle={styles.photoButton}/> 
-                <View style={styles.outlinedInput}>
-                  {imageUrl &&
-                    <>
+                <View style={styles.headerContainer}>
+                  <Text style={styles.titleText}>장소 채팅 생성</Text>
+                  <TouchableOpacity style={styles.questionIconContainer} onPress={() => showModal("장소 대화방", "현재 위치에서 주위 사람들과의 대화방을 만들어 보세요! \n 50m 이내의 사람들만 참여할 수 있어요!", () => {}, undefined, false)}>
+                    <Image source={require('../../assets/question2.png')} style={styles.questionIcon} />
+                  </TouchableOpacity>
+                </View>
+
+                {!imageUrl && (
+                  <TouchableOpacity onPress={handleSelectImage} style={styles.imageButton}>
+                    <Image source={require('../../assets/photo.png')} style={styles.imageIcon} />
+                  </TouchableOpacity>
+                )}
+
+                {imageUrl && (
+                  <View style={styles.imageContainer}>
                     <FastImage
-                      style={styles.fullScreenImage}
+                      style={styles.smallImage}
                       source={{ uri: imageUrl, priority: FastImage.priority.normal }}
                       resizeMode={FastImage.resizeMode.contain}
                     />
-                    <Button iconSource={require('../../assets/buttons/CloseButton.png')} imageStyle={styles.photoRemoveButton}
-                      onPress={handleRemoveImage}/>
-                    </>
-                  }
+                    <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageButton}>
+                      <Text style={styles.removeImageButtonText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                <View style={styles.outlinedInput}>
                   <TextInput
                     value={name}
                     style={styles.textInput}
                     onChange={(event) => setName(event.nativeEvent.text)}
                     placeholder="제목을 입력해주세요"
-                    placeholderTextColor="#888"
+                    placeholderTextColor="#888" 
                     ref={inputRef}
                     maxLength={15}
                     blurOnSubmit={false}
-                    onSubmitEditing={() => descriptionInputRef.current?.focus()} 
+                    onSubmitEditing={() => descriptionInputRef.current?.focus()}
                   />
-                  <Button iconSource={require('../../assets/buttons/CloseButton.png')} imageStyle={styles.closebutton}
-                    onPress={() => {setName('');}}/>
+                  {name.length > 0 && (
+                    <TouchableOpacity onPress={() => setName('')}>
+                      <Image source={require('../../assets/buttons/CloseButton.png')} style={styles.closebutton} />
+                    </TouchableOpacity>
+                  )}
                 </View>
+
                 <View style={styles.outlinedInput}>
                   <TextInput
                     value={description}
@@ -102,21 +114,24 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
                     multiline
                     maxLength={30}
                     onChange={(event) => setDescription(event.nativeEvent.text)}
-                    placeholder="내용을 입력해주세요"
+                    placeholder="무엇을 공유하나요? 내용을 입력해주세요"
                     placeholderTextColor="#888"
                     ref={descriptionInputRef}
                   />
-                  <Button iconSource={require('../../assets/buttons/CloseButton.png')} imageStyle={styles.closebutton}
-                    onPress={() => {setDescription('');}}/>
+                  {description.length > 0 && (
+                    <TouchableOpacity onPress={() => setDescription('')}>
+                      <Image source={require('../../assets/buttons/CloseButton.png')} style={styles.closebutton} />
+                    </TouchableOpacity>
+                  )}
                 </View>
-                { ( name.length > 0 && description.length > 0) ? 
-                  <Button titleStyle={styles.makeButton} title="만들기" onPress={handleCreateButton}/> :
-                  name.length !== 0 ? <Text style={styles.makeButton} variant='sub'>내용을 입력해주세요</Text> : 
-                  description.length !== 0 ? <Text style={styles.makeButton} variant='sub'>제목을 입력해주세요</Text> : 
-                  <Text style={styles.makeButton} variant='sub'>제목과 내용을 채워주세요</Text> }
-                
-              </View>
-            </TouchableWithoutFeedback>
+
+                {(name.length > 0 && description.length > 0) ? (
+                  <Button titleStyle={styles.makeButton} title="생성하기" onPress={handleCreateButton} />
+                ) : (
+                  <Text style={styles.makeExplain} variant='sub'>
+                    {name.length === 0 && description.length === 0 ? "제목과 내용을 채워주세요" : name.length === 0 ? "제목을 입력해주세요" : "내용을 입력해주세요"}
+                  </Text>
+                )}
           </View>
         </View>
       </TouchableWithoutFeedback>
@@ -125,68 +140,132 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({modalVisible, closeModal
 };
 
 const styles = StyleSheet.create({
-  makeButton: {
-    fontSize: 15,
-    marginVertical:10,
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  photoRemoveButton: {
-    position: 'relative',
-    width: 13,
-    height: 13,
-    bottom: 20,
+  inputBoxPos: {
+    width: '90%',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 10,
   },
-  closebutton: {
-    width: 13,
-    height: 13,
-    color: 'black',
+  inputBox: {
+    justifyContent: 'center',
   },
-  photoButton: {
-    alignSelf: 'flex-start',
-    fontSize: 15,
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
   },
-  fullScreenImage: {
-    width: 60,
-    height: 60,
+  titleText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  questionIconContainer: {
+    position: 'absolute',
+    right: 0,
+  },
+  questionIcon: {
+    width: 20,
+    height: 20,
+    resizeMode: 'contain',
+  },
+  outlinedInput: {
+    borderColor: '#000',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 10,
+    backgroundColor: '#BAD2F3',
+    borderRadius: 10,
+    padding: 10,
+    elevation: 5,
   },
   textInput: {
     flex: 1,
     color: 'black',
     width: '100%',
-    margin:0,
-    padding:0,
+    margin: 0,
+    padding: 0,
     fontFamily: fontTheme.fonts.sub,
+    backgroundColor: 'transparent',
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    height: '70%',
+  closebutton: {
+    width: 13,
+    height: 13,
+    tintColor: 'black',
   },
-  inputBox: {
-    width: '80%',
-    maxHeight: '70%',
-    zIndex: 3,
+  imageButton: {
+    alignSelf: 'center',
+    marginVertical: 10,
     backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 10,
   },
-  inputBoxPos: {
-    flex: 1,
+  imageIcon: {
+    width: 30,
+    height: 30,
+    tintColor: 'gray',
+  },
+  imageContainer: {
     alignItems: 'center',
+    marginVertical: 10,
+  },
+  fullScreenImage: {
+    width: '100%',
+    height: 200,
+  },
+  smallImage: {
+    width: 150,
+    height: 150,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
     justifyContent: 'center',
-  },
-  titleText: {
-    textAlign: 'left', 
-    marginVertical: 10,
-    fontSize: 20,
-  },
-  outlinedInput: {
-    borderBottomWidth: 1,
-    borderColor: '#000',
-    flexDirection: 'row',
-    justifyContent:'space-between',
     alignItems: 'center',
-    marginVertical: 10,
   },
+  removeImageButtonText: {
+    color: 'white',
+    fontSize: 18,
+  },
+  makeButton: {
+    fontSize: 15,
+    marginVertical: 10,
+    backgroundColor: '#438EE6',
+    alignSelf: 'center',
+    padding: 10,
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 5,
+    color: 'white'
+  },
+  makeExplain: {
+    fontSize: 15,
+    marginVertical: 10,
+  }
 });
 
 export default LocalChatModal;

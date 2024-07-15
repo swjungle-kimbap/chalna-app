@@ -23,6 +23,8 @@ import {fetchReceivedFriendRequest} from "../../service/Friends/FriendListAPI";
 import NavigationModal from "../../components/Mypage/NavigationModal";
 
 import FriendRequestScreen from "./FriendRequestScreen";
+import CustomHeader from '../../components/common/CustomHeader';
+import color from '../../styles/ColorTheme';
 
 interface ApiResponse {
   status: string;
@@ -41,7 +43,6 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
   const [filteredData, setFilteredData] = useState<Friend[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useRecoilState(userInfoState);
-  const [myprofileVisible, setMyprofileVisible] = useState(true);
   const [friendRequests, setFriendRequests] = useState<friendRequest[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -159,30 +160,20 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
   };
 
   return (
+    <View style = {styles.container}>
+    <CustomHeader 
+      title={'친구'} 
+      useEtc={true}
+      onMenuPress={() => {
+        setModalVisible(true);
+      }}
+      />
     <View style={styles.friendListPage}>
       <View style={styles.ListContainer}>
-        { myprofileVisible ?
-          <>
+         
           <Myprofile/>
-            <ReceivedRequests friendRequests={friendRequests}/>
-            <View style={styles.friendText}>
-              <View style={styles.titlebtn}>
-                <Text style={styles.text}>친구 목록</Text>
-                <Button iconSource={require('../../assets/Icons/3dotsVertical.png')} imageStyle={styles.searchIcon}
-                        onPress={() => {
-                          setModalVisible(true);
-                        }}/>
-              </View>
-
-              <Button iconSource={require('../../assets/Icons/SearchIcon.png')} imageStyle={styles.searchIcon}
-                      onPress={() => {
-                        setMyprofileVisible(false);
-                        setSearchQuery("");
-                        setFilteredData(friendsList);
-                      }}/>
-          </View>
-          </> :
-          <>
+          <HorizontalLine/>
+          <Text style={styles.text}>친구 목록</Text>
           <View style={styles.searchContainer}>
             <Image source={require('../../assets/Icons/SearchIcon.png')} style={styles.searchIcon}/>
             <TextInput
@@ -190,21 +181,18 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
               value={searchQuery}
               onChangeText={handleSearch}
               style={styles.searchInput}
+              selectionColor={'gray'}
             />
+
+            {searchQuery.length > 0 &&
             <Button iconSource={require('../../assets/buttons/CloseButton.png')} imageStyle={styles.closebutton}
                     onPress={() => {
                     setSearchQuery("");
                     setFilteredData(friendsList);
             }}/>
-            <Button iconSource={require('../../assets/Icons/GoBack.png')} imageStyle={styles.gobackbutton}
-                    onPress={() => {
-                      setSearchQuery("");
-                      setFilteredData(friendsList);
-                      setMyprofileVisible(true);
-                    }}/>
+            }
           </View>
-          </>
-        }
+        
         {!filteredData ? (
           <Text>친구가 없습니다.</Text>
         ) : (
@@ -220,20 +208,26 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
           modalVisible={modalVisible}
           setModalVisible={setModalVisible}
           navigation={navigation}
+          requestCount={friendRequests.length}
       />
 
+    </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+    height: '100%',
+  },
   friendText: {
     flexDirection:'row',
     justifyContent:'space-between',
   },
   closebutton: {
-    width: 20,
-    height: 20,
+    width: 17,
+    height: 17,
     color: 'black',
   },
   gobackbutton: {
@@ -304,20 +298,20 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 15,
-    color: '#000',
+    color: '#111',
     marginBottom: 5,
     fontFamily:FontTheme.fonts.main,
     alignSelf: "flex-start"
   },
   statusMessage: {
     fontSize: 14,
-    color: '#979797',
+    color: '#868686',
     fontFamily: FontTheme.fonts.sub,
     paddingRight: 6,
     alignSelf: 'flex-start',
   },
   searchContainer: {
-    marginTop: 20,
+    marginTop: 5,
     flexDirection: 'row',
     alignItems: 'center',
     borderColor: '#CCC',
