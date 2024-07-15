@@ -158,7 +158,8 @@ const BottomTabs = () => {
             return <Text style={labelStyle}>{route.name}</Text>;
           },
           tabBarActiveTintColor: '#3EB297',
-          tabBarStyle: styles.tabContainer,
+          // tabBarStyle: styles.tabContainer,
+          tabBarStyle: isKeyboardVisible ? styles.hiddenTabContainer : styles.tabContainer,
           tabBarLabelStyle : {
             fontFamily: FontTheme.fonts.main,
             fontSize: 10,
@@ -193,6 +194,9 @@ const styles = StyleSheet.create({
       paddingVertical: 12,
       alignItems: 'center',
   },
+  hiddenTabContainer: {
+    display: 'none',
+},
 });
 
 export default BottomTabs;

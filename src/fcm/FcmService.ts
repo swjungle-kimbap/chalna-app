@@ -1,7 +1,3 @@
-import messaging from '@react-native-firebase/messaging';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import PushNotification from 'react-native-push-notification';
-import { Platform } from 'react-native';
 import { fcmConfig } from './FcmConfig';
 
 class FCMService {
