@@ -121,12 +121,13 @@ import ImageTextButton from "../../common/Button";
 import FastImage, { Source } from 'react-native-fast-image';
 import { axiosGet } from '../../../axios/axios.method';
 import { urls } from '../../../axios/config';
+import ProfileImage from "../../common/ProfileImage";
 
 interface UserProfileModalProps {
     visible: boolean;
     onClose: () => void;
     username?: string;
-    profilePicture?: string;
+    profileImageId?: number;
     chatRoomType: string;
     otherId: number;
 }
@@ -143,7 +144,7 @@ const fetchRelation = async (id: number): Promise<number | null> => {
 }
 
 const UserProfileModal: React.FC<UserProfileModalProps> = ({
-                                                               visible, onClose, username, profilePicture, chatRoomType, otherId
+                                                               visible, onClose, username, profileImageId, chatRoomType, otherId
                                                            }) => {
 
     const [relationCount, setRelationCount] = useState<number | null>(null);
@@ -169,19 +170,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                         onPress={onClose}
                         style={{ alignSelf: 'flex-end' }}
                     />
-                    {profilePicture ? (
-                        <FastImage
-                            style={styles.profilePictureModal}
-                            source={{ uri: profilePicture, priority: FastImage.priority.normal } as Source}
-                            resizeMode={FastImage.resizeMode.cover}
-                        />
-                    ) : (
-                        <FastImage
-                            source={require('../../../assets/images/anonymous.png')}
-                            style={styles.profilePictureModal}
-                            resizeMode={FastImage.resizeMode.cover}
-                        />
-                    )}
+                    <ProfileImage profileImageId={profileImageId}  avatarStyle={styles.profilePictureModal}/>
                     <NameBtnContainer>
                         <Text variant="subtitle">{username}</Text>
                         {chatRoomType === 'FRIEND' ? (

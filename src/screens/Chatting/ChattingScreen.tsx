@@ -100,7 +100,6 @@ const ChattingScreen: React.FC = () => {
     const batchSize = 20;
 
     const chatRoomIdRef = useRef<string>(chatRoomId);
-    const [profilePicture, setProfilePicture] = useState<string>("");
 
     const [showAnnouncement, setShowAnnouncement] = useState<boolean>(false); // State for showing announcement
 
@@ -129,7 +128,9 @@ const ChattingScreen: React.FC = () => {
 
     const AnnouncementMsg = () => {
         if (chatRoomType === 'LOCAL') {
-            return "거리가 멀어지면 채팅이 종료됩니다."; // + chatRoomInfo.description;
+            return "거리가 멀어지면 채팅이 종료됩니다."
+            //"이전 대화내역을 볼 수 있습니다." +
+            // + chatRoomInfo.name+': '+ chatRoomInfo.description;
         } else if (chatRoomType === 'MATCH') {
             return "상대와 5분동안 대화할 수 있습니다."
         } else {
@@ -167,16 +168,7 @@ const ChattingScreen: React.FC = () => {
             }
             saveChatRoomInfo(chatRoomInfoToStore);
         }
-        // 프로필 이미지 로드
-        if (chatRoomType==='FRIEND'){
-            const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
-            if (filteredMembers[0].profileImageId) {
-                const uri = await getImageUri(filteredMembers[0].profileImageId);
-                setProfilePicture(uri);
-            } else {
-                setProfilePicture("");
-            }
-        }
+
     };
 
     const handleSelectImage = () => {
@@ -477,17 +469,6 @@ const ChattingScreen: React.FC = () => {
                     };
                     saveChatRoomInfo(chatRoomInfoToSave);
 
-                    const filteredMembers = members.filter(member => member.memberId !== currentUserId);
-                    if (responseData.type === 'FRIEND' && filteredMembers.length === 1 && filteredMembers[0].profileImageId) {
-                        if (filteredMembers[0].profileImageId) {
-                            const uri = await getImageUri(filteredMembers[0].profileImageId);
-                            setProfilePicture(uri);
-                        } else {
-                            setProfilePicture("");
-                        }
-                    } else {
-                        setProfilePicture("");
-                    }
                 }
 
             } catch (error) {
@@ -560,6 +541,20 @@ const ChattingScreen: React.FC = () => {
     const getUsernameBySenderId = (senderId: number) => {
         return memberIdToUsernameMap.get(senderId) || '(알 수 없는 사용자)';
     }
+
+
+    const senderIdToProfileIdMap = useMemo(() => {
+        const map = new Map<number, number>();
+        members.forEach(member => {
+            map.set(member.memberId, member.profileImageId);
+        });
+        return map;
+    }, [members]);
+
+    const getProfileIdBySenderId = (senderId: number) => {
+        return senderIdToProfileIdMap.get(senderId) || 0;
+    }
+
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const {contentOffset} = event.nativeEvent;
@@ -658,7 +653,7 @@ const ChattingScreen: React.FC = () => {
                                         chatRoomId={Number(chatRoomId)}
                                         senderId={item.senderId}
                                         chatRoomType={chatRoomType}
-                                        profilePicture={profilePicture}
+                                        profileImageId={getProfileIdBySenderId(item.senderId)}
                                         username={getUsernameBySenderId(item.senderId)}
                                         showProfileTime={showProfileTime}
                                     />
