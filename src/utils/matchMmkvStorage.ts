@@ -8,26 +8,25 @@ export interface DeviceObject {
 }
 
 
-export const addDeviceIDList = async (deviceId: string, lastSendAt:string): Promise<void> => {
+export const addDeviceIDList = async (deviceIds: string[], lastSendAt:string): Promise<void> => {
   try {
     const existingDeviceObjects = getMMKVObject<DeviceObject[]>(deviceObjectStorage) || [];
-    const existingDeviceIndex = existingDeviceObjects.findIndex(obj => obj.deviceId === deviceId);
-
-    if (existingDeviceIndex !== -1) {
-      existingDeviceObjects[existingDeviceIndex].lastSendAt = lastSendAt;
-    } else {
-      existingDeviceObjects.push({
-        deviceId: deviceId,
-        lastSendAt: lastSendAt,
-      });
-    }
-
+    deviceIds.forEach((deviceId) => {
+      const existingDeviceIndex = existingDeviceObjects.findIndex(obj => obj.deviceId === deviceId);
+      if (existingDeviceIndex !== -1) {
+        existingDeviceObjects[existingDeviceIndex].lastSendAt = lastSendAt;
+      } else {
+        existingDeviceObjects.push({
+          deviceId: deviceId,
+          lastSendAt: lastSendAt,
+        });
+      }
+    })
+    
     // 업데이트된 목록 저장
     setMMKVObject(deviceObjectStorage, existingDeviceObjects);
-    console.log(`Stored deviceId message for user ${getCurrentUserId()}:`, deviceId, lastSendAt);
-
   } catch (error) {
-    console.error(`Error storing deviceId message for user ${getCurrentUserId()}:`, error);
+    console.error(`Error storing deviceId message `, error);
   }
 };
 

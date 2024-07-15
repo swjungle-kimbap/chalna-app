@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Animated, Easing } from 'react-native';
+import { View, Animated, Easing, StyleSheet } from 'react-native';
 import FastImage, { Source } from 'react-native-fast-image';
 import styles from './BleComponent.style';
 import { userMMKVStorage } from '../../utils/mmkvStorage';
@@ -57,8 +57,8 @@ const createFloatingAnimation = (anim: Animated.Value) => {
 
 const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
   const fadeAnimMap = useRef(new Map<string, Animated.Value>()).current;
-  const floatAnimMap = useRef(new Map<string, Animated.Value>()).current;
   const iconMap = useRef(new Map<string, Source>()).current;
+  const checkMap = useRef(new Map<string, boolean>()).current;
   const [SendDeviceIdList, setSendDeviceIdList] = useMMKVObject<DeviceObject[]>(deviceObjectStorage, userMMKVStorage);
 
   useEffect(() => {
@@ -68,9 +68,9 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
       const restTime = new Date(item.lastSendAt).getTime() - currentTime;
       if (restTime) {
         console.log('restTime:', restTime);
-        iconMap.set(item.deviceId, tempImage);
+        checkMap.set(item.deviceId, true);
         setTimeout(() => {
-          iconMap.set(item.deviceId, getRandomIcon());
+          checkMap.delete(item.deviceId);
         }, restTime);
       }
     })
@@ -83,10 +83,8 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
     uuids.forEach((uuid) => {
       if (!fadeAnimMap.has(uuid)) {
         const fadeAnim = new Animated.Value(0);
-        const floatAnim = new Animated.Value(0);
 
         fadeAnimMap.set(uuid, fadeAnim);
-        floatAnimMap.set(uuid, floatAnim);
         const isExist = iconMap.get(uuid);
         if (!isExist) {
           const randomIcon= getRandomIcon();
@@ -98,7 +96,6 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
           duration: 1000,
           useNativeDriver: true,
         }).start();
-        createFloatingAnimation(floatAnim).start();
       }
       newUuids.add(uuid);
     });
@@ -113,12 +110,11 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
             useNativeDriver: true,
           }).start(() => {
             fadeAnimMap.delete(uuid);
-            floatAnimMap.delete(uuid);
           });
         }
       }
     });
-  }, [uuids, iconMap]);
+  }, [uuids, checkMap]);
 
   // LottieView 중심을 기준으로 원의 좌표를 설정
   const lottieCenterX = 160; // LottieView의 중심 x 좌표
@@ -138,16 +134,6 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
     <View style={styles.detectIconContainer}>
       {Array.from(uuids).map((uuid, index) => {
         const position = positions[index % positions.length];
-        const floatAnim = floatAnimMap.get(uuid);
-        if (!floatAnim) {
-          return null; // floatAnim이 없을 경우 렌더링하지 않음
-        }
-
-        const floatAnimInterpolated = floatAnim.interpolate({
-          inputRange: [-1, 1],
-          outputRange: [-10, 10],
-        });
-
         return (
           <Animated.View
             key={uuid}
@@ -157,21 +143,49 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
                 opacity: fadeAnimMap.get(uuid),
                 top: position.top,
                 left: position.left,
-                transform: [{ translateY: floatAnimInterpolated }],
               },
             ]}
           >
-            <FastImage
-              style={styles.detectIcon}
-              source={iconMap.get(uuid)}
-              resizeMode={FastImage.resizeMode.contain}
-            />
-            {/* <Text>{uuid.slice(uuid.length-6)}</Text> */}
+          <View style={otherstyles.container}>
+            <View style={otherstyles.imageWrapper}>
+              <FastImage
+                style={[styles.detectIcon, checkMap.get(uuid) && { opacity: 0.8 }]}
+                source={iconMap.get(uuid)}
+                resizeMode={FastImage.resizeMode.contain}
+              />
+              {checkMap.get(uuid) && 
+              <FastImage
+                style={[otherstyles.overlayImage]}
+                source={tempImage}
+                resizeMode={FastImage.resizeMode.contain}
+              />}
+              {/* <Text>{uuid.slice(uuid.length-6)}</Text> */}
+            </View>
+          </View>
           </Animated.View>
         );
       })}
     </View>
   );
 };
+
+const otherstyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageWrapper: {
+    width: 200, 
+    height: 200,
+  },
+  overlayImage: {
+    top: 30,
+    width: 25,
+    height: 25,
+    position: 'absolute',
+    color: 'white',
+  },
+});
 
 export default DetectDisplay;

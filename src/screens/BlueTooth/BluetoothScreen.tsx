@@ -7,7 +7,7 @@ import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv";
 import { userMMKVStorage } from "../../utils/mmkvStorage";
 import ScanNearbyAndPost, { ScanNearbyStop } from "../../service/Bluetooth";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { DeviceUUIDState, isRssiTrackingState, MsgSendCntState } from "../../recoil/atoms";
+import { DeviceUUIDState, isRssiTrackingState } from "../../recoil/atoms";
 import requestPermissions from "../../utils/requestPermissions";
 import requestBluetooth from "../../utils/requestBluetooth";
 import showPermissionAlert from "../../utils/showPermissionAlert";
@@ -69,7 +69,6 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   const [showTracking, setShowTracking] = useState(false);
   const [rssiMap, setRssiMap] = useState<Map<string, number>>(null);
   const [remainingTime, setRemainingTime] = useState(30);
-  const msgSendCnt = useRecoilValue(MsgSendCntState);
   const [showMsgBox, setShowMsgBox] = useState(false);
   const [fadeInAndMoveUp, fadeAnim, translateY] = useFadeText();
   const [uuids, setUuids] = useState<Set<string>>(new Set());
@@ -265,7 +264,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
       {isRssiTracking && (
         <>
           <View style={styles.TVButton}>
-            <Button title='CCTV' onPress={() => setShowTracking(true)} titleStyle={{ color: 'white', fontSize: 10 }} />
+            <Button title='    ' onPress={() => setShowTracking(true)} titleStyle={{ color: '#3EB297', fontSize: 10 }} />
           </View>
           <RssiTracking closeModal={() => setShowTracking(false)} modalVisible={showTracking} items={rssiMap} />
         </>
@@ -285,7 +284,6 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
                   isBlocked={isBlocked}
                   fadeAnim={fadeAnim}
                   translateY={translateY}
-                  msgSendCnt={msgSendCnt}
                   remainingTime={remainingTime}
                   showMsgBox={showMsgBox}
                   // uuidSet={uuidSet2}

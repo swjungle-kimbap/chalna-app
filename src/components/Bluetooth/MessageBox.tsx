@@ -74,17 +74,16 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
       } as SendMsgRequest)
     }
 
-    const currentTime = new Date().getTime();
+    const currentTime = new Date(new Date().getTime()+  5 * 60 * 1000); 
     let sendCount = 0;
+    let sentedDeviceIds = [];
     response?.data?.data.forEach(({ deviceId, status }) => {
       if (status === 'SEND') {
-      console.log(deviceId, "message sent succes!");
-      const lastSendAt = new Date(currentTime + 5 * 60 * 1000); // 5분을 더한 시간
-      addDeviceIDList(deviceId, lastSendAt.toISOString());
+        sentedDeviceIds.push(deviceId);
         sendCount++;
       }
     });
-    
+    addDeviceIDList(sentedDeviceIds, currentTime.toISOString());
     sendCountsRef.current = sendCount;
     setMsgSendCnt(sendCount);
   } 
