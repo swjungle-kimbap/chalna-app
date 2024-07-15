@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useRecoilValue } from 'recoil';
 import { AlarmCountState } from '../../recoil/atoms';
 import Text from '../common/Text';
+import color from '../../styles/ColorTheme';
 
 interface AlarmButtonPrams {
   notificationId : string
@@ -34,7 +35,9 @@ const AlarmButton : React.FC<AlarmButtonPrams> = ({notificationId}) => {
       <Button iconSource={require('../../assets/Icons/AlarmIcon.png')}
         imageStyle={{
           width:30,
-          height:30}}
+          height:30,
+          tintColor:color.colors.main,
+        }}
         onPress={openModal}></Button>
     </RoundBox>
     {alarmCount > 0 && ( 
