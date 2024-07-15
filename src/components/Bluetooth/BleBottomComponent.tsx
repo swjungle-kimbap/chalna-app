@@ -69,9 +69,7 @@ const BleBottomComponent: React.FC<BleBottomComponentProps> = ({
           <Text style={styles.blockText}>인연 메세지는</Text>
           <Text style={styles.blockText2}>{remainingTime}초 뒤에 다시 보낼 수 있습니다.</Text>
         </>
-      // ) : uuidSet.size > 0 ? (
-      ) : 2 > 0 ? (
-
+      ) : uuidSet.size > 0 ? (
 <>
           {showMsgBox && (
 
