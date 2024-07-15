@@ -8,6 +8,8 @@ import Button from './common/Button';
 import { axiosGet, axiosPost } from "../axios/axios.method";
 import {urls} from "../axios/config";
 import ProfileImage from './common/ProfileImage';
+import { navigate } from '../navigation/RootNavigation';
+import { useModal } from '../context/ModalContext';
 
 interface FriendCardProps {
     user: Friend;
@@ -30,6 +32,9 @@ interface ApiResponse {
   }
 
 const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, navigation, options}) => {
+
+    const {showModal} = useModal();
+
     const handlePress = () => {
         onExpand();
     };
@@ -41,17 +46,21 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
             if (response.data && response.data.data && response.data.data.chatRoomId) {
                 const { chatRoomId } = response.data.data;
                 try {
-                    await axiosPost(`${urls.CHATROOM_JOIN_URL}/${chatRoomId}`); // 채팅방 참여 api 호출
+                    await axiosPost(`${urls.CHATROOM_JOIN_URL}${chatRoomId}`); // 채팅방 참여 api 호출
                     navigation.navigate("채팅", { chatRoomId: chatRoomId });
                 }
                 catch {
-                    Alert.alert('Error', '채팅방을 찾을 수 없습니다.');
+                    // Alert.alert('Error', '채팅방을 찾을 수 없습니다.');
+                    showModal('친구랑 대화하기', '채팅방을 찾을 수 없습니다.',()=>{},undefined,false);
+
                 }
             } else {
-                Alert.alert('Error', 'chatroomId를 찾을 수 없습니다.');
+                // Alert.alert('Error', 'chatroomId를 찾을 수 없습니다.');
+                showModal('친구랑 대화하기', '채팅방을 찾을 수 없습니다.',()=>{},undefined,false);
             }
         } catch (error) {
-            Alert.alert('Error', '대화 실패');
+            // Alert.alert('Error', '대화 실패');
+            showModal('Error', '대화 실패',()=>{},undefined,false);
             console.error('Error fetching chatroomId:', error);
         }
     };
@@ -89,6 +98,15 @@ const FriendCard: React.FC<FriendCardProps> = ({ user , isExpanded, onExpand, na
                         { options==='friend' && (
                             <View style={styles.btnContainer}>
                                 <Button title="대화하기" onPress={handleChat}  />
+                                <Button title="기록보기" onPress={() => {
+                                    navigate("로그인 성공", {
+                                        screen: "친구",
+                                        params: {
+                                            screen: "스쳐간 기록",
+                                            params: { otherId: user.id}
+                                        }
+                                    })    
+                                }}/>
                                 {/* <Button title="차단하기" onPress={()=> {handleBlockFriend(user.id)}} /> */}
                             </View>
                         )}

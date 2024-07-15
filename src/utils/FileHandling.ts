@@ -7,6 +7,8 @@ import { Alert } from 'react-native';
 import RNFS from 'react-native-fs';
 import { getMMKVString, setMMKVString } from './mmkvStorage';
 import ImageResizer from 'react-native-image-resizer';
+import { shadow } from 'react-native-paper';
+import { showModal } from '../context/ModalService';
 
 export interface FileImage {
   uri: string;
@@ -99,11 +101,11 @@ const downloadImage = async (url:string, imageId: number) => {
       return savePath;
     } else {
       console.log('이미지 다운로드 중 실패했습니다.', downloadResult);
-      Alert.alert('다운로드 실패', '이미지 다운로드에 실패했습니다.');
+      showModal('다운로드 실패', '이미지 다운로드에 실패했습니다.',()=>{},undefined,false)
     }
   } catch (error) {
     console.log('이미지 다운로드 중 오류가 발생했습니다.');
-    Alert.alert('다운로드 실패', '이미지 다운로드에 실패했습니다.');
+    showModal('다운로드 실패', '이미지 다운로드에 실패했습니다.',()=>{},undefined,false)
   }
 };
 

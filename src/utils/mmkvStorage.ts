@@ -37,14 +37,14 @@ export const getMMKVString = (key: string):string|null => {
         console.log(`${key} is not stored in MMKV`);
         return null;
     }
-    console.log(`Using stored ${key} : ${value} in MMKV`);
+    //console.log(`Using stored ${key} : ${value} in MMKV`);
     return value;
 };
 
 export const getMMKVObject = <T>(key: string): T | null => {
     const jsonValue = userMMKVStorage.getString(key);
     if (jsonValue !== undefined) {
-        console.log(`Using stored ${key} : ${jsonValue} in MMKV`);
+        //console.log(`Using stored ${key} : ${jsonValue} in MMKV`);
         return JSON.parse(jsonValue);
     }
     console.log(`${key} is not stored in MMKV`);
@@ -63,7 +63,7 @@ export const getMMKVBoolean = (key: string): boolean | null => {
         console.log(`${key} is not stored in MMKV`);
         return null;
     }
-    console.log(`Using stored ${key} : ${value} in MMKV`);
+    //console.log(`Using stored ${key} : ${value} in MMKV`);
     return value;
 };
 

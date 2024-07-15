@@ -12,6 +12,12 @@ export type directedChatMessage = ChatMessage & {
     formatedTime: string;
 }
 
+export type chatRoomMemberInfo = {
+    members: chatRoomMember[];
+    memberCount: number;
+}
+
+
 export type chatRoomMember = {
     memberId:number,
     username:string,
@@ -22,7 +28,7 @@ export type chatRoomMember = {
 export type chatroomInfoAndMsg= {
     id: number,
     type: string,
-    members: chatRoomMember[],
+    chatRoomMemberInfo: chatRoomMemberInfo,
     createdAt:string,
     messages: ChatMessage[],
 }
@@ -30,8 +36,7 @@ export type chatroomInfoAndMsg= {
 export type ChatRoom = {
     id: number;
     type: string;
-    memberCount?: number;
-    members: chatRoomMember[];
+    chatRoomMemberInfo: chatRoomMemberInfo;
     recentMessage?: ChatMessage;
     unreadMessageCount?: number;
     lastReceivedAt?: string;
@@ -50,12 +55,12 @@ export type chatRoomMemberImage = {
 export type ChatRoomLocal = {
     id: number;
     type: string;
-    memberCount?: number;
-    members: chatRoomMemberImage[];
+    chatRoomMemberInfo: chatRoomMemberInfo;
     recentMessage?: ChatMessage;
     messages?: directedChatMessage[];
     unreadMessageCount?: number;
     lastReceivedAt?: string;
     createdAt: string;
     updatedAt?: string;
+    name?:string;
 }

@@ -6,7 +6,6 @@ import Text from '../../components/common/Text';
 import ProfileImage from '../common/ProfileImage';
 
 interface ChatRoomCardProps {
-    numMember: number;
     usernames: string;
     profileImageId: number;
     memberCnt: number;

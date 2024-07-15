@@ -90,3 +90,7 @@ export interface DownloadFileResponse {
 export interface SendMatchResponse {
   sendCount: number
 }
+
+export interface FriendEncounterPostion extends Position {
+  meetTime: Date,
+}

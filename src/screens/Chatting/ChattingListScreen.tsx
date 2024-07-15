@@ -6,7 +6,7 @@ import CustomHeader from "../../components/common/CustomHeader";
 import { useRecoilValue } from "recoil";
 import { LocalChatData, LoginResponse } from "../../interfaces";
 import { LocalChatListState, userInfoState } from "../../recoil/atoms";
-import {ChatRoom, ChatRoomLocal, chatRoomMemberImage} from "../../interfaces/Chatting.type";
+import {ChatRoom, ChatRoomLocal, chatRoomMember} from "../../interfaces/Chatting.type";
 import { fetchChatRoomList, deleteChat } from "../../service/Chatting/chattingAPI";
 import BackgroundTimer from 'react-native-background-timer';
 import {saveChatRoomList, getChatRoomList, removeChatRoom} from '../../service/Chatting/mmkvChatStorage';
@@ -89,16 +89,19 @@ const ChattingListScreen = ({ navigation }) => {
     const chatRoomIdToUsernamesMap = useMemo(() => {
         const map = new Map<number, string>();
         chatRooms.forEach(room => {
-            if (room.type !== 'LOCAL') {
-                const usernames = room.members
+            if (room.type !== 'LOCAL' && room.chatRoomMemberInfo && room.chatRoomMemberInfo.members ) {
+                const usernames = room.chatRoomMemberInfo.members
                     .filter(member => member.memberId !== currentUserId)
                     .map(member => member.username)
                     .sort((a, b) => a.localeCompare(b)); // added sort
                 map.set(room.id, usernames.join(', '));
+            } else {
+
             }
         });
         return map;
     }, [chatRooms, currentUserId]);
+
 
     const distanceDisplay = (distance) => {
         if (distance) {
@@ -110,6 +113,7 @@ const ChattingListScreen = ({ navigation }) => {
 
     const getDisplayName = (chatRoom: ChatRoom ) => {
         return chatRoomIdToUsernamesMap.get(chatRoom.id) || '(알 수 없는 사용자)';
+
     };
 
     //recent message 넣기
@@ -137,10 +141,11 @@ const ChattingListScreen = ({ navigation }) => {
                         if (item.type === 'LOCAL') {
                             const findChatRoom = localChatList.find(room => room.localChat.chatRoomId === item.id);
                             if (findChatRoom?.localChat) {
+
                                 return (
                                     <ChatRoomCard
                                         usernames={findChatRoom.localChat.name}
-                                        memberCnt = {item.memberCount}
+                                        memberCnt = {item.chatRoomMemberInfo.memberCount}
                                         profileImageId={findChatRoom.localChat.imageId}
                                         lastMsg={getLastMsg(item)}
                                         lastUpdate={getLastUpdate(item)}
@@ -148,24 +153,24 @@ const ChattingListScreen = ({ navigation }) => {
                                         navigation={navigation}
                                         chatRoomType={item.type}
                                         chatRoomId={item.id}
-                                        numMember={item.memberCount}
                                         unReadMsg={item.unreadMessageCount}
                                         onDelete={handleDeleteChatRoom}
                                     />
                                 )
+
                             } else {
                                 ChatDisconnectOut(item.id, null);
                             }
                         }
                         let profileImageId = 0;
-                        if (item.type === 'FRIEND' && item.memberCount === 2) {
-                            const members:chatRoomMemberImage[] = item.members.filter(member => member.memberId !== currentUserId)
+                        if (item.type === 'FRIEND' && item.chatRoomMemberInfo && item.chatRoomMemberInfo.memberCount === 2) {
+                            const members:chatRoomMember[] = item.chatRoomMemberInfo.members.filter(member => member.memberId !== currentUserId)
                             profileImageId = members[0].profileImageId;
                         }
                         return (
                             <ChatRoomCard
                                 usernames={getDisplayName(item)}
-                                memberCnt = {item.memberCount}
+                                memberCnt = {item.chatRoomMemberInfo ? item.chatRoomMemberInfo.memberCount : 0}
                                 profileImageId={profileImageId}
                                 lastMsg={getLastMsg(item)}
                                 lastUpdate={getLastUpdate(item)}
@@ -173,7 +178,6 @@ const ChattingListScreen = ({ navigation }) => {
                                 navigation={navigation}
                                 chatRoomType={item.type}
                                 chatRoomId={item.id}
-                                numMember={item.memberCount}
                                 unReadMsg={item.unreadMessageCount}
                                 onDelete={handleDeleteChatRoom}
                             />
@@ -197,7 +201,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f5f5f5',
-        marginBottom:75,
     },
     loadingContainer: {
         flex: 1,
