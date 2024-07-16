@@ -34,7 +34,7 @@ export const sendFriendRequest = (otherId: number, chatRoomId: number): Promise<
 };
 
 
-export const acceptFriendRequest = async (otherId: number) => {
+export const acceptFriendRequest = async (requestId: number) => {
     return new Promise((resolve) => {
         showModal(
             '친구 요청 수락',
@@ -42,7 +42,7 @@ export const acceptFriendRequest = async (otherId: number) => {
             async () => {
               try {
                 const response = await axiosPost(
-                  urls.ACCEPT_FRIEND_REQUEST_URL + `${otherId}`
+                  urls.ACCEPT_FRIEND_REQUEST_URL + `${requestId}`
                 );
                 console.log(response);
                 showModal('친구 맺기 성공', '친구가 되었습니다!', () => {}, undefined, false);
@@ -61,14 +61,14 @@ export const acceptFriendRequest = async (otherId: number) => {
     });
 };
 
-export const rejectFriendRequest = async (otherId: number) => {
+export const rejectFriendRequest = async (requestId: number) => {
     return new Promise((resolve) => {
         showModal(
             '친구 요청 거절',
             '친구 요청을 거절하시겠습니까?',
             async () => {
               try {
-                const response = await axiosDelete(urls.REJECT_FRIEND_REQUEST_URL + `${otherId}`);
+                const response = await axiosDelete(urls.REJECT_FRIEND_REQUEST_URL + `${requestId}`);
                 console.log(response);
                 showModal('친구 요청 거절 성공', '친구 요청을 거절했습니다.', () => {}, undefined, false);
                 resolve(true);

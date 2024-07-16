@@ -5,15 +5,17 @@ import {Friend, RootStackParamList} from '../../interfaces';
 import Button from '../../components/common/Button';
 import FriendsStack from "../../navigation/FriendsStack";
 import {navigate} from "../../navigation/RootNavigation";
+import color from '../../styles/ColorTheme';
 
 interface NavigationModalProps {
     modalVisible: boolean;
     setModalVisible: (visible: boolean) => void;
     navigation?: StackNavigationProp<RootStackParamList, '친구 목록'>;
+    requestCount?: number;
 }
 
 
-const NavigationModal: React.FC<NavigationModalProps> = ({ modalVisible, setModalVisible, navigation }) => {
+const NavigationModal: React.FC<NavigationModalProps> = ({ modalVisible, setModalVisible, navigation,requestCount = 0}) => {
     return (
         <Modal
             visible={modalVisible}
@@ -33,11 +35,14 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ modalVisible, setModa
                                     params: {
                                         screen: "친구요청 목록"
                                     }
+                                    
                                 })
-
-
                             }}
                         />
+                        {requestCount > 0 &&
+                    <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{requestCount}</Text>
+                    </View>}
                     </View>
                 </View>
             </TouchableWithoutFeedback>
@@ -50,21 +55,34 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         justifyContent: 'flex-start',
-        alignItems: 'flex-start',
+        alignItems: 'flex-end',
     },
     modalContent: {
-        width: '40%',
-        padding: 15,
+        flex: 0,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: 170,
+        padding: 10,
+        paddingLeft: 20,
         backgroundColor: 'white',
         borderRadius: 10,
-        alignItems: 'center',
-        marginTop: 165,
-        marginLeft:90,
+        alignItems: 'flex-start',
+        marginTop: 50,
+        marginRight:10,
         ...shadowStyles,
     },
     button: {
-        // marginBottom: 20,
+
     },
+    badge: {
+        backgroundColor: color.colors.main,
+        borderRadius: 10,
+        paddingHorizontal: 8,
+        alignSelf: "center",
+      },
+    badgeText: {
+    color: 'white',
+    }
 });
 
 const shadowStyles = {

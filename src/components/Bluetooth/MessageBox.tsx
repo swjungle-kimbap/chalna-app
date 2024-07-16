@@ -157,6 +157,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
     >
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.modalOverlay}>
+        <TouchableOpacity activeOpacity={1} onPress={() => {}} style={styles.msgBoxContainer}>
 
       <RoundBox style={styles.msgBox}>
         <View style={styles.titleContainer}>
@@ -248,14 +249,15 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
                 activeOpacity={0.7}
               >
                 <Image
-                  source={require('../../assets/send_icon.png')} // 이미지 아이콘 경로 설정
-                  style={styles.sendButtonIcon}
+                      source={require('../../assets/Icons/SendIcon.png')} // 이미지 아이콘 경로 설정
+                      style={styles.sendButtonIcon}
                 />
               </TouchableOpacity>}
             </>      
           )}
       </View>
         </RoundBox>
+        </TouchableOpacity>
         </View>
       </TouchableWithoutFeedback>
     </Modal>
@@ -285,6 +287,10 @@ const styles = StyleSheet.create({
       height: 4,
     },
     elevation: 10, // Android specific: elevation for shadow effect
+  },
+  msgBoxContainer: {
+    width: '90%',
+    alignItems: 'center', // 가운데 정렬
   },
   header: {
     flexDirection: 'row',
@@ -433,6 +439,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 20,
     backgroundColor: '#fff',
+    width: '10%',
+    marginLeft: '45%',
 
     // elevation: 10, // Android에서 그림자를 설정합니다.
   },

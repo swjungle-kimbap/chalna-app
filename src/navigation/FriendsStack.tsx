@@ -16,7 +16,7 @@ const FriendsStackScreen = () => {
         fontSize: 20,
       }
     })}>
-      <FriendsStack.Screen name='친구 목록' component={FriendsScreen}/>
+      <FriendsStack.Screen name='친구 목록' component={FriendsScreen} options={{headerShown:false}}/>
       <FriendsStack.Screen name='마이페이지' component={MypageStackScreen} options={{headerShown:false}}/>
       <FriendsStack.Screen name='스쳐간 기록' component={FriendLogScreen}/>
       <FriendsStack.Screen name='친구요청 목록' component={FriendRequestScreen}/>

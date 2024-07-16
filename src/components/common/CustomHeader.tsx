@@ -11,11 +11,12 @@ interface HeaderProps {
     onBtnPress?:()=>void;
     useNav?:boolean;
     useMenu?:boolean;
+    useEtc?:boolean
     showBtn?:boolean; // Btn이 필요한 조건 받는 상태값
     MemberCnt?: string;
 }
 
-const CustomHeader: React.FC<HeaderProps> = ({ title, subtitle, onBackPress, onMenuPress, onBtnPress, showBtn, useNav, useMenu, MemberCnt }) => {
+const CustomHeader: React.FC<HeaderProps> = ({ title, subtitle, onBackPress, onMenuPress, onBtnPress, showBtn, useNav,useEtc, useMenu, MemberCnt }) => {
     return (
         <View style={styles.headerContainer}>
             {onBtnPress!==null && useNav && (
@@ -39,6 +40,11 @@ const CustomHeader: React.FC<HeaderProps> = ({ title, subtitle, onBackPress, onM
                 {onMenuPress!==null && useMenu && (
                     <TouchableOpacity onPress={onMenuPress} style={styles.iconButton}>
                         <Image source={require('../../assets/Icons/menuIcon.png')} style={styles.icon} />
+                    </TouchableOpacity>
+                )}
+                {onMenuPress!==null && useEtc && (
+                    <TouchableOpacity onPress={onMenuPress} style={styles.iconButton}>
+                        <Image source={require('../../assets/Icons/3dotsVertical.png')} style={styles.icon} />
                     </TouchableOpacity>
                 )}
             </View>

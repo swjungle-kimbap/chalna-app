@@ -11,6 +11,8 @@ import {urls} from "../../axios/config";
 import ProfileImage from '../common/ProfileImage';
 import { useModal } from '../../context/ModalContext';
 import Text from '../common/Text';
+import FontTheme from '../../styles/FontTheme';
+import { shadow } from 'react-native-paper';
 
 
 interface FriendCardProps {
@@ -151,9 +153,10 @@ const styles = StyleSheet.create({
     },
     iconButton: {
         marginHorizontal: 5,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#FAFAFA',
         padding: 5,
         borderRadius: 20,
+        elevation: 2
     },
     icon: {
         width: 20,
@@ -165,7 +168,9 @@ const styles = StyleSheet.create({
     },
     statusMessage: {
         fontSize: 14,
-        color: '#555',
+        color: '#868686',
+        fontFamily: FontTheme.fonts.sub,
+        paddingRight: 6,
         alignSelf: 'flex-start',
     },
     buttonText: {

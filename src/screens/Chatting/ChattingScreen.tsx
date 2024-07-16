@@ -89,6 +89,8 @@ const ChattingScreen: React.FC = () => {
     const [username, setUsername] = useState<string>('');
     const [members, setMembers] = useState<chatRoomMember[]>([]);
     const [memberCount, setMemberCount] = useState<string>(null);
+    const [myname, setMyname] = useState<string>(null);
+
 
     const [selectedImage, setSelectedImage] = useState<any>(null);
 
@@ -97,10 +99,10 @@ const ChattingScreen: React.FC = () => {
 
     const isInitialLoadCompleteRef = useRef<boolean>(false);
     const { socketMessageBuffer, addMessageToBuffer, clearBuffer } = useBuffer();
+    const updatedMessageBuffer = useRef<directedChatMessage[]>([]);
     const batchSize = 20;
 
     const chatRoomIdRef = useRef<string>(chatRoomId);
-    const [profilePicture, setProfilePicture] = useState<string>("");
 
     const [showAnnouncement, setShowAnnouncement] = useState<boolean>(false); // State for showing announcement
 
@@ -129,7 +131,9 @@ const ChattingScreen: React.FC = () => {
 
     const AnnouncementMsg = () => {
         if (chatRoomType === 'LOCAL') {
-            return "거리가 멀어지면 채팅이 종료됩니다."; // + chatRoomInfo.description;
+            return "거리가 멀어지면 채팅이 종료됩니다."
+            //"이전 대화내역을 볼 수 있습니다." +
+            // + chatRoomInfo.name+': '+ chatRoomInfo.description;
         } else if (chatRoomType === 'MATCH') {
             return "상대와 5분동안 대화할 수 있습니다."
         } else {
@@ -167,16 +171,7 @@ const ChattingScreen: React.FC = () => {
             }
             saveChatRoomInfo(chatRoomInfoToStore);
         }
-        // 프로필 이미지 로드
-        if (chatRoomType==='FRIEND'){
-            const filteredMembers = responseData.members.filter(member => member.memberId !== currentUserId);
-            if (filteredMembers[0].profileImageId) {
-                const uri = await getImageUri(filteredMembers[0].profileImageId);
-                setProfilePicture(uri);
-            } else {
-                setProfilePicture("");
-            }
-        }
+
     };
 
     const handleSelectImage = () => {
@@ -259,8 +254,6 @@ const ChattingScreen: React.FC = () => {
         }
     };
 
-    const updatedMessageBuffer = useRef<directedChatMessage[]>([]);
-
     const handleIncomingSocketMessage = (newMessage: directedChatMessage) => {
         console.log("===haneld Incoming socket msg, initialLoad status: ", isInitialLoadCompleteRef.current);
         if (isInitialLoadCompleteRef.current) {
@@ -328,12 +321,35 @@ const ChattingScreen: React.FC = () => {
                             // handle unread count
                             const lastLeaveAt = parsedMessage.content.lastLeaveAt;
                             console.log('user enter since ', lastLeaveAt);
+
                             decrementUnreadCountBeforeTimestamp(newChatRoomId, lastLeaveAt);
-                            const updateMessages = async () => {
-                                const updatedMessages = await getAllChatMessages(newChatRoomId);
-                                setMessages(updatedMessages || []);
-                            };
-                            updateMessages();
+
+                            // 현재 화면에 띄어져 있는 메시지도 unreadCount 업데이트
+                            setMessages(messages => {
+                                const updatedMessages = messages.map(message => {
+                                    if (message.createdAt >= lastLeaveAt && message.unreadCount > 0) {
+                                        return { ...message, unreadCount: message.unreadCount - 1 };
+                                    }
+                                    return message
+                                })
+                                return updatedMessages
+                            })
+
+                            // 버퍼에 있는 메시지도 unreadCount 업데이트
+                            updatedMessageBuffer.current = updatedMessageBuffer.current.map(message => {
+                                if (message.createdAt >= lastLeaveAt && message.unreadCount > 0) {
+                                    return { ...message, unreadCount: message.unreadCount - 1 };
+                                }
+                                return message;
+                            })
+
+                    
+                            // const updateMessages = async () => {
+                            //     const updatedMessages = await getAllChatMessages(newChatRoomId);
+                            //     console.log("updatedMessages", updatedMessages)
+                            //     setMessages(updatedMessages || []);
+                            // };
+                            // updateMessages();
                         }
                     }
                 } catch (error) {
@@ -431,15 +447,47 @@ const ChattingScreen: React.FC = () => {
                         // saveChatMessages(chatRoomId, fetchedMessages);
 
                         // Merge fetched messages with stored messages and keep all messages
+
+                        // setMessages(prevMessages => {
+                        //     const allMessages = [
+                        //         ...(prevMessages || []),
+                        //         ...fetchedMessages,
+                        //         ...(socketMessageBuffer || [])
+                        //     ].filter(msg => msg !== null && msg !== undefined);
+                        //     saveChatMessages(chatRoomId, allMessages); // Save merged messages to storage
+                        //     return allMessages;
+                        // });
+
+
                         setMessages(prevMessages => {
-                            const allMessages = [
-                                ...(prevMessages || []),
-                                ...fetchedMessages,
-                                ...(socketMessageBuffer || [])
-                            ].filter(msg => msg !== null && msg !== undefined);
+                            const messageMap = new Map();
+
+                            prevMessages?.forEach(msg => {
+                                if (msg && msg.id) {
+                                    messageMap.set(msg.id, msg)
+                                }
+                            });
+
+                            // 메시지 id가 겹치는 경우 새로운 메시지로 업데이트
+                            fetchedMessages?.forEach(msg => {
+                                if (msg && msg.id) {
+                                    messageMap.set(msg.id, msg);
+                                }
+                            });
+
+                            if (socketMessageBuffer) {
+                                socketMessageBuffer.forEach(msg => {
+                                    if (msg && msg.id) {
+                                        messageMap.set(msg.id, msg);
+                                    }
+                                })
+                            };
+
+                            const allMessages = Array.from(messageMap.values());
                             saveChatMessages(chatRoomId, allMessages); // Save merged messages to storage
                             return allMessages;
-                        });
+                        })
+
 
                         // handle scroll
                         if (isUserAtBottom.current) {
@@ -477,17 +525,11 @@ const ChattingScreen: React.FC = () => {
                     };
                     saveChatRoomInfo(chatRoomInfoToSave);
 
-                    const filteredMembers = members.filter(member => member.memberId !== currentUserId);
-                    if (responseData.type === 'FRIEND' && filteredMembers.length === 1 && filteredMembers[0].profileImageId) {
-                        if (filteredMembers[0].profileImageId) {
-                            const uri = await getImageUri(filteredMembers[0].profileImageId);
-                            setProfilePicture(uri);
-                        } else {
-                            setProfilePicture("");
-                        }
-                    } else {
-                        setProfilePicture("");
-                    }
+                    const myname = responseData.chatRoomMemberInfo.members
+                        .filter((member: chatRoomMember)=> member.memberId===currentUserId)
+                        .map((member: chatRoomMember)=> member.username)
+                    setMyname(myname);
+
                 }
 
             } catch (error) {
@@ -560,6 +602,20 @@ const ChattingScreen: React.FC = () => {
     const getUsernameBySenderId = (senderId: number) => {
         return memberIdToUsernameMap.get(senderId) || '(알 수 없는 사용자)';
     }
+
+
+    const senderIdToProfileIdMap = useMemo(() => {
+        const map = new Map<number, number>();
+        members.forEach(member => {
+            map.set(member.memberId, member.profileImageId);
+        });
+        return map;
+    }, [members]);
+
+    const getProfileIdBySenderId = (senderId: number) => {
+        return senderIdToProfileIdMap.get(senderId) || 0;
+    }
+
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const {contentOffset} = event.nativeEvent;
@@ -655,9 +711,10 @@ const ChattingScreen: React.FC = () => {
                                         chatRoomId={Number(chatRoomId)}
                                         senderId={item.senderId}
                                         chatRoomType={chatRoomType}
-                                        profilePicture={profilePicture}
+                                        profileImageId={getProfileIdBySenderId(item.senderId)}
                                         username={getUsernameBySenderId(item.senderId)}
                                         showProfileTime={showProfileTime}
+                                        myname={myname}
                                     />
                                     {showDateHeader && <DateHeader date={formatDateHeader(item.createdAt)}/>}
                                 </>
@@ -736,6 +793,7 @@ const ChattingScreen: React.FC = () => {
                     members={members}
                     chatRoomId={Number(chatRoomId)}
                     chatRoomType={chatRoomType}
+                    myname={myname}
                 />
             </View>
         </SWRConfig>

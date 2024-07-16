@@ -5,7 +5,7 @@ import FastImage from 'react-native-fast-image';
 import Text from '../../common/Text';
 import ImageTextButton from "../../common/Button";
 import RNFS from 'react-native-fs';
-import FriendRequestActions from './FriendRequestActions';
+// import FriendRequestActions from './FriendRequestActions';
 import ImagePreviewModal from "./ImagePreviewModal";
 import UserProfileModal from "./UserProfileModal";
 import ProfileImage from '../../common/ProfileImage';
@@ -21,22 +21,25 @@ interface MessageBubbleProps {
     senderId: number;
     chatRoomId: number;
     chatRoomType: string;
-    profilePicture?: string;
+    profileImageId?: number;
     username?: string;
     showProfileTime?: boolean;
     isViewable?:boolean;
+    myname?: string;
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = memo(({
                                                               message, datetime, isSelf, type, unreadCnt, senderId, chatRoomId,
-                                                              chatRoomType, profilePicture, username, showProfileTime
-                                                              , isViewable
+                                                              chatRoomType, profileImageId, username, showProfileTime
+                                                              , isViewable, myname
                                                           }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [imageModalVisible, setImageModalVisible] = useState(false);
-    const [isDisabled, setIsDisabled] = useState(chatRoomType === 'FRIEND');
+    // const [isDisabled, setIsDisabled] = useState(chatRoomType === 'FRIEND');
     // const resizedImageUri = useRef(message.preSignedUrl);
     const {showModal} = useModal();
+
+    // console.log("===============profileImageID: ", profileImageId);
 
     const toggleUserInfoModal = useCallback(() => {
         setModalVisible(prev => !prev);
@@ -172,14 +175,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
                 return (
                     <AnnouncementMessageBubble style={{ backgroundColor: colorTheme.colors.sub }}>
                         <Text variant="sub" style={{ color: '#444444' }}>{message}</Text>
-                        {!isSelf && message === '친구 요청을 보냈습니다.' && (
-                            <FriendRequestActions
-                                chatRoomId={chatRoomId}
-                                senderId={senderId}
-                                isDisabled={isDisabled}
-                                setIsDisabled={setIsDisabled}
-                            />
-                        )}
                     </AnnouncementMessageBubble>
                 );
             case 'TIMEOUT':
@@ -205,11 +200,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
         <Container isSelf={isSelf} notChat={type !== 'CHAT' && type !== 'FILE'}>
             {shouldShowProfile && !isSelf && showProfileTime && (
                 <TouchableOpacity onPress={toggleUserInfoModal}>
-                    <FastImage
-                        source={profilePicture ? { uri: profilePicture } : require('../../../assets/images/anonymous.png')}
-                        style={styles.profilePicture}
-                        resizeMode={FastImage.resizeMode.cover}
-                    />
+                    <ProfileImage profileImageId={chatRoomType == 'FRIEND' && profileImageId} avatarStyle={styles.profilePicture}/>
                 </TouchableOpacity>
             )}
             <BubbleContainer isSelf={isSelf} notChat={type !== 'CHAT' && type !== 'FILE'}>
@@ -223,9 +214,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
                 visible={modalVisible}
                 onClose={toggleUserInfoModal}
                 username={username}
-                profilePicture={profilePicture}
+                profileImageId={profileImageId}
                 chatRoomType={chatRoomType}
+                chatRoomId={chatRoomId}
                 otherId={senderId}
+                myname={myname}
             />
 
             <ImagePreviewModal
@@ -255,11 +248,6 @@ const styles = StyleSheet.create({
         marginRight: 5,
         marginLeft: 2,
         marginTop: 5,
-    },
-    profilePictureModal: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
     },
     messageText: {
         color: "#444444",

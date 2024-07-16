@@ -65,12 +65,12 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request, navigati
                             <Image source={require('../../assets/Icons/ChatingIcon.png')} style={styles.icon} />
                         </TouchableOpacity>
 
-                        <TouchableOpacity onPress={()=>handleAccept(request.senderId)} style={styles.iconButton}>
-                            <Image source={require('../../assets/Icons/Accpet.png')} style={styles.icon} />
+                        <TouchableOpacity onPress={()=>handleAccept(request.id)} style={styles.iconButton}>
+                            <Image source={require('../../assets/Icons/AcceptCircle.png')} style={[styles.icon, styles.accept]} />
                         </TouchableOpacity>
 
-                        <TouchableOpacity onPress={()=> handleReject(request.senderId)} style={styles.iconButton}>
-                            <Image source={require('../../assets/Icons/Reject.png')} style={styles.icon} />
+                        <TouchableOpacity onPress={()=> handleReject(request.id)} style={styles.iconButton}>
+                            <Image source={require('../../assets/Icons/RejectCircle.png')} style={[styles.icon, styles.reject]} />
                         </TouchableOpacity>
                     </View>
 
@@ -117,6 +117,12 @@ const styles = StyleSheet.create({
     name: {
         marginBottom: 5,
         alignSelf:'flex-start',
+    },
+    accept:{
+        tintColor: '#74d1d1'
+    },
+    reject: {
+        tintColor: '#f17b89'
     },
     statusMessage: {
         fontSize: 14,

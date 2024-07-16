@@ -78,7 +78,7 @@ export const localChatJoin = async (localChat:LocalChat, distance:number, setRef
     () => {},
     true,
     '참가',
-    '취소'
+    '취소',
   );
 };
 
