@@ -13,6 +13,8 @@ import {friendRequest} from "../../interfaces/Friend.type";
 import {acceptFriendRequest, rejectFriendRequest} from "../../service/Friends/FriendRelationAPI";
 import Text from '../common/Text';
 import {showModal} from "../../context/ModalService";
+import { useRecoilState } from 'recoil';
+import { FriendsMapState } from '../../recoil/atoms';
 
 
 interface FriendRequestCardProps {
@@ -24,11 +26,12 @@ interface FriendRequestCardProps {
  // 눌렀을 때 n번 스친 인연입니다 + 대화방가기 -> 보류
 
 const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request, navigation }) => {
+    const [friendMap, setFriendsMap] = useRecoilState(FriendsMapState);
 
     const {showModal} = useModal();
 
     const handleAccept = async (id: number) => {
-        const response = await acceptFriendRequest(id);
+        const response = await acceptFriendRequest(id, friendMap, setFriendsMap);
         if (response === true) {
             // rerender or show message of somekind  대화방으로 이동하시겠습니까?
         }

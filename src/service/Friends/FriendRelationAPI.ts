@@ -2,6 +2,8 @@ import {axiosDelete, axiosPatch, axiosPost} from '../../axios/axios.method'; // 
 import {Alert} from "react-native";
 import {urls} from "../../axios/config";
 import { showModal } from '../../context/ModalService';
+import { AxiosResponse, Friend } from '../../interfaces';
+import { navigate } from '../../navigation/RootNavigation';
 
 export const sendFriendRequest = (otherId: number, chatRoomId: number): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -34,18 +36,30 @@ export const sendFriendRequest = (otherId: number, chatRoomId: number): Promise<
 };
 
 
-export const acceptFriendRequest = async (requestId: number) => {
+export const acceptFriendRequest = async (requestId: number, friendMap:Map<string, Friend>, setFriendsMap:Function) => {
     return new Promise((resolve) => {
         showModal(
             '친구 요청 수락',
             '친구 요청을 수락하시겠습니까?',
             async () => {
               try {
-                const response = await axiosPost(
+                const response = await axiosPost<AxiosResponse<Friend>>(
                   urls.ACCEPT_FRIEND_REQUEST_URL + `${requestId}`
                 );
                 console.log(response);
-                showModal('친구 맺기 성공', '친구가 되었습니다!', () => {}, undefined, false);
+                const newFriendMap = new Map(friendMap);
+                const friend = response.data.data;
+                newFriendMap.set(friend.deviceId, friend);
+                setFriendsMap(newFriendMap);
+                showModal('친구 맺기 성공', '친구와의 인연 기록을 보겠습니까?', () => {
+                  navigate("로그인 성공", {
+                    screen: "친구",
+                    params: {
+                        screen: "스쳐간 기록",
+                        params: { otherId: friend.id }
+                    }
+                  })
+                }, undefined, false);
                 resolve(true);
               } catch (error) {
                 const errorMessage = error.response?.data?.message || error.message || '친구 요청을 수락할 수 없습니다.';

@@ -5,7 +5,7 @@ import { getImageUri } from "../../utils/FileHandling";
 
 const defaultImg = require('../../assets/images/anonymous.png');
 
-const ProfileImage = ({ profileImageId, avatarStyle }) => {
+const ProfileImage = ({ profileImageId, avatarStyle, resizeMode=true }) => {
   const [profileUri, setProfileUri] = useState("");
 
   const getUri = useCallback(async () => {

@@ -8,9 +8,9 @@ import { RootStackParamList } from '../../interfaces'
 import FontTheme from '../../styles/FontTheme';
 import { fetchReceivedFriendRequest, fetchSentFriendRequest } from '../../service/Friends/FriendListAPI';
 import {friendRequest} from "../../interfaces/Friend.type";
-import HorizontalLine from "../../components/Mypage/HorizontalLine";
-import {grey50} from "react-native-paper/lib/typescript/styles/themes/v2/colors";
-
+import Button from "../../components/common/Button";
+import { navigate } from '../../navigation/RootNavigation';
+import RoundBox from '../../components/common/RoundBox';
 
 type FriendRequestScreenProps = {
     navigation: StackNavigationProp<RootStackParamList, '친구요청 목록'>;
@@ -49,11 +49,15 @@ const FriendRequestScreen: React.FC<FriendRequestScreenProps> = ({ navigation })
     return (
         <View style={styles.friendListPage}>
             <View style={styles.ListContainer}>
-                <View style={styles.friendText}>
-
-                </View>
-                {!receivedFriendRequests.length ? (
-                    <Text variant={'main'} style={{marginTop: 20, color: 'grey50'}}>받은 친구 요청이 없습니다. 😭</Text>
+                {!receivedFriendRequests?.length ? (
+                    <>
+                    <Text variant={'main'} style={{marginTop: 20, color: 'grey'}}>받은 친구 요청이 없습니다. 😭</Text>
+                    <View style={{flex: 1, alignItems: 'center'}}>
+                        <RoundBox>
+                            <Button variant="main" title="만나기" onPress={()=>{navigate("인연")}}/>
+                        </RoundBox>
+                    </View>
+                    </>
                 ) : (
                     <FlatList
                         data={receivedFriendRequests}

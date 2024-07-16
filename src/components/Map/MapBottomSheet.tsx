@@ -181,6 +181,7 @@ const styles = StyleSheet.create({
   },
   container: {
     margin: 0,
+    flex:1,
     zIndex: 3,
   },
 });
