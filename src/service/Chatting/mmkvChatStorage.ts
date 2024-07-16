@@ -176,7 +176,7 @@ export const decrementUnreadCountBeforeTimestamp = (chatRoomId: string, timestam
         let messagesChanged = false;
 
         const updatedMessages = messages.map(message => {
-            if (message.createdAt < timestamp && message.unreadCount > 0) {
+            if (message.createdAt >= timestamp && message.unreadCount > 0) {
                 messagesChanged = true;
                 return { ...message, unreadCount: message.unreadCount - 1 };
             }
