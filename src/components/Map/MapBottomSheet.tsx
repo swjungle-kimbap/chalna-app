@@ -9,7 +9,7 @@ import Button from "../common/Button";
 import { LocalChat } from "../../interfaces";
 import ProfileImage from "../common/ProfileImage";
 import { distanceLimit } from "./LocalChatMarkerOverlay";
-import { localChatJoin, autolocalChat } from "../../service/LocalChat"; // autolocalChat 임포트 추가
+import { localChatJoin, autolocalChat , joinLocalChat} from "../../service/LocalChat"; // autolocalChat 임포트 추가
 
 LogBox.ignoreLogs([
   "[Reanimated] Tried to modify key `reduceMotion` of an object which has been already passed to a worklet. See https://docs.swmansion.com/react-native-reanimated/docs/guides/troubleshooting#tried-to-modify-key-of-an-object-which-has-been-converted-to-a-shareable for more details."
@@ -49,7 +49,7 @@ const MapBottomSheet = ({ cameraMove, setShowLocalChatModal }) => {
       if (item.isJoined) {
         await autolocalChat(localChat, localChat.distance , setRefresh);
       } else {
-        await localChatJoin(localChat, localChat.distance, setRefresh);
+        await joinLocalChat(localChat, localChat.distance, setRefresh);
       }
     };
 
