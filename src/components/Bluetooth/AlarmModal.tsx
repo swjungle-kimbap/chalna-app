@@ -96,11 +96,11 @@ const AlarmModal: React.FC<AlarmModalProps> = ({modalVisible, closeModal, notifi
   const renderAlarmCard = ({ item }: { item: MatchFCM }) => (
     <AlarmCardRender
       item={item}
-      restTime = {remainTime.get(item.id)}
+      restTime={remainTime.get(item.id)}
       expandedCardId={expandedCardId}
       handleCardPress={handleCardPress}
       removeAlarmItem={removeAlarmItem}
-    />
+      closeModal={closeModal}    />
   );
 
   return (

@@ -23,6 +23,7 @@ import {ApiResponse} from '../Mypage/FriendCard';
 import {urls} from '../../axios/config';
 import {navigate} from '../../navigation/RootNavigation';
 import {showModal} from '../../context/ModalService';
+import DetectIconColor from '../../service/Bluetooth/DetectIconColor';
 
 interface DetectDisplayProps {
   uuids: Set<string>;
@@ -42,7 +43,22 @@ const images: Source[] = [
   require('../../assets/Icons/chalnaticon/chalna9.png'),
 ];
 
+// 이미지 경로 배열
+const msgImages: Source[] = [
+  require('../../assets/Icons/chalnaticonMsg/chalna1.png'),
+  require('../../assets/Icons/chalnaticonMsg/chalna2.png'),
+  require('../../assets/Icons/chalnaticonMsg/chalna3.png'),
+  require('../../assets/Icons/chalnaticonMsg/chalna4.png'),
+  require('../../assets/Icons/chalnaticonMsg/chalna5.png'),
+  require('../../assets/Icons/chalnaticonMsg/chalna6.png'),
+  require('../../assets/Icons/chalnaticonMsg/chalna7.png'),
+  require('../../assets/Icons/chalnaticonMsg/chalna8.png'),
+  require('../../assets/Icons/chalnaticonMsg/chalna9.png'),
+];
+
 const tempImage: Source = require('../../assets/images/tempMsg.png');
+
+const uuidColorManager = new DetectIconColor();
 
 const getRandomIcon = (): Source => {
   const randomIndex = Math.floor(Math.random() * images.length);
@@ -110,7 +126,7 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({uuids, setShowMsgBox}) => 
         fadeAnimMap.set(uuid, fadeAnim);
         const isExist = iconMap.get(uuid);
         if (!isExist) {
-          const randomIcon = getRandomIcon();
+          const randomIcon = images[uuidColorManager.getColorByUUID(uuid)-1];
           iconMap.set(uuid, randomIcon);
         }
 
@@ -137,7 +153,7 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({uuids, setShowMsgBox}) => 
         }
       }
     });
-  }, [uuids, SendDeviceIdList]);
+  }, [uuids, checkMap]);
 
   const handleChat = async user => {
     console.log(user)
@@ -209,22 +225,15 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({uuids, setShowMsgBox}) => 
               <View style={otherstyles.imageWrapper}>
                   <>
                     <TouchableOpacity onPress={() => {setShowMsgBox(true)}}>
-                      <FastImage
-                        style={[
-                          styles.detectIcon,
-                          checkMap.get(uuid) && {opacity: 0.8},
-                        ]}
-                        source={iconMap.get(uuid)}
-                        resizeMode={FastImage.resizeMode.contain}
-                      />
+                    <FastImage
+                      style={[
+                        styles.detectIcon,
+                        checkMap.get(uuid) && { opacity: 0.8 },
+                      ]}
+                      source={checkMap.get(uuid) ? msgImages[uuidColorManager.getColorByUUID(uuid) - 1] : iconMap.get(uuid)}
+                      resizeMode={FastImage.resizeMode.contain}
+                    />
                     </TouchableOpacity>
-                    {checkMap.get(uuid) && (
-                      <FastImage
-                        style={[otherstyles.overlayImage]}
-                        source={tempImage}
-                        resizeMode={FastImage.resizeMode.contain}
-                      />
-                    )}
                   </>
                 {/* <Text>{uuid.slice(uuid.length-6)}</Text> */}
               </View>
