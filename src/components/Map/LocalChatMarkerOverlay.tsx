@@ -146,7 +146,7 @@ const LocalChatMarkerOverlay = ({cameraMove}) => {
               // }
               onTap={() => {
                 cameraMove({ latitude: localChat.latitude, longitude: localChat.longitude });
-                item.isJoined ? localChatOut(localChat) : localChatJoin(localChat, localChat.distance, setRefresh);
+                item.isJoined ? localChatOut(localChat) : localChatJoin(localChat, localChat.distance, setRefresh , 'top');
               }}
               width={90}
               height={90}
