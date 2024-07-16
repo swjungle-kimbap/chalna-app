@@ -194,17 +194,19 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({uuids, setShowMsgBox}) => 
                 left: position.left,
               },
             ]}>
+            {friendsMap.get(uuid) ? (
+                <TouchableOpacity onPress={() => {handleChat(friendsMap.get(uuid))}}>
+                  <View style={{flexDirection: 'column'}}>
+                  <ProfileImage
+                    profileImageId={friendsMap.get(uuid).profileImageId}
+                    avatarStyle={otherstyles.profileImage}
+                  />
+                  <Text variant='title' style={otherstyles.usenameText}>{friendsMap.get(uuid).username}</Text>
+                  </View>
+                </TouchableOpacity>
+              ) :
             <View style={otherstyles.container}>
               <View style={otherstyles.imageWrapper}>
-                {friendsMap.get(uuid) ? (
-                  <TouchableOpacity onPress={() => {handleChat(friendsMap.get(uuid))}}>
-                    <ProfileImage
-                      profileImageId={friendsMap.get(uuid).profileImageId}
-                      avatarStyle={otherstyles.profileImage}
-                    />
-                    <Text variant='title' style={otherstyles.usenameText}>{friendsMap.get(uuid).username}</Text>
-                  </TouchableOpacity>
-                ) : (
                   <>
                     <TouchableOpacity onPress={() => {setShowMsgBox(true)}}>
                       <FastImage
@@ -224,10 +226,9 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({uuids, setShowMsgBox}) => 
                       />
                     )}
                   </>
-                )}
                 {/* <Text>{uuid.slice(uuid.length-6)}</Text> */}
               </View>
-            </View>
+            </View>}
           </Animated.View>
         );
       })}
@@ -237,10 +238,9 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({uuids, setShowMsgBox}) => 
 
 const otherstyles = StyleSheet.create({
   usenameText: {
+    marginTop: 4,
     fontSize: 15,
-    position: 'absolute',
-    left:18,
-    top:5,
+    color: '#254E81'
   },
   profileImage: {
     width: 60,
