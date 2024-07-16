@@ -9,7 +9,8 @@ interface ModalContent {
   confirmText?: string;
   cancelText?: string;
   dismissOnBackgroundClick?: boolean;
-  position?: 'center' | 'top'
+  position?: 'center' | 'top';
+  showBackground?: boolean;
 }
 
 interface ModalContextProps {
@@ -24,7 +25,8 @@ interface ModalContextProps {
     confirmText?: string,
     cancelText?: string,
     dismissOnBackgroundClick?: boolean,
-    position?: 'center' | 'top'
+    position?: 'center' | 'top',
+    showBackground?: boolean
   ) => void;
   hideModal: () => void;
 }
@@ -38,7 +40,8 @@ const defaultModalContent: ModalContent = {
   cancelText: '취소',
   showCancel: true,
   dismissOnBackgroundClick: true,
-  position: 'center'
+  position: 'center',
+  showBackground: true
 };
 
 const ModalContext = createContext<ModalContextProps>({
@@ -69,9 +72,10 @@ export const ModalProvider = ({ children }: ModalProviderProps) => {
     confirmText: string = '확인',
     cancelText: string = '취소',
     dismissOnBackgroundClick: boolean = true,
-     position: 'center' | 'top' = 'center'
+     position: 'center' | 'top' = 'center',
+     showBackground: boolean = true 
   ) => {
-    setModalContent({ title, content, onConfirm, onCancel ,  confirmText, cancelText, showCancel , dismissOnBackgroundClick , position});
+    setModalContent({ title, content, onConfirm, onCancel , confirmText, cancelText, showCancel , dismissOnBackgroundClick , position ,showBackground });
     setModalVisible(true);
   };
 

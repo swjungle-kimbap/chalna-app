@@ -14,7 +14,11 @@ const BackgroundNonDismissibleModal = () => {
       onRequestClose={hideModal}
     >
       <TouchableWithoutFeedback onPress={modalContent.dismissOnBackgroundClick ? hideModal : undefined}>
-        <View style={styles.modalContainer}>
+        {/* <View style={styles.modalContainer}> */}
+        <View style={[
+          styles.modalContainer,
+          modalContent.showBackground === false && styles.noBackground
+        ]}>
           <TouchableWithoutFeedback onPress={() => {}}>
             <View style={[
               styles.modalContent,
@@ -51,6 +55,9 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  noBackground: {
+    backgroundColor: 'transparent',
   },
   modalContent: {
     width: 300,

@@ -7,7 +7,8 @@ let showModalFunction: (
   confirmText?: string,
   cancelText?: string,
   dismissOnBackgroundClick?: boolean,
-  position?:  'center' | 'top'
+  position?:  'center' | 'top',
+  showBackground?: boolean
 ) => void;
 
 export const setModalFunctions = (
@@ -20,7 +21,8 @@ export const setModalFunctions = (
     confirmText?: string,
     cancelText?: string,
     dismissOnBackgroundClick?: boolean,
-    position?: 'center' | 'top'
+    position?: 'center' | 'top',
+    showBackground?: boolean
   ) => void
 ) => {
   showModalFunction = showModal;
@@ -35,11 +37,12 @@ export const showModal = (
     confirmText: string = '확인',
   cancelText: string = '취소',
   dismissOnBackgroundClick: boolean = true,
-  position: 'center' | 'top' = 'center'
+  position: 'center' | 'top' = 'center',
+  showBackground: boolean = true
 
 ) => {
   if (showModalFunction) {
-    showModalFunction(title, content, onConfirm, onCancel, showCancel,  confirmText, cancelText, dismissOnBackgroundClick , position);
+    showModalFunction(title, content, onConfirm, onCancel, showCancel,  confirmText, cancelText, dismissOnBackgroundClick , position, showBackground);
   } else {
     console.error('showModal function is not set');
   }
