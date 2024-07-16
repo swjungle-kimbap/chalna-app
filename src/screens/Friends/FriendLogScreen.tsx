@@ -16,8 +16,8 @@ function generateDummyGPSData(startLat, startLon, numPoints, timeInterval) {
 
   for (let i = 0; i < numPoints; i++) {
     // Randomly change the latitude and longitude
-    const deltaLat = Math.random() * 2 - 2;  // ±0.01 range
-    const deltaLon = Math.random() * 2 - 0.1;  // ±0.01 range
+    const deltaLat = Math.random() * 0.1 - 2;  // ±0.01 range
+    const deltaLon = Math.random() * 0.1 - 0.1;  // ±0.01 range
 
     const newLat = startLat + deltaLat;
     const newLon = startLon + deltaLon;
@@ -99,7 +99,7 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
         (`${urls.GET_FRIEND_ENCOUNTER_URL}/${otherId}`, "스쳐간 위치 조회");
         if (response.data?.data){
           const EncounterData = response.data?.data.reverse();
-          //const dummyGPSData = generateDummyGPSData(startLatitude, startLongitude, numberOfPoints, timeIntervalInSeconds);
+          // const dummyGPSData = generateDummyGPSData(startLatitude, startLongitude, numberOfPoints, timeIntervalInSeconds);
           const {groupedData, filteredData, needYear} = groupByMonth(EncounterData);
           const generatedMonths: {month:number, year:number}[] = generateMonths(needYear);
           setMonths(generatedMonths);
@@ -115,7 +115,7 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
   const onTapHandler = useCallback((index) => {
     if (friendLog[index]) {
       const { longitude, latitude, meetTime } = friendLog[index];
-      logMapViewRef.current.animateCameraTo({ longitude, latitude, zoom:16}, { duration: 300 });
+      logMapViewRef.current.animateCameraTo({ longitude, latitude, zoom:14}, { duration: 300 });
     } else {
       console.log("index is out of range", index);
     }
@@ -210,7 +210,7 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
             height={80}
             width={100}
             key={index.toString()}
-            minZoom={16}
+            minZoom={14}
             image={{symbol:'blue'}}
           >
             <View style={{alignItems: 'center'}}>

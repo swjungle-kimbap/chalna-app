@@ -21,7 +21,7 @@ export const joinLocalChat = async (localChat:LocalChat, distance:number, setRef
         setRefresh((prev)=>!prev);
         navigate("채팅", { chatRoomId : localChat.chatRoomId });
       } else 
-        showModal('거리 제한', '거리가 너무 멀어요 50m 이내인경우 들어 갈 수 있어요!', ()=>{}, undefined, false)
+        showModal('거리 제한', '거리가 너무 멀어요 100m 이내인경우 들어 갈 수 있어요!', ()=>{}, undefined, false)
         
       } catch (e) {
     console.error("장소 채팅 참여 중 오류 발생:", e);
@@ -87,7 +87,6 @@ export const ChatDisconnectOut = async (chatRoomId:number, setRefresh:Function) 
     const response = await axiosDelete<AxiosResponse<string>>(urls.CHATROOM_LEAVE_URL+chatRoomId.toString());
     if (response?.data?.data === "성공")
     showModal('장소 채팅 종료',"거리가 멀어져 채팅방과 연결이 종료가 되었습니다!", ()=>{}, undefined,false )
-    removeChatRoom(chatRoomId);
     if (setRefresh)
       setRefresh((prev)=>!prev);
   } catch (error) {
@@ -111,9 +110,9 @@ export const ChatOut = async (chatRoomId:number, setRefresh:Function) => {
 };
 
 
-export const localChatOut = async (localChat:LocalChat) => {
+export const autolocalChat = async (localChat:LocalChat, distance:number, setRefresh:Function) => {
   const granted = await handleCheckPermission();
   if (!granted) 
     return
-  navigate("채팅", { chatRoomId: localChat.chatRoomId });
+  await joinLocalChat(localChat, distance, setRefresh);
 };
