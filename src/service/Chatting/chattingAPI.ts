@@ -68,7 +68,7 @@ export const deleteChat = async (navigation: any, chatRoomId: string): Promise<b
             urls.CHATROOM_LEAVE_URL + `${chatRoomId}`
           );
           if (navigation !== 'none') {
-            navigation.navigate('채팅 목록');
+            navigation.navigate('대화');
           }
           return true;
         } catch (error) {

@@ -615,9 +615,6 @@ const ChattingScreen: React.FC = () => {
                 onBackPress={() => {
                     navigate("로그인 성공", {
                         screen: "대화",
-                        params: {
-                            screen: "채팅 목록",
-                        }
                     });
                 }}
                 showBtn={false}
