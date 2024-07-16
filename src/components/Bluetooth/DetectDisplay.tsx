@@ -234,7 +234,7 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({uuids, setShowMsgBox}) => 
                     </TouchableOpacity>
                   </>
                 )}
-                <Text>{uuid.slice(uuid.length-6)}</Text>
+                {/* <Text>{uuid.slice(uuid.length-6)}</Text> */}
               </View>
             </View>
           </Animated.View>
