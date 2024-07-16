@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import ColorTheme from "../../styles/ColorTheme";
 
 const styles = StyleSheet.create({
   // BleMainComponent style
@@ -17,7 +18,7 @@ const styles = StyleSheet.create({
   lottieImage: {
     width: 600,
     height: 600,
-    top: '5%',
+    top: '1%',
     position: 'absolute',
     zIndex: 1,
   },
@@ -43,28 +44,56 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   messageText: {
+    color:'gray',
     fontSize: 15,
     textAlign: 'center', // 텍스트 가운데 정렬 추가
   },
   blockText: {
+    color:'gray',
     marginTop: 40,
     fontSize: 20,
     textAlign: 'center', // 텍스트 가운데 정렬 추가
   },
   blockText2: {
+    color:'gray',
     marginTop: 10,
     fontSize: 20,
     textAlign: 'center', // 텍스트 가운데 정렬 추가
   },
+  background: {
+    backgroundColor: ColorTheme.colors.light_sub,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'space-between', // 상하 배치
+    alignItems: 'center',
+    paddingBottom: 10,
+  },
+  TVButton: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    top: 20,
+    left: 100,
+    height: 40,
+    width: 40,
+    borderRadius: 20,
+    paddingVertical: 2, // 상하 여백 설정
+    paddingHorizontal: 3, // 좌우 여백 설정
+    zIndex: 3
+  },
   findText: {
-    fontSize: 18,
+    fontSize: 16,
     marginBottom: 40,
     color: 'gray',
     textAlign: 'center', // 텍스트 가운데 정렬 추가
   },
   bleBottomSubContainer: {
     width: 300, // 고정 너비
-    height: '50%', // 고정 높이
+    height: '20%', // 고정 높이
     justifyContent: 'center',
     alignItems: 'center',
   },

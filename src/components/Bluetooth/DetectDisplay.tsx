@@ -24,6 +24,7 @@ import {urls} from '../../axios/config';
 import {navigate} from '../../navigation/RootNavigation';
 import {showModal} from '../../context/ModalService';
 import DetectIconColor from '../../service/Bluetooth/DetectIconColor';
+import useFadeText from '../../hooks/useFadeText';
 
 interface DetectDisplayProps {
   uuids: Set<string>;
@@ -100,14 +101,15 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({uuids, setShowMsgBox}) => 
     userMMKVStorage,
   );
   const [friendsMap, setFriendsMap] = useRecoilState(FriendsMapState);
+  const [fadeInAndMoveUp, fadeAnim, translateY] = useFadeText();
 
   useEffect(() => {
     const currentTime = new Date().getTime();
     console.log('SendDeviceIdList updated:', SendDeviceIdList);
     SendDeviceIdList?.forEach(item => {
       const restTime = new Date(item.lastSendAt).getTime() - currentTime;
+      console.log('restTime:', restTime);
       if (restTime > 0) {
-        console.log('restTime:', restTime);
         checkMap.set(item.deviceId, true);
         setTimeout(() => {
           checkMap.delete(item.deviceId);
@@ -197,9 +199,15 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({uuids, setShowMsgBox}) => 
 
   return (
     <View style={styles.detectIconContainer}>
+      <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: translateY }] }}>
+        <Text style={otherstyles.fadeText}>
+          이미 메세지를 보낸 대상입니다!
+        </Text>
+      </Animated.View>
       {Array.from(uuids).map((uuid, index) => {
         const position = positions[index % positions.length];
         return (
+          <>
           <Animated.View
             key={uuid}
             style={[
@@ -224,7 +232,7 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({uuids, setShowMsgBox}) => 
             <View style={otherstyles.container}>
               <View style={otherstyles.imageWrapper}>
                   <>
-                    <TouchableOpacity onPress={() => {setShowMsgBox(true)}}>
+                    <TouchableOpacity onPress={() => {checkMap.get(uuid) ? fadeInAndMoveUp() : setShowMsgBox(true)}}>
                     <FastImage
                       style={[
                         styles.detectIcon,
@@ -239,13 +247,17 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({uuids, setShowMsgBox}) => 
               </View>
             </View>}
           </Animated.View>
-        );
+        </>
+      );
       })}
     </View>
   );
 };
 
 const otherstyles = StyleSheet.create({
+  fadeText: {
+    fontSize: 15,
+  },
   usenameText: {
     marginTop: 4,
     fontSize: 15,

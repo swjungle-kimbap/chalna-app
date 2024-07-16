@@ -83,6 +83,7 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
         sendCount++;
       }
     });
+    console.log(response?.data?.data);
     addDeviceIDList(sentedDeviceIds);
     sendCountsRef.current = sendCount;
     setMsgSendCnt(sendCount);

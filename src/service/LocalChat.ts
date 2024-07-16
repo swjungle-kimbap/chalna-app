@@ -87,6 +87,7 @@ export const ChatDisconnectOut = async (chatRoomId:number, setRefresh:Function) 
     const response = await axiosDelete<AxiosResponse<string>>(urls.CHATROOM_LEAVE_URL+chatRoomId.toString());
     if (response?.data?.data === "성공")
     showModal('장소 채팅 종료',"거리가 멀어져 채팅방과 연결이 종료가 되었습니다!", ()=>{}, undefined,false )
+    removeChatRoom(chatRoomId); 
     if (setRefresh)
       setRefresh((prev)=>!prev);
   } catch (error) {
