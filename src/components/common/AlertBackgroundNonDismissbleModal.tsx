@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Image } from 'react-native';
 import { useModal } from '../../context/ModalContext'; // Adjust the import path as necessary
 import fontTheme from '../../styles/FontTheme';
 import colorTheme from '../../styles/ColorTheme';
@@ -14,13 +14,20 @@ const BackgroundNonDismissibleModal = () => {
       onRequestClose={hideModal}
     >
       <TouchableWithoutFeedback onPress={modalContent.dismissOnBackgroundClick ? hideModal : undefined}>
-        <View style={styles.modalContainer}>
+        <View style={[
+          styles.modalContainer,
+          modalContent.showBackground === false && styles.noBackground
+        ]}>
           <TouchableWithoutFeedback onPress={() => {}}>
             <View style={[
               styles.modalContent,
               modalContent.position === 'top' ? styles.modalContentTop : styles.modalContentCenter,
             ]}>
+            
               <Text style={styles.modalTitle}>{modalContent.title}</Text>
+              {modalContent.imageUri && (
+                <Image source={{ uri: modalContent.imageUri }} style={styles.modalImage} />
+              )}
               <Text style={styles.modalText}>{modalContent.content}</Text>
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
@@ -52,6 +59,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
+  noBackground: {
+    backgroundColor: 'transparent',
+  },
   modalContent: {
     width: 300,
     backgroundColor: 'white',
@@ -67,6 +77,12 @@ const styles = StyleSheet.create({
   modalContentCenter: {
     top: '50%',
     transform: [{ translateX: -150 }, { translateY: -150 }],
+  },
+  modalImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 10,
   },
   modalTitle: {
     marginBottom: 10,
@@ -92,7 +108,7 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    paddingVertical: 15, 
+    paddingVertical: 15,
     alignItems: 'center',
     borderRadius: 0,
   },
