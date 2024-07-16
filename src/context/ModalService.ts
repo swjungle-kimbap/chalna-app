@@ -7,7 +7,7 @@ let showModalFunction: (
   confirmText?: string,
   cancelText?: string,
   dismissOnBackgroundClick?: boolean,
-  position?: { top: number, left: number },
+  position?:  'center' | 'top'
 ) => void;
 
 export const setModalFunctions = (
@@ -20,7 +20,7 @@ export const setModalFunctions = (
     confirmText?: string,
     cancelText?: string,
     dismissOnBackgroundClick?: boolean,
-    position?: { top: number, left: number },
+    position?: 'center' | 'top'
   ) => void
 ) => {
   showModalFunction = showModal;
@@ -35,7 +35,7 @@ export const showModal = (
     confirmText: string = '확인',
   cancelText: string = '취소',
   dismissOnBackgroundClick: boolean = true,
-  position: { top: number, left: number } = { top: 0, left: 0 }
+  position: 'center' | 'top' = 'center'
 
 ) => {
   if (showModalFunction) {

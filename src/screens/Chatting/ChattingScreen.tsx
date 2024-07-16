@@ -462,14 +462,14 @@ const ChattingScreen: React.FC = () => {
                         setMessages(prevMessages => {
                             const messageMap = new Map();
 
-                            prevMessages.forEach(msg => {
+                            prevMessages?.forEach(msg => {
                                 if (msg && msg.id) {
                                     messageMap.set(msg.id, msg)
                                 }
                             });
 
                             // 메시지 id가 겹치는 경우 새로운 메시지로 업데이트
-                            fetchedMessages.forEach(msg => {
+                            fetchedMessages?.forEach(msg => {
                                 if (msg && msg.id) {
                                     messageMap.set(msg.id, msg);
                                 }

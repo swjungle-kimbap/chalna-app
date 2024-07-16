@@ -148,8 +148,9 @@ const LocalChatMarkerOverlay = ({cameraMove}) => {
                 cameraMove({ latitude: localChat.latitude, longitude: localChat.longitude });
                 item.isJoined ? localChatOut(localChat) : localChatJoin(localChat, localChat.distance, setRefresh);
               }}
-              width={90}
-              height={90}
+              
+              width={100}
+              height={100}
               isHideCollidedMarkers={localChat.distance < DistanceLimit ? false : true}
               isHideCollidedCaptions={true}
             >
