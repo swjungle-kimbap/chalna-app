@@ -321,12 +321,35 @@ const ChattingScreen: React.FC = () => {
                             // handle unread count
                             const lastLeaveAt = parsedMessage.content.lastLeaveAt;
                             console.log('user enter since ', lastLeaveAt);
+
                             decrementUnreadCountBeforeTimestamp(newChatRoomId, lastLeaveAt);
-                            const updateMessages = async () => {
-                                const updatedMessages = await getAllChatMessages(newChatRoomId);
-                                setMessages(updatedMessages || []);
-                            };
-                            updateMessages();
+
+                            // 현재 화면에 띄어져 있는 메시지도 unreadCount 업데이트
+                            setMessages(messages => {
+                                const updatedMessages = messages.map(message => {
+                                    if (message.createdAt >= lastLeaveAt && message.unreadCount > 0) {
+                                        return { ...message, unreadCount: message.unreadCount - 1 };
+                                    }
+                                    return message
+                                })
+                                return updatedMessages
+                            })
+
+                            // 버퍼에 있는 메시지도 unreadCount 업데이트
+                            updatedMessageBuffer.current = updatedMessageBuffer.current.map(message => {
+                                if (message.createdAt >= lastLeaveAt && message.unreadCount > 0) {
+                                    return { ...message, unreadCount: message.unreadCount - 1 };
+                                }
+                                return message;
+                            })
+
+                    
+                            // const updateMessages = async () => {
+                            //     const updatedMessages = await getAllChatMessages(newChatRoomId);
+                            //     console.log("updatedMessages", updatedMessages)
+                            //     setMessages(updatedMessages || []);
+                            // };
+                            // updateMessages();
                         }
                     }
                 } catch (error) {
@@ -424,15 +447,47 @@ const ChattingScreen: React.FC = () => {
                         // saveChatMessages(chatRoomId, fetchedMessages);
 
                         // Merge fetched messages with stored messages and keep all messages
+
+                        // setMessages(prevMessages => {
+                        //     const allMessages = [
+                        //         ...(prevMessages || []),
+                        //         ...fetchedMessages,
+                        //         ...(socketMessageBuffer || [])
+                        //     ].filter(msg => msg !== null && msg !== undefined);
+                        //     saveChatMessages(chatRoomId, allMessages); // Save merged messages to storage
+                        //     return allMessages;
+                        // });
+
+
                         setMessages(prevMessages => {
-                            const allMessages = [
-                                ...(prevMessages || []),
-                                ...fetchedMessages,
-                                ...(socketMessageBuffer || [])
-                            ].filter(msg => msg !== null && msg !== undefined);
+                            const messageMap = new Map();
+
+                            prevMessages.forEach(msg => {
+                                if (msg && msg.id) {
+                                    messageMap.set(msg.id, msg)
+                                }
+                            });
+
+                            // 메시지 id가 겹치는 경우 새로운 메시지로 업데이트
+                            fetchedMessages.forEach(msg => {
+                                if (msg && msg.id) {
+                                    messageMap.set(msg.id, msg);
+                                }
+                            });
+
+                            if (socketMessageBuffer) {
+                                socketMessageBuffer.forEach(msg => {
+                                    if (msg && msg.id) {
+                                        messageMap.set(msg.id, msg);
+                                    }
+                                })
+                            };
+
+                            const allMessages = Array.from(messageMap.values());
                             saveChatMessages(chatRoomId, allMessages); // Save merged messages to storage
                             return allMessages;
-                        });
+                        })
+
 
                         // handle scroll
                         if (isUserAtBottom.current) {
