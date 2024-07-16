@@ -65,7 +65,7 @@ export const handleCheckPermission = async (): Promise<boolean> => {
 };
 
 
-export const localChatJoin = async (localChat:LocalChat, distance:number, setRefresh:Function ,  position: 'center' | 'top') => {
+export const localChatJoin = async (localChat:LocalChat, distance:number, setRefresh:Function) => {
   const granted = await handleCheckPermission();
   if (!granted) 
     return
@@ -79,8 +79,6 @@ export const localChatJoin = async (localChat:LocalChat, distance:number, setRef
     true,
     '참가',
     '취소',
-    true,
-    position
   );
 };
 
