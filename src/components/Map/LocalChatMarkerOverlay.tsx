@@ -132,18 +132,17 @@ const LocalChatMarkerOverlay = ({cameraMove}) => {
           if (imageUri) {
             ImgSource = { uri: imageUri };
           }
+          
 
           return (
             <NaverMapMarkerOverlay
               key={localChat.id}
               latitude={localChat.latitude}
               longitude={localChat.longitude}
-              // onTap={item.isJoined ? () => localChatOut(localChat, setRefresh) :
-              //   () => localChatJoin(localChat, localChat.distance, setRefresh)
-              // }
+    
               onTap={() => {
                 cameraMove({ latitude: localChat.latitude, longitude: localChat.longitude });
-                item.isJoined ? autolocalChat(localChat, localChat.distance, setRefresh) : localChatJoin(localChat, localChat.distance, setRefresh);
+                item.isJoined ? autolocalChat(localChat, localChat.distance, setRefresh) : localChatJoin(localChat, localChat.distance, setRefresh, imageUri);
               }}
               
               width={100}
@@ -158,6 +157,7 @@ const LocalChatMarkerOverlay = ({cameraMove}) => {
                     style={styles.defaultImage}
                     resizeMode={FastImage.resizeMode.contain}
                   />
+                   <Text style={styles.captionText}>{localChat.name}</Text>
                 </View>
               ) : (
                 <View style={styles.avatarWrapper}>
@@ -210,6 +210,7 @@ const styles = StyleSheet.create({
   defaultImage: {
     width: 50,
     height: 50,
+  
   },
   captionText: {
     marginTop: 5,

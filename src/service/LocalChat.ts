@@ -65,10 +65,11 @@ export const handleCheckPermission = async (): Promise<boolean> => {
 };
 
 
-export const localChatJoin = async (localChat:LocalChat, distance:number, setRefresh:Function ) => {
+export const localChatJoin = async (localChat:LocalChat, distance:number, setRefresh:Function , imageUri: string) => {
   const granted = await handleCheckPermission();
-  if (!granted) 
+  if (!granted) {
     return
+  }
   showModal(
     localChat.name,
     localChat.description,
@@ -81,6 +82,7 @@ export const localChatJoin = async (localChat:LocalChat, distance:number, setRef
     '취소',
     true,
     'center',
+    imageUri,
     false
   );
 };
