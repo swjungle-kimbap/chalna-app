@@ -75,16 +75,15 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
       } as SendMsgRequest)
     }
 
-    const currentTime = new Date(new Date().getTime()+  5 * 60 * 1000); 
     let sendCount = 0;
     let sentedDeviceIds = [];
     response?.data?.data.forEach(({ deviceId, status }) => {
-      if (status === 'SEND') {
+      if (status === 'SUCCESS') {
         sentedDeviceIds.push(deviceId);
         sendCount++;
       }
     });
-    addDeviceIDList(sentedDeviceIds, currentTime.toISOString());
+    addDeviceIDList(sentedDeviceIds);
     sendCountsRef.current = sendCount;
     setMsgSendCnt(sendCount);
   } 

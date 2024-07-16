@@ -7,16 +7,24 @@ export interface DeviceObject {
   lastSendAt: string;
 }
 
+const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
 
-export const addDeviceIDList = async (deviceIds: string[], lastSendAt:string): Promise<void> => {
+export const addDeviceIDList = async (deviceIds: string[]): Promise<void> => {
   try {
+    const now = new Date().getTime()
     const existingDeviceObjects = getMMKVObject<DeviceObject[]>(deviceObjectStorage) || [];
+    const filteredObjects = existingDeviceObjects.filter(device => {
+      const lastSendAt = new Date(device.lastSendAt).getTime();
+      return (now - lastSendAt) <= FIVE_MINUTES_IN_MS;
+    });
+
+    const lastSendAt = new Date(now + FIVE_MINUTES_IN_MS).toISOString();
     deviceIds.forEach((deviceId) => {
-      const existingDeviceIndex = existingDeviceObjects.findIndex(obj => obj.deviceId === deviceId);
+      const existingDeviceIndex = filteredObjects.findIndex(obj => obj.deviceId === deviceId);
       if (existingDeviceIndex !== -1) {
-        existingDeviceObjects[existingDeviceIndex].lastSendAt = lastSendAt;
+        filteredObjects[existingDeviceIndex].lastSendAt = lastSendAt;
       } else {
-        existingDeviceObjects.push({
+        filteredObjects.push({
           deviceId: deviceId,
           lastSendAt: lastSendAt,
         });
@@ -24,7 +32,7 @@ export const addDeviceIDList = async (deviceIds: string[], lastSendAt:string): P
     })
     
     // 업데이트된 목록 저장
-    setMMKVObject(deviceObjectStorage, existingDeviceObjects);
+    setMMKVObject(deviceObjectStorage, filteredObjects);
   } catch (error) {
     console.error(`Error storing deviceId message `, error);
   }

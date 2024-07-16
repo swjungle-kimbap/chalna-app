@@ -1,4 +1,4 @@
-import { ChatDisconnectOut, localChatJoin, localChatOut, joinLocalChat } from "../../service/LocalChat";
+import { ChatDisconnectOut, localChatJoin, autolocalChat } from "../../service/LocalChat";
 import { NaverMapMarkerOverlay } from "@mj-studio/react-native-naver-map";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GetLocalChatResponse, LocalChatData } from '../../interfaces';
@@ -26,7 +26,6 @@ const defaultImg = require('../../assets/Icons/LocalChatIcon.png');
 const LocalChatMarkerOverlay = ({cameraMove}) => {
   const currentLocation = useRecoilValue<Position>(locationState);
   const [localChatList, setLocalChatList] = useRecoilState<LocalChatData[]>(LocalChatListState);
-  const [locationUpdate, setLocationUpdate] = useState(currentLocation);
   const updatedLocationRef = useRef(currentLocation);
   const [refresh, setRefresh] = useRecoilState(getLocalChatRefreshState);
   const [markers, setMarkers] = useState([]);
@@ -36,12 +35,10 @@ const LocalChatMarkerOverlay = ({cameraMove}) => {
     const MovedUpdatedDistance = calDistance(updatedLocationRef.current, currentLocation);
     if (MovedUpdatedDistance > 0.01) {
       updatedLocationRef.current = currentLocation;
-      setLocationUpdate(currentLocation);
       const updateLocalChatRoom = async () => {
         const updatedLocalChatList = await Promise.all(localChatList.map(async (item) => {
           const localChat = item.localChat;
           const distance = calDistance(currentLocation, { latitude: localChat.latitude, longitude: localChat.longitude });
-          console.log(distance, OutDistanceLimit);
           if (item.isJoined && distance >= OutDistanceLimit) {
             await ChatDisconnectOut(localChat.chatRoomId, setRefresh);
             return null;
@@ -146,7 +143,7 @@ const LocalChatMarkerOverlay = ({cameraMove}) => {
               // }
               onTap={() => {
                 cameraMove({ latitude: localChat.latitude, longitude: localChat.longitude });
-                item.isJoined ? localChatOut(localChat) : localChatJoin(localChat, localChat.distance, setRefresh);
+                item.isJoined ? autolocalChat(localChat, localChat.distance, setRefresh) : localChatJoin(localChat, localChat.distance, setRefresh);
               }}
               
               width={100}
@@ -186,7 +183,7 @@ const LocalChatMarkerOverlay = ({cameraMove}) => {
     };
 
     fetchMarkers();
-  }, [localChatList, locationUpdate]);
+  }, [localChatList]);
 
   return (
     <>

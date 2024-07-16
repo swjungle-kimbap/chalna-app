@@ -8,6 +8,7 @@ import Text from "../../components/common/Text";
 import { useRecoilValue } from 'recoil';
 import { locationState } from "../../recoil/atoms";
 import RowButton from "../../components/Mypage/RowButton";
+import color from "../../styles/ColorTheme";
 
 function generateDummyGPSData(startLat, startLon, numPoints, timeInterval) {
   const gpsData = [];
@@ -15,8 +16,8 @@ function generateDummyGPSData(startLat, startLon, numPoints, timeInterval) {
 
   for (let i = 0; i < numPoints; i++) {
     // Randomly change the latitude and longitude
-    const deltaLat = Math.random() * 2 - 2;  // ±0.01 range
-    const deltaLon = Math.random() * 2 - 0.1;  // ±0.01 range
+    const deltaLat = Math.random() * 0.1 - 2;  // ±0.01 range
+    const deltaLon = Math.random() * 0.1 - 0.1;  // ±0.01 range
 
     const newLat = startLat + deltaLat;
     const newLon = startLon + deltaLon;
@@ -98,7 +99,7 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
         (`${urls.GET_FRIEND_ENCOUNTER_URL}/${otherId}`, "스쳐간 위치 조회");
         if (response.data?.data){
           const EncounterData = response.data?.data.reverse();
-          //const dummyGPSData = generateDummyGPSData(startLatitude, startLongitude, numberOfPoints, timeIntervalInSeconds);
+          // const dummyGPSData = generateDummyGPSData(startLatitude, startLongitude, numberOfPoints, timeIntervalInSeconds);
           const {groupedData, filteredData, needYear} = groupByMonth(EncounterData);
           const generatedMonths: {month:number, year:number}[] = generateMonths(needYear);
           setMonths(generatedMonths);
@@ -114,7 +115,7 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
   const onTapHandler = useCallback((index) => {
     if (friendLog[index]) {
       const { longitude, latitude, meetTime } = friendLog[index];
-      logMapViewRef.current.animateCameraTo({ longitude, latitude, zoom:16}, { duration: 300 });
+      logMapViewRef.current.animateCameraTo({ longitude, latitude, zoom:14}, { duration: 300 });
     } else {
       console.log("index is out of range", index);
     }
@@ -172,7 +173,7 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
       <>
         <View style={{flexDirection:"row", alignItems:'center', justifyContent:'center'}}>
           <Text variant="sub" style={styles.autoLoginText}>위치를 그리는 중 입니다.</Text>
-          <ActivityIndicator size="small" color="#3EB297" />
+          <ActivityIndicator size="small" color={color.colors.main} />
         </View> 
       </> :
       <View style={{flexDirection:"row", width: width}}>
@@ -209,7 +210,8 @@ const FriendLogScreen: React.FC<FriendLogScreenProps> = ({route}) => {
             height={80}
             width={100}
             key={index.toString()}
-            minZoom={16}
+            minZoom={14}
+            image={{symbol:'blue'}}
           >
             <View style={{alignItems: 'center'}}>
             <Text style={{
@@ -242,7 +244,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   selectedMonthContainer: {
-    backgroundColor: '#3EB297',
+    backgroundColor: color.colors.main,
     borderRadius: 5,
     padding: 5,
     marginVertical: 10,
@@ -258,7 +260,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   selectedMonth:{
-    backgroundColor: '#3EB297',
+    backgroundColor: color.colors.main,
     borderRadius: 10,
   },
   headerTab:{
@@ -267,7 +269,7 @@ const styles = StyleSheet.create({
     alignItems:'center',
     justifyContent:'center',
     borderBottomWidth: 2,
-    borderColor: '#3EB297',
+    borderColor: color.colors.main,
   },
   loadingConatiner : {
     alignContent:'center',

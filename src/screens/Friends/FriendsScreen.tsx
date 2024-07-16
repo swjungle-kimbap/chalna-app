@@ -7,11 +7,11 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import {Friend, RootStackParamList} from '../../interfaces';
 import {axiosGet} from '../../axios/axios.method';
 import {urls} from '../../axios/config';
-import {useRecoilState} from 'recoil';
+import {useRecoilState, useSetRecoilState} from 'recoil';
 import {
   getKoreanInitials,
 } from '../../service/Friends/FriendListAPI';
-import {userInfoState} from '../../recoil/atoms';
+import {FriendsMapState, userInfoState} from '../../recoil/atoms';
 import {navigate} from '../../navigation/RootNavigation';
 import FontTheme from '../../styles/FontTheme';
 import Button from '../../components/common/Button';
@@ -23,8 +23,9 @@ import {fetchReceivedFriendRequest} from "../../service/Friends/FriendListAPI";
 import NavigationModal from "../../components/Mypage/NavigationModal";
 
 import FriendRequestScreen from "./FriendRequestScreen";
-import CustomHeader from '../../components/common/CustomHeader';
 import color from '../../styles/ColorTheme';
+import { getImageUri } from '../../utils/FileHandling';
+import CustomHeader from '../../components/common/CustomHeader';
 
 interface ApiResponse {
   status: string;
@@ -43,6 +44,8 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
   const [filteredData, setFilteredData] = useState<Friend[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useRecoilState(userInfoState);
+  const setFriendsMap = useSetRecoilState(FriendsMapState);
+  const [myprofileVisible, setMyprofileVisible] = useState(true);
   const [friendRequests, setFriendRequests] = useState<friendRequest[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -55,6 +58,15 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
           );
           console.log('friend api response: ', response.data.data);
           const friends = response.data.data;
+          const newFriendMap = new Map();
+          for (const friend of friends) {
+            newFriendMap.set(friend.deviceId, friend)
+            if (friend.profileImageId) {
+              await getImageUri(friend.profileImageId);
+            }
+          }
+          setFriendsMap(newFriendMap);
+
           setFriendsList(friends);
           setMMKVObject("FriendList", friends);
         } catch (error) {
@@ -71,7 +83,6 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
           setError('Failed to fetch friend requests');
         }
       };
-
       fetchFriends();
       fetchFriendRequests();
     }, []),
@@ -122,7 +133,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
       <View style={styles.headerText}>
         <Text style={styles.text}>내 프로필</Text>
         <Button iconSource={require('../../assets/Icons/cogIcon.png')} imageStyle={styles.closebutton}
-          onPress={() => navigate('로그인 성공', { screen: "친구", params: { screen: "마이페이지" }})}/>
+          onPress={() => navigate('마이페이지')}/>
       </View>
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
@@ -145,7 +156,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
           <HorizontalLine />
           {friendRequests.length > 0 && (
               <>
-                <TouchableOpacity style={styles.receivedRequestsContainer} onPress={() => navigate('친구 요청 목록')}>
+                <TouchableOpacity style={styles.receivedRequestsContainer} onPress={() => navigate('친구요청 목록')}>
                   <Text style={styles.text}>받은 친구 요청</Text>
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{friendRequests.length}</Text>
@@ -342,7 +353,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   badge: {
-    backgroundColor: '#006a81',
+    backgroundColor: color.colors.main,
     borderRadius: 10,
     paddingHorizontal: 8,
     marginLeft: "auto",

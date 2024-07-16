@@ -28,7 +28,7 @@ const ProfileImage = ({ profileImageId, avatarStyle }) => {
       <FastImage
           style={avatarStyle}
           source={imageSource as Source}
-          resizeMode={FastImage.resizeMode.cover}
+          resizeMode={FastImage.resizeMode.contain}
       />
   );
 };

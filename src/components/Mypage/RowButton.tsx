@@ -1,5 +1,6 @@
 import { StyleSheet, View, TouchableOpacity } from "react-native";
 import Text from "../common/Text";
+import color from "../../styles/ColorTheme";
 
 const RowButton = ({onTapHandler, currentIndex, friendLog, setSelectedMonth, selectedMonth}) => {
   return (
@@ -62,7 +63,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dpadButton: {
-    backgroundColor: '#3EB297',
+    backgroundColor: color.colors.main,
     padding: 10,
     borderRadius: 5,
   },

@@ -1,5 +1,5 @@
 import { atom } from "recoil";
-import { LocalChatData, LoginResponse, Position } from "../interfaces";
+import { Friend, LocalChatData, LoginResponse, Position } from "../interfaces";
 
 export const locationState = atom<Position>({
   key: 'location',
@@ -68,4 +68,9 @@ export const MsgSendCntState = atom<number>({
 export const LocalChatListState = atom<LocalChatData[]>({
   key: 'LocalChatList',
   default: []
+})
+
+export const FriendsMapState = atom<Map<string, Friend>>({
+  key: 'FriendsMap',
+  default: new Map()
 })

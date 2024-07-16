@@ -1,6 +1,7 @@
 import RoundBox from "../common/RoundBox";
 import Button from '../common/Button';
 import { StyleSheet } from 'react-native';
+import color from "../../styles/ColorTheme";
 
 type BleButtonProps = {
   bleON: boolean;
@@ -9,13 +10,12 @@ type BleButtonProps = {
 
 const BleButton: React.FC<BleButtonProps> = ({bleON, bleHanddler}) => {
   return (
-    <RoundBox style={styles.bleButton}>
-    <Button iconSource={require('../../assets/Icons/bluetoothIcon.png')}
-      imageStyle={{
-        width:30,
-        height:30,
-        tintColor: bleON ? '#14F12A' : '#979797' 
-      }}
+    <RoundBox style={styles.bleButton} color={bleON ? color.colors.main : '#fff'}>
+    <Button title = {bleON ? "ON": "OFF"}
+      titleStyle={{
+        color: bleON ? '#fff' : color.colors.sub,
+        fontSize: 16,
+      }} variant="main"
       onPress={bleHanddler}></Button>
   </RoundBox>
   );
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     top: 20,
     left: 20,
     height: 40, 
-    width: 40,
+    width: 60,
     borderRadius: 20, 
     paddingVertical: 2, // 상하 여백 설정
     paddingHorizontal: 3, // 좌우 여백 설정
