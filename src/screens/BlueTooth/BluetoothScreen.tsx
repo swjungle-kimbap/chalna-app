@@ -7,7 +7,7 @@ import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv";
 import { userMMKVStorage } from "../../utils/mmkvStorage";
 import ScanNearbyAndPost, { ScanNearbyStop } from "../../service/Bluetooth";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { DeviceUUIDState, isRssiTrackingState } from "../../recoil/atoms";
+import { DeviceUUIDState, isRssiTrackingState, MsgSendCntState } from "../../recoil/atoms";
 import requestPermissions from "../../utils/requestPermissions";
 import requestBluetooth from "../../utils/requestBluetooth";
 import showPermissionAlert from "../../utils/showPermissionAlert";
@@ -22,8 +22,9 @@ import DancingText from "../../components/Bluetooth/DancingText";
 import useFadeText from "../../hooks/useFadeText";
 import BleMainComponent from "../../components/Bluetooth/BleMainComponent";
 import BleBottomComponent from "../../components/Bluetooth/BleBottomComponent";
-import ColorTheme from "../../styles/ColorTheme";
 import color from "../../styles/ColorTheme";
+import MessageGif from "../../components/Bluetooth/MessageGif";
+import styles from "../../components/Bluetooth/BleComponent.style";
 
 interface BluetoothScreenPrams {
   route: {
@@ -48,7 +49,7 @@ const uuidSet = new Set<string>();
 const uuidTime = new Map();
 const uuidTimeoutID = new Map();
 const kFileters = new Map();
-const scanDelayedTime = 3 * 1000;
+const scanDelayedTime = 4 * 1000;
 const sendDelayedTime = 30 * 1000;
 const maxScanDelayedTime = 10 * 1000;
 
@@ -169,11 +170,11 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
       uuidTime[uuid] = 0
     } else if (uuidTimeoutID[uuid]) {
       clearTimeout(uuidTimeoutID[uuid]);
-      uuidTime[uuid] += 0.1;
+      uuidTime[uuid] += 0.5;
       uuidTime[uuid] = 5 > uuidTime[uuid] ? uuidTime[uuid] : 5;
     }
-    const scanTime = scanDelayedTime + (uuidTime[uuid] + uuidSet.size * 0.3) * 1000;
-    const delayTime = 8 * 1000 > scanTime ? scanTime : 8 * 1000;
+    const scanTime = scanDelayedTime + (uuidTime[uuid] + uuidSet.size * 0.5) * 1000;
+    const delayTime = 12 * 1000 > scanTime ? scanTime : 12 * 1000;
     uuidTimeoutID[uuid] = setTimeout(() => {
       uuidSet.delete(uuid);
       if (isRssiTracking) {
@@ -274,60 +275,46 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
       <View style={styles.background}>
         <BleButton bleON={isScanning} bleHanddler={handleBLEButton} />
         <AlarmButton notificationId={notificationId} />
-        <View style={styles.contentContainer}>
-          {!isScanning ? <DancingText handleBLEButton={handleBLEButton} /> :
+        <MessageBox
+          uuids={uuidSet}
+          setRemainingTime={setRemainingTime}
+          setShowMsgBox={setShowMsgBox}
+          fadeInAndMoveUp={fadeInAndMoveUp}
+          visible={showMsgBox}
+          onClose={() => setShowMsgBox(false)}
+        />
+          {!isScanning ? 
+            <View style={styles.contentContainer}>
+              <DancingText handleBLEButton={handleBLEButton} /> 
+            </View> :
             (
               <>
                 <BleMainComponent 
-                  //uuids={uuids2}
+                  // uuids={uuids2}
                   uuids={uuids}
                   setShowMsgBox={setShowMsgBox}
                 />
+                {isBlocked ?
                 <BleBottomComponent
-                  isBlocked={isBlocked}
                   fadeAnim={fadeAnim}
                   translateY={translateY}
                   remainingTime={remainingTime}
                   showMsgBox={showMsgBox}
-                  // uuidSet={uuidSet2}
-                  uuidSet={uuidSet}
-                  setRemainingTime={setRemainingTime}
-                  setShowMsgBox={setShowMsgBox}
-                  fadeInAndMoveUp={fadeInAndMoveUp}
-                />
+                />  : uuidSet.size > 0 ? (
+                  <View style={styles.bleBottomSubContainer}>
+                    <Text style={styles.findTextSmall}>주위 {uuidSet.size}명의 인연을 찾았습니다!</Text>
+                    <MessageGif setShowMsgBox={setShowMsgBox} />
+                  </View>
+                ) : (
+                  <View style={styles.bleBottomSubContainer}>
+                    <Text style={styles.findText}>주위의 인연을 찾고 있습니다.</Text>
+                  </View>
+                )}
               </>
-            )}
-        </View>
+          )}
       </View>
     </>
   );
 };
 
-const styles = StyleSheet.create({
-  background: {
-    backgroundColor: ColorTheme.colors.light_sub,
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'space-between', // 상하 배치
-    alignItems: 'center',
-    paddingBottom: 10,
-  },
-  TVButton: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-    top: 20,
-    left: 80,
-    height: 40,
-    width: 40,
-    borderRadius: 20,
-    paddingVertical: 2, // 상하 여백 설정
-    paddingHorizontal: 3, // 좌우 여백 설정
-    zIndex: 3
-  },
-});
 export default BluetoothScreen;
