@@ -5,7 +5,7 @@ import { getImageUri } from "../../utils/FileHandling";
 
 const defaultImg = require('../../assets/images/anonymous.png');
 
-const ProfileImage = ({ profileImageId, avatarStyle }) => {
+const ProfileImage = ({ profileImageId, avatarStyle, resizeMode=true }) => {
   const [profileUri, setProfileUri] = useState("");
 
   const getUri = useCallback(async () => {
@@ -28,7 +28,7 @@ const ProfileImage = ({ profileImageId, avatarStyle }) => {
       <FastImage
           style={avatarStyle}
           source={imageSource as Source}
-          resizeMode={FastImage.resizeMode.contain}
+          resizeMode={FastImage.resizeMode.cover}
       />
   );
 };

@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useMemo, useState } from "react";
 import { StyleSheet, View, TouchableOpacity, Image, Dimensions, LogBox } from "react-native";
-import BottomSheet, {BottomSheetView , BottomSheetFlatList}from "@gorhom/bottom-sheet";
+import BottomSheet, {BottomSheetView , BottomSheetFlatList} from "@gorhom/bottom-sheet";
 import { useRecoilValue } from "recoil";
 import { LocalChatListState } from "../../recoil/atoms";
 import RoundBox from "../common/RoundBox";
@@ -169,6 +169,7 @@ const styles = StyleSheet.create({
   },
   container: {
     margin: 0,
+    flex:1,
     zIndex: 3,
   },
 });
