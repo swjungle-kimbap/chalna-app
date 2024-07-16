@@ -13,35 +13,35 @@ const BackgroundNonDismissibleModal = () => {
       visible={modalVisible}
       onRequestClose={hideModal}
     >
-        <TouchableWithoutFeedback onPress={modalContent.dismissOnBackgroundClick ? hideModal : undefined}>
-      <View style={styles.modalContainer}>
-      <TouchableWithoutFeedback onPress={() => {}}>
-      <View style={[styles.modalContent, modalContent.position && { top: modalContent.position.top, left: modalContent.position.left }]}>
-        {/* <View style={styles.modalContent}> */}
-          <Text style={styles.modalTitle}>{modalContent.title}</Text>
-          <Text style={styles.modalText}>{modalContent.content}</Text>
-          <View style={styles.buttonContainer}>
-          <TouchableOpacity
-              style={[
-                styles.button,
-                styles.confirmButton,
-                !modalContent.showCancel && styles.confirmButtonSingle
-              ]}
-              onPress={() => { modalContent.onConfirm && modalContent.onConfirm(); hideModal(); }}
-            >
-              <Text style={styles.buttonConfirmText}>{modalContent.confirmText || '확인'}</Text>
-          </TouchableOpacity>
-          {modalContent.showCancel && (
-              <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => { modalContent.onCancel && modalContent.onCancel(); hideModal(); }}>
-                <Text style={styles.buttonCancelText}>{modalContent.cancelText || '취소'}</Text>
-              </TouchableOpacity>
-            )}
-            
-        
-          </View>
+      <TouchableWithoutFeedback onPress={modalContent.dismissOnBackgroundClick ? hideModal : undefined}>
+        <View style={styles.modalContainer}>
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={[
+              styles.modalContent,
+              modalContent.position === 'top' ? styles.modalContentTop : styles.modalContentCenter,
+            ]}>
+              <Text style={styles.modalTitle}>{modalContent.title}</Text>
+              <Text style={styles.modalText}>{modalContent.content}</Text>
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.button,
+                    styles.confirmButton,
+                    !modalContent.showCancel && styles.confirmButtonSingle
+                  ]}
+                  onPress={() => { modalContent.onConfirm && modalContent.onConfirm(); hideModal(); }}
+                >
+                  <Text style={styles.buttonConfirmText}>{modalContent.confirmText || '확인'}</Text>
+                </TouchableOpacity>
+                {modalContent.showCancel && (
+                  <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => { modalContent.onCancel && modalContent.onCancel(); hideModal(); }}>
+                    <Text style={styles.buttonCancelText}>{modalContent.cancelText || '취소'}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-        </TouchableWithoutFeedback>
-      </View>
       </TouchableWithoutFeedback>
     </Modal>
   );
@@ -50,21 +50,28 @@ const BackgroundNonDismissibleModal = () => {
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     width: 300,
-    // padding: 20,
     backgroundColor: 'white',
     borderRadius: 10,
     alignItems: 'center',
+    position: 'absolute',
+    left: '50%',
+    transform: [{ translateX: -150 }],
+  },
+  modalContentTop: {
+    top: 50,
+  },
+  modalContentCenter: {
+    top: '50%',
+    transform: [{ translateX: -150 }, { translateY: -150 }],
   },
   modalTitle: {
     marginBottom: 10,
     fontSize: 14,
-    marginTop:20,
+    marginTop: 20,
     fontFamily: fontTheme.fonts.title,
     color: 'black'
   },
@@ -72,8 +79,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontSize: 15,
     padding: 15,
-    marginLeft:10,
-    marginRight:10,
+    marginLeft: 10,
+    marginRight: 10,
     textAlign: 'center',
     fontFamily: fontTheme.fonts.main,
     color: 'black'
@@ -111,7 +118,7 @@ const styles = StyleSheet.create({
     color: '#666666',
     fontSize: 13,
     fontFamily: fontTheme.fonts.title,
-  }
+  },
 });
 
 export default BackgroundNonDismissibleModal;

@@ -128,7 +128,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModa
                 {(name.length > 0 && description.length > 0) ? (
                   <Button titleStyle={styles.makeButton} title="생성하기" onPress={handleCreateButton} />
                 ) : (
-                  <Button disabled titleStyle={styles.disableButton} title=
+                  <Button disabled titleStyle={styles.makeExplain} title=
                   {name.length === 0 && description.length === 0 ? "제목과 내용을 채워주세요" : name.length === 0 ? "제목을 입력해주세요" : "내용을 입력해주세요"}
                   onPress={handleCreateButton} />
                 )}
