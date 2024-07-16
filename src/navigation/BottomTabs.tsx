@@ -7,7 +7,7 @@ import ColorTheme from "../styles/ColorTheme";
 import FriendsStackScreen from "./FriendsStack";
 import ChattingStackScreen from "./ChattingStack";
 import { useSetRecoilState } from 'recoil';
-import { locationState } from '../recoil/atoms';
+import { FriendsMapState, locationState } from '../recoil/atoms';
 import { getMMKVObject } from '../utils/mmkvStorage';
 import { AxiosResponse, Friend, Position } from '../interfaces';
 import { useLogoutAndWithdrawal } from '../service/Setting';
@@ -28,7 +28,7 @@ const BottomTabs = () => {
     const setLastLocation = useSetRecoilState(locationState);
     const [isLoading, setIsLoading] = useState(true);
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-
+    const setFriendsMap = useSetRecoilState(FriendsMapState);
     const { initUserSetting } = useLogoutAndWithdrawal();
 
     const [previousRoute, setPreviousRoute] = useState<{name:string; params:null|object}>(null);
@@ -61,11 +61,14 @@ const BottomTabs = () => {
           try {
             const response = await axiosGet<AxiosResponse<Friend[]>>(urls.GET_FRIEND_LIST_URL);
             const friends = response.data.data;
+            const newFriendMap = new Map();
             for (const friend of friends) {
+              newFriendMap.set(friend.deviceId, friend)
               if (friend.profileImageId) {
                 await getImageUri(friend.profileImageId);
               }
             }
+            setFriendsMap(newFriendMap);
           } catch (error) {
               console.error("Error fetching friend list or updating profile images: ", error);
           } 

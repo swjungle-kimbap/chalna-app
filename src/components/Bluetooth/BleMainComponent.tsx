@@ -8,40 +8,13 @@ import styles from './BleComponent.style';
 interface BleMainComponentProps {
   uuids: Set<string>;
   style?: ViewStyle;
+  setShowMsgBox: (show: boolean) => void;
 }
 
 
-const BleMainComponent: React.FC<BleMainComponentProps> = ({ uuids, style }) => {
+const BleMainComponent: React.FC<BleMainComponentProps> = ({ uuids, style, setShowMsgBox }) => {
   const animationRef = useRef<LottieView>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-
-  // useEffect(() => {
-  //   const keyboardDidShowListener = Keyboard.addListener(
-  //     'keyboardDidShow',
-  //     () => {
-  //       setKeyboardVisible(true);
-  //     }
-  //   );
-  //   const keyboardDidHideListener = Keyboard.addListener(
-  //     'keyboardDidHide',
-  //     () => {
-  //       setKeyboardVisible(false);
-  //     }
-  //   );
-
-  //   // cleanup function
-  //   return () => {
-  //     keyboardDidShowListener.remove();
-  //     keyboardDidHideListener.remove();
-  //   };
-  // }, []);
-
-  useEffect(() => {
-    if (!isKeyboardVisible && animationRef.current) {
-      animationRef.current.play();
-    }
-  }, [isKeyboardVisible]);
 
   useEffect(() => {
     if (uuids.size === 0) {
@@ -60,10 +33,9 @@ const BleMainComponent: React.FC<BleMainComponentProps> = ({ uuids, style }) => 
   }, [uuids]);
 
   return (
-    !isKeyboardVisible && (
     <SafeAreaView style={[styles.bleMainContainer, style]}>
       <Animated.View style={[styles.detectContainer, {opacity: fadeAnim }]}>
-        <DetectDisplay uuids={uuids} />
+        <DetectDisplay uuids={uuids} setShowMsgBox={setShowMsgBox}/>
       </Animated.View>
       <LottieView
         ref={animationRef}
@@ -72,13 +44,12 @@ const BleMainComponent: React.FC<BleMainComponentProps> = ({ uuids, style }) => 
         speed={1.5}
         loop
         onLayout={() => {
-          if (!isKeyboardVisible && animationRef.current) {
+          if (animationRef.current) {
             animationRef.current.play();
           }
         }}
       />
     </SafeAreaView>
-    )
   );
 };
 

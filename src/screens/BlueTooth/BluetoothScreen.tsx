@@ -281,6 +281,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
                 <BleMainComponent 
                   //uuids={uuids2}
                   uuids={uuids}
+                  setShowMsgBox={setShowMsgBox}
                 />
                 <BleBottomComponent
                   isBlocked={isBlocked}

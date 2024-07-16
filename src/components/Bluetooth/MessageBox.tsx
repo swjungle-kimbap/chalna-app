@@ -60,7 +60,6 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
   const { showModal } = useModal();
 
   const sendMsg = async ( uuids:Set<string>, fileId : number ) => {
-    console.log("send uuids", {uuids});
     let response = null;
     if (selectedTag ==='텍스트') {
       response = await axiosPost<AxiosResponse<SendMatchResponse>>(urls.SEND_MSG_URL, "인연 보내기", {
@@ -78,14 +77,12 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
 
     let sendCount = 0;
     let sentedDeviceIds = [];
-    console.log("Received Data", response?.data?.data);
     response?.data?.data.forEach(({ deviceId, status }) => {
-      if (status === 'SEND') {
+      if (status === 'SUCCESS') {
         sentedDeviceIds.push(deviceId);
         sendCount++;
       }
     });
-    console.log({sentedDeviceIds});
     addDeviceIDList(sentedDeviceIds);
     sendCountsRef.current = sendCount;
     setMsgSendCnt(sendCount);

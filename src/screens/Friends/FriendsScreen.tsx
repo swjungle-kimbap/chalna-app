@@ -7,11 +7,11 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import {Friend, RootStackParamList} from '../../interfaces';
 import {axiosGet} from '../../axios/axios.method';
 import {urls} from '../../axios/config';
-import {useRecoilState} from 'recoil';
+import {useRecoilState, useSetRecoilState} from 'recoil';
 import {
   getKoreanInitials,
 } from '../../service/Friends/FriendListAPI';
-import {userInfoState} from '../../recoil/atoms';
+import {FriendsMapState, userInfoState} from '../../recoil/atoms';
 import {navigate} from '../../navigation/RootNavigation';
 import FontTheme from '../../styles/FontTheme';
 import Button from '../../components/common/Button';
@@ -24,6 +24,7 @@ import NavigationModal from "../../components/Mypage/NavigationModal";
 
 import FriendRequestScreen from "./FriendRequestScreen";
 import color from '../../styles/ColorTheme';
+import { getImageUri } from '../../utils/FileHandling';
 
 interface ApiResponse {
   status: string;
@@ -42,6 +43,7 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
   const [filteredData, setFilteredData] = useState<Friend[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useRecoilState(userInfoState);
+  const setFriendsMap = useSetRecoilState(FriendsMapState);
   const [myprofileVisible, setMyprofileVisible] = useState(true);
   const [friendRequests, setFriendRequests] = useState<friendRequest[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -55,6 +57,15 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
           );
           console.log('friend api response: ', response.data.data);
           const friends = response.data.data;
+          const newFriendMap = new Map();
+          for (const friend of friends) {
+            newFriendMap.set(friend.deviceId, friend)
+            if (friend.profileImageId) {
+              await getImageUri(friend.profileImageId);
+            }
+          }
+          setFriendsMap(newFriendMap);
+
           setFriendsList(friends);
           setMMKVObject("FriendList", friends);
         } catch (error) {
@@ -71,7 +82,6 @@ const FriendsScreen: React.FC<FriendsScreenProps> = ({navigation}) => {
           setError('Failed to fetch friend requests');
         }
       };
-
       fetchFriends();
       fetchFriendRequests();
     }, []),

@@ -20,7 +20,7 @@ interface FriendCardProps {
     navigation?: StackNavigationProp<RootStackParamList, '채팅'>;
 }
 
-interface ApiResponse {
+export interface ApiResponse {
     status: number;
     message: string;
     data: {
