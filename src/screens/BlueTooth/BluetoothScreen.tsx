@@ -48,7 +48,7 @@ const uuidSet = new Set<string>();
 const uuidTime = new Map();
 const uuidTimeoutID = new Map();
 const kFileters = new Map();
-const scanDelayedTime = 5 * 1000;
+const scanDelayedTime = 3 * 1000;
 const sendDelayedTime = 30 * 1000;
 const maxScanDelayedTime = 10 * 1000;
 
@@ -169,11 +169,11 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
       uuidTime[uuid] = 0
     } else if (uuidTimeoutID[uuid]) {
       clearTimeout(uuidTimeoutID[uuid]);
-      uuidTime[uuid] += 1;
-      uuidTime[uuid] = 5 > uuidTime[uuid] ? uuidTime[uuid] + 1 : 5;
+      uuidTime[uuid] += 0.1;
+      uuidTime[uuid] = 5 > uuidTime[uuid] ? uuidTime[uuid] : 5;
     }
-    const scanTime = scanDelayedTime + (uuidTime[uuid] + uuidSet.size - 1) * 1000;
-    const delayTime = 12 * 1000 > scanTime ? scanTime : 12 * 1000;
+    const scanTime = scanDelayedTime + (uuidTime[uuid] + uuidSet.size * 0.3) * 1000;
+    const delayTime = 8 * 1000 > scanTime ? scanTime : 8 * 1000;
     uuidTimeoutID[uuid] = setTimeout(() => {
       uuidSet.delete(uuid);
       if (isRssiTracking) {

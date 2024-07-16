@@ -31,29 +31,19 @@ const getRandomIcon = (): Source => {
   return images[randomIndex];
 };
 
-const createFloatingAnimation = (anim: Animated.Value) => {
-  return Animated.loop(
-    Animated.sequence([
-      Animated.timing(anim, {
-        toValue: -1,
-        duration: 1000,
-        delay: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(anim, {
-        toValue: 1,
-        duration: 1000,
-        delay: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(anim, {
-        toValue: 0,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-    ])
-  );
-};
+  // LottieView 중심을 기준으로 원의 좌표를 설정
+  const lottieCenterX = 160; // LottieView의 중심 x 좌표
+  const lottieCenterY = 200; // LottieView의 중심 y 좌표
+  const radius = 130; // 원의 반지름
+
+  const positions = [
+    { top: lottieCenterY - radius, left: lottieCenterX }, // 위
+    { top: lottieCenterY - radius / 2, left: lottieCenterX - (Math.sqrt(3) / 2) * radius }, // 좌상
+    { top: lottieCenterY - radius / 2, left: lottieCenterX + (Math.sqrt(3) / 2) * radius }, // 우상
+    { top: lottieCenterY + radius / 2, left: lottieCenterX - (Math.sqrt(3) / 2) * radius }, // 좌하
+    { top: lottieCenterY + radius / 2, left: lottieCenterX + (Math.sqrt(3) / 2) * radius }, // 우하
+    { top: lottieCenterY + radius, left: lottieCenterX }, // 아래
+  ];
 
 const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
   const fadeAnimMap = useRef(new Map<string, Animated.Value>()).current;
@@ -66,7 +56,7 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
     console.log('SendDeviceIdList updated:', SendDeviceIdList);
     SendDeviceIdList?.forEach((item)=> {
       const restTime = new Date(item.lastSendAt).getTime() - currentTime;
-      if (restTime) {
+      if (restTime > 0) {
         console.log('restTime:', restTime);
         checkMap.set(item.deviceId, true);
         setTimeout(() => {
@@ -74,7 +64,6 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
         }, restTime);
       }
     })
-    console.log('iconMap:', iconMap);
   }, [SendDeviceIdList]);
 
   useEffect(() => {
@@ -93,7 +82,7 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
 
         Animated.timing(fadeAnimMap.get(uuid), {
           toValue: 1,
-          duration: 1000,
+          duration: 2000,
           useNativeDriver: true,
         }).start();
       }
@@ -106,7 +95,7 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
         if (fadeAnim) {
           Animated.timing(fadeAnim, {
             toValue: 0,
-            duration: 1000,
+            duration: 2000,
             useNativeDriver: true,
           }).start(() => {
             fadeAnimMap.delete(uuid);
@@ -114,21 +103,8 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({ uuids }) => {
         }
       }
     });
-  }, [uuids, checkMap]);
+  }, [uuids, SendDeviceIdList]);
 
-  // LottieView 중심을 기준으로 원의 좌표를 설정
-  const lottieCenterX = 160; // LottieView의 중심 x 좌표
-  const lottieCenterY = 200; // LottieView의 중심 y 좌표
-  const radius = 130; // 원의 반지름
-
-  const positions = [
-    { top: lottieCenterY - radius, left: lottieCenterX }, // 위
-    { top: lottieCenterY - radius / 2, left: lottieCenterX - (Math.sqrt(3) / 2) * radius }, // 좌상
-    { top: lottieCenterY - radius / 2, left: lottieCenterX + (Math.sqrt(3) / 2) * radius }, // 우상
-    { top: lottieCenterY + radius / 2, left: lottieCenterX - (Math.sqrt(3) / 2) * radius }, // 좌하
-    { top: lottieCenterY + radius / 2, left: lottieCenterX + (Math.sqrt(3) / 2) * radius }, // 우하
-    { top: lottieCenterY + radius, left: lottieCenterX }, // 아래
-  ];
 
   return (
     <View style={styles.detectIconContainer}>
