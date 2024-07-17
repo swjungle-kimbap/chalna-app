@@ -59,6 +59,17 @@ export const getChatRoomInfo = (chatRoomId: number): ChatRoomLocal | null => {
     return chatRooms?.find(room => room.id === chatRoomId) || null;
 };
 
+// Check if a chat room exists in storage
+export const doesChatRoomExist = (chatRoomId: number): boolean => {
+    console.log('doesChatRoomExist');
+    const chatRooms = getChatRoomList();
+    if (!chatRooms) {
+        return false;
+    }
+    return chatRooms.some(room => room.id === chatRoomId);
+};
+
+
 
 // Remove a chat room from storage
 export const removeChatRoom = (chatRoomId: number) => {

@@ -6,6 +6,7 @@ import {chatroomInfoAndMsg, chatRoomMemberInfo} from "../../interfaces/Chatting.
 import axiosInstance from "../../axios/axios.instance";
 import {ChatRoom} from "../../interfaces/Chatting.type";
 import { showModal } from '../../context/ModalService';
+import {navigate} from "../../navigation/RootNavigation";
 
 export const fetchChatRoomList=async():Promise<ChatRoom[]|any>=>{
     try {
@@ -23,14 +24,14 @@ export const fetchChatRoomList=async():Promise<ChatRoom[]|any>=>{
 // export const viewChatRoomList => {}
 export const fetchChatRoomContent =
     async(
-        chatRoomId: string, currentUserId: number
+        chatRoomId: string, currentUserId: number, urlQuery?: string
     ):Promise<chatroomInfoAndMsg|any> => {
     try{
         // get response
         // console.log("채팅방 입장시 메세지 목록 조회 api 호출");
-        console.log('url fetchChatRoomcontent: ', urls.CHATROOM_MSG_URL+`${chatRoomId}`);
+        console.log('url fetchChatRoomcontent: ', urls.CHATROOM_MSG_URL+`${chatRoomId}`+urlQuery);
         const response = await axiosGet(
-            urls.CHATROOM_MSG_URL+`${chatRoomId}` //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
+            urls.CHATROOM_MSG_URL+`${chatRoomId}`+urlQuery //   ${currentTimestamp}` 나가기 전 createdat 넣어주기
         );
         console.log(response.data.data);
 
@@ -55,8 +56,6 @@ export const fetchChatRoomMember =
             console.log("채팅방 불러오기에 실패했습니다.");
         }
     }
-
-
 
 export const deleteChat = async (navigation: any, chatRoomId: string): Promise<boolean | any> => {
     showModal(
