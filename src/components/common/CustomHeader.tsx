@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Text from './Text';
 import FastImage from "react-native-fast-image";
+import color from "../../styles/ColorTheme";
 
 interface HeaderProps {
     title?:string;
@@ -69,6 +70,8 @@ const styles = StyleSheet.create({
     },
     iconButton: {
         padding: 10,
+        tintColor: '#5A5A5A',
+        color: '#5A5A5A'
     },
     icon: {
         width: 24,
