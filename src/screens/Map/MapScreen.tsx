@@ -160,9 +160,9 @@ const MapScreen: React.FC = ({}) => {
 const styles = StyleSheet.create({
   bottomSheet: {
     position: 'absolute',
-    bottom: 10,
-    right: 15,
-    width: "90%",
+    bottom: 0,
+    right: 0,
+    width: "100%",
   },
   avatarContainer: {
     alignItems: 'center',

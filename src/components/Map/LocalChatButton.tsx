@@ -39,8 +39,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     top: 20,
     right: 20,
-    height: 70, 
-    width: 70,
+    height: 60, 
+    width: 60,
     borderRadius: 35, 
     paddingVertical: 2, // 상하 여백 설정
     paddingHorizontal: 3, // 좌우 여백 설정
@@ -56,8 +56,8 @@ const styles = StyleSheet.create({
     elevation: 10, // 안드로이드에서 그림자 효과를 주기 위해 필요한 속성
   },
   buttonImage: {
-    width: 45,
-    height: 45,
+    width: 35,
+    height: 35,
     tintColor: 'white'
   },
   textInput: {

@@ -10,6 +10,7 @@ import { LocalChat } from "../../interfaces";
 import ProfileImage from "../common/ProfileImage";
 import { distanceLimit } from "./LocalChatMarkerOverlay";
 import { localChatJoin, autolocalChat , joinLocalChat} from "../../service/LocalChat"; // autolocalChat 임포트 추가
+import color from "../../styles/ColorTheme";
 
 LogBox.ignoreLogs([
   "[Reanimated] Tried to modify key `reduceMotion` of an object which has been already passed to a worklet. See https://docs.swmansion.com/react-native-reanimated/docs/guides/troubleshooting#tried-to-modify-key-of-an-object-which-has-been-converted-to-a-shareable for more details."
@@ -20,7 +21,7 @@ const MapBottomSheet = ({ cameraMove, setShowLocalChatModal }) => {
   const localChatList = useRecoilValue(LocalChatListState);
   const [refresh, setRefresh] = useRecoilState(getLocalChatRefreshState);
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-  const snapPoints = useMemo(() => [Math.floor(screenHeight * 3 / 100), Math.floor(screenHeight * 38 / 100), Math.floor(screenHeight * 70 / 100)], []);
+  const snapPoints = useMemo(() => [Math.floor(screenHeight * 1 / 100), Math.floor(screenHeight * 38 / 100), Math.floor(screenHeight * 70 / 100)], []);
   const [height, setHeight] = useState(snapPoints[0]);
   const [isBottom, setIsBottom] = useState(true);
 
@@ -80,25 +81,26 @@ const MapBottomSheet = ({ cameraMove, setShowLocalChatModal }) => {
   }, [localChatList, cameraMove, setRefresh]);
 
   const RenderHeader = useCallback(() => (
-    <TouchableOpacity style={styles.headerContainer}
-      hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-      onPress={() => {
-        setHeight(snapPoints[2]);
-        setIsBottom(false);
-      }}>
-      <View style={styles.header}>
-        <View style={styles.handle} />
-      </View>
-    </TouchableOpacity>
+    <RoundBox style={styles.headerContainer}>
+        <Button
+          iconSource={require('../../assets/Icons/GoUpIcon.png')}
+          imageStyle={styles.handle}
+          onPress={() => {
+            setHeight(snapPoints[2]);
+            setIsBottom(false);
+          }}
+        />
+      </RoundBox>
   ), []);
 
   return (
     <>
       <View style={[styles.container, { height }]}>
-        {isBottom &&
-          <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+        {isBottom && (
+          <View style={{ alignItems: 'center', justifyContent: 'center'}}>
             <RenderHeader />
-          </View>}
+          </View>
+        ) }        
         <BottomSheet
           ref={sheetRef}
           snapPoints={snapPoints}
@@ -120,6 +122,8 @@ const MapBottomSheet = ({ cameraMove, setShowLocalChatModal }) => {
             </BottomSheetView>
           }
         </BottomSheet>
+   
+
       </View>
     </>
   );
@@ -128,19 +132,23 @@ const MapBottomSheet = ({ cameraMove, setShowLocalChatModal }) => {
 const styles = StyleSheet.create({
   headerContainer: {
     position: 'absolute',
-    paddingBottom: 6,
-  },
-  header: {
-    width: 40,
-    height: 6,
-    backgroundColor: 'gray',
-    borderRadius: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+    bottom: 5,
+    borderRadius: 35, 
+    shadowColor: '#000', // 그림자 색상
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    }, // 그림자의 오프셋 설정
+    backgroundColor: 'white',
+    shadowOpacity: 0.8, // 그림자의 투명도 설정
+    shadowRadius: 8, // 그림자의 번지는 반경 설정
+    elevation: 4, // 안드로이드에서 그림자 효과를 주기 위해 필요한 속성
   },
   handle: {
-    width: 40,
-    height: 6,
-    backgroundColor: 'gray',
-    borderRadius: 3,
+    width: 20,
+    height: 20,
   },
   distanceText: {
     color: 'gray',
