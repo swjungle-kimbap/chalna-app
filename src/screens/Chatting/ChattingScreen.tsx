@@ -52,6 +52,7 @@ import Announcement from "../../components/Chat/Announcement";
 import {useBuffer} from "../../context/BufferContext";
 import MessageBubble from '../../components/Chat/MessageBubble/MessageBubble';
 import { getImageUri } from '../../utils/FileHandling';
+import color from "../../styles/ColorTheme";
 
 
 
@@ -835,7 +836,7 @@ const ChattingScreen: React.FC = () => {
                                 onPress={sendMessage}
                                 iconSource={require('../../assets/Icons/sendMsgIcon.png')}
                                 disabled={chatRoomType === 'WAITING'}
-                                imageStyle={{height: 15, width: 15}}
+                                imageStyle={{height: 15, width: 15, tintColor: color.colors.main}}
                                 containerStyle={{paddingRight: 15}}
                             />
                         )}
@@ -921,6 +922,7 @@ const styles = StyleSheet.create({
         height: 24,
         justifyContent: 'center',
         alignItems: 'center',
+        tintColor: color.colors.main
     },
     removeImageButtonText: {
         color: 'white',
