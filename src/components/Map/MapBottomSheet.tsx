@@ -135,6 +135,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     bottom: 5,
+    width: 40,
+    height: 40,
     borderRadius: 35, 
     shadowColor: '#000', // 그림자 색상
     shadowOffset: {
@@ -147,8 +149,8 @@ const styles = StyleSheet.create({
     elevation: 4, // 안드로이드에서 그림자 효과를 주기 위해 필요한 속성
   },
   handle: {
-    width: 20,
-    height: 20,
+    width: 25,
+    height: 25,
   },
   distanceText: {
     color: 'gray',
