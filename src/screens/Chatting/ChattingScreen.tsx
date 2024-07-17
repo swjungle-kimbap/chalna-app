@@ -156,18 +156,20 @@ const ChattingScreen: React.FC = () => {
             setMembers(responseData.members);
             setMemberCount(String(responseData.memberCount));
 
-            const usernames = responseData.members
-                .filter((member: chatRoomMember) => member.memberId !== currentUserId)
-                .map((member: chatRoomMember) => member.username)
-                .join(', ');
-
-            const chatRoomName = chatRoomType==='LOCAL'? (chatRoomInfo? chatRoomInfo.name : "장소 채팅"):usernames;
-            setUsername(chatRoomName);
+            if (chatRoomType!=='LOCAL'){
+                const usernames = responseData.members
+                    .filter((member: chatRoomMember) => member.memberId !== currentUserId)
+                    .map((member: chatRoomMember) => member.username)
+                    .join(', ');
+                setUsername(usernames)
+            }
+            // const chatRoomName = chatRoomType==='LOCAL'? (chatRoomInfo? chatRoomInfo.name : "장소 채팅"):usernames;
+            // setUsername(chatRoomName);
 
             const chatRoomInfoToStore: ChatRoomLocal = {
                 id: parseInt(chatRoomId, 10),
                 chatRoomMemberInfo: responseData,
-                name: chatRoomName
+                // name: chatRoomName
             }
             saveChatRoomInfo(chatRoomInfoToStore);
         }
@@ -343,7 +345,7 @@ const ChattingScreen: React.FC = () => {
                                 return message;
                             })
 
-                    
+
                             // const updateMessages = async () => {
                             //     const updatedMessages = await getAllChatMessages(newChatRoomId);
                             //     console.log("updatedMessages", updatedMessages)

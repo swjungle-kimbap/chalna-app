@@ -6,6 +6,7 @@ import {chatroomInfoAndMsg, chatRoomMemberInfo} from "../../interfaces/Chatting.
 import axiosInstance from "../../axios/axios.instance";
 import {ChatRoom} from "../../interfaces/Chatting.type";
 import { showModal } from '../../context/ModalService';
+import {navigate} from "../../navigation/RootNavigation";
 
 export const fetchChatRoomList=async():Promise<ChatRoom[]|any>=>{
     try {
