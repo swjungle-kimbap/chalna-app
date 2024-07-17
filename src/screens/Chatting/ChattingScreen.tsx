@@ -312,6 +312,17 @@ const ChattingScreen: React.FC = () => {
                         }
 
                         if (parsedMessage.type === 'FRIEND_REQUEST' && parsedMessage.content.includes('친구가 되었습니다!')) {
+                            if ( parsedMessage.senderId!==currentUserId ) {
+                                showModal('친구 맺기 성공', '친구와의 인연 기록을 보겠습니까?', () => {
+                                    navigate("로그인 성공", {
+                                        screen: "친구",
+                                        params: {
+                                            screen: "스쳐간 기록",
+                                            params: {otherId: parsedMessage.senderId}
+                                        }
+                                    })
+                                }, undefined, false);
+                            }
                             updateRoomInfo();
                         }
 
@@ -333,8 +344,8 @@ const ChattingScreen: React.FC = () => {
 
                             // 현재 화면에 띄어져 있는 메시지도 unreadCount 업데이트
                             setMessages(messages => {
-                                const updatedMessages = messages.map(message => {
-                                    if (message.createdAt >= lastLeaveAt && message.unreadCount > 0) {
+                                const updatedMessages = (messages || []).map(message => {
+                                    if (message && message.createdAt >= lastLeaveAt && message.unreadCount > 0) {
                                         return { ...message, unreadCount: message.unreadCount - 1 };
                                     }
                                     return message
