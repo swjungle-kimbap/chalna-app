@@ -54,6 +54,7 @@ import MessageBubble from '../../components/Chat/MessageBubble/MessageBubble';
 import { getImageUri } from '../../utils/FileHandling';
 
 
+
 const onRenderCallback = (
     id, // the "id" prop of the Profiler tree that has just committed
     phase, // either "mount" (if the tree just mounted) or "update" (if it re-rendered)
@@ -105,6 +106,7 @@ const ChattingScreen: React.FC = () => {
     const batchSize = 20;
 
     const chatRoomIdRef = useRef<string>(chatRoomId);
+    const chatRoomTypeRef = useRef<string>(chatRoomType);
 
     const [showAnnouncement, setShowAnnouncement] = useState<boolean>(false); // State for showing announcement
 
@@ -158,12 +160,14 @@ const ChattingScreen: React.FC = () => {
             setMembers(responseData.members);
             setMemberCount(String(responseData.memberCount));
 
-            if (chatRoomType!=='LOCAL'){
+            console.log("==== Chat Room Type: ", chatRoomTypeRef.current);
+            if (chatRoomTypeRef.current!=='LOCAL'){
                 const usernames = responseData.members
                     .filter((member: chatRoomMember) => member.memberId !== currentUserId)
                     .map((member: chatRoomMember) => member.username)
                     .join(', ');
                 setUsername(usernames)
+                console.log("======= update chatroom title =====")
             }
             // const chatRoomName = chatRoomType==='LOCAL'? (chatRoomInfo? chatRoomInfo.name : "장소 채팅"):usernames;
             // setUsername(chatRoomName);
@@ -312,6 +316,19 @@ const ChattingScreen: React.FC = () => {
                         }
 
                         if (parsedMessage.type === 'FRIEND_REQUEST' && parsedMessage.content.includes('친구가 되었습니다!')) {
+                            if ( parsedMessage.senderId!==currentUserId ) {
+                                showModal('친구 맺기 성공', '친구와의 인연 기록을 보겠습니까?', () => {
+                                    navigate("로그인 성공", {
+                                        screen: "친구",
+                                        params: {
+                                            screen: "스쳐간 기록",
+                                            params: {otherId: parsedMessage.senderId}
+                                        }
+                                    })
+                                }, undefined, false);
+                            }
+                            chatRoomTypeRef.current = 'FRIEND';
+                            setChatRoomType('FRIEND')
                             updateRoomInfo();
                         }
 
@@ -320,6 +337,7 @@ const ChattingScreen: React.FC = () => {
                         }
 
                         if (parsedMessage.type === 'TIMEOUT' && chatRoomType !== 'FRIEND') {
+                            chatRoomTypeRef.current = 'WAITING';
                             setChatRoomType('WAITING');
                         }
 
@@ -333,8 +351,8 @@ const ChattingScreen: React.FC = () => {
 
                             // 현재 화면에 띄어져 있는 메시지도 unreadCount 업데이트
                             setMessages(messages => {
-                                const updatedMessages = messages.map(message => {
-                                    if (message.createdAt >= lastLeaveAt && message.unreadCount > 0) {
+                                const updatedMessages = (messages || []).map(message => {
+                                    if (message && message.createdAt >= lastLeaveAt && message.unreadCount > 0) {
                                         return { ...message, unreadCount: message.unreadCount - 1 };
                                     }
                                     return message
@@ -539,6 +557,7 @@ const ChattingScreen: React.FC = () => {
 
                     }
 
+                    chatRoomTypeRef.current = responseData.type;
                     setChatRoomType(responseData.type);
                     setMembers(responseData.chatRoomMemberInfo.members);
 
