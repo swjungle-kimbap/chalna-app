@@ -12,7 +12,7 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { useFocusEffect } from "@react-navigation/core";
 import Geolocation from "react-native-geolocation-service";
 import { getImageUri } from "../../utils/FileHandling";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ImageBackground  , Image} from "react-native";
 import FastImage from 'react-native-fast-image';
 import Text from '../../components/common/Text';
 
@@ -132,7 +132,8 @@ const LocalChatMarkerOverlay = ({cameraMove}) => {
           if (imageUri) {
             ImgSource = { uri: imageUri };
           }
-          
+          const borderColor = localChat.distance >= OutDistanceLimit ? 'gray' : 'white';
+          const tintColor = localChat.distance >= OutDistanceLimit ? 'gray' : '#438EE6';  
 
           return (
             <NaverMapMarkerOverlay
@@ -147,15 +148,16 @@ const LocalChatMarkerOverlay = ({cameraMove}) => {
               
               width={100}
               height={100}
-              isHideCollidedMarkers={localChat.distance < DistanceLimit ? false : true}
+              // isHideCollidedMarkers={localChat.distance < DistanceLimit ? false : true}
               isHideCollidedCaptions={true}
             >
               {isDefaultImage ? (
                 <View style={styles.defaultImageWrapper}>
-                  <FastImage
+                   <ImageBackground
                     source={ImgSource}
-                    style={styles.defaultImage}
-                    resizeMode={FastImage.resizeMode.contain}
+                    style={[styles.defaultImage]}
+                    imageStyle={{ tintColor }}
+                    resizeMode="contain"
                   />
                    <Text style={styles.captionText}>{localChat.name}</Text>
                 </View>
@@ -163,7 +165,7 @@ const LocalChatMarkerOverlay = ({cameraMove}) => {
                 <View style={styles.avatarWrapper}>
                   <FastImage
                     source={ImgSource}
-                    style={styles.avatar}
+                    style={[styles.avatar, { borderColor }]}
                     resizeMode={FastImage.resizeMode.cover}
                   />
                   <Text style={styles.captionText}>{localChat.name}</Text>
@@ -200,8 +202,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    borderWidth: 2,
-    borderColor: 'white',
+    borderWidth: 3,
   },
   defaultImageWrapper: {
     alignItems: 'center',
@@ -210,7 +211,6 @@ const styles = StyleSheet.create({
   defaultImage: {
     width: 50,
     height: 50,
-  
   },
   captionText: {
     marginTop: 5,
