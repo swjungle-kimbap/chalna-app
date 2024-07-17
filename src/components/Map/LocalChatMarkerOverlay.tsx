@@ -101,17 +101,15 @@ const LocalChatMarkerOverlay = ({cameraMove}) => {
     }
   };
 
-  useEffect(() => {
-    fetchLocalChatList();
-  }, [refresh])
-
   useFocusEffect(
     useCallback(() => {
+      console.log("====refreshed!=====");
+      fetchLocalChatList();
       const interval = setInterval(() => {
         fetchLocalChatList();
       }, LocalChatDelayedTime);
       return () => clearInterval(interval);
-    }, [])
+    }, [refresh])
   );
 
   useEffect(() => {

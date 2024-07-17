@@ -63,6 +63,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModa
     >
       <TouchableWithoutFeedback onPress={closeModal}>
         <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback>
           <View style={styles.inputBoxPos}>
                 <View style={styles.headerContainer}>
                   <Text style={styles.titleText}>장소 채팅 생성</Text>
@@ -133,6 +134,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModa
                   onPress={handleCreateButton} />
                 )}
           </View>
+          </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
     </Modal>

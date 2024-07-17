@@ -7,7 +7,7 @@ export interface DeviceObject {
   lastSendAt: string;
 }
 
-const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
+const FIVE_MINUTES_IN_MS = 10 * 60 * 1000;
 
 export const addDeviceIDList = async (deviceIds: string[]): Promise<void> => {
   try {
