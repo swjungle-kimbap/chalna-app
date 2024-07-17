@@ -170,11 +170,10 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
       uuidTime[uuid] = 0
     } else if (uuidTimeoutID[uuid]) {
       clearTimeout(uuidTimeoutID[uuid]);
-      uuidTime[uuid] += 0.5;
-      uuidTime[uuid] = 5 > uuidTime[uuid] ? uuidTime[uuid] : 5;
+      uuidTime[uuid] += 1;
+      uuidTime[uuid] = 7 >= uuidTime[uuid] ? uuidTime[uuid] : 7;
     }
-    const scanTime = scanDelayedTime + (uuidTime[uuid] + uuidSet.size * 0.5) * 1000;
-    const delayTime = 12 * 1000 > scanTime ? scanTime : 12 * 1000;
+    const scanTime = scanDelayedTime + (uuidTime[uuid]) * 1000;
     uuidTimeoutID[uuid] = setTimeout(() => {
       uuidSet.delete(uuid);
       if (isRssiTracking) {
@@ -185,7 +184,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
         });
       }
       setUuids(new Set(uuidSet));
-    }, delayTime);
+    }, scanTime);
     setUuids(new Set(uuidSet));
   };
 
