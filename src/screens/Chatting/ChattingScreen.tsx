@@ -54,6 +54,7 @@ import MessageBubble from '../../components/Chat/MessageBubble/MessageBubble';
 import { getImageUri } from '../../utils/FileHandling';
 
 
+
 const onRenderCallback = (
     id, // the "id" prop of the Profiler tree that has just committed
     phase, // either "mount" (if the tree just mounted) or "update" (if it re-rendered)
@@ -105,6 +106,7 @@ const ChattingScreen: React.FC = () => {
     const batchSize = 20;
 
     const chatRoomIdRef = useRef<string>(chatRoomId);
+    const chatRoomTypeRef = useRef<string>(chatRoomType);
 
     const [showAnnouncement, setShowAnnouncement] = useState<boolean>(false); // State for showing announcement
 
@@ -158,12 +160,14 @@ const ChattingScreen: React.FC = () => {
             setMembers(responseData.members);
             setMemberCount(String(responseData.memberCount));
 
-            if (chatRoomType!=='LOCAL'){
+            console.log("==== Chat Room Type: ", chatRoomTypeRef.current);
+            if (chatRoomTypeRef.current!=='LOCAL'){
                 const usernames = responseData.members
                     .filter((member: chatRoomMember) => member.memberId !== currentUserId)
                     .map((member: chatRoomMember) => member.username)
                     .join(', ');
                 setUsername(usernames)
+                console.log("======= update chatroom title =====")
             }
             // const chatRoomName = chatRoomType==='LOCAL'? (chatRoomInfo? chatRoomInfo.name : "장소 채팅"):usernames;
             // setUsername(chatRoomName);
@@ -323,6 +327,8 @@ const ChattingScreen: React.FC = () => {
                                     })
                                 }, undefined, false);
                             }
+                            chatRoomTypeRef.current = 'FRIEND';
+                            setChatRoomType('FRIEND')
                             updateRoomInfo();
                         }
 
@@ -331,6 +337,7 @@ const ChattingScreen: React.FC = () => {
                         }
 
                         if (parsedMessage.type === 'TIMEOUT' && chatRoomType !== 'FRIEND') {
+                            chatRoomTypeRef.current = 'WAITING';
                             setChatRoomType('WAITING');
                         }
 
@@ -550,6 +557,7 @@ const ChattingScreen: React.FC = () => {
 
                     }
 
+                    chatRoomTypeRef.current = responseData.type;
                     setChatRoomType(responseData.type);
                     setMembers(responseData.chatRoomMemberInfo.members);
 
