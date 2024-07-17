@@ -203,6 +203,9 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({uuids, setShowMsgBox}) => 
         <Text style={otherstyles.fadeText}>
           이미 메세지를 보낸 대상입니다!
         </Text>
+        <Text style={otherstyles.fadeText}>
+          10분 뒤에 다시 보낼 수 있어요!
+        </Text>
       </Animated.View>
       {Array.from(uuids).map((uuid, index) => {
         const position = positions[index % positions.length];
@@ -257,6 +260,8 @@ const DetectDisplay: React.FC<DetectDisplayProps> = ({uuids, setShowMsgBox}) => 
 const otherstyles = StyleSheet.create({
   fadeText: {
     fontSize: 15,
+    color:'gray',
+    zIndex:3,
   },
   usenameText: {
     marginTop: 4,
