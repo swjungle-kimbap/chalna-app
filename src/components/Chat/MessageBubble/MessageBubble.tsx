@@ -5,7 +5,7 @@ import FastImage from 'react-native-fast-image';
 import Text from '../../common/Text';
 import ImageTextButton from "../../common/Button";
 import RNFS from 'react-native-fs';
-// import FriendRequestActions from './FriendRequestActions';
+import FriendRequestActions from './FriendRequestActions';
 import ImagePreviewModal from "./ImagePreviewModal";
 import UserProfileModal from "./UserProfileModal";
 import ProfileImage from '../../common/ProfileImage';
@@ -35,11 +35,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
                                                           }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [imageModalVisible, setImageModalVisible] = useState(false);
-    // const [isDisabled, setIsDisabled] = useState(chatRoomType === 'FRIEND');
-    // const resizedImageUri = useRef(message.preSignedUrl);
-    const {showModal} = useModal();
+    const [isDisabled, setIsDisabled] = useState(chatRoomType === 'FRIEND');
 
-    // console.log("===============profileImageID: ", profileImageId);
+    const {showModal} = useModal();
 
     const toggleUserInfoModal = useCallback(() => {
         setModalVisible(prev => !prev);
@@ -142,6 +140,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
         }
     };
 
+    console.log()
+
     const renderAnnouncementMessage = (message: string, backgroundColor: string = '#C6DBDA') => (
         <AnnouncementMessageBubble style={{ backgroundColor }}>
             <Text variant="sub" style={styles.messageText}>{message}</Text>
@@ -149,24 +149,24 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
     );
 
     const renderUserMessage = () => (
-            <MessageContainer isSelf={isSelf} showProfileTime={showProfileTime}>
-                    {isSelf && (
-                        <DateReadStatusContainer>
-                            <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt > 0 ? unreadCnt : ''}</ReadStatus>
-                            {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{datetime}</DateTime>}
-                        </DateReadStatusContainer>
-                    )}
-                    <MessageContent isSelf={isSelf} isFile={type==='FILE'}>
-                        {renderMessageContent()}
-                    </MessageContent>
+        <MessageContainer isSelf={isSelf} showProfileTime={showProfileTime}>
+            {isSelf && (
+                <DateReadStatusContainer>
+                    <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt > 0 ? unreadCnt : ''}</ReadStatus>
+                    {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{datetime}</DateTime>}
+                </DateReadStatusContainer>
+            )}
+            <MessageContent isSelf={isSelf} isFile={type==='FILE'}>
+                {renderMessageContent()}
+            </MessageContent>
 
-                    {!isSelf && (
-                        <DateReadStatusContainer>
-                            <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt > 0 ? unreadCnt : ''}</ReadStatus>
-                            {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{datetime}</DateTime>}
-                        </DateReadStatusContainer>
-                    )}
-            </MessageContainer>
+            {!isSelf && (
+                <DateReadStatusContainer>
+                    <ReadStatus isSelf={isSelf} variant="sub">{unreadCnt > 0 ? unreadCnt : ''}</ReadStatus>
+                    {showProfileTime && <DateTime isSelf={isSelf} variant="sub">{datetime}</DateTime>}
+                </DateReadStatusContainer>
+            )}
+        </MessageContainer>
     );
 
     const renderMessageBubble = () => {
@@ -175,6 +175,14 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
                 return (
                     <AnnouncementMessageBubble style={{ backgroundColor: colorTheme.colors.sub }}>
                         <Text variant="sub" style={{ color: '#444444' }}>{message}</Text>
+                        {!isSelf && message.includes('친구 요청을 보냈습니다') && (
+                            <FriendRequestActions
+                                chatRoomId={chatRoomId}
+                                senderId={senderId}
+                                isDisabled={isDisabled}
+                                setIsDisabled={setIsDisabled}
+                            />
+                        )}
                     </AnnouncementMessageBubble>
                 );
             case 'TIMEOUT':
@@ -230,6 +238,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
         </Container>
     );
 });
+
 
 const Container = styled.View<{ isSelf: boolean; notChat: boolean }>`
     max-width: 80%;
@@ -323,3 +332,4 @@ const DateReadStatusContainer = styled.View`
 `;
 
 export default MessageBubble;
+
