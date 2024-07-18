@@ -76,10 +76,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-    top: 20,
+    top: 15,
     left: 100,
-    height: 40,
-    width: 40,
+    height: 60,
+    width: 60,
     borderRadius: 20,
     paddingVertical: 2, // 상하 여백 설정
     paddingHorizontal: 3, // 좌우 여백 설정

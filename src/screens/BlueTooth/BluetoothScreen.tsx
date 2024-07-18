@@ -265,8 +265,8 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
     <>
       {isRssiTracking && (
         <>
-          <View style={styles.TVButton}>
-            <Button title='    ' onPress={() => setShowTracking(true)} titleStyle={{ color: color.colors.main, fontSize: 10 }} />
+          <View style={styles.TVButton} >
+            <Button title='    ' onPress={() => setShowTracking(true)} titleStyle={{ color: color.colors.main, fontSize: 20 }} />
           </View>
           <RssiTracking closeModal={() => setShowTracking(false)} modalVisible={showTracking} items={rssiMap} />
         </>
