@@ -609,6 +609,8 @@ const ChattingScreen: React.FC = () => {
                 // console.log("===소켓 메세지 버퍼=== ",updatedMessageBuffer.current);
                 saveChatMessages(chatRoomId, updatedMessageBuffer.current);
                 updatedMessageBuffer.current=[]; // empty buffer
+                setMembers([]);
+                setChatRoomType(null);
                 setMessages(null);
                 setUsername("");
                 setMemberCount("");
