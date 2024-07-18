@@ -124,7 +124,7 @@ const BluetoothSettingScreen: React.FC = () => {
                 style={{ width: 200, height: 40 }}
                 minimumValue={-100}
                 maximumValue={-60}
-                step={5}
+                step={1}
                 value={RSSIvalue}
                 onValueChange={value => setRSSIvalue(value)}
                 tapToSeek
