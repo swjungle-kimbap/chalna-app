@@ -16,6 +16,7 @@ import {showModal} from "../../context/ModalService";
 import { useRecoilState } from 'recoil';
 import { FriendsMapState } from '../../recoil/atoms';
 import {getMMKVString, setMMKVString} from "../../utils/mmkvStorage";
+import {doesChatRoomExist} from "../../service/Chatting/mmkvChatStorage";
 
 
 interface FriendRequestCardProps {
@@ -50,7 +51,11 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request, navigati
             console.log("from friend request card to chatroom. ID: ", chatRoomId);
             setMMKVString('chatRoomId', String(chatRoomId));
             console.log('mmkv stored value: ', getMMKVString('chatRoomId'));
-            navigation.navigate("채팅", { chatRoomId: chatRoomId });
+            if (doesChatRoomExist(Number(chatRoomId)) ){
+                navigation.navigate("채팅", { chatRoomId: chatRoomId });
+            } else {
+                showModal('나간 대화방', "친구가 되면 대화를 이어갈 수 있습니다!", () => {}, undefined, false);
+            }
 
         } catch (error) {
             const errorMessage = error.message || "대화방이 존재하지 않습니다.";

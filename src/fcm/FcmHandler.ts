@@ -107,10 +107,11 @@ const handleFCMClick = (notification: any) => {
         break;
       case 'chat':
         // 예: 채팅 화면으로 이동
-        navigate("채팅", { chatRoomId: additionalData.chatRoomId });
+        setMMKVString('showPrevModal', 'match');
         console.log("from fcm to chatroom. ID: ", additionalData.chatRoomId);
         setMMKVString('chatRoomId', String(additionalData.chatRoomId));
         console.log('mmkv stored value: ', getMMKVString('chatRoomId'));
+        navigate("채팅", { chatRoomId: additionalData.chatRoomId });
         break;
       default:
         console.log('Unknown fcmType:', fcmType);

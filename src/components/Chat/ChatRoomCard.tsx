@@ -45,7 +45,8 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
     };
     const truncatedMsg = truncateString(lastMsg || " ", 15);
 
-    const goToChattingScreen=(chatRoomId: number) => {
+    const goToChattingScreen=(chatRoomId: number, chatRoomType: string) => {
+        setMMKVString('showPrevModal', chatRoomType==='MATCH'?'match':'' );
         setMMKVString('chatRoomId', String(chatRoomId));
         console.log('from chatRoom Card to chatting screen: ', chatRoomId);
         console.log('mmkv stored chatroomID: ', getMMKVString('chatRoomId'));
@@ -55,7 +56,7 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
     return (
         <Swipeable renderRightActions={renderRightActions}>
             <TouchableOpacity
-                onPress={() => goToChattingScreen(chatRoomId)}
+                onPress={() => goToChattingScreen(chatRoomId, chatRoomType)}
                 style={[
                     styles.card,
                     chatRoomType === 'FRIEND' ? styles.friendCard :

@@ -55,12 +55,10 @@ const FriendCard: React.FC<FriendCardProps> = ({ user, isExpanded, onExpand, nav
                     setMMKVString('chatRoomId', String(chatRoomId));
                     console.log('mmkv stored value: ', getMMKVString('chatRoomId'));
                     navigation.navigate("채팅", { chatRoomId: chatRoomId });
-
                 }
                 catch {
                     // Alert.alert('Error', '채팅방을 찾을 수 없습니다.');
                     showModal('친구랑 대화하기', '채팅방을 찾을 수 없습니다.',()=>{},undefined,false);
-
                 }
             } else {
                 // Alert.alert('Error', 'chatroomId를 찾을 수 없습니다.');

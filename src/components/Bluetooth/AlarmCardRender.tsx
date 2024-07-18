@@ -25,6 +25,7 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
     removeAlarmItem(notificationId);
     const matchAcceptResponse = await axiosPost<AxiosResponse<MatchAcceptResponse>>
                               (urls.ACCEPT_MSG_URL + notificationId, "인연 수락");
+        setMMKVString('showPrevModal', 'match');
         console.log("from alarm card to chatroom. ID: ", matchAcceptResponse.data.data.chatRoomId);
         setMMKVString('chatRoomId', String(matchAcceptResponse.data.data.chatRoomId));
         console.log('mmkv stored value: ', getMMKVString('chatRoomId'));

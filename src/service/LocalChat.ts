@@ -15,14 +15,14 @@ import {getMMKVString, setMMKVString} from "../utils/mmkvStorage";
 const requiredPermissions = [PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION];
 
 export const joinLocalChat = async (localChat:LocalChat, distance:number, setRefresh: Function) => {
-    // console.log("Join Local Chat Called :", getMMKVString('localChatJoinModal'));
+
     try {
       if (distance < 0.05){
 
         await axiosPost<JoinLocalChatResponse>(
           urls.JOIN_LOCAL_CHAT_URL + localChat.id.toString(), "장소 채팅 참여");
         setRefresh((prev)=>!prev);
-        setMMKVString('localChatJoinModal', 'true');
+        setMMKVString('showPrevModal', 'local');
         setMMKVString('chatRoomId', String(localChat.chatRoomId || ''));
         console.log("from local chat to chatroom. ID: ", localChat.chatRoomId);
         console.log('mmkv stored value: ', getMMKVString('chatRoomId'));

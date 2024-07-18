@@ -140,7 +140,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({
         }
     };
 
-    console.log()
+    // console.log()
 
     const renderAnnouncementMessage = (message: string, backgroundColor: string = '#C6DBDA') => (
         <AnnouncementMessageBubble style={{ backgroundColor }}>

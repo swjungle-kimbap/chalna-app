@@ -101,6 +101,7 @@ const ChattingScreen: React.FC = () => {
 
     const [selectedImage, setSelectedImage] = useState<any>(null);
     const isSending = useRef<boolean>(false);
+    const isSendingImage = useRef<boolean>(false);
 
     // paging
     const [viewableItems, setViewableItems] = useState<number[]>([]);
@@ -214,6 +215,9 @@ const ChattingScreen: React.FC = () => {
 
     const handleUploadAndSend = async () => {
         // console.log("선택된 이미지 : ", selectedImage);
+        if (isSendingImage.current) return;
+
+        isSendingImage.current=true;
         if (!selectedImage) {
             sendMessage();
             return;
@@ -269,11 +273,12 @@ const ChattingScreen: React.FC = () => {
         } catch (error) {
             console.error('Error 메시지: ', error);
         } finally {
-            isSending.current=false;
-            // console.log("handleUploadAndSend END");
+            isSendingImage.current=false;
+            console.log("handleUploadAndSend END");
             // console.log("isSending: ", isSending.current);
         }
     };
+
 
     const handleIncomingSocketMessage = (newMessage: directedChatMessage) => {
         console.log("===haneld Incoming socket msg, initialLoad status: ", isInitialLoadCompleteRef.current);
@@ -320,7 +325,6 @@ const ChattingScreen: React.FC = () => {
                         parsedMessage.formatedTime = formatDateToKoreanTime(parsedMessage.createdAt);
 
                         if (!(chatRoomType === 'FRIEND' && parsedMessage.type === 'TIMEOUT')) {
-                            console.log("=====실행 확인======");
                             console.log(parsedMessage);
                             handleIncomingSocketMessage(parsedMessage); // set 바로 저장 배치 단위로
                         }
@@ -446,20 +450,20 @@ const ChattingScreen: React.FC = () => {
         const fetchMessages = async (isInitialLoad: boolean) => {
 
             console.log("!!!!!! INITIAL LOAD !!!!!!");
-            console.log("showLocalModal 111: ", getMMKVString('localChatJoinModal'));
-            console.log("ChatRoomTypeRef: ", chatRoomTypeRef.current);
+
             try {
 
                 if (isInitialLoad){
-                    const showLocalModal = getMMKVString('localChatJoinModal');
-                    console.log("show L M 222: ", showLocalModal);
-                    if (showLocalModal=='true' && !doesChatRoomExist(Number(chatRoomId)) ){
-                        setMMKVString('localChatJoinModal',''); // 일단 초기화
-                        console.log("reset localChatJoinModal: ",getMMKVString('localChatJoinModal'));
+                    const showLocalModal = getMMKVString('showPrevModal')==='local';
+                    const showMatchModal = getMMKVString('showPrevModal')==='match';
+                    if (showLocalModal && !doesChatRoomExist(Number(chatRoomId)) ){
+                        // local chat 이전 대화내역 불러오기 확인 모달
+                        setMMKVString('showPrevModal',''); // 일단 초기화
+                        console.log("reset showPrevModal: ",getMMKVString('showPrevModal'));
                         await new Promise<void>((resolve)=> {
                             showModal(
                                 "장소톡 입장",
-                                "이전 대화내역을 불러오시겠습까?",
+                                "이전 대화내역을 불러오시겠습니까?",
                                 () => {
                                     urlQuery.current = '?includePrevious=true'
                                     resolve();
@@ -473,8 +477,29 @@ const ChattingScreen: React.FC = () => {
                             );
 
                         });
+                    } else if (showMatchModal && !doesChatRoomExist(Number(chatRoomId)) ){
+                        // 인연 채팅 이전 기록 불러오기 모달창
+                        setMMKVString('showPrevModal',''); // 일단 초기화
+                        console.log("reset showPrevModal: ",getMMKVString('showPrevModal'));
+                        await new Promise<void>((resolve)=> {
+                            showModal(
+                                "전에 만났던 인연이네요!",
+                                "이전 대화내역을 불러오시겠습니까?",
+                                () => {
+                                    urlQuery.current = '?includePrevious=true'
+                                    resolve();
+                                },
+                                ()=>{
+                                    resolve();
+                                },
+                                true,
+                                '예',
+                                '아니오'
+                            );
 
+                        });
                     }
+                    setMMKVString('showPrevModal',''); // 초기화
 
                     setLoading(true);
                     // Step 1: Load stored messages and information first
@@ -699,7 +724,6 @@ const ChattingScreen: React.FC = () => {
         return memberIdToUsernameMap.get(senderId) || '(알 수 없는 사용자)';
     }
 
-
     const senderIdToProfileIdMap = useMemo(() => {
         const map = new Map<number, number>();
         members.forEach(member => {
@@ -711,7 +735,6 @@ const ChattingScreen: React.FC = () => {
     const getProfileIdBySenderId = (senderId: number) => {
         return senderIdToProfileIdMap.get(senderId) || 0;
     }
-
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const {contentOffset} = event.nativeEvent;
@@ -739,15 +762,45 @@ const ChattingScreen: React.FC = () => {
         }
     };
 
+    const renderItem = ({ item, index }) => {
+        const reverseIndex = messages.length - 1 - index;
+        const showProfileTime = reverseIndex < 5 ||
+            (!messages[reverseIndex - 1] || messages[reverseIndex - 1].senderId !== item.senderId || messages[reverseIndex - 1].type === 'FRIEND_REQUEST') ||
+            (!messages[reverseIndex - 1] || messages[reverseIndex - 1].formatedTime !== item.formatedTime);
+
+        const previousMessage = messages[reverseIndex - 1];
+        const showDateHeader = !previousMessage || new Date(item.createdAt).toDateString() !== new Date(previousMessage.createdAt).toDateString();
+
+        return (
+            <>
+                <MessageBubble
+                    message={item.content}
+                    datetime={item.formatedTime}
+                    isSelf={item.isSelf}
+                    type={item.type}
+                    unreadCnt={item.unreadCount}
+                    chatRoomId={Number(chatRoomId)}
+                    senderId={item.senderId}
+                    chatRoomType={chatRoomType}
+                    profileImageId={getProfileIdBySenderId(item.senderId)}
+                    username={getUsernameBySenderId(item.senderId)}
+                    showProfileTime={showProfileTime}
+                    myname={myname}
+                />
+                {showDateHeader && <DateHeader date={formatDateHeader(item.createdAt)} />}
+            </>
+        );
+    };
 
     // Viewable Items
+    const viewabilityConfig = {
+        itemVisiblePercentThreshold: 50,
+    };
+
     const onViewableItemsChanged = useCallback(({viewableItems}) => {
         setViewableItems(viewableItems.map(item => item.index));
     }, []);
 
-    const viewabilityConfig = {
-        itemVisiblePercentThreshold: 50,
-    };
 
 
     if (loading) {
@@ -785,37 +838,7 @@ const ChattingScreen: React.FC = () => {
                     <FlatList
                         data={messages?.slice().reverse()} // Reverse the order of messages
                         keyExtractor={(item, index) => `${item.id}-${index}`}
-                        renderItem={({item, index}) => {
-                            // show profile(image & name)
-                            const reverseIndex = messages.length - 1 - index;
-                            const showProfileTime = reverseIndex < 5 ||
-                                (!messages[reverseIndex - 1] || messages[reverseIndex - 1].senderId !== item.senderId || messages[reverseIndex - 1].type === 'FRIEND_REQUEST') ||
-                                (!messages[reverseIndex - 1] || messages[reverseIndex - 1].formatedTime !== item.formatedTime);
-
-                            // show date header
-                            const previousMessage = messages[reverseIndex - 1];
-                            const showDateHeader = !previousMessage || new Date(item.createdAt).toDateString() !== new Date(previousMessage.createdAt).toDateString();
-
-                            return (
-                                <>
-                                    <MessageBubble
-                                        message={item.content}
-                                        datetime={item.formatedTime}
-                                        isSelf={item.isSelf}
-                                        type={item.type}
-                                        unreadCnt={item.unreadCount}
-                                        chatRoomId={Number(chatRoomId)}
-                                        senderId={item.senderId}
-                                        chatRoomType={chatRoomType}
-                                        profileImageId={getProfileIdBySenderId(item.senderId)}
-                                        username={getUsernameBySenderId(item.senderId)}
-                                        showProfileTime={showProfileTime}
-                                        myname={myname}
-                                    />
-                                    {showDateHeader && <DateHeader date={formatDateHeader(item.createdAt)}/>}
-                                </>
-                            );
-                        }}
+                        renderItem={renderItem}
                         ref={flatListRef}
                         inverted
                         onContentSizeChange={() => {
