@@ -16,7 +16,7 @@ const MainScreen : React.FC = () => {
     const handleStateChange = (state) => {
         const currentRoute = state.routes[state.index];
         // console.log("===currentRoute: ", state.routes[state.index]);
-        setMMKVString('currentRouteName', currentRoute.name);
+        setMMKVString('currentRouteName', currentRoute.name || '');
     };
   return (
       <NavigationProvider>
