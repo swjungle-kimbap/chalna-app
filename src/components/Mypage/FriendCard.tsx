@@ -13,6 +13,7 @@ import { useModal } from '../../context/ModalContext';
 import Text from '../common/Text';
 import FontTheme from '../../styles/FontTheme';
 import { shadow } from 'react-native-paper';
+import {getMMKVString, setMMKVString} from "../../utils/mmkvStorage";
 
 
 interface FriendCardProps {
@@ -50,7 +51,11 @@ const FriendCard: React.FC<FriendCardProps> = ({ user, isExpanded, onExpand, nav
                 const { chatRoomId } = response.data.data;
                 try {
                     await axiosPost(`${urls.CHATROOM_JOIN_URL}${chatRoomId}`); // 채팅방 참여 api 호출
+                    console.log("from friend card to chatroom. ID: ", chatRoomId);
+                    setMMKVString('chatRoomId', String(chatRoomId));
+                    console.log('mmkv stored value: ', getMMKVString('chatRoomId'));
                     navigation.navigate("채팅", { chatRoomId: chatRoomId });
+
                 }
                 catch {
                     // Alert.alert('Error', '채팅방을 찾을 수 없습니다.');

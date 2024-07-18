@@ -61,7 +61,7 @@ export const getChatRoomInfo = (chatRoomId: number): ChatRoomLocal | null => {
 
 // Check if a chat room exists in storage
 export const doesChatRoomExist = (chatRoomId: number): boolean => {
-    console.log('doesChatRoomExist');
+    // console.log('doesChatRoomExist');
     const chatRooms = getChatRoomList();
     if (!chatRooms) {
         return false;

@@ -5,6 +5,7 @@ import { useRecoilValue } from 'recoil';
 import Text from '../../components/common/Text';
 import ProfileImage from '../common/ProfileImage';
 import color from '../../styles/ColorTheme';
+import {getMMKVString, setMMKVString} from "../../utils/mmkvStorage";
 
 interface ChatRoomCardProps {
     usernames: string;
@@ -44,11 +45,17 @@ const ChatRoomCard: React.FC<ChatRoomCardProps> = ({
     };
     const truncatedMsg = truncateString(lastMsg || " ", 15);
 
+    const goToChattingScreen=(chatRoomId: number) => {
+        setMMKVString('chatRoomId', String(chatRoomId));
+        console.log('from chatRoom Card to chatting screen: ', chatRoomId);
+        console.log('mmkv stored chatroomID: ', getMMKVString('chatRoomId'));
+        navigation.navigate('채팅', { chatRoomId })
+    }
 
     return (
         <Swipeable renderRightActions={renderRightActions}>
             <TouchableOpacity
-                onPress={() => navigation.navigate('채팅', { chatRoomId })}
+                onPress={() => goToChattingScreen(chatRoomId)}
                 style={[
                     styles.card,
                     chatRoomType === 'FRIEND' ? styles.friendCard :

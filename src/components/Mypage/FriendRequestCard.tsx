@@ -15,6 +15,7 @@ import Text from '../common/Text';
 import {showModal} from "../../context/ModalService";
 import { useRecoilState } from 'recoil';
 import { FriendsMapState } from '../../recoil/atoms';
+import {getMMKVString, setMMKVString} from "../../utils/mmkvStorage";
 
 
 interface FriendRequestCardProps {
@@ -46,7 +47,11 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request, navigati
 
     const handleChat = async(chatRoomId: number) =>{
         try {
+            console.log("from friend request card to chatroom. ID: ", chatRoomId);
+            setMMKVString('chatRoomId', String(chatRoomId));
+            console.log('mmkv stored value: ', getMMKVString('chatRoomId'));
             navigation.navigate("채팅", { chatRoomId: chatRoomId });
+
         } catch (error) {
             const errorMessage = error.message || "대화방이 존재하지 않습니다.";
             showModal('찰나가 아파요..', errorMessage, () => {}, undefined, false);

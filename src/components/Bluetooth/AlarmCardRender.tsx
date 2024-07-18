@@ -7,6 +7,7 @@ import { navigate } from '../../navigation/RootNavigation';
 import {urls} from "../../axios/config";
 import { MatchFCM } from '../../interfaces/ReceivedFCMData.type';
 import FastImage from 'react-native-fast-image';
+import {getMMKVString, setMMKVString} from "../../utils/mmkvStorage";
 
 export interface AlaramItemProps{
   item: MatchFCM;
@@ -24,7 +25,11 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
     removeAlarmItem(notificationId);
     const matchAcceptResponse = await axiosPost<AxiosResponse<MatchAcceptResponse>>
                               (urls.ACCEPT_MSG_URL + notificationId, "인연 수락");
+        console.log("from alarm card to chatroom. ID: ", matchAcceptResponse.data.data.chatRoomId);
+        setMMKVString('chatRoomId', String(matchAcceptResponse.data.data.chatRoomId));
+        console.log('mmkv stored value: ', getMMKVString('chatRoomId'));
     navigate("채팅", { chatRoomId: matchAcceptResponse.data.data.chatRoomId });
+
   }
 
   return (
@@ -37,7 +42,7 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
       {expandedCardId === item.id ? (
         <>
           {
-            item.image ? 
+            item.image ?
             <FastImage
             style={styles.fullScreenImage}
             source={{ uri: item.image, priority: FastImage.priority.normal }}
@@ -48,7 +53,7 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
             ellipsizeMode="tail"
             style={styles.alarmContent}>{item.message}</Text>
           }
-          
+
           <View style={styles.btnContainer}>
             <Button style={{flex:1}} variant="sub" title="대화하기"
               onPress={async () => {

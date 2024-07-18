@@ -3,7 +3,7 @@ import { storeFCM } from './FcmStorage'
 import { navigate } from '../navigation/RootNavigation';
 import { DEFAULT_CHANNEL_NAME, getFCMChannels } from './FcmChannel';
 import { checkMyPageSettings, checkKeywordSettings, checkMessageForKeywords } from './FcmAlarm';
-import { getDefaultMMKVString } from '../utils/mmkvStorage';
+import {getDefaultMMKVString, getMMKVString, setMMKVString} from '../utils/mmkvStorage';
 import { get } from 'http';
 
 
@@ -90,7 +90,7 @@ const showLocalNotificationImage = (title:string, body:string, isMatch:boolean, 
 const handleFCMClick = (notification: any) => {
   const data = notification.data;
   console.log(`클릭이 발생한 fcm 내용 : '${data.message}'`);
-  
+
   const additionalData = data.additionalData ? JSON.parse(data.additionalData) : {};
 
   if (data) {
@@ -107,7 +107,10 @@ const handleFCMClick = (notification: any) => {
         break;
       case 'chat':
         // 예: 채팅 화면으로 이동
-        navigate("채팅", { chatRoomId: additionalData.chatRoomId });  
+        navigate("채팅", { chatRoomId: additionalData.chatRoomId });
+        console.log("from fcm to chatroom. ID: ", additionalData.chatRoomId);
+        setMMKVString('chatRoomId', String(additionalData.chatRoomId));
+        console.log('mmkv stored value: ', getMMKVString('chatRoomId'));
         break;
       default:
         console.log('Unknown fcmType:', fcmType);
@@ -115,7 +118,7 @@ const handleFCMClick = (notification: any) => {
     }
   } else {
     console.log('Notification data is undefined');
-  }  
+  }
 }
 
 
@@ -132,7 +135,7 @@ const FCMDataType = (data) => {
   const additionalData = data.additionalData ? JSON.parse(data.additionalData) : {};
 
   const title = data.fcmType === 'match' ? "인연으로부터 메시지가 도착했습니다." : `${additionalData.senderName || 'Unknown'}`;
-  
+
   const { body, imageUrl } = FCMMessageParse(data.message);
 
   return { title, body, isNotification: false, isMatch: data.fcmType === "match", imageUrl };

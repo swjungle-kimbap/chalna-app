@@ -80,8 +80,11 @@ const onRenderCallback = (
 type ChattingScreenRouteProp = RouteProp<{ ChattingScreen: { chatRoomId: string } }, 'ChattingScreen'>;
 
 const ChattingScreen: React.FC = () => {
+
+    const chatRoomId = getMMKVString('chatRoomId');
+
     const route = useRoute<ChattingScreenRouteProp>();
-    let {chatRoomId} = route.params;
+    // let {chatRoomId} = route.params;
     const navigation = useNavigation();
 
     const currentUserId = useRecoilValue<LoginResponse>(userInfoState).id;
@@ -108,7 +111,7 @@ const ChattingScreen: React.FC = () => {
     const updatedMessageBuffer = useRef<directedChatMessage[]>([]);
     const batchSize = 20;
 
-    const chatRoomIdRef = useRef<string>(chatRoomId);
+    // const chatRoomIdRef = useRef<string>(getMMKVString('chatRoomId'));
     const chatRoomTypeRef = useRef<string>(chatRoomType);
 
     const [showAnnouncement, setShowAnnouncement] = useState<boolean>(false); // State for showing announcement
@@ -189,7 +192,7 @@ const ChattingScreen: React.FC = () => {
 
 
     const handleSelectImage = () => {
-        chatRoomIdRef.current = chatRoomId;
+        // chatRoomIdRef.current = chatRoomId;
         const options: ImageLibraryOptions = {mediaType: 'photo', includeBase64: false};
         launchImageLibrary(options, (response: ImagePickerResponse) => {
             if (response.didCancel) {
@@ -428,7 +431,7 @@ const ChattingScreen: React.FC = () => {
             } else {
                 const savedRoute = getMMKVString('currentRouteName');
                 if (savedRoute === '채팅') {
-                chatRoomId = chatRoomIdRef.current;
+                // chatRoomId = chatRoomIdRef.current;
                 setupWebSocket(chatRoomId,()=>fetchMessages(false));
             }
             }
@@ -443,13 +446,16 @@ const ChattingScreen: React.FC = () => {
         const fetchMessages = async (isInitialLoad: boolean) => {
 
             console.log("!!!!!! INITIAL LOAD !!!!!!");
+            console.log("showLocalModal 111: ", getMMKVString('localChatJoinModal'));
             console.log("ChatRoomTypeRef: ", chatRoomTypeRef.current);
             try {
 
                 if (isInitialLoad){
                     const showLocalModal = getMMKVString('localChatJoinModal');
-                    if (showLocalModal==='true' && !doesChatRoomExist(Number(chatRoomId)) ){
+                    console.log("show L M 222: ", showLocalModal);
+                    if (showLocalModal=='true' && !doesChatRoomExist(Number(chatRoomId)) ){
                         setMMKVString('localChatJoinModal',''); // 일단 초기화
+                        console.log("reset localChatJoinModal: ",getMMKVString('localChatJoinModal'));
                         await new Promise<void>((resolve)=> {
                             showModal(
                                 "장소톡 입장",
@@ -467,12 +473,13 @@ const ChattingScreen: React.FC = () => {
                             );
 
                         });
+
                     }
 
                     setLoading(true);
                     // Step 1: Load stored messages and information first
                     const latestMessages = await getChatMessages(chatRoomId, batchSize, null);
-                    // console.log('latest MSGs: ', latestMessages)
+                    console.log('latest MSGs from storage: ', latestMessages)
                     if (latestMessages && latestMessages.length > 0) {
                         setMessages(latestMessages); // Load latest messages
                         console.log("Loaded latest messages from local storage");
@@ -482,12 +489,18 @@ const ChattingScreen: React.FC = () => {
                     // console.log("=========== on fetching data from Local Storage chatRoomId: ", chatRoomId);
                     // console.log("data from storage: ", chatRoomInfoFromStorage);
                     if (chatRoomInfoFromStorage) {
+                        chatRoomTypeRef.current = chatRoomInfoFromStorage.type;
                         setChatRoomType(chatRoomInfoFromStorage.type);
                         setMembers(chatRoomInfoFromStorage.chatRoomMemberInfo.members);
                         setUsername(chatRoomInfoFromStorage.name);
                         setMemberCount(String(chatRoomInfoFromStorage.chatRoomMemberInfo.memberCount));
                     }
                     setLoading(false);
+
+                    console.log("Finished loading from storage =======================");
+                    console.log('username ', username);
+                    console.log('room type set, ref', chatRoomType,chatRoomTypeRef.current);
+                    console.log('roomId ', chatRoomId );
 
                 }
 
@@ -595,6 +608,12 @@ const ChattingScreen: React.FC = () => {
                         .map((member: chatRoomMember)=> member.username)
                     setMyname(myname);
 
+                    console.log("Finished loading from API =======================");
+                    console.log('username ', username);
+                    console.log('room type set, ref', chatRoomType,chatRoomTypeRef.current);
+                    console.log('roomId ', chatRoomId );
+                    console.log('chatRoomName ', chatRoomName);
+
                 }
 
             } catch (error) {
@@ -617,9 +636,13 @@ const ChattingScreen: React.FC = () => {
                 // console.log("===소켓 메세지 버퍼=== ",updatedMessageBuffer.current);
                 saveChatMessages(chatRoomId, updatedMessageBuffer.current);
                 updatedMessageBuffer.current=[]; // empty buffer
+
+                // 나갈때 초기화
                 setMessages(null);
                 setUsername("");
                 setMemberCount("");
+                chatRoomTypeRef.current='';
+                setMMKVString('chatRoomId',' ');
             };
         }, [chatRoomId, currentUserId])
     );
@@ -642,6 +665,8 @@ const ChattingScreen: React.FC = () => {
             }
         } catch (error){
             console.error("Failed to send messages: ", error);
+        } finally {
+            isSending.current = false;
         }
     };
 

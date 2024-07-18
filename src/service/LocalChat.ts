@@ -9,19 +9,24 @@ import { PERMISSIONS } from "react-native-permissions";
 import { removeChatRoom } from './Chatting/mmkvChatStorage';
 import { showModal } from "../context/ModalService";
 import { uploadImage } from "../utils/FileHandling";
-import {setMMKVString} from "../utils/mmkvStorage";
+import {getMMKVString, setMMKVString} from "../utils/mmkvStorage";
 
 
 const requiredPermissions = [PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION];
 
 export const joinLocalChat = async (localChat:LocalChat, distance:number, setRefresh: Function) => {
+    // console.log("Join Local Chat Called :", getMMKVString('localChatJoinModal'));
     try {
       if (distance < 0.05){
+
         await axiosPost<JoinLocalChatResponse>(
           urls.JOIN_LOCAL_CHAT_URL + localChat.id.toString(), "장소 채팅 참여");
         setRefresh((prev)=>!prev);
-        navigate("채팅", { chatRoomId : localChat.chatRoomId });
         setMMKVString('localChatJoinModal', 'true');
+        setMMKVString('chatRoomId', String(localChat.chatRoomId || ''));
+        console.log("from local chat to chatroom. ID: ", localChat.chatRoomId);
+        console.log('mmkv stored value: ', getMMKVString('chatRoomId'));
+        navigate("채팅", { chatRoomId : localChat.chatRoomId });
       } else
         showModal('거리 제한', '거리가 너무 멀어요 100m 이내인경우 들어 갈 수 있어요!', ()=>{}, undefined, false)
       } catch (e) {
@@ -50,7 +55,7 @@ export const makeLocalChat = async (name, description, currentLocation, image) :
   } as SetLocalChatRequest);
 
   if (response?.data?.code === "201"){
-    showModal("채팅방 생성 완료!", "주위의 사람들과 대화를 나눠보세요!",()=>{},undefined,false)
+    showModal("채팅방 생성 완료!", "주위 사람들과 대화를 나눠보세요!",()=>{},undefined,false)
   }
   return response?.data?.data;
 }
