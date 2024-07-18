@@ -260,6 +260,7 @@ const styles = StyleSheet.create({
     },
     messageText: {
         color: "#444444",
+        fontSize: 14,
     },
     messageImage: {
         borderRadius: 10,

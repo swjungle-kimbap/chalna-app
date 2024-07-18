@@ -56,6 +56,7 @@ import color from "../../styles/ColorTheme";
 
 
 
+
 const onRenderCallback = (
     id, // the "id" prop of the Profiler tree that has just committed
     phase, // either "mount" (if the tree just mounted) or "update" (if it re-rendered)
@@ -96,6 +97,7 @@ const ChattingScreen: React.FC = () => {
 
 
     const [selectedImage, setSelectedImage] = useState<any>(null);
+    const isSending = useRef<boolean>(false);
 
     // paging
     const [viewableItems, setViewableItems] = useState<number[]>([]);
@@ -263,6 +265,10 @@ const ChattingScreen: React.FC = () => {
             chatMessageType.current = "CHAT";
         } catch (error) {
             console.error('Error 메시지: ', error);
+        } finally {
+            isSending.current=false;
+            // console.log("handleUploadAndSend END");
+            // console.log("isSending: ", isSending.current);
         }
     };
 
@@ -436,12 +442,14 @@ const ChattingScreen: React.FC = () => {
 
         const fetchMessages = async (isInitialLoad: boolean) => {
 
-
+            console.log("!!!!!! INITIAL LOAD !!!!!!");
+            console.log("ChatRoomTypeRef: ", chatRoomTypeRef.current);
             try {
 
                 if (isInitialLoad){
                     const showLocalModal = getMMKVString('localChatJoinModal');
-                    if (showLocalModal==='true' && !doesChatRoomExist(Number(chatRoomId))){
+                    if (showLocalModal==='true' && !doesChatRoomExist(Number(chatRoomId)) ){
+                        setMMKVString('localChatJoinModal',''); // 일단 초기화
                         await new Promise<void>((resolve)=> {
                             showModal(
                                 "장소톡 입장",
@@ -457,7 +465,7 @@ const ChattingScreen: React.FC = () => {
                                 '예',
                                 '아니오'
                             );
-                            setMMKVString('localChatJoinModal','');
+
                         });
                     }
 
@@ -617,17 +625,23 @@ const ChattingScreen: React.FC = () => {
     );
 
     const sendMessage = () => {
-        if (chatRoomType === 'WAITING')
-            return;
+        if (isSending.current) return;
+        if (chatRoomType === 'WAITING')  return;
+        if (chatMessageType.current !== 'FILE' && messageContent === '')  return;
 
-        if (chatMessageType.current !== 'FILE' && messageContent === '')
-            return;
+        isSending.current = true;
+        // console.log("IS SENDING ", isSending.current);
 
-        if (chatMessageType.current === 'CHAT') {
-            WebSocketManager.sendMessage(chatRoomId, messageContent, 'CHAT');
-            setMessageContent('');
-        } else {
-            handleUploadAndSend();
+        try{
+            if(chatMessageType.current === 'CHAT') {
+                WebSocketManager.sendMessage(chatRoomId, messageContent, 'CHAT');
+                setMessageContent('');
+                isSending.current = false;
+            } else {
+                handleUploadAndSend();
+            }
+        } catch (error){
+            console.error("Failed to send messages: ", error);
         }
     };
 
