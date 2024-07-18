@@ -477,27 +477,6 @@ const ChattingScreen: React.FC = () => {
                             );
 
                         });
-                    } else if (showMatchModal && !doesChatRoomExist(Number(chatRoomId)) ){
-                        // 인연 채팅 이전 기록 불러오기 모달창
-                        setMMKVString('showPrevModal',''); // 일단 초기화
-                        console.log("reset showPrevModal: ",getMMKVString('showPrevModal'));
-                        await new Promise<void>((resolve)=> {
-                            showModal(
-                                "전에 만났던 인연이네요!",
-                                "이전 대화내역을 불러오시겠습니까?",
-                                () => {
-                                    urlQuery.current = '?includePrevious=true'
-                                    resolve();
-                                },
-                                ()=>{
-                                    resolve();
-                                },
-                                true,
-                                '예',
-                                '아니오'
-                            );
-
-                        });
                     }
                     setMMKVString('showPrevModal',''); // 초기화
 
