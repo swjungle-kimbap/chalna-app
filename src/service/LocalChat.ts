@@ -20,8 +20,9 @@ export const joinLocalChat = async (localChat:LocalChat, distance:number, setRef
         await axiosPost<JoinLocalChatResponse>(
           urls.JOIN_LOCAL_CHAT_URL + localChat.id.toString(), "장소 채팅 참여");
         setRefresh((prev)=>!prev);
+        setMMKVString('showPrevModal', 'local');
         navigate("채팅", { chatRoomId : localChat.chatRoomId });
-        setMMKVString('localChatJoinModal', 'true');
+
       } else
         showModal('거리 제한', '거리가 너무 멀어요 100m 이내인경우 들어 갈 수 있어요!', ()=>{}, undefined, false)
       } catch (e) {
