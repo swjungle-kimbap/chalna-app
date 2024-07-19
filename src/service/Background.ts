@@ -1,12 +1,9 @@
 import BackgroundService from 'react-native-background-actions';
-import ScanNearbyAndPost from './Bluetooth'
-import { NativeEventEmitter, NativeModules } from 'react-native';
 import { axiosPost } from '../axios/axios.method';
 import { urls } from "../axios/config";
 import { loginMMKVStorage } from '../utils/mmkvStorage';
 import Geolocation from "react-native-geolocation-service";
 import { Position } from '../interfaces';
-
 const DelayedTime = 4 * 60 * 60 * 1000;
 
 const sendRelationCnt = async (_uuid:string, currentTime:number) => {
@@ -39,18 +36,26 @@ export const addDevice = (_uuid: string, currentTime: number) => {
 const backgroundBLE = async (args:any) => {
   const { uuid } = args;
   await new Promise((resolve) => {
-    ScanNearbyAndPost(uuid);
-    const eventEmitter = new NativeEventEmitter(NativeModules.BLEAdvertiser);
-    eventEmitter.removeAllListeners('onDeviceFound');
-    eventEmitter.addListener('onDeviceFound', async (event) => {
-      if (event.serviceUuids) {
-        for (let i = 0; i < event.serviceUuids.length; i++) {
-          if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00')) {
-            addDevice(event.serviceUuids[i], new Date().getTime());
-          }
-        }
-      }
-    });
+    // ScanNearbyAndPost(uuid);
+    // const eventEmitter = new NativeEventEmitter(NativeModules.BLEAdvertiser);
+    // eventEmitter.removeAllListeners('onDeviceFound');
+    // eventEmitter.addListener('onDeviceFound', async (event) => {
+    //   const now = new Date().getTime();
+    //   if (event.serviceUuids) {
+    //     for (let i = 0; i < event.serviceUuids.length; i++) {
+    //       const serviceUuid = event.serviceUuids[i];
+    //       if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00')) {
+    //         if (lastProcessed[serviceUuid] && (now - lastProcessed[serviceUuid]) < 4 * 1000) {
+    //           continue;
+    //         }
+    //         console.log("background", lastProcessed, serviceUuid, now);
+    //         lastProcessed[serviceUuid] = now;
+
+    //         addDevice(event.serviceUuids[i], new Date().getTime());
+    //       }
+    //     }
+    //   }
+    // });
   });
 };
 

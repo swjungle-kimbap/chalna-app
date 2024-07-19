@@ -45,13 +45,10 @@ interface BleScanInfo {
   txPower: number,
 }
 
-const uuidSet = new Set<string>();
-const uuidTime = new Map();
-const uuidTimeoutID = new Map();
-const kFileters = new Map();
 const scanDelayedTime = 4 * 1000;
 const sendDelayedTime = 30 * 1000;
 const maxScanDelayedTime = 10 * 1000;
+const DeviceAddDelayedTime = 4 * 60 * 60 * 1000;
 
 // 주영 테스트
 const uuidSet2 = new Set<string>();
@@ -74,7 +71,15 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
   const [remainingTime, setRemainingTime] = useState(30);
   const [showMsgBox, setShowMsgBox] = useState(false);
   const [fadeInAndMoveUp, fadeAnim, translateY] = useFadeText();
-  const [uuids, setUuids] = useState<Set<string>>(new Set());
+  const [uuids, setUuids] = useState<Set<string>>(new Set()); // useState 사용
+
+  const uuidSet = useRef(new Set<string>());
+  const uuidTime = useRef(new Map());
+  const uuidTimeoutID = useRef(new Map());
+  const kFileters = useRef(new Map());
+  const lastProcessed = useRef(new Map());
+  const lastDeviceAddProcessed = useRef(new Map());
+  const backgroundAddProcessed = useRef(new Map());
 
   //테스트용 임니당
   const [uuids2, setUuids2] = useState<Set<string>>(new Set());
@@ -154,28 +159,29 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
       updateRssi(uuid, rssi);
 
     if (isBlocked) {
-      if (uuidSet.size > 0) {
-        uuidSet.clear();
-        uuidTime.clear();
+      if (uuidSet.current.size > 0) {
+        uuidSet.current.clear();
+        uuidTime.current.clear();
         for (const timeoutId of Object.values(uuidTimeoutID)) {
           clearTimeout(timeoutId);
         }
-        uuidTimeoutID.clear();
+        uuidTimeoutID.current.clear();
       }
       return;
     }
 
-    if (!uuidSet.has(uuid)) {
-      uuidSet.add(uuid);
+    if (!uuidSet.current.has(uuid)) {
+      uuidSet.current.add(uuid);
       uuidTime[uuid] = 0
     } else if (uuidTimeoutID[uuid]) {
       clearTimeout(uuidTimeoutID[uuid]);
       uuidTime[uuid] += 1;
-      uuidTime[uuid] = 7 >= uuidTime[uuid] ? uuidTime[uuid] : 7;
+      uuidTime[uuid] = 5 >= uuidTime[uuid] ? uuidTime[uuid] : 5;
     }
     const scanTime = scanDelayedTime + (uuidTime[uuid]) * 1000;
     uuidTimeoutID[uuid] = setTimeout(() => {
-      uuidSet.delete(uuid);
+      uuidSet.current.delete(uuid);
+      uuidTime[uuid] = 0;
       if (isRssiTracking) {
         setRssiMap(prevMap => {
           const newMap = new Map(prevMap);
@@ -183,9 +189,9 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
           return newMap;
         });
       }
-      setUuids(new Set(uuidSet));
+      setUuids(new Set(uuidSet.current));
     }, scanTime);
-    setUuids(new Set(uuidSet));
+    setUuids(new Set(uuidSet.current));
   };
 
   useEffect(() => {
@@ -194,24 +200,51 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
     const eventEmitter = new NativeEventEmitter(BLEAdvertiser);
     eventEmitter.removeAllListeners('onDeviceFound');
     eventEmitter.addListener('onDeviceFound', (event: BleScanInfo) => {
+      const now = new Date().getTime();
       for (let i = 0; i < event.serviceUuids.length; i++) {
+        const serviceUuid = event.serviceUuids[i];
+
         if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00')) {
+          let rssi = event.rssi;
           if (isRssiTracking) {
             let kf = kFileters[event.serviceUuids[i]];
             if (!kf) {
               kFileters[event.serviceUuids[i]] = new KalmanFilter();
               kf = kFileters[event.serviceUuids[i]];
             }
-            const filterdRSSI = kf.filter(event.rssi);
-            if (filterdRSSI < RSSIvalue) return;
-            handleSetIsNearby(event.serviceUuids[i], filterdRSSI, isBlocked);
-          } else {
-            handleSetIsNearby(event.serviceUuids[i], event.rssi, isBlocked);
+            rssi = kf.filter(event.rssi);
+            if (rssi < RSSIvalue) continue;
           }
+          if (lastProcessed[serviceUuid] && (now - lastProcessed[serviceUuid]) < 1500) {
+            continue;
+          }
+          lastProcessed[serviceUuid] = now;
+          handleSetIsNearby(event.serviceUuids[i], rssi, isBlocked);
+          if (lastDeviceAddProcessed[serviceUuid] && (now - lastDeviceAddProcessed[serviceUuid]) < DeviceAddDelayedTime) {
+            continue;
+          }
+          lastDeviceAddProcessed[serviceUuid] = now;
           addDevice(event.serviceUuids[i], new Date().getTime());
         }
       }
     });
+
+    return (()=> {
+      eventEmitter.removeAllListeners('onDeviceFound');
+      eventEmitter.addListener('onDeviceFound', (event: BleScanInfo) => {
+        const now = new Date().getTime();
+        for (let i = 0; i < event.serviceUuids.length; i++) {
+          const serviceUuid = event.serviceUuids[i];
+          if (event.serviceUuids[i] && event.serviceUuids[i].endsWith('00')) {
+            if (backgroundAddProcessed[serviceUuid] && (now - backgroundAddProcessed[serviceUuid]) < DeviceAddDelayedTime) {
+              continue;
+            }
+            backgroundAddProcessed[serviceUuid] = now;
+            addDevice(event.serviceUuids[i], new Date().getTime());
+          }
+        }
+      });
+    })
   }, [isScanning, isBlocked, isRssiTracking, handleSetIsNearby]);
 
   const startScan = async () => {
@@ -250,13 +283,13 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
       startScan();
     else if (isScanning) {
       stopScan();
-      if (uuidSet.size > 0) {
-        uuidSet.clear();
-        uuidTime.clear();
+      if (uuidSet.current.size > 0) {
+        uuidSet.current.clear();
+        uuidTime.current.clear();
         for (const timeoutId of Object.values(uuidTimeoutID)) {
           clearTimeout(timeoutId);
         }
-        uuidTimeoutID.clear();
+        uuidTimeoutID.current.clear();
       }
     }
   };
@@ -275,7 +308,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
         <BleButton bleON={isScanning} bleHanddler={handleBLEButton} />
         <AlarmButton notificationId={notificationId} />
         <MessageBox
-          uuids={uuidSet}
+          uuids={uuidSet.current}
           setRemainingTime={setRemainingTime}
           setShowMsgBox={setShowMsgBox}
           fadeInAndMoveUp={fadeInAndMoveUp}
@@ -299,9 +332,9 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
                   translateY={translateY}
                   remainingTime={remainingTime}
                   showMsgBox={showMsgBox}
-                />  : uuidSet.size > 0 ? (
+                />  : uuidSet.current.size > 0 ? (
                   <View style={styles.bleBottomSubContainer}>
-                    <Text style={styles.findTextSmall}>주위 {uuidSet.size}명의 인연을 찾았습니다!</Text>
+                    <Text style={styles.findTextSmall}>주위 {uuidSet.current.size}명의 인연을 찾았습니다!</Text>
                     <MessageGif setShowMsgBox={setShowMsgBox} />
                   </View>
                 ) : (
