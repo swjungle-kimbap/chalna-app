@@ -24,7 +24,7 @@ const BleBottomComponent: React.FC<BleBottomComponentProps> = ({
     <View style={[styles.bleBottomContainer, style]}>
       <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: translateY }] }}>
         <Text style={styles.messageText}>
-          {msgSendCnt ? `${msgSendCnt}명에게 인연 메세지를 보냈습니다.` : "메세지를 보낼 수 없는 대상입니다. 다시 보내 주세요!"}
+          {msgSendCnt !== 0 ? `${msgSendCnt}명에게 인연 메세지를 보냈습니다.` : "메세지를 보낼 수 없는 대상입니다. 다시 보내 주세요!"}
         </Text>
       </Animated.View>
       <Text style={styles.blockText}>인연 메세지는</Text>
