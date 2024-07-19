@@ -308,7 +308,7 @@ const BluetoothScreen: React.FC<BluetoothScreenPrams> = ({ route }) => {
         <BleButton bleON={isScanning} bleHanddler={handleBLEButton} />
         <AlarmButton notificationId={notificationId} />
         <MessageBox
-          uuids={uuidSet.current}
+          uuids={uuids}
           setRemainingTime={setRemainingTime}
           setShowMsgBox={setShowMsgBox}
           fadeInAndMoveUp={fadeInAndMoveUp}
