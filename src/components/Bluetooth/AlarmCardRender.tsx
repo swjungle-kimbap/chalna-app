@@ -21,10 +21,14 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
   ({ item, expandedCardId, restTime, closeModal, handleCardPress, removeAlarmItem }) => {
 
     const handleAcceptButton = async (notificationId:string) => {
-    removeAlarmItem(notificationId);
-    const matchAcceptResponse = await axiosPost<AxiosResponse<MatchAcceptResponse>>
-                              (urls.ACCEPT_MSG_URL + notificationId, "인연 수락");
-    navigate("채팅", { chatRoomId: matchAcceptResponse.data.data.chatRoomId });
+    try{
+        const matchAcceptResponse = await axiosPost<AxiosResponse<MatchAcceptResponse>>
+        (urls.ACCEPT_MSG_URL + notificationId, "인연 수락");
+        navigate("채팅", { chatRoomId: matchAcceptResponse.data.data.chatRoomId });
+        removeAlarmItem(notificationId);
+    } catch (e) {
+        console.log('인연 수락 에러');
+    }
   }
 
   return (
@@ -37,7 +41,7 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
       {expandedCardId === item.id ? (
         <>
           {
-            item.image ? 
+            item.image ?
             <FastImage
             style={styles.fullScreenImage}
             source={{ uri: item.image, priority: FastImage.priority.normal }}
@@ -48,7 +52,7 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
             ellipsizeMode="tail"
             style={styles.alarmContent}>{item.message}</Text>
           }
-          
+
           <View style={styles.btnContainer}>
             <Button style={{flex:1}} variant="sub" title="대화하기"
               onPress={async () => {
