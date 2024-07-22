@@ -21,9 +21,9 @@ const AlarmCardRender: React.FC<AlaramItemProps> =
   ({ item, expandedCardId, restTime, closeModal, handleCardPress, removeAlarmItem }) => {
 
     const handleAcceptButton = async (notificationId:string) => {
-    removeAlarmItem(notificationId);
     const matchAcceptResponse = await axiosPost<AxiosResponse<MatchAcceptResponse>>
                               (urls.ACCEPT_MSG_URL + notificationId, "인연 수락");
+    removeAlarmItem(notificationId);
     navigate("채팅", { chatRoomId: matchAcceptResponse.data.data.chatRoomId });
   }
 

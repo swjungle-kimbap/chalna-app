@@ -23,7 +23,6 @@ export const sendFriendRequest = (otherId: number, chatRoomId: number): Promise<
                 resolve(true);
               } catch (error) {
                 const errorMessage = error.response?.data?.message || error.message || '친구 요청 전송이 실패했습니다.';
-                showModal("찰나가 아파요..", errorMessage, () => {}, undefined, false);
                 resolve(false);
               }
             },
@@ -63,7 +62,6 @@ export const acceptFriendRequest = async (requestId: number, friendMap:Map<strin
                 resolve(true);
               } catch (error) {
                 const errorMessage = error.response?.data?.message || error.message || '친구 요청을 수락할 수 없습니다.';
-                showModal('찰나가 아파요..', errorMessage, () => {}, undefined, false);
                 resolve(false);
               }
             },
@@ -88,7 +86,6 @@ export const rejectFriendRequest = async (requestId: number) => {
                 resolve(true);
               } catch (error) {
                 const errorMessage = error.response?.data?.message || error.message || '친구 요청을 거절할 수 없습니다.';
-                showModal('찰나가 아파요..', errorMessage, () => {}, undefined, false);
                 resolve(false);
               }
             },
@@ -116,7 +113,6 @@ export const deleteFriend = async (otherId: number) => {
                 resolve(true);
               } catch (error) {
                 const errorMessage = error.response?.data?.message || error.message || '친구 삭제에 실패했습니다 다시 시도해주세요.';
-                showModal('찰나가 아파요..', errorMessage, () => {}, undefined, false);
                 resolve(false);
               }
             },

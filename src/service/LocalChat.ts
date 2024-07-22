@@ -99,7 +99,6 @@ export const ChatDisconnectOut = async (chatRoomId:number, setRefresh:Function) 
       setRefresh((prev)=>!prev);
   } catch (error) {
     const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
-    showModal('찰나가 아파요..','조금만 기다려주세요.',()=>{},undefined,false)
   }
 };
 
@@ -113,7 +112,6 @@ export const ChatOut = async (chatRoomId:number, setRefresh:Function) => {
     setRefresh((prev)=>!prev);
   } catch (error) {
     const errorMessage = error.response?.data?.message || error.message || '채팅방 나가기가 실패했습니다. 다시 시도해주세요.';
-    showModal('찰나가 지금 아파요..','조금만 기다려주세요.',()=>{},undefined,false)
   }
 };
 

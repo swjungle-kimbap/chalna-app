@@ -5,6 +5,7 @@ import {urls} from "./config";
 import { Alert } from "react-native";
 import handleErrors from "./handleErrors";
 import { loginMMKVStorage } from "../utils/mmkvStorage";
+import { showModal } from "../context/ModalService";
 
 const instance: AxiosInstance = axios.create({
   baseURL: Config.BASE_URL+Config.API_BASE_URL,
@@ -44,9 +45,12 @@ instance.interceptors.response.use(
     return response
   },
   async (error:AxiosError) => {
+    if (!error.response) {
+      showModal("인터넷 연결", "인터넷 연결이 끊어졌어요!", null);
+    }
     const success = handleErrors(error);
     if (!success)
-      return Promise.reject(error);
+      return showModal('찰나가 아파요..','조금만 기다려주세요.',()=>{},undefined,false);
     else 
       return Promise.resolve();
   }
