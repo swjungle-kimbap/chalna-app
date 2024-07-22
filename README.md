@@ -118,21 +118,55 @@ npx react-native start
 adb install android/app/build/outputs/apk/release/app-release.apk
 ```
 
+## <img src="https://github.com/user-attachments/assets/29c1f291-db41-4e3e-8835-f3d63795eede" alt="주요기능" width="35" align="center">  주요 기능
+
+<div align="center">
+  <h3>인연 찾기</h3>
+  <img src="https://github.com/user-attachments/assets/94af3637-1dc6-419b-b769-124a80ccc6b2" alt="인연 탐색" width="250">
+  <br>
+  주변의 찰나 사용자를 찾아 메세지를 보낼 수 있어요
+</div>
+
+<div align="center">
+  <h3>인연 대화</h3>
+  <img src="https://github.com/user-attachments/assets/8ffae29e-1e31-428d-9b73-ab82ed911d94" alt="인연 대화" width="250">
+  <br>
+  인연 메세지를 수락하면 5분간 대화를 할 수 있어요
+</div>
+
+<div align="center">
+  <h3>인연 기록</h3>
+  <img src="https://github.com/user-attachments/assets/5a02542f-f13d-461e-b92c-31fbe4b9884a" alt="인연 기록" width="250">
+  <br>
+  인연과 친구가 되면 지금까지 스쳤던 기록을 볼 수 있어요
+</div>
+
+<div align="center">
+  <h3>장소 채팅</h3>
+  <img src="https://github.com/user-attachments/assets/a9daa400-7379-43a5-92e5-a51a8c00b6a7" alt="장소 채팅" width="250">
+  <br>
+  내 주변 장소 채팅에 참가하거나 직접 만들 수 있어요
+</div>
+
+<div align="center">
+  <h3>마이페이지</h3>
+  <img src="https://github.com/user-attachments/assets/76e823d8-69a9-483d-9127-79061230636b" alt="마이 페이지" width="250">
+  <br>
+  인연 알림 설정을 할 수 있어요
+</div>
+
+<div align="center">
+  <h3>로그인</h3>
+  <img src="https://github.com/user-attachments/assets/73c8923b-da98-4176-a7bf-acbbb6a7671d" alt="로그인" width="250">
+  <br>
+  찰나를 시작해보세요
+</div>
+
 ## 🖼️ 포스터
 
 <div align="center">
 <img src="https://github.com/user-attachments/assets/77da18d4-ad33-43fc-a60c-73c1ccc553ac" alt="포스터" width="800" align="center"/>
 </div>
 
-
-## <img src="https://github.com/user-attachments/assets/29c1f291-db41-4e3e-8835-f3d63795eede" alt="주요기능" width="35" align="center">  주요 기능
-
-### 로그인
-### 인연 탐색
-### 장소 채팅
-### 대화
-### 인연 로그
-### 친구 목록
-### 마이 페이지
 
 
