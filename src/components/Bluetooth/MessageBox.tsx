@@ -148,6 +148,10 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
     }
   };
 
+  const explainMessage = () => {
+    showModal("인연 메세지 작성", `${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요!`, () => {}, undefined,false);
+  }
+
   return (
     <> 
     <Modal
@@ -164,14 +168,9 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
         <View style={styles.titleContainer}>
 
           <Text variant='title' style={styles.title}>인연 메세지</Text>
-            <TouchableOpacity onPress={() => {
-              showModal("인연 메세지 작성", `${sendDelayedTime}초에 한번씩 주위의 인연들에게 메세지를 보낼 수 있어요!`, () => {}, undefined,false);}
-            } style={styles.questionIconContainer}>
-              <Image source={require('../../assets/Icons/Question2.png')} style={styles.questionIcon} />
-          </TouchableOpacity>
-
+          <Button onPress={explainMessage} 
+              iconSource={require('../../assets/Icons/Question2.png')} imageStyle={styles.questionIcon}/>
           </View>
-
             <View style={styles.tagContainer}>
             {tags.map(tag => (
               <TouchableOpacity
@@ -207,17 +206,9 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
             { msgText.length < 5 ? <Text style={styles.charCount}>메세지를 5글자 이상 입력해주세요</Text> :
               msgText.length > 100 ? <Text style={styles.charCount}>메세지를 100글자 이하로 입력해주세요</Text> :
               // <>
-                  <TouchableOpacity 
-                    style={styles.sendButton} 
-                    onPress={handleSendingMessage}
-                    activeOpacity={0.7}
-                    >
-                    <Image
-                      source={require('../../assets/Icons/SendIcon.png')} // 이미지 아이콘 경로 설정
-                      style={styles.sendButtonIcon}
-                    />
-                  </TouchableOpacity>}
-                
+              <Button onPress={handleSendingMessage} containerStyle={styles.sendButton}
+                iconSource={require('../../assets/Icons/SendIcon.png')} imageStyle={styles.sendButtonIcon}/>
+              }
             </>
           ): (
             <>
@@ -229,9 +220,8 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
                   source={{ uri: imageUrl, priority: FastImage.priority.normal }}
                   resizeMode={FastImage.resizeMode.contain}
                 />
-                <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageButton}>
-                  <Text style={styles.removeImageButtonText}>×</Text>
-                </TouchableOpacity>
+                <Button onPress={handleRemoveImage} containerStyle={styles.removeImageButton}
+                  title="x" titleStyle={styles.removeImageButtonText}/>
                 </>
               ) : (
               <TouchableOpacity onPress={handleSelectImage} style={styles.button}>
@@ -243,17 +233,10 @@ const MessageBox: React.FC<MessageBoxPrams> = ({uuids, setRemainingTime, setShow
                 </TouchableOpacity>
               )}
             </View>
-            { imageUrl &&
-              <TouchableOpacity 
-                style={styles.sendButton} 
-                onPress={handleSendingMessage}
-                activeOpacity={0.7}
-              >
-                <Image
-                      source={require('../../assets/Icons/SendIcon.png')} // 이미지 아이콘 경로 설정
-                      style={styles.sendButtonIcon}
-                />
-              </TouchableOpacity>}
+            {imageUrl &&
+              <Button onPress={handleSendingMessage} containerStyle={styles.sendButton}
+                iconSource={require('../../assets/Icons/SendIcon.png')} imageStyle={styles.sendButtonIcon}/>
+            }
             </>      
           )}
       </View>

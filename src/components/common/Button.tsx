@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import Text from './Text';
 import { Image, TouchableOpacity, TouchableOpacityProps,
   ImageSourcePropType, ImageStyle, TextStyle, ViewStyle } from 'react-native';
+import throttle from 'lodash/throttle';
 
 type ImageTextButtonProps = TouchableOpacityProps & {
   iconSource?: ImageSourcePropType;
@@ -23,6 +24,13 @@ const ImageTextButton: React.FC<ImageTextButtonProps> = ({
   disabled,
   ...rest
 }) => {
+  const throttledOnPress = useCallback(
+    throttle((event) => {
+      if (onPress) onPress(event);
+    }, 1000), // 1초 동안 한 번만 호출됨
+    [onPress]
+  );
+
   const renderContent = () => {
     if (iconSource) {
       return (
@@ -34,8 +42,8 @@ const ImageTextButton: React.FC<ImageTextButtonProps> = ({
             variant={variant}
             style={[
                 titleStyle,
-                disabled && {color: '#a9a9a9'}, //grey out text if disabled
-                ]}>
+                disabled && {color: '#a9a9a9'}, // grey out text if disabled
+            ]}>
             {title}
         </Text>
       );
@@ -44,10 +52,11 @@ const ImageTextButton: React.FC<ImageTextButtonProps> = ({
   };
 
   return (
-    <TouchableOpacity onPress={onPress} style={containerStyle} disabled={disabled} {...rest}>
+    <TouchableOpacity onPress={throttledOnPress} style={containerStyle} disabled={disabled} {...rest}>
       {renderContent()}
     </TouchableOpacity>
   );
 };
+
 
 export default ImageTextButton;

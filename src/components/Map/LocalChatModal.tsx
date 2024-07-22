@@ -53,6 +53,7 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModa
     setImageUrl('');
     setImage(null);
   };
+  const showLocalChatModal = () => showModal("장소 대화방", "현재 위치에서 주위 사람들과의 대화방을 만들어 보세요! \n 100m 이내의 사람들만 참여할 수 있어요!", () => {}, undefined, false)
 
   return (
     <Modal
@@ -67,15 +68,13 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModa
           <View style={styles.inputBoxPos}>
                 <View style={styles.headerContainer}>
                   <Text style={styles.titleText}>장소 채팅 생성</Text>
-                  <TouchableOpacity style={styles.questionIconContainer} onPress={() => showModal("장소 대화방", "현재 위치에서 주위 사람들과의 대화방을 만들어 보세요! \n 50m 이내의 사람들만 참여할 수 있어요!", () => {}, undefined, false)}>
-                    <Image source={require('../../assets/Icons/Question2.png')} style={styles.questionIcon} />
-                  </TouchableOpacity>
+                  <Button containerStyle={styles.questionIconContainer} onPress={showLocalChatModal} 
+                    iconSource={require('../../assets/Icons/Question2.png')} imageStyle={styles.questionIcon}/>
                 </View>
 
                 {!imageUrl && (
-                  <TouchableOpacity onPress={handleSelectImage} style={styles.imageButton}>
-                    <Image source={require('../../assets/photo.png')} style={styles.imageIcon} />
-                  </TouchableOpacity>
+                   <Button containerStyle={styles.imageButton} onPress={handleSelectImage} 
+                    iconSource={require('../../assets/photo.png')} imageStyle={styles.imageIcon}/>
                 )}
 
                 {imageUrl && (
@@ -85,9 +84,8 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModa
                       source={{ uri: imageUrl, priority: FastImage.priority.normal }}
                       resizeMode={FastImage.resizeMode.contain}
                     />
-                    <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageButton}>
-                      <Text style={styles.removeImageButtonText}>×</Text>
-                    </TouchableOpacity>
+                    <Button containerStyle={styles.removeImageButton} onPress={handleRemoveImage} 
+                      title='x' titleStyle={styles.removeImageButtonText}/>
                   </View>
                 )}
 
@@ -103,9 +101,8 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModa
                     onSubmitEditing={() => descriptionInputRef.current?.focus()}
                   />
                   {name.length > 0 && (
-                    <TouchableOpacity onPress={() => setName('')}>
-                      <Image source={require('../../assets/buttons/CloseButton.png')} style={styles.closebutton} />
-                    </TouchableOpacity>
+                    <Button onPress={() => setName('')} 
+                      iconSource={require('../../assets/buttons/CloseButton.png')} imageStyle={styles.closebutton}/>
                   )}
                 </View>
 
@@ -120,9 +117,8 @@ const LocalChatModal: React.FC<LocalChatModalProps> = ({ modalVisible, closeModa
                     ref={descriptionInputRef}
                   />
                   {description.length > 0 && (
-                    <TouchableOpacity onPress={() => setDescription('')}>
-                      <Image source={require('../../assets/buttons/CloseButton.png')} style={styles.closebutton} />
-                    </TouchableOpacity>
+                    <Button onPress={() => setDescription('')} 
+                      iconSource={require('../../assets/buttons/CloseButton.png')} imageStyle={styles.closebutton}/>
                   )}
                 </View>
 
